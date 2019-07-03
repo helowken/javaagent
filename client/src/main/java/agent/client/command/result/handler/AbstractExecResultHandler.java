@@ -1,8 +1,9 @@
 package agent.client.command.result.handler;
 
+import agent.base.utils.Logger;
+import agent.client.utils.ClientLogger;
 import agent.common.message.command.Command;
 import agent.common.message.result.ExecResult;
-import agent.base.utils.Logger;
 import agent.common.message.result.handler.ExecResultHandler;
 
 public abstract class AbstractExecResultHandler implements ExecResultHandler {
@@ -14,7 +15,7 @@ public abstract class AbstractExecResultHandler implements ExecResultHandler {
             if (result.getStatus().isSuccess())
                 handleSuccess(command, result);
             else
-                logger.error("Error: \n{}", result.getMessage());
+                ClientLogger.logger.error("Error: \n{}", result.getMessage());
         } catch (Exception e) {
             logger.error("Handle result failed.", e);
         }

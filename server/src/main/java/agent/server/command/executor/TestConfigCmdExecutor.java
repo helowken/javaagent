@@ -7,7 +7,7 @@ import agent.common.message.result.ExecResult;
 import agent.server.transform.impl.MethodFinder;
 import agent.server.transform.TransformMgr;
 import agent.server.transform.config.ModuleConfig;
-import agent.base.utils.JSONUtils;
+import agent.server.utils.JSONUtils;
 import agent.base.utils.Logger;
 
 import java.util.ArrayList;

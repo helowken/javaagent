@@ -1,12 +1,12 @@
 package agent.client;
 
-import agent.base.utils.Logger;
 import agent.base.utils.Utils;
 import agent.client.command.parser.CommandParserMgr;
 import agent.client.command.parser.exception.CommandParseException;
 import agent.client.command.result.handler.CommandResultHandlerMgr;
 import agent.client.command.result.handler.TestConfigResultHandler;
 import agent.client.command.result.handler.ViewResultHandler;
+import agent.client.utils.ClientLogger;
 import agent.common.message.MessageMgr;
 import agent.common.message.command.Command;
 import agent.common.message.result.ExecResult;
@@ -24,8 +24,6 @@ import static agent.common.message.command.CommandType.CMD_TYPE_TEST_CONFIG;
 import static agent.common.message.command.CommandType.CMD_TYPE_VIEW;
 
 public class AgentClientRunner {
-    private static final Logger logger = Logger.getLogger(AgentClientRunner.class);
-    private static final String PREFIX = "[SYS]: ";
     private static final String KEY_HOST = "host";
     private static final String KEY_PORT = "port";
 
@@ -34,17 +32,11 @@ public class AgentClientRunner {
                 Utils.blankToNull(props.getProperty(KEY_HOST))
         ).orElse("127.0.0.1");
         int port = Utils.parseInt(props.getProperty(KEY_PORT), KEY_PORT);
-
         init();
         connectTo(host, port);
     }
 
-    private static void initLog() {
-
-    }
-
     private static void init() {
-        logger.setPrefix(PREFIX);
         CommandResultHandlerMgr.regResultHandlerClass(CMD_TYPE_TEST_CONFIG, new TestConfigResultHandler());
         CommandResultHandlerMgr.regResultHandlerClass(CMD_TYPE_VIEW, new ViewResultHandler());
     }
@@ -54,7 +46,7 @@ public class AgentClientRunner {
              BufferedReader reader = new BufferedReader(new InputStreamReader(System.in))
         ) {
             socket.connect(new InetSocketAddress(host, port));
-            logger.info("Agent Server connected.");
+            ClientLogger.logger.info("Agent Server connected.");
             try (MessageIO io = MessageIO.create(socket)) {
                 while (true) {
                     try {
@@ -63,12 +55,12 @@ public class AgentClientRunner {
                             break;
                         sendAndReceive(io, cmd);
                     } catch (CommandParseException e) {
-                        logger.error(e.getMessage());
+                        ClientLogger.logger.error(e.getMessage());
                     } catch (Exception e) {
                         if (MessageIO.isNetworkException(e))
-                            logger.error("Disconnected from Agent Server.");
+                            ClientLogger.logger.error("Disconnected from Agent Server.");
                         else
-                            logger.error("Error occurred.", e);
+                            ClientLogger.logger.error("Error occurred.", e);
                         break;
                     }
                 }

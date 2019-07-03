@@ -27,6 +27,7 @@ public class Logger {
     private final Date date = new Date();
     private String selfPrefix = null;
     private LoggerLevel selfLevel = null;
+    private PrintStream selfStream = null;
 
     public static Logger getLogger(Class<?> clazz) {
         return new Logger(clazz);
@@ -56,6 +57,10 @@ public class Logger {
 
     public void setPrefix(String prefix) {
         selfLock.sync(lock -> selfPrefix = prefix);
+    }
+
+    public void setStream(PrintStream stream) {
+        selfLock.sync(lock -> selfStream = stream);
     }
 
     public void info(String pattern, Object... pvs) {
@@ -107,12 +112,14 @@ public class Logger {
         return sb.toString();
     }
 
-    private static void println(String s) {
+    private void println(String s) {
         getOutputStream().println(s);
     }
 
-    private static PrintStream getOutputStream() {
-        PrintStream out = streamLock.syncValue(lock -> outputStream);
+    private PrintStream getOutputStream() {
+        PrintStream out = selfLock.syncValue(lock -> selfStream);
+        if (out == null)
+            out = streamLock.syncValue(lock -> outputStream);
         return out == null ? System.out : out;
     }
 

@@ -1,11 +1,11 @@
 package agent.client.command.result.handler;
 
 import agent.base.utils.Logger;
+import agent.client.utils.ClientLogger;
 
 import java.util.Map;
 
 abstract class AbstractContextResultHandler extends AbstractExecResultHandler {
-    private static final Logger logger = Logger.getLogger(AbstractContextResultHandler.class);
 
     <T> void write(String msg, Map<String, T> rsMap, WriteFunc<T> func) {
         StringBuilder sb = new StringBuilder();
@@ -19,7 +19,7 @@ abstract class AbstractContextResultHandler extends AbstractExecResultHandler {
                 func.write(sb, valueObject);
             });
         }
-        logger.info("{}: \n{}", msg, sb.toString());
+        ClientLogger.logger.info("{}: \n{}", msg, sb.toString());
     }
 
     protected interface WriteFunc<T> {

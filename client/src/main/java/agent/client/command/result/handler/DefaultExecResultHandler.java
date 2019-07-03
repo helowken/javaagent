@@ -1,5 +1,6 @@
 package agent.client.command.result.handler;
 
+import agent.client.utils.ClientLogger;
 import agent.common.message.command.Command;
 import agent.common.message.result.ExecResult;
 import agent.base.utils.Logger;
@@ -9,7 +10,7 @@ public class DefaultExecResultHandler implements ExecResultHandler {
     private static final Logger logger = Logger.getLogger(DefaultExecResultHandler.class);
     private static final DefaultExecResultHandler instance = new DefaultExecResultHandler();
 
-    public static DefaultExecResultHandler getInstance() {
+    static DefaultExecResultHandler getInstance() {
         return instance;
     }
 
@@ -24,7 +25,10 @@ public class DefaultExecResultHandler implements ExecResultHandler {
             if (message == null)
                 message = "success.";
             logger.info("{}: {}", cmdName, message);
-        } else
+            ClientLogger.logger.info(message);
+        } else {
             logger.error("{} failed! Error: {}", cmdName, message);
+            ClientLogger.logger.error("Failed: {}", message);
+        }
     }
 }

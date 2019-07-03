@@ -165,13 +165,12 @@ public class IOLogger implements AgentEventListener {
         void flush() {
             getWriter(logConfig.outputPath).exec(writer -> {
                 try {
+                    StringBuilder sb = new StringBuilder();
                     while (!buffer.isEmpty()) {
-                        String line = buffer.remove(0);
-                        writer.write(line + "\n");
-                        bufferSize -= line.length();
+                        sb.append(buffer.remove(0)).append("\n");
                     }
-                    if (bufferSize < 0)
-                        bufferSize = 0;
+                    bufferSize = 0;
+                    writer.write(sb.toString());
                 } finally {
                     writer.flush();
                 }

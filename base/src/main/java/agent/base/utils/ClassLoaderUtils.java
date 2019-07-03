@@ -23,11 +23,13 @@ public class ClassLoaderUtils {
     public static ClassLoader newClassLoader(ClassLoader parentLoader, String... libPaths) throws Exception {
         if (libPaths == null || libPaths.length == 0)
             throw new IllegalArgumentException("Empty lib paths.");
+        logger.debug("Parent class loader: {}", parentLoader);
         Set<String> libPathSet = Stream.of(libPaths).map(File::new).map(File::getAbsolutePath).collect(Collectors.toSet());
         List<URL> totalLibPathList = new ArrayList<>();
         for (String libPath : libPathSet) {
             totalLibPathList.addAll(collectJarUrls(libPath));
         }
+        totalLibPathList.forEach(url -> logger.debug("Jar url: {}", url));
         return new URLClassLoader(
                 totalLibPathList.toArray(new URL[0]),
                 parentLoader
@@ -46,7 +48,6 @@ public class ClassLoaderUtils {
         for (File file : allFiles) {
             urlList.add(file.toURI().toURL());
         }
-        urlList.forEach(url -> logger.debug("Jar url: {}", url));
         return urlList;
     }
 
