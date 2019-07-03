@@ -25,7 +25,17 @@
                 <module>parent</module>
                 <module>hock</module>
                 <module>server</module>
-                <module>launcher</module>
+                <module>server-launcher</module>
+            </modules>
+        </profile>
+
+        <profile>
+            <id>launcher</id>
+            <modules>
+                <module>parent</module>
+                <module>basic-launcher</module>
+                <module>server-launcher</module>
+                <module>client-launcher</module>
             </modules>
         </profile>
 
@@ -37,9 +47,11 @@
                 <module>hock</module>
                 <module>common</module>
                 <module>dependent-lib</module>
+                <module>basic-launcher</module>
                 <module>server</module>
-                <module>launcher</module>
+                <module>server-launcher</module>
                 <module>client</module>
+                <module>client-launcher</module>
             </modules>
         </profile>
     </profiles>

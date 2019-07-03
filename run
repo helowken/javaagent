@@ -2,11 +2,41 @@
 
 export USER_HOME=/home/helowken
 export AGENT_HOME=$USER_HOME/test_agent
-export LIB_DIR=$AGENT_HOME/lib
+export COMMON_LIB_DIR=$AGENT_HOME/common-lib
+export CLIENT_DIR=$AGENT_HOME/client
+export CLIENT_LIB_DIR=$CLIENT_DIR/lib
+export CLIENT_LOGS_DIR=$CLIENT_DIR/logs
+export SERVER_DIR=$AGENT_HOME/server
+export SERVER_LIB_DIR=$SERVER_DIR/lib
+export SERVER_LOGS_DIR=$SERVER_DIR/logs
 
-rm -f $LIB_DIR/*
+rm -rf $AGENT_HOME/*
+mkdir -p $COMMON_LIB_DIR
+mkdir -p $CLIENT_DIR
+mkdir -p $CLIENT_LIB_DIR
+mkdir -p $CLIENT_LOGS_DIR
+mkdir -p $SERVER_DIR
+mkdir -p $SERVER_LIB_DIR
+mkdir -p $SERVER_LOGS_DIR
 
-cp launcher/target/launcher-1.0-jar-with-dependencies.jar $AGENT_HOME
-cp common/target/common-1.0.jar $LIB_DIR
-cp server/target/server-1.0.jar $LIB_DIR
-cp dependent-lib/target/dependent-lib-1.0-jar-with-dependencies.jar $LIB_DIR
+# common-lib
+cp common/target/common-1.0.jar $COMMON_LIB_DIR
+cp dependent-lib/target/dependent-lib-1.0-jar-with-dependencies.jar $COMMON_LIB_DIR/dependent-lib.jar
+
+
+# server
+cp server-launcher/target/server-launcher-1.0-jar-with-dependencies.jar $SERVER_DIR/server-launcher.jar
+cp -R server-launcher/conf $SERVER_DIR
+# server-lib
+cp server/target/server-1.0.jar $SERVER_LIB_DIR
+
+
+# client
+cp client-launcher/target/client-launcher-1.0-jar-with-dependencies.jar $CLIENT_DIR/client-launcher.jar
+cp -R client-launcher/conf $CLIENT_DIR
+cp -R client-launcher/bin $CLIENT_DIR
+# client-lib
+cp client/target/client-1.0.jar $CLIENT_LIB_DIR
+
+
+

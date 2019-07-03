@@ -1,19 +1,20 @@
 package agent.server;
 
-import agent.base.utils.Logger;
-import agent.hock.utils.AgentConfig;
+import agent.base.utils.Utils;
 import agent.server.transform.TransformMgr;
 import agent.server.transform.exception.MultipleTransformException;
 import agent.server.transform.impl.system.HockRunnerTransformer;
 
 import java.lang.instrument.Instrumentation;
+import java.util.Properties;
 
-public class AgentRunner {
-    private static final Logger logger = Logger.getLogger(AgentRunner.class);
+public class AgentServerRunner {
     private static final String JETTY_RUNNER_CLASS = "org.eclipse.jetty.runner.Runner";
+    private static final String KEY_PORT = "port";
 
-    public static void run(Instrumentation instrumentation, AgentConfig config) throws Exception {
-        if (!AgentServerMgr.startup(config.port))
+    public static void run(Instrumentation instrumentation, Properties props) throws Exception {
+        int port = Utils.parseInt(props.getProperty(KEY_PORT), KEY_PORT);
+        if (!AgentServerMgr.startup(port))
             return;
         TransformMgr.getInstance().init(instrumentation);
         hockRunner();

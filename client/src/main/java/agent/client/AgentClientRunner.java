@@ -1,5 +1,6 @@
 package agent.client;
 
+import agent.base.utils.Logger;
 import agent.base.utils.Utils;
 import agent.client.command.parser.CommandParserMgr;
 import agent.client.command.parser.exception.CommandParseException;
@@ -16,31 +17,34 @@ import java.io.InputStreamReader;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.Arrays;
+import java.util.Optional;
+import java.util.Properties;
 
 import static agent.common.message.command.CommandType.CMD_TYPE_TEST_CONFIG;
 import static agent.common.message.command.CommandType.CMD_TYPE_VIEW;
 
-public class AgentClient {
+public class AgentClientRunner {
+    private static final Logger logger = Logger.getLogger(AgentClientRunner.class);
     private static final String PREFIX = "[SYS]: ";
+    private static final String KEY_HOST = "host";
+    private static final String KEY_PORT = "port";
 
-    public static void main(String[] args) throws Exception {
-        if (args.length < 1) {
-            System.err.println("Usage: [host] port");
-            System.exit(-1);
-        }
-        String host;
-        int port;
-        if (args.length == 2) {
-            host = args[0];
-            port = Utils.parseInt(args[1], "port");
-        } else {
-            host = "127.0.0.1";
-            port = Utils.parseInt(args[0], "port");
-        }
+    public static void run(Properties props) throws Exception {
+        String host = Optional.ofNullable(
+                Utils.blankToNull(props.getProperty(KEY_HOST))
+        ).orElse("127.0.0.1");
+        int port = Utils.parseInt(props.getProperty(KEY_PORT), KEY_PORT);
+
+        init();
         connectTo(host, port);
     }
 
+    private static void initLog() {
+
+    }
+
     private static void init() {
+        logger.setPrefix(PREFIX);
         CommandResultHandlerMgr.regResultHandlerClass(CMD_TYPE_TEST_CONFIG, new TestConfigResultHandler());
         CommandResultHandlerMgr.regResultHandlerClass(CMD_TYPE_VIEW, new ViewResultHandler());
     }
@@ -50,8 +54,7 @@ public class AgentClient {
              BufferedReader reader = new BufferedReader(new InputStreamReader(System.in))
         ) {
             socket.connect(new InetSocketAddress(host, port));
-            init();
-            info("Agent Server connected.");
+            logger.info("Agent Server connected.");
             try (MessageIO io = MessageIO.create(socket)) {
                 while (true) {
                     try {
@@ -60,25 +63,17 @@ public class AgentClient {
                             break;
                         sendAndReceive(io, cmd);
                     } catch (CommandParseException e) {
-                        error(e.getMessage());
+                        logger.error(e.getMessage());
                     } catch (Exception e) {
                         if (MessageIO.isNetworkException(e))
-                            error("Disconnected from Agent Server.");
+                            logger.error("Disconnected from Agent Server.");
                         else
-                            e.printStackTrace();
+                            logger.error("Error occurred.", e);
                         break;
                     }
                 }
             }
         }
-    }
-
-    private static void info(String msg) {
-        System.out.println(PREFIX + msg);
-    }
-
-    private static void error(String msg) {
-        System.err.println(PREFIX + msg);
     }
 
     private static Command readCommand(BufferedReader reader) throws Exception {

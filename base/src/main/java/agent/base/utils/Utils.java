@@ -1,9 +1,12 @@
 package agent.base.utils;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.PrintStream;
+import java.io.*;
+import java.util.Collections;
 import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @SuppressWarnings("unchecked")
 public class Utils {
@@ -45,5 +48,32 @@ public class Utils {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public static Properties loadProperties(String path) throws Exception {
+        try (InputStream in = new FileInputStream(path)) {
+            Properties props = new Properties();
+            props.load(in);
+            return props;
+        }
+    }
+
+    public static String blankToNull(String s) {
+        if (s != null && s.trim().isEmpty())
+            return null;
+        return s;
+    }
+
+    public static Set<String> splitToSet(String s, String sep) {
+        if (s == null)
+            return Collections.emptySet();
+        return Stream.of(s.split(sep))
+                .map(String::trim)
+                .filter(t -> !t.isEmpty())
+                .collect(Collectors.toSet());
+    }
+
+    public static String[] splitToArray(String s, String sep) {
+        return splitToSet(s, sep).toArray(new String[0]);
     }
 }
