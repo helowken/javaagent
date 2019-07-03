@@ -1,0 +1,35 @@
+{
+  "timeMeasure": {
+    "transformerList": [
+      {
+        "class": "pt.transform.impl.TimeMeasureTransformer"
+      }
+    ],
+    "targetList": [
+      {
+        "class": "com.ericsson.ngin.oauthserver.service.ExchangeAccessTokenServiceImpl",
+        "methods": [
+          {
+            "name": "getAccessToken",
+            "argTypes": [
+              "javax.ws.rs.core.MultivaluedMap",
+              "javax.ws.rs.core.HttpHeaders"
+            ]
+          }
+        ]
+      },
+      {
+        "class": "com.ericsson.ngin.oauthserver.service.ECEOAuthGenCodePublicService",
+        "methods": [
+          {
+            "name": "generateCode",
+            "argTypes": [
+              "java.util.Map",
+              "javax.ws.rs.core.HttpHeaders"
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

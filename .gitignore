@@ -1,0 +1,10 @@
+bin/
+target/
+logs/
+.idea/
+.settings/
+**/*.iml
+.classpath
+.project
+.metadata
+**/*.toDelete

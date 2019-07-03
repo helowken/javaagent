@@ -1,0 +1,3 @@
+Premain-Class: agent.launcher.InstrumentationAgent
+Can-Redefine-Classes: true
+Can-Retransform-Classes: true

@@ -1,0 +1,57 @@
+package agent.common.struct.impl;
+
+import agent.common.struct.Struct;
+import agent.common.struct.StructField;
+
+import java.nio.ByteBuffer;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
+@SuppressWarnings("unchecked")
+public class MapStruct<K, V> implements Struct {
+    private StructField field = StructFields.newMap();
+    private final Map<K, V> valueMap = new HashMap<>();
+
+    public void put(K key, V value) {
+        valueMap.put(key, value);
+    }
+
+    public V get(K key) {
+        return valueMap.get(key);
+    }
+
+    public void clear() {
+        valueMap.clear();
+    }
+
+    public void remove(K key) {
+        valueMap.remove(key);
+    }
+
+    public int size() {
+        return valueMap.size();
+    }
+
+    public void putAll(Map<K, V> map) {
+        valueMap.putAll(map);
+    }
+
+    public Map<K, V> getAll() {
+        return Collections.unmodifiableMap(valueMap);
+    }
+
+    public int bytesSize() {
+        return field.bytesSize(valueMap);
+    }
+
+    @Override
+    public void deserialize(ByteBuffer bb) {
+        valueMap.putAll((Map) field.deserialize(bb));
+    }
+
+    @Override
+    public void serialize(ByteBuffer bb) {
+        field.serialize(bb, valueMap);
+    }
+}

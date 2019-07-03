@@ -1,0 +1,12 @@
+#!/bin/bash
+
+export USER_HOME=/home/helowken
+export AGENT_HOME=$USER_HOME/test_agent
+export LIB_DIR=$AGENT_HOME/lib
+
+rm -f $LIB_DIR/*
+
+cp launcher/target/launcher-1.0-jar-with-dependencies.jar $AGENT_HOME
+cp common/target/common-1.0.jar $LIB_DIR
+cp server/target/server-1.0.jar $LIB_DIR
+cp dependent-lib/target/dependent-lib-1.0-jar-with-dependencies.jar $LIB_DIR
