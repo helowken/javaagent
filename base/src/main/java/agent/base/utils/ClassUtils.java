@@ -4,6 +4,15 @@ import java.lang.reflect.Method;
 
 @SuppressWarnings("unchecked")
 public class ClassUtils {
+    private static final String[] javaPackages = {"java.", "javax.", "sun."};
+
+    public static boolean isJavaNativePackage(String namePath) {
+        for (String javaPackage : javaPackages) {
+            if (namePath.startsWith(javaPackage))
+                return true;
+        }
+        return false;
+    }
 
     public static <T, V> V invokeStatic(String className, String methodName, Class<?>[] argTypes, Object[] args) throws Exception {
         return invokeStatic(Thread.currentThread().getContextClassLoader(), className, methodName, argTypes, args);

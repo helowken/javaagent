@@ -75,8 +75,6 @@ public class TransformMgr {
     }
 
     private Map<ModuleConfig, Map<TransformConfig, TransformerInfo>> parseConfig(byte[] bs) throws Exception {
-        logger.debug("Class loader: {}", getClass().getClassLoader());
-        logger.debug("Class  {}", getClass().getClassLoader().loadClass("com.fasterxml.jackson.core.type.TypeReference"));
         Map<ModuleConfig, Map<TransformConfig, TransformerInfo>> rsMap = new HashMap<>();
         for (ModuleConfig moduleConfig : ConfigParser.parse(bs)) {
             Map<TransformConfig, TransformerInfo> configToInfo = new HashMap<>();

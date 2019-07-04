@@ -1,13 +1,14 @@
 package agent.server.transform.impl;
 
+import agent.base.utils.Logger;
 import agent.server.transform.ConfigTransformer;
 import agent.server.transform.exception.InvalidTransformerConfigException;
-import agent.base.utils.Logger;
 import javassist.CtClass;
 import javassist.CtMethod;
 
 import java.security.ProtectionDomain;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -44,9 +45,16 @@ public abstract class AbstractConfigTransformer extends AbstractTransformer impl
     }
 
     @Override
+    protected Set<Class<?>> getClassSetAddToPool(String classNamePath) {
+        Set<Class<?>> classSet = new HashSet<>(super.getClassSetAddToPool(classNamePath));
+        classSet.add(transformerInfo.getTargetClassConfig(classNamePath).targetClass);
+        return classSet;
+    }
+
+    @Override
     protected byte[] doTransform(ClassLoader loader, String className, Class<?> classBeingRedefined,
                                  ProtectionDomain protectionDomain, byte[] classfileBuffer, String targetClassName) throws Exception {
-        MethodFinder.MethodSearchResult rs = MethodFinder.getInstance().find(transformerInfo.getTargetClassConfig(className));
+        MethodFinder.MethodSearchResult rs = MethodFinder.getInstance().rawFind(transformerInfo.getTargetClassConfig(className));
         CtClass ctClass = rs.ctClass;
         for (CtMethod ctMethod : rs.methodList) {
             logger.info("Transforming method: {}", ctMethod.getLongName());

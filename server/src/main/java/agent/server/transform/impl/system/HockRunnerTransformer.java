@@ -26,8 +26,8 @@ public class HockRunnerTransformer extends AbstractTransformer {
     }
 
     @Override
-    protected Set<Class<?>> getClassSetAddToPool() {
-        Set<Class<?>> classSet = new HashSet<>(super.getClassSetAddToPool());
+    protected Set<Class<?>> getClassSetAddToPool(String classNamePath) {
+        Set<Class<?>> classSet = new HashSet<>(super.getClassSetAddToPool(classNamePath));
         classSet.add(JettyRunnerHock.class);
         return classSet;
     }

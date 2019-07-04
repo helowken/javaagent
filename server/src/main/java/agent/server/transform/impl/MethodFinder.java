@@ -1,10 +1,11 @@
 package agent.server.transform.impl;
 
-import agent.server.transform.config.MethodFilterConfig;
+import agent.base.utils.ClassUtils;
+import agent.base.utils.Logger;
 import agent.server.transform.config.ClassConfig;
 import agent.server.transform.config.MethodConfig;
+import agent.server.transform.config.MethodFilterConfig;
 import agent.server.transform.exception.MultiMethodFoundException;
-import agent.base.utils.Logger;
 import javassist.ClassPool;
 import javassist.CtClass;
 import javassist.CtMethod;
@@ -17,7 +18,6 @@ import java.util.stream.Collectors;
 public class MethodFinder {
     private static final Logger logger = Logger.getLogger(MethodFinder.class);
     private static final MethodFinder instance = new MethodFinder();
-    private static final String[] javaPackages = {"java.", "javax.", "sun."};
 
     public static MethodFinder getInstance() {
         return instance;
@@ -26,25 +26,28 @@ public class MethodFinder {
     private MethodFinder() {
     }
 
+    public MethodSearchResult rawFind(TargetClassConfig targetClassConfig) throws Exception {
+        ClassPool cp = ClassPool.getDefault();
+        Set<String> methodLongNames = new HashSet<>();
+        ClassConfig classConfig = targetClassConfig.classConfig;
+        CtClass ctClass = cp.get(classConfig.getTargetClass());
+        logger.debug("Start to find methods for class: {}", ctClass.getName());
+        List<CtMethod> candidateList = new ArrayList<>();
+        if (classConfig.getMethodConfigList() != null)
+            candidateList.addAll(findByMethodConfig(classConfig.getMethodConfigList(), ctClass, cp));
+        if (classConfig.getMethodFilterConfig() != null)
+            candidateList.addAll(findByMethodFilter(classConfig.getMethodFilterConfig(), ctClass));
+        List<CtMethod> rsList = collectMethodsIfNeeded(methodLongNames, candidateList);
+        logger.debug("===============");
+        logger.debug("Matched methods:");
+        rsList.forEach(method -> logger.debug(method.getLongName()));
+        logger.debug("===============");
+        return new MethodSearchResult(ctClass, rsList);
+    }
+
     public MethodSearchResult find(TargetClassConfig targetClassConfig) {
         try {
-            return ClassPoolUtils.exec(targetClassConfig.targetClass, cp -> {
-                Set<String> methodLongNames = new HashSet<>();
-                ClassConfig classConfig = targetClassConfig.classConfig;
-                CtClass ctClass = cp.get(classConfig.getTargetClass());
-                logger.debug("Start to find methods for class: {}", ctClass.getName());
-                List<CtMethod> candidateList = new ArrayList<>();
-                if (classConfig.getMethodConfigList() != null)
-                    candidateList.addAll(findByMethodConfig(classConfig.getMethodConfigList(), ctClass, cp));
-                if (classConfig.getMethodFilterConfig() != null)
-                    candidateList.addAll(findByMethodFilter(classConfig.getMethodFilterConfig(), ctClass));
-                List<CtMethod> rsList = collectMethodsIfNeeded(methodLongNames, candidateList);
-                logger.debug("===============");
-                logger.debug("Matched methods:");
-                rsList.forEach(method -> logger.debug(method.getLongName()));
-                logger.debug("===============");
-                return new MethodSearchResult(ctClass, rsList);
-            });
+            return ClassPoolUtils.exec(targetClassConfig.targetClass, cp -> rawFind(targetClassConfig));
         } catch (RuntimeException e) {
             throw e;
         } catch (Exception e) {
@@ -139,15 +142,10 @@ public class MethodFinder {
     private void filterOutJavaNative(List<CtMethod> candidateList, CtMethod... methods) {
         for (CtMethod method : methods) {
             String packageName = method.getDeclaringClass().getPackageName();
-            boolean isNative = false;
-            for (String javaPackage : javaPackages) {
-                if (packageName.startsWith(javaPackage)) {
-                    logger.debug("Method is java native, skip it: {}", method.getLongName());
-                    isNative = true;
-                    break;
-                }
-            }
-            if (!isNative)
+            boolean isNative = ClassUtils.isJavaNativePackage(packageName);
+            if (isNative)
+                logger.debug("Method is java native, skip it: {}", method.getLongName());
+            else
                 candidateList.add(method);
         }
     }

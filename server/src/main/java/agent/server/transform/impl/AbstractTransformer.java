@@ -19,7 +19,7 @@ public abstract class AbstractTransformer implements ErrorTraceTransformer {
             String targetClassName = TransformerInfo.getClassName(className);
             logger.debug("Transforming class: {}, class loader: {}", targetClassName, loader);
             try {
-                return ClassPoolUtils.exec(getClassSetAddToPool(), cp -> {
+                return ClassPoolUtils.exec(getClassSetAddToPool(className), cp -> {
                     byte[] bs = doTransform(loader, className, classBeingRedefined, protectionDomain, classfileBuffer, targetClassName);
                     logger.debug("Transform successfully.");
                     return bs;
@@ -31,7 +31,7 @@ public abstract class AbstractTransformer implements ErrorTraceTransformer {
         return classfileBuffer;
     }
 
-    protected Set<Class<?>> getClassSetAddToPool() {
+    protected Set<Class<?>> getClassSetAddToPool(String classNamePath) {
         return Collections.singleton(getClass());
     }
 

@@ -12,6 +12,7 @@ import static agent.base.utils.Logger.LoggerLevel.*;
 public class Logger {
     private static final String PREFIX_INFO = "INFO";
     private static final String PREFIX_DEBUG = "DEBUG";
+    private static final String PREFIX_WARN = "WARN";
     private static final String PREFIX_ERROR = "ERROR";
     private static final String PREFIX_FORMAT = "[{0}] [{1}] [Agent] <{2}> ";
     private static final String PLACE_HOLDER = "{}";
@@ -71,6 +72,11 @@ public class Logger {
     public void debug(String pattern, Object... pvs) {
         if (needToLog(DEBUG))
             println(getPrefix(PREFIX_DEBUG) + formatMsg(pattern, pvs));
+    }
+
+    public void warn(String pattern, Object... pvs) {
+        if (needToLog(WARN))
+            println(getPrefix(PREFIX_WARN) + formatMsg(pattern, pvs));
     }
 
     public void error(String pattern, Object... pvs) {
@@ -144,7 +150,7 @@ public class Logger {
     }
 
     public enum LoggerLevel {
-        DEBUG(1), INFO(2), ERROR(3);
+        DEBUG(1), WARN(2), INFO(3), ERROR(4);
 
         final int value;
 
