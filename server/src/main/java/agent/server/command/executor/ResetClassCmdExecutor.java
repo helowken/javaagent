@@ -5,9 +5,9 @@ import agent.common.message.command.impl.ResetClassCommand;
 import agent.common.message.result.ExecResult;
 import agent.server.transform.TransformMgr;
 
-public class ResetClassCmdExecutor extends AbstractCmdExecutor {
+class ResetClassCmdExecutor extends AbstractCmdExecutor {
     @Override
-    ExecResult doExec(Command cmd) throws Exception {
+    ExecResult doExec(Command cmd) {
         ResetClassCommand resetCmd = (ResetClassCommand) cmd;
         TransformMgr.getInstance().resetClasses(resetCmd.getContextExpr(), resetCmd.getClassExprSet());
         return null;

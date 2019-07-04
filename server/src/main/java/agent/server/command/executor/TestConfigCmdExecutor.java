@@ -15,7 +15,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class TestConfigCmdExecutor extends AbstractCmdExecutor {
+class TestConfigCmdExecutor extends AbstractCmdExecutor {
     private static final Logger logger = Logger.getLogger(TestConfigCmdExecutor.class);
     private static final String SELF = "self";
 

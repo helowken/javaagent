@@ -1,8 +1,8 @@
 package agent.server;
 
 import agent.base.utils.Utils;
+import agent.server.transform.TransformContext;
 import agent.server.transform.TransformMgr;
-import agent.server.transform.exception.MultipleTransformException;
 import agent.server.transform.impl.system.HockRunnerTransformer;
 
 import java.lang.instrument.Instrumentation;
@@ -21,19 +21,16 @@ public class AgentServerRunner {
     }
 
     private static void hockRunner() throws Exception {
-        try {
-            Class<?> jettyRunnerClass = Class.forName(JETTY_RUNNER_CLASS);
-            String context = "Hock Jetty Runner";
-            TransformMgr.getInstance().transform(
-                    context,
-                    jettyRunnerClass,
-                    new HockRunnerTransformer(jettyRunnerClass),
-                    true
-            );
-        } catch (MultipleTransformException e) {
-            e.printStackTrace();
-            throw e;
-        }
+        Class<?> jettyRunnerClass = Class.forName(JETTY_RUNNER_CLASS);
+        String context = "Hock Jetty Runner";
+        TransformMgr.getInstance().transform(
+                new TransformContext(
+                        context,
+                        jettyRunnerClass,
+                        new HockRunnerTransformer(jettyRunnerClass),
+                        true
+                )
+        );
     }
 
 }

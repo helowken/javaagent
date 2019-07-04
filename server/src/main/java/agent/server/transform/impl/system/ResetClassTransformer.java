@@ -1,28 +1,29 @@
 package agent.server.transform.impl.system;
 
-import agent.server.transform.impl.AbstractTransformer;
-import agent.server.transform.impl.TransformerInfo;
 import agent.base.utils.IOUtils;
 import agent.base.utils.Logger;
+import agent.server.transform.impl.AbstractTransformer;
+import agent.server.transform.impl.TransformerInfo;
 
 import java.io.File;
 import java.net.URL;
 import java.security.ProtectionDomain;
-import java.util.HashSet;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 
 public class ResetClassTransformer extends AbstractTransformer {
     private static final Logger logger = Logger.getLogger(ResetClassTransformer.class);
     private static final String FILE_SUFFIX = ".class";
-    private Set<String> classNamePathSet = new HashSet<>();
+    private Map<String, ClassLoader> classNamePathToLoader = new HashMap<>();
 
     public ResetClassTransformer(Set<Class<?>> classSet) {
-        classSet.forEach(clazz -> classNamePathSet.add(TransformerInfo.getClassNamePath(clazz)));
+        classSet.forEach(clazz -> classNamePathToLoader.put(TransformerInfo.getClassNamePath(clazz), clazz.getClassLoader()));
     }
 
     @Override
     protected boolean accept(ClassLoader loader, String namePath) {
-        return classNamePathSet.contains(namePath);
+        return loader.equals(classNamePathToLoader.get(namePath));
     }
 
     @Override

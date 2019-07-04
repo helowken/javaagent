@@ -12,15 +12,15 @@ import java.security.CodeSource;
 import java.util.*;
 
 @SuppressWarnings("unchecked")
-class ClassPoolUtils {
+public class ClassPoolUtils {
     private static final Logger logger = Logger.getLogger(ClassPoolUtils.class);
     private static final Collection<String> skipPackages = Collections.singleton("javassist.");
 
-    static <T> T exec(Class<?> clazz, ValueFunc<T> func) throws Exception {
+    public static <T> T exec(Class<?> clazz, ValueFunc<T> func) throws Exception {
         return exec(Collections.singleton(clazz), func);
     }
 
-    static <T> T exec(Set<Class<?>> classSet, ValueFunc<T> func) throws Exception {
+    public static <T> T exec(Set<Class<?>> classSet, ValueFunc<T> func) throws Exception {
         ClassPool cp = ClassPool.getDefault();
         List<ClassPath> classPathList = new ArrayList<>();
         Map<URL, Class<?>> urlToClass = new HashMap<>();

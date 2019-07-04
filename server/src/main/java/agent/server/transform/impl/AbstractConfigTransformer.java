@@ -8,9 +8,7 @@ import javassist.CtMethod;
 
 import java.security.ProtectionDomain;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 @SuppressWarnings("unchecked")
 public abstract class AbstractConfigTransformer extends AbstractTransformer implements ConfigTransformer {
@@ -42,13 +40,6 @@ public abstract class AbstractConfigTransformer extends AbstractTransformer impl
 
     protected String getTargetClassName(String namePath) {
         return transformerInfo.getTargetClassName(namePath);
-    }
-
-    @Override
-    protected Set<Class<?>> getClassSetAddToPool(String classNamePath) {
-        Set<Class<?>> classSet = new HashSet<>(super.getClassSetAddToPool(classNamePath));
-        classSet.add(transformerInfo.getTargetClassConfig(classNamePath).targetClass);
-        return classSet;
     }
 
     @Override

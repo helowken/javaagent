@@ -5,7 +5,7 @@ import agent.common.message.command.impl.TransformClassCommand;
 import agent.common.message.result.ExecResult;
 import agent.server.transform.TransformMgr;
 
-public class TransformClassCmdExecutor extends AbstractCmdExecutor {
+class TransformClassCmdExecutor extends AbstractCmdExecutor {
     @Override
     ExecResult doExec(Command cmd) throws Exception {
         TransformMgr.getInstance().transformByConfig(((TransformClassCommand) cmd).getConfig());

@@ -5,9 +5,9 @@ import agent.common.message.command.impl.FlushLogCommand;
 import agent.common.message.result.ExecResult;
 import agent.server.utils.IOLogger;
 
-public class FlushLogCmdExecutor extends AbstractCmdExecutor {
+class FlushLogCmdExecutor extends AbstractCmdExecutor {
     @Override
-    ExecResult doExec(Command cmd) throws Exception {
+    ExecResult doExec(Command cmd) {
         String outputPath = ((FlushLogCommand) cmd).getOutputPath();
         if (outputPath != null)
             IOLogger.getInstance().flush(outputPath);

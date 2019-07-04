@@ -1,16 +1,15 @@
 package agent.server.event.impl;
 
 import agent.server.event.AgentEvent;
-
-import java.util.Set;
+import agent.server.transform.TransformContext;
 
 public class ResetClassEvent implements AgentEvent {
     public static final String EVENT_TYPE = ResetClassEvent.class.getSimpleName();
     private final boolean resetAll;
-    private final Set<Class<?>> classSet;
+    private final TransformContext transformContext;
 
-    public ResetClassEvent(Set<Class<?>> classSet, boolean resetAll) {
-        this.classSet = classSet;
+    public ResetClassEvent(TransformContext transformContext, boolean resetAll) {
+        this.transformContext = transformContext;
         this.resetAll = resetAll;
     }
 
@@ -18,8 +17,8 @@ public class ResetClassEvent implements AgentEvent {
         return resetAll;
     }
 
-    public Set<Class<?>> getClassSet() {
-        return classSet;
+    public TransformContext getTransformContext() {
+        return transformContext;
     }
 
     @Override

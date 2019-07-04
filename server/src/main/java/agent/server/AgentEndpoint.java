@@ -29,7 +29,7 @@ public class AgentEndpoint implements Runnable {
             }
         } catch (SocketException e) {
         } catch (Exception e) {
-            logger.error("User agent error.", e);
+            logger.error("User agent instrumentError.", e);
         } finally {
             close();
         }
