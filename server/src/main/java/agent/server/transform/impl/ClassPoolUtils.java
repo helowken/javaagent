@@ -24,12 +24,18 @@ public class ClassPoolUtils {
         ClassPool cp = ClassPool.getDefault();
         List<ClassPath> classPathList = new ArrayList<>();
         Map<URL, Class<?>> urlToClass = new HashMap<>();
+        Map<ClassLoader, Set<String>> loaderToRefClassNames = new HashMap<>();
         for (Class<?> clazz : classSet) {
             addRefClassToPool(cp, classPathList, urlToClass, clazz);
-            findRefClassSet(cp, clazz).forEach(refClass ->
-                    addRefClassToPool(cp, classPathList, urlToClass, refClass)
-            );
+            loaderToRefClassNames.computeIfAbsent(clazz.getClassLoader(), key -> new HashSet<>())
+                    .addAll(getRefClassNames(cp, clazz));
         }
+        loaderToRefClassNames.forEach((loader, refClassNames) ->
+                findRefClassSet(loader, refClassNames)
+                        .forEach(refClass ->
+                                addRefClassToPool(cp, classPathList, urlToClass, refClass)
+                        )
+        );
         try {
             return func.exec(cp);
         } finally {
@@ -61,16 +67,18 @@ public class ClassPoolUtils {
         return refClassNameSet;
     }
 
-    private static Collection<Class<?>> findRefClassSet(ClassPool cp, Class<?> clazz) throws Exception {
-        Collection<String> refClassNameSet = getRefClassNames(cp, clazz);
-        ClassLoader loader = clazz.getClassLoader();
-        Set<Class<?>> refClassSet = new HashSet<>();
-        for (String refClassName : refClassNameSet) {
-            logger.debug("Load class {} by loader: {}", refClassName, loader);
-            Class<?> refClass = loader.loadClass(refClassName);
-            refClassSet.add(refClass);
+    private static Collection<Class<?>> findRefClassSet(ClassLoader loader, Collection<String> refClassNameSet) {
+        try {
+            Set<Class<?>> refClassSet = new HashSet<>();
+            for (String refClassName : refClassNameSet) {
+                logger.debug("Load class {} by loader: {}", refClassName, loader);
+                Class<?> refClass = loader.loadClass(refClassName);
+                refClassSet.add(refClass);
+            }
+            return refClassSet;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
-        return refClassSet;
     }
 
     private static void addRefClassToPool(ClassPool cp, List<ClassPath> classPathList, Map<URL, Class<?>> urlToClass, Class<?> refClass) {

@@ -1,5 +1,7 @@
 package agent.server.transform;
 
+import agent.base.utils.Utils;
+
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -23,5 +25,22 @@ public class TransformResult {
                 .filter(ErrorTraceTransformer::hasError)
                 .map(ErrorTraceTransformer::getError)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public String toString() {
+        if (isSuccess())
+            return transformContext.context + " transformed successfully.";
+        StringBuilder sb = new StringBuilder(transformContext.context + " transformed failed.\n");
+        if (instrumentError != null)
+            sb.append("Instrument error: \n")
+                    .append(Utils.getErrorStackStrace(instrumentError))
+                    .append("\n");
+        getTransformerErrorList().forEach(error ->
+                sb.append(Utils.getErrorStackStrace(error))
+                        .append("\n")
+        );
+        sb.append("\n");
+        return sb.toString();
     }
 }

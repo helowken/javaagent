@@ -1,6 +1,6 @@
 package agent.server.transform.impl.system;
 
-import agent.hock.utils.JettyRunnerHock;
+import agent.hook.utils.JettyRunnerHook;
 import agent.server.transform.impl.AbstractTransformer;
 import agent.server.transform.impl.TransformerInfo;
 import javassist.ClassPool;
@@ -11,11 +11,11 @@ import java.security.ProtectionDomain;
 import java.util.HashSet;
 import java.util.Set;
 
-public class HockRunnerTransformer extends AbstractTransformer {
+public class HookRunnerTransformer extends AbstractTransformer {
     private final Class<?> runnerClass;
     private final String classNamePath;
 
-    public HockRunnerTransformer(Class<?> runnerClass) {
+    public HookRunnerTransformer(Class<?> runnerClass) {
         this.runnerClass = runnerClass;
         classNamePath = TransformerInfo.getClassNamePath(runnerClass);
     }
@@ -28,7 +28,7 @@ public class HockRunnerTransformer extends AbstractTransformer {
     @Override
     public Set<Class<?>> getRefClassSet() {
         Set<Class<?>> classSet = new HashSet<>(super.getRefClassSet());
-        classSet.add(JettyRunnerHock.class);
+        classSet.add(JettyRunnerHook.class);
         return classSet;
     }
 
@@ -37,7 +37,7 @@ public class HockRunnerTransformer extends AbstractTransformer {
         ClassPool cp = ClassPool.getDefault();
         CtClass ctClass = cp.get(runnerClass.getName());
         CtConstructor constructor = ctClass.getDeclaredConstructor(new CtClass[0]);
-        constructor.insertAfter(JettyRunnerHock.class.getName() + ".runner = this;");
+        constructor.insertAfter(JettyRunnerHook.class.getName() + ".runner = this;");
         byte[] bs = ctClass.toBytecode();
         ctClass.detach();
         return bs;

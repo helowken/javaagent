@@ -45,24 +45,10 @@ public class IOUtils {
         outputStream.write(bs);
     }
 
-    public static void close(Writer writer) {
+    public static void close(Closeable o) {
         try {
-            writer.close();
+            o.close();
         } catch (IOException e) {
-        }
-    }
-
-    public static void close(InputStream in) {
-        try {
-            in.close();
-        } catch (Exception e) {
-        }
-    }
-
-    public static void close(OutputStream out) {
-        try {
-            out.close();
-        } catch (Exception e) {
         }
     }
 }

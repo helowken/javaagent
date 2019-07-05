@@ -17,6 +17,10 @@ public class JSONUtils {
         return objectMapper.readValue(content, typeReference);
     }
 
+    public static <T> T convert(Object content, TypeReference<T> typeReference) throws IOException {
+        return objectMapper.readValue(writeAsString(content), typeReference);
+    }
+
     public static String writeAsString(Object o) throws IOException {
         return objectMapper.writeValueAsString(o);
     }

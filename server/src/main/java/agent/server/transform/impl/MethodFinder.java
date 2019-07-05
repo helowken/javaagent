@@ -12,6 +12,7 @@ import javassist.CtMethod;
 import javassist.NotFoundException;
 
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -31,18 +32,24 @@ public class MethodFinder {
         Set<String> methodLongNames = new HashSet<>();
         ClassConfig classConfig = targetClassConfig.classConfig;
         CtClass ctClass = cp.get(classConfig.getTargetClass());
-        logger.debug("Start to find methods for class: {}", ctClass.getName());
-        List<CtMethod> candidateList = new ArrayList<>();
-        if (classConfig.getMethodConfigList() != null)
-            candidateList.addAll(findByMethodConfig(classConfig.getMethodConfigList(), ctClass, cp));
-        if (classConfig.getMethodFilterConfig() != null)
-            candidateList.addAll(findByMethodFilter(classConfig.getMethodFilterConfig(), ctClass));
-        List<CtMethod> rsList = collectMethodsIfNeeded(methodLongNames, candidateList);
-        logger.debug("===============");
-        logger.debug("Matched methods:");
-        rsList.forEach(method -> logger.debug(method.getLongName()));
-        logger.debug("===============");
-        return new MethodSearchResult(ctClass, rsList);
+        try {
+            logger.debug("Start to find methods for class: {}", ctClass.getName());
+            List<CtMethod> candidateList = new ArrayList<>();
+            if (classConfig.getMethodConfigList() != null)
+                candidateList.addAll(findByMethodConfig(classConfig.getMethodConfigList(), ctClass, cp));
+            if (classConfig.getMethodFilterConfig() != null)
+                candidateList.addAll(findByMethodFilter(classConfig.getMethodFilterConfig(), ctClass));
+            List<CtMethod> rsList = collectMethodsIfNeeded(methodLongNames, candidateList);
+            logger.debug("===============");
+            logger.debug("Matched methods:");
+            rsList.forEach(method -> logger.debug(method.getLongName()));
+            logger.debug("===============");
+            return new MethodSearchResult(ctClass, rsList);
+        } catch (Exception e) {
+            if (ctClass != null)
+                ctClass.detach();
+            throw e;
+        }
     }
 
     public MethodSearchResult find(TargetClassConfig targetClassConfig) {
@@ -52,6 +59,15 @@ public class MethodFinder {
             throw e;
         } catch (Exception e) {
             throw new RuntimeException("Find method list failed.", e);
+        }
+    }
+
+    public void consume(TargetClassConfig targetClassConfig, Consumer<MethodSearchResult> resultConsumer) {
+        MethodSearchResult result = find(targetClassConfig);
+        try {
+            resultConsumer.accept(result);
+        } finally {
+            result.release();
         }
     }
 
@@ -172,6 +188,10 @@ public class MethodFinder {
         private MethodSearchResult(CtClass ctClass, List<CtMethod> methodList) {
             this.ctClass = ctClass;
             this.methodList = Collections.unmodifiableList(methodList);
+        }
+
+        public void release() {
+            ctClass.detach();
         }
     }
 }

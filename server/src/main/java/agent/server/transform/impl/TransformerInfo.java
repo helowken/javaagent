@@ -3,9 +3,11 @@ package agent.server.transform.impl;
 import java.util.*;
 
 public class TransformerInfo {
-    private Map<String, TargetClassConfig> namePathToConfig = new HashMap<>();
+    private final String context;
+    private final Map<String, TargetClassConfig> namePathToConfig = new HashMap<>();
 
-    public TransformerInfo(List<TargetClassConfig> targetClassConfigList) {
+    public TransformerInfo(String context, List<TargetClassConfig> targetClassConfigList) {
+        this.context = context;
         targetClassConfigList.forEach(targetClassConfig ->
                 namePathToConfig.put(getClassNamePath(targetClassConfig.targetClass), targetClassConfig)
         );
@@ -25,6 +27,10 @@ public class TransformerInfo {
             return false;
         TargetClassConfig config = namePathToConfig.get(namePath);
         return config != null && config.targetClass.getClassLoader().equals(loader);
+    }
+
+    public String getContext() {
+        return context;
     }
 
     public TargetClassConfig getTargetClassConfig(String namePath) {

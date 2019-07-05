@@ -1,0 +1,38 @@
+[
+  {
+    "contextPath": "/test",
+    "transformConfigs": [
+      {
+        "desc": "Used to time cost analyze.",
+        "transformers": [
+          {
+            "ref": "costTimeStatistics",
+            "config": {
+              "log": {
+                "outputPath": "/home/helowken/cost-time-statistics.log",
+                "autoFlush": false,
+                "maxBufferSize": 8192
+              },
+              "entryPoint": [
+                {
+                  "class": "test.jetty.StatisticsCostTimeObject",
+                  "methods": [
+                    {
+                      "name": "service"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "targets": [
+          {
+            "class": "test.jetty.StatisticsCostTimeObject",
+            "methodFilter": {}
+          }
+        ]
+      }
+    ]
+  }
+]

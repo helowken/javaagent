@@ -1,7 +1,8 @@
 package agent.server.transform.impl;
 
-import agent.server.transform.exception.NoTransformerFoundException;
 import agent.server.transform.ConfigTransformer;
+import agent.server.transform.exception.NoTransformerFoundException;
+import agent.server.transform.impl.user.CostTimeStatisticsTransformer;
 import agent.server.transform.impl.user.CostTimeMeasureTransformer;
 
 import java.util.HashMap;
@@ -13,6 +14,7 @@ public class TransformerClassRegistry {
 
     static {
         keyToTransformer.put(CostTimeMeasureTransformer.REG_KEY, CostTimeMeasureTransformer.class);
+        keyToTransformer.put(CostTimeStatisticsTransformer.REG_KEY, CostTimeStatisticsTransformer.class);
     }
 
     public static Class<? extends ConfigTransformer> get(String key) {

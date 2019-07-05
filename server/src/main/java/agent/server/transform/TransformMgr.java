@@ -4,14 +4,12 @@ import agent.base.utils.LockObject;
 import agent.base.utils.Logger;
 import agent.server.event.EventListenerMgr;
 import agent.server.event.impl.ResetClassEvent;
-import agent.server.transform.config.ConfigParser;
-import agent.server.transform.config.ModuleConfig;
-import agent.server.transform.config.TransformConfig;
-import agent.server.transform.config.TransformerConfig;
+import agent.server.transform.config.*;
 import agent.server.transform.impl.*;
 import agent.server.transform.impl.system.ResetClassTransformer;
 
 import java.lang.instrument.Instrumentation;
+import java.security.CodeSource;
 import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -62,9 +60,10 @@ public class TransformMgr {
         rsMap.forEach((moduleConfig, configToInfo) -> {
                     List<MethodFinder.MethodSearchResult> searchResultList = new ArrayList<>();
                     configToInfo.forEach((transformConfig, transformerInfo) ->
-                            transformerInfo.getTargetClassConfigList().forEach(targetClassConfig -> {
-                                searchResultList.add(MethodFinder.getInstance().find(targetClassConfig));
-                            })
+                            transformerInfo.getTargetClassConfigList()
+                                    .forEach(targetClassConfig ->
+                                            searchResultList.add(MethodFinder.getInstance().find(targetClassConfig))
+                                    )
                     );
                     moduleToSearchResult.put(moduleConfig, searchResultList);
                 }
@@ -72,20 +71,33 @@ public class TransformMgr {
         return moduleToSearchResult;
     }
 
+    public List<TargetClassConfig> convert(String context, List<ClassConfig> classConfigList) {
+        List<TargetClassConfig> targetClassConfigList = new ArrayList<>();
+        classConfigList.forEach(classConfig -> {
+            Class<?> targetClass = ClassFinder.findClass(context, classConfig.getTargetClass());
+            if (targetClass.isInterface())
+                throw new RuntimeException("Interface class can not be transformed: " + targetClass.getName());
+            CodeSource codeSource = targetClass.getProtectionDomain().getCodeSource();
+            logger.debug("{} source location is: {}",
+                    targetClass,
+                    codeSource == null ? null : codeSource.getLocation()
+            );
+            targetClassConfigList.add(new TargetClassConfig(targetClass, classConfig));
+        });
+        return targetClassConfigList;
+    }
+
     private Map<ModuleConfig, Map<TransformConfig, TransformerInfo>> parseConfig(byte[] bs) throws Exception {
         Map<ModuleConfig, Map<TransformConfig, TransformerInfo>> rsMap = new HashMap<>();
         for (ModuleConfig moduleConfig : ConfigParser.parse(bs)) {
             Map<TransformConfig, TransformerInfo> configToInfo = new HashMap<>();
             for (TransformConfig transformConfig : moduleConfig.getTransformConfigList()) {
-                List<TargetClassConfig> targetClassConfigList = new ArrayList<>();
-                transformConfig.getTargetList().forEach(classConfig -> {
-                    Class<?> targetClass = ClassFinder.findClass(moduleConfig.getContextPath(), classConfig.getTargetClass());
-                    if (targetClass.isInterface())
-                        throw new RuntimeException("Interface class can not be transformed: " + targetClass.getName());
-                    logger.debug("{} source location is: {}", targetClass, targetClass.getProtectionDomain().getCodeSource().getLocation());
-                    targetClassConfigList.add(new TargetClassConfig(targetClass, classConfig));
-                });
-                configToInfo.put(transformConfig, new TransformerInfo(targetClassConfigList));
+                String context = moduleConfig.getContextPath();
+                configToInfo.put(transformConfig,
+                        new TransformerInfo(context,
+                                convert(context, transformConfig.getTargetList())
+                        )
+                );
             }
             rsMap.put(moduleConfig, configToInfo);
         }
@@ -131,6 +143,7 @@ public class TransformMgr {
                 }
                 rsList.add(new TransformResult(transformContext, err));
             });
+            rsList.forEach(transformResult -> logger.debug("Transform result: {}", transformResult));
             return rsList;
         });
     }

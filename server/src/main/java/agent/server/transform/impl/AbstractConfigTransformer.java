@@ -31,7 +31,7 @@ public abstract class AbstractConfigTransformer extends AbstractTransformer impl
         }
     }
 
-    protected void doSetConfig(Map<String, Object> config) {
+    protected void doSetConfig(Map<String, Object> config) throws Exception {
     }
 
     protected boolean accept(ClassLoader loader, String namePath) {
@@ -40,6 +40,10 @@ public abstract class AbstractConfigTransformer extends AbstractTransformer impl
 
     protected String getTargetClassName(String namePath) {
         return transformerInfo.getTargetClassName(namePath);
+    }
+
+    protected TransformerInfo getTransformerInfo() {
+        return transformerInfo;
     }
 
     @Override

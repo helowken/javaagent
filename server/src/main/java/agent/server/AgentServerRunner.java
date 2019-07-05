@@ -3,7 +3,7 @@ package agent.server;
 import agent.base.utils.Utils;
 import agent.server.transform.TransformContext;
 import agent.server.transform.TransformMgr;
-import agent.server.transform.impl.system.HockRunnerTransformer;
+import agent.server.transform.impl.system.HookRunnerTransformer;
 
 import java.lang.instrument.Instrumentation;
 import java.util.Properties;
@@ -17,17 +17,17 @@ public class AgentServerRunner {
         if (!AgentServerMgr.startup(port))
             return;
         TransformMgr.getInstance().init(instrumentation);
-        hockRunner();
+        hookRunner();
     }
 
-    private static void hockRunner() throws Exception {
+    private static void hookRunner() throws Exception {
         Class<?> jettyRunnerClass = Class.forName(JETTY_RUNNER_CLASS);
-        String context = "Hock Jetty Runner";
+        String context = "Hook Jetty Runner";
         TransformMgr.getInstance().transform(
                 new TransformContext(
                         context,
                         jettyRunnerClass,
-                        new HockRunnerTransformer(jettyRunnerClass),
+                        new HookRunnerTransformer(jettyRunnerClass),
                         true
                 )
         );

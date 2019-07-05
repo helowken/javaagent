@@ -1,24 +1,23 @@
 package agent.server.transform;
 
 import agent.base.utils.Logger;
-import agent.hock.utils.JettyRunnerHock;
+import agent.hook.utils.JettyRunnerHook;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 
-class ClassFinder {
+public class ClassFinder {
     private static final Logger logger = Logger.getLogger(ClassFinder.class);
     private static Map<String, ClassLoader> contextPathToClassLoader = new HashMap<>();
     private static volatile boolean inited = false;
-
 
     private static void init() throws Exception {
         if (!inited) {
             synchronized (ClassFinder.class) {
                 if (!inited) {
-                    Object runner = JettyRunnerHock.runner;
+                    Object runner = JettyRunnerHook.runner;
                     if (runner != null) {
                         Class<?> runnerClass = runner.getClass();
                         Field contextsField = runnerClass.getDeclaredField("_contexts");
@@ -60,7 +59,7 @@ class ClassFinder {
         return loader;
     }
 
-    static Class<?> findClass(String contextPath, String className) {
+    public static Class<?> findClass(String contextPath, String className) {
         try {
             return findClassLoader(contextPath).loadClass(className);
         } catch (Exception e) {
