@@ -55,4 +55,7 @@
             </modules>
         </profile>
     </profiles>
+    <modules>
+        <module>tools</module>
+    </modules>
 </project>

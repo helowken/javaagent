@@ -52,7 +52,7 @@ public abstract class AbstractConfigTransformer extends AbstractTransformer impl
         MethodFinder.MethodSearchResult rs = MethodFinder.getInstance().rawFind(transformerInfo.getTargetClassConfig(className));
         CtClass ctClass = rs.ctClass;
         for (CtMethod ctMethod : rs.methodList) {
-            logger.info("Transforming method: {}", ctMethod.getLongName());
+            logger.debug("Transforming method: {}", ctMethod.getLongName());
             transformMethod(ctClass, ctMethod);
         }
         byte[] byteCode = ctClass.toBytecode();

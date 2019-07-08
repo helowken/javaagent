@@ -5,6 +5,10 @@ import java.io.*;
 public class IOUtils {
     private static final int BUF_SIZE = 4096;
 
+    public static String readToString(String filePath) throws IOException {
+        return readToString(new FileInputStream(filePath));
+    }
+
     public static String readToString(InputStream inputStream) throws IOException {
         return new String(readBytes(inputStream));
     }

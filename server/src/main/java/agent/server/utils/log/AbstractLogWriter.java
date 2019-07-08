@@ -1,5 +1,8 @@
 package agent.server.utils.log;
 
+import agent.server.event.EventListenerMgr;
+import agent.server.event.impl.LogFlushedEvent;
+
 import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Supplier;
@@ -39,6 +42,7 @@ public abstract class AbstractLogWriter<T extends LogConfig, V> implements LogWr
             }
             bufferSize = 0;
             outputWriter.flush();
+            EventListenerMgr.fireEvent(new LogFlushedEvent(logConfig.getOutputPath()), true);
         });
     }
 

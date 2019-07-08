@@ -33,7 +33,12 @@ public class AgentClientRunner {
         ).orElse("127.0.0.1");
         int port = Utils.parseInt(props.getProperty(KEY_PORT), KEY_PORT);
         init();
-        connectTo(host, port);
+        while (true) {
+            if (connectTo(host, port))
+                break;
+            else
+                ClientLogger.logger.info("Try to reconnect...");
+        }
     }
 
     private static void init() {
@@ -41,10 +46,9 @@ public class AgentClientRunner {
         CommandResultHandlerMgr.regResultHandlerClass(CMD_TYPE_VIEW, new ViewResultHandler());
     }
 
-    private static void connectTo(String host, int port) throws Exception {
-        try (Socket socket = new Socket();
-             BufferedReader reader = new BufferedReader(new InputStreamReader(System.in))
-        ) {
+    private static boolean connectTo(String host, int port) throws Exception {
+        try (Socket socket = new Socket()) {
+            BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
             socket.connect(new InetSocketAddress(host, port));
             ClientLogger.logger.info("Agent Server connected.");
             try (MessageIO io = MessageIO.create(socket)) {
@@ -52,7 +56,7 @@ public class AgentClientRunner {
                     try {
                         Command cmd = readCommand(reader);
                         if (cmd == null)
-                            break;
+                            return true;
                         sendAndReceive(io, cmd);
                     } catch (CommandParseException e) {
                         ClientLogger.logger.error(e.getMessage());
@@ -66,6 +70,7 @@ public class AgentClientRunner {
                 }
             }
         }
+        return false;
     }
 
     private static Command readCommand(BufferedReader reader) throws Exception {

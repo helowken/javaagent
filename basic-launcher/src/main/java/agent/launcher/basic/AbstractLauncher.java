@@ -4,6 +4,7 @@ package agent.launcher.basic;
 import agent.base.utils.ClassLoaderUtils;
 import agent.base.utils.ClassUtils;
 import agent.base.utils.Logger;
+import agent.base.utils.Logger.LoggerLevel;
 import agent.base.utils.Utils;
 
 import java.io.File;
@@ -14,6 +15,7 @@ public abstract class AbstractLauncher {
     private static final Logger logger = Logger.getLogger(AbstractLauncher.class);
     private static final String RUNNER_METHOD = "run";
     private static final String KEY_LOG_PATH = "log.path";
+    private static final String KEY_LOG_LEVEL = "log.level";
     private static final String KEY_LIB_PATH = "lib.path";
     private static final String LIB_PATH_SEP = ";";
     private static String currDir;
@@ -21,7 +23,8 @@ public abstract class AbstractLauncher {
     protected Properties init(String configFilePath) throws Exception {
         Properties props = Utils.loadProperties(configFilePath);
         initLog(
-                Utils.blankToNull(props.getProperty(KEY_LOG_PATH))
+                Utils.blankToNull(props.getProperty(KEY_LOG_PATH)),
+                Utils.blankToNull(props.getProperty(KEY_LOG_LEVEL))
         );
         ClassLoaderUtils.initContextClassLoader(
                 Stream.of(
@@ -45,7 +48,7 @@ public abstract class AbstractLauncher {
         return currDir;
     }
 
-    private void initLog(String outputPath) {
+    private void initLog(String outputPath, String level) {
         if (outputPath != null) {
             String path = outputPath.startsWith("/") ?
                     outputPath
@@ -54,6 +57,8 @@ public abstract class AbstractLauncher {
             Logger.setOutputFile(path);
         } else
             logger.info("Log path: stdout.");
+        if (level != null)
+            Logger.setDefaultLevel(LoggerLevel.valueOf(level));
     }
 
     protected void startRunner(String className, Object... args) throws Exception {

@@ -57,4 +57,15 @@ public class LogMgr {
         getLogger(LoggerType.BINARY).log(logKey, content);
     }
 
+    public static LogConfig getLogConfig(LoggerType loggerType, String logKey) {
+        return getLogger(loggerType).getLogConfig(logKey);
+    }
+
+    public static LogConfig getTextLogConfig(String logKey) {
+        return getLogConfig(LoggerType.TEXT, logKey);
+    }
+
+    public static LogConfig getBinaryLogConfig(String logKey) {
+        return getLogConfig(LoggerType.BINARY, logKey);
+    }
 }

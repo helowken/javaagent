@@ -10,6 +10,7 @@ import agent.server.transform.impl.user.utils.CostTimeLogger;
 import agent.server.transform.impl.user.utils.LogTimeUtils;
 import agent.server.utils.JSONUtils;
 import agent.server.utils.ParamValueUtils;
+import agent.server.utils.log.LogConfig;
 import agent.server.utils.log.LogMgr;
 import com.fasterxml.jackson.core.type.TypeReference;
 import javassist.CtClass;
@@ -42,45 +43,48 @@ public class CostTimeStatisticsTransformer extends AbstractConfigTransformer {
             MethodFinder.getInstance().consume(targetClassConfig, result ->
                     result.methodList.forEach(method ->
                             entryPoints.add(
-                                    getEntryPoint(result.ctClass, method)
+                                    getEntryPoint(transformerInfo.getContext(), result.ctClass, method)
                             )
                     )
             );
         }
+        LogConfig logConfig = LogMgr.getBinaryLogConfig(logKey);
+        CostTimeLogger.getInstance().regOutputPath(transformerInfo.getContext(), logConfig.getOutputPath());
     }
 
-    private String getEntryPoint(CtClass ctClass, CtMethod ctMethod) {
-        return ctClass.getName() + "." + ctMethod.getName() + ctMethod.getSignature();
+    private String getEntryPoint(String context, CtClass ctClass, CtMethod ctMethod) {
+        return context + ":" + ctClass.getName() + "." + ctMethod.getName() + ctMethod.getSignature();
     }
 
-    private boolean isEntryPoint(CtClass ctClass, CtMethod ctMethod) {
+    private boolean isEntryPoint(String context, CtClass ctClass, CtMethod ctMethod) {
         return entryPoints.contains(
-                getEntryPoint(ctClass, ctMethod)
+                getEntryPoint(context, ctClass, ctMethod)
         );
     }
 
     @Override
     protected void transformMethod(CtClass ctClass, CtMethod ctMethod) throws Exception {
+        String context = getTransformerInfo().getContext();
         String loggerExpr = CostTimeLogger.class.getName() + ".getInstance()";
-        short type = CostTimeLogger.getInstance().reg(
-                getEntryPoint(ctClass, ctMethod)
-        );
+        int type = CostTimeLogger.getInstance().reg(context, ctClass.getName(), ctMethod.getName() + ctMethod.getSignature());
+        final boolean isEP = isEntryPoint(context, ctClass, ctMethod);
         LogTimeUtils.addCostTimeCode(ctMethod, (stVar, etVar, endBlock) -> {
             endBlock.append(loggerExpr)
                     .append(".log(")
-                    .append("(short) ")
                     .append(type)
                     .append(", (int) ")
                     .append(LogTimeUtils.newCostTimegExpr(stVar, etVar))
                     .append(");\n");
 
-            if (isEntryPoint(ctClass, ctMethod)) {
+            if (isEP) {
                 endBlock.append(loggerExpr)
                         .append(".commit(")
                         .append(ParamValueUtils.convertToString(logKey))
                         .append(");\n");
             }
         });
+        if (isEP)
+            ctMethod.insertAfter(loggerExpr + ".rollback();", true);
     }
 
 }

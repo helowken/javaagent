@@ -9,7 +9,7 @@
             "ref": "costTimeStatistics",
             "config": {
               "log": {
-                "outputPath": "/home/helowken/cost-time-statistics.log",
+                "outputPath": "/home/helowken/cost-time/cost-time-statistics.log",
                 "autoFlush": false,
                 "maxBufferSize": 8192
               },

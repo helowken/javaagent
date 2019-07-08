@@ -8,4 +8,6 @@ public interface ILogger {
     LogConfigParser getConfigParser();
 
     LoggerType getType();
+
+    LogConfig getLogConfig(String logKey);
 }

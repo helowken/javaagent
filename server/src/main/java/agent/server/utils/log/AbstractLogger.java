@@ -17,7 +17,8 @@ import java.util.stream.Collectors;
 import static agent.server.utils.log.LogConfig.STDOUT;
 
 public abstract class AbstractLogger implements ILogger, AgentEventListener {
-    private static final Logger logger = Logger.getLogger(AbstractLogger.class);
+    private volatile Logger logger;
+    private final LockObject loggerLock = new LockObject();
 
     private final Map<String, LogWriter> keyToLogWriter = new HashMap<>();
     private final Map<String, SyncWriter> pathToSyncWriter = new HashMap<>();
@@ -30,6 +31,16 @@ public abstract class AbstractLogger implements ILogger, AgentEventListener {
 
     protected AbstractLogger() {
         EventListenerMgr.reg(this);
+    }
+
+    private Logger getLogger() {
+        if (logger == null) {
+            loggerLock.sync(lock -> {
+                if (logger == null)
+                    logger = Logger.getLogger(getClass());
+            });
+        }
+        return logger;
     }
 
     @Override
@@ -57,7 +68,7 @@ public abstract class AbstractLogger implements ILogger, AgentEventListener {
     }
 
     public String reg(LogConfig logConfig) {
-        logger.debug("Log config: {}", logConfig);
+        getLogger().debug("Log config: {}", logConfig);
         String key = UUID.randomUUID().toString();
         keyToLogWriterLock.sync(lock -> keyToLogWriter.put(key, newLogWriter(logConfig)));
         return key;
@@ -66,16 +77,16 @@ public abstract class AbstractLogger implements ILogger, AgentEventListener {
     // used in bytecode
     public void log(String key, Object content) {
         try {
-            logger.debug("Start to log, paramValues: {}", content);
+            getLogger().debug("Start to log, paramValues: {}", content);
             LogWriter logWriter = getLogWriter(key);
             logWriter.write(content, () -> getSyncWriter(logWriter.getConfig().getOutputPath()));
         } catch (Exception e) {
-            logger.error("Log failed.", e);
+            getLogger().error("Log failed.", e);
         }
     }
 
     public void flush(String outputPath) {
-        logger.debug("Flush log path: {}", outputPath);
+        getLogger().debug("Flush log path: {}", outputPath);
         List<LogWriter> logWriterList = keyToLogWriterLock.syncValue(
                 lock -> keyToLogWriter.values()
                         .stream()
@@ -83,16 +94,16 @@ public abstract class AbstractLogger implements ILogger, AgentEventListener {
                         .collect(Collectors.toList())
         );
         if (logWriterList.isEmpty())
-            logger.debug("No logs found for: {}", outputPath);
+            getLogger().debug("No logs found for: {}", outputPath);
         else
             flushLogWriterList(logWriterList);
     }
 
     public void flushAll() {
-        logger.debug("Flush all log paths.");
+        getLogger().debug("Flush all log paths.");
         List<LogWriter> logWriterList = keyToLogWriterLock.syncValue(lock -> new ArrayList<>(keyToLogWriter.values()));
         if (logWriterList.isEmpty())
-            logger.debug("No logs to flush.");
+            getLogger().debug("No logs to flush.");
         else
             flushLogWriterList(logWriterList);
     }
@@ -102,7 +113,7 @@ public abstract class AbstractLogger implements ILogger, AgentEventListener {
     }
 
     private void clear() {
-        logger.debug("Start to clear...");
+        getLogger().debug("Start to clear...");
         keyToLogWriterLock.sync(lock -> {
             pathToSyncWriterLock.sync(subLock -> {
                 pathToSyncWriter.forEach((outputPath, syncWriter) -> {
@@ -113,7 +124,15 @@ public abstract class AbstractLogger implements ILogger, AgentEventListener {
             });
             keyToLogWriter.clear();
         });
-        logger.debug("Clear end.");
+        getLogger().debug("Clear end.");
+    }
+
+    @Override
+    public LogConfig getLogConfig(String key) {
+        return keyToLogWriterLock.syncValue(lock -> {
+            LogWriter logWriter = keyToLogWriter.get(key);
+            return logWriter == null ? null : logWriter.getConfig();
+        });
     }
 
     protected LogWriter getLogWriter(String key) {
@@ -131,10 +150,10 @@ public abstract class AbstractLogger implements ILogger, AgentEventListener {
             if (syncWriter == null) {
                 OutputStream outputStream;
                 if (STDOUT.equals(outputPath)) {
-                    logger.debug("Output to console.");
+                    getLogger().debug("Output to console.");
                     outputStream = System.out;
                 } else {
-                    logger.debug("Output to {}.", outputPath);
+                    getLogger().debug("Output to {}.", outputPath);
                     outputStream = new FileOutputStream(outputPath, true);
                 }
                 syncWriter = new SyncWriter(newOutputWriter(outputStream));
