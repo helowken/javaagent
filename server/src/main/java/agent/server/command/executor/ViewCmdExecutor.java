@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
 import static agent.common.message.MessageType.CMD_VIEW;
 import static agent.common.message.command.impl.ViewCommand.CATALOG_CLASS;
 
-public class ViewCmdExecutor extends AbstractCmdExecutor {
+class ViewCmdExecutor extends AbstractCmdExecutor {
     @Override
     ExecResult doExec(Command cmd) throws Exception {
         String catalog = ((ViewCommand) cmd).getCatalog();

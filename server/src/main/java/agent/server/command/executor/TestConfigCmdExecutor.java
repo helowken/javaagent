@@ -4,14 +4,18 @@ import agent.common.message.command.Command;
 import agent.common.message.command.impl.TestConfigCommand;
 import agent.common.message.result.DefaultExecResult;
 import agent.common.message.result.ExecResult;
+import agent.common.message.result.entity.TestConfigResultEntity;
+import agent.common.utils.JSONUtils;
 import agent.server.transform.TransformMgr;
-import agent.server.transform.config.ModuleConfig;
-import agent.server.transform.impl.MethodFinder.MethodSearchResult;
+import com.fasterxml.jackson.core.type.TypeReference;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static agent.common.message.result.entity.TestConfigResultEntity.ClassResultEntity;
+import static agent.common.message.result.entity.TestConfigResultEntity.MethodResultEntity;
 
 class TestConfigCmdExecutor extends AbstractCmdExecutor {
     private static final String SELF = "self";
@@ -19,28 +23,34 @@ class TestConfigCmdExecutor extends AbstractCmdExecutor {
     @Override
     ExecResult doExec(Command cmd) throws Exception {
         byte[] config = ((TestConfigCommand) cmd).getConfig();
-        Map<ModuleConfig, List<MethodSearchResult>> moduleToSearchResult = TransformMgr.getInstance().searchMethods(config);
-        Map<String, Map<String, Map<String, List<String>>>> rsMap = new HashMap<>();
-        moduleToSearchResult.forEach((moduleConfig, searchResultList) ->
-                rsMap.computeIfAbsent(moduleConfig.getContextPath(), contextPath -> {
-                    Map<String, Map<String, List<String>>> classToMethods = new HashMap<>();
-                    searchResultList.forEach(searchResult -> {
-                        classToMethods.computeIfAbsent(searchResult.ctClass.getName(), className -> {
-                            Map<String, List<String>> declaringClassToMethods = new HashMap<>();
-                            searchResult.methodList.forEach(method -> {
-                                String declareClass = method.getDeclaringClass().getName();
-                                if (className.equals(declareClass))
-                                    declareClass = SELF;
-                                declaringClassToMethods.computeIfAbsent(declareClass, key -> new ArrayList<>())
-                                        .add(method.getName() + method.getSignature());
-                            });
-                            return declaringClassToMethods;
-                        });
-                        searchResult.release();
-                    });
-                    return classToMethods;
+        Map<String, List<TestConfigResultEntity>> contextToConfigResultEntityList = new HashMap<>();
+        TransformMgr.getInstance().searchMethods(config, (context, result) -> {
+            List<TestConfigResultEntity> configResultEntityList = contextToConfigResultEntityList.computeIfAbsent(context, key -> new ArrayList<>());
+
+            TestConfigResultEntity configResultEntity = new TestConfigResultEntity();
+            configResultEntity.setContext(context);
+            configResultEntityList.add(configResultEntity);
+
+            ClassResultEntity classResultEntity = new ClassResultEntity();
+            String className = result.ctClass.getName();
+            classResultEntity.setClassName(className);
+            configResultEntity.addClassEntity(classResultEntity);
+
+            result.methodList.forEach(method -> {
+                String declareClass = method.getDeclaringClass().getName();
+                if (declareClass.equals(className))
+                    declareClass = SELF;
+                MethodResultEntity methodResultEntity = new MethodResultEntity();
+                methodResultEntity.setDeclareClass(declareClass);
+                methodResultEntity.setMethodName(method.getName());
+                methodResultEntity.setSignature(method.getSignature());
+                classResultEntity.addMethodEntity(methodResultEntity);
+            });
+        });
+        return DefaultExecResult.toSuccess(cmd.getType(),
+                "Test config successfully.",
+                JSONUtils.convert(contextToConfigResultEntityList, new TypeReference<Map<String, List<Map>>>() {
                 })
         );
-        return DefaultExecResult.toSuccess(cmd.getType(), null, rsMap);
     }
 }

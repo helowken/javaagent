@@ -6,6 +6,7 @@ import agent.server.event.EventListenerMgr;
 import agent.server.event.impl.ResetClassEvent;
 import agent.server.transform.config.*;
 import agent.server.transform.impl.*;
+import agent.server.transform.impl.MethodFinder.MethodSearchResult;
 import agent.server.transform.impl.system.ResetClassTransformer;
 
 import java.lang.instrument.Instrumentation;
@@ -54,21 +55,18 @@ public class TransformMgr {
         return transform(transformContextList);
     }
 
-    public Map<ModuleConfig, List<MethodFinder.MethodSearchResult>> searchMethods(byte[] bs) throws Exception {
+    public void searchMethods(byte[] bs, SearchFunc func) throws Exception {
         Map<ModuleConfig, Map<TransformConfig, TransformerInfo>> rsMap = parseConfig(bs);
-        Map<ModuleConfig, List<MethodFinder.MethodSearchResult>> moduleToSearchResult = new HashMap<>();
-        rsMap.forEach((moduleConfig, configToInfo) -> {
-                    List<MethodFinder.MethodSearchResult> searchResultList = new ArrayList<>();
-                    configToInfo.forEach((transformConfig, transformerInfo) ->
-                            transformerInfo.getTargetClassConfigList()
-                                    .forEach(targetClassConfig ->
-                                            searchResultList.add(MethodFinder.getInstance().find(targetClassConfig))
-                                    )
-                    );
-                    moduleToSearchResult.put(moduleConfig, searchResultList);
-                }
+        rsMap.forEach((moduleConfig, configToInfo) ->
+                configToInfo.forEach((transformConfig, transformerInfo) ->
+                        transformerInfo.getTargetClassConfigList()
+                                .forEach(targetClassConfig ->
+                                        MethodFinder.getInstance().consume(targetClassConfig,
+                                                result -> func.exec(moduleConfig.getContextPath(), result)
+                                        )
+                                )
+                )
         );
-        return moduleToSearchResult;
     }
 
     public List<TargetClassConfig> convert(String context, List<ClassConfig> classConfigList) {
@@ -222,5 +220,9 @@ public class TransformMgr {
             );
             return rsMap;
         });
+    }
+
+    public interface SearchFunc {
+        void exec(String context, MethodSearchResult result);
     }
 }

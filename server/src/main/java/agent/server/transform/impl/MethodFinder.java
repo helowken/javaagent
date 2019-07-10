@@ -27,7 +27,7 @@ public class MethodFinder {
     private MethodFinder() {
     }
 
-    public MethodSearchResult rawFind(TargetClassConfig targetClassConfig) throws Exception {
+    MethodSearchResult rawFind(TargetClassConfig targetClassConfig) throws Exception {
         ClassPool cp = ClassPool.getDefault();
         Set<String> methodLongNames = new HashSet<>();
         ClassConfig classConfig = targetClassConfig.classConfig;
@@ -52,22 +52,18 @@ public class MethodFinder {
         }
     }
 
-    public MethodSearchResult find(TargetClassConfig targetClassConfig) {
+    public void consume(TargetClassConfig targetClassConfig, Consumer<MethodSearchResult> resultConsumer) {
+        MethodSearchResult result = null;
         try {
-            return ClassPoolUtils.exec(targetClassConfig.targetClass, cp -> rawFind(targetClassConfig));
+            result = ClassPoolUtils.exec(targetClassConfig.targetClass, cp -> rawFind(targetClassConfig));
+            resultConsumer.accept(result);
         } catch (RuntimeException e) {
             throw e;
         } catch (Exception e) {
             throw new RuntimeException("Find method list failed.", e);
-        }
-    }
-
-    public void consume(TargetClassConfig targetClassConfig, Consumer<MethodSearchResult> resultConsumer) {
-        MethodSearchResult result = find(targetClassConfig);
-        try {
-            resultConsumer.accept(result);
         } finally {
-            result.release();
+            if (result != null)
+                result.release();
         }
     }
 
