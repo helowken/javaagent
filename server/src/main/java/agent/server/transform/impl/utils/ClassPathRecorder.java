@@ -1,10 +1,9 @@
-package agent.server.transform.impl;
+package agent.server.transform.impl.utils;
 
 import agent.base.utils.ClassUtils;
 import agent.base.utils.Logger;
 import javassist.ClassClassPath;
 import javassist.ClassPath;
-import javassist.ClassPool;
 import javassist.CtClass;
 
 import java.net.URL;
@@ -12,46 +11,46 @@ import java.security.CodeSource;
 import java.util.*;
 
 @SuppressWarnings("unchecked")
-public class ClassPoolUtils {
+public class ClassPathRecorder {
     private static final Logger logger = Logger.getLogger(ClassPoolUtils.class);
     private static final Collection<String> skipPackages = Collections.singleton("javassist.");
 
-    public static <T> T exec(Class<?> clazz, ValueFunc<T> func) throws Exception {
-        return exec(Collections.singleton(clazz), func);
+    private AgentClassPool cp;
+    private final Map<URL, Class<?>> urlToClass = new HashMap<>();
+    private final Map<ClassLoader, Set<String>> loaderToRefClassNames = new HashMap<>();
+
+    ClassPathRecorder(AgentClassPool cp) {
+        this.cp = cp;
     }
 
-    public static <T> T exec(Set<Class<?>> classSet, ValueFunc<T> func) throws Exception {
-        ClassPool cp = ClassPool.getDefault();
-        List<ClassPath> classPathList = new ArrayList<>();
-        Map<URL, Class<?>> urlToClass = new HashMap<>();
-        Map<ClassLoader, Set<String>> loaderToRefClassNames = new HashMap<>();
+    public void add(Class<?> clazz) {
+        add(Collections.singleton(clazz));
+    }
+
+    public void add(Set<Class<?>> classSet) {
         for (Class<?> clazz : classSet) {
-            addRefClassToPool(cp, classPathList, urlToClass, clazz);
+            addRefClassToPool(clazz);
             loaderToRefClassNames.computeIfAbsent(clazz.getClassLoader(), key -> new HashSet<>())
-                    .addAll(getRefClassNames(cp, clazz));
+                    .addAll(getRefClassNames(clazz));
         }
         loaderToRefClassNames.forEach((loader, refClassNames) ->
                 findRefClassSet(loader, refClassNames)
-                        .forEach(refClass ->
-                                addRefClassToPool(cp, classPathList, urlToClass, refClass)
-                        )
+                        .forEach(this::addRefClassToPool)
         );
-        try {
-            return func.exec(cp);
-        } finally {
-            classPathList.forEach(classPath -> {
-                logger.debug("Remove class path from class pool: {}", classPath);
-                cp.removeClassPath(classPath);
-            });
-        }
     }
 
-    private static boolean isNativePackage(String namePath) {
+    void clear() {
+        cp = null;
+        urlToClass.clear();
+        loaderToRefClassNames.clear();
+    }
+
+    private boolean isNativePackage(String namePath) {
         return ClassUtils.isJavaNativePackage(namePath)
                 || skipPackages.stream().anyMatch(namePath::startsWith);
     }
 
-    private static Collection<String> getRefClassNames(ClassPool cp, Class<?> clazz) throws Exception {
+    private Collection<String> getRefClassNames(Class<?> clazz) {
         Set<String> refClassNameSet = new HashSet<>();
         String currClassName = clazz.getName();
         CtClass cc = cp.get(currClassName);
@@ -67,7 +66,7 @@ public class ClassPoolUtils {
         return refClassNameSet;
     }
 
-    private static Collection<Class<?>> findRefClassSet(ClassLoader loader, Collection<String> refClassNameSet) {
+    private Collection<Class<?>> findRefClassSet(ClassLoader loader, Collection<String> refClassNameSet) {
         try {
             Set<Class<?>> refClassSet = new HashSet<>();
             for (String refClassName : refClassNameSet) {
@@ -81,7 +80,7 @@ public class ClassPoolUtils {
         }
     }
 
-    private static void addRefClassToPool(ClassPool cp, List<ClassPath> classPathList, Map<URL, Class<?>> urlToClass, Class<?> refClass) {
+    private void addRefClassToPool(Class<?> refClass) {
         if (!isNativePackage(refClass.getName())) {
             CodeSource codeSource = refClass.getProtectionDomain().getCodeSource();
             if (codeSource != null) {
@@ -90,15 +89,10 @@ public class ClassPoolUtils {
                     ClassPath classPath = new ClassClassPath(refClass);
                     logger.debug("Add class path to class pool: {}, code source url: {}", classPath, location);
                     cp.insertClassPath(classPath);
-                    classPathList.add(classPath);
                     urlToClass.put(location, refClass);
                 }
             } else
                 logger.debug("No code source found for ref class: {}", refClass.getName());
         }
-    }
-
-    public interface ValueFunc<T> {
-        T exec(ClassPool cp) throws Exception;
     }
 }

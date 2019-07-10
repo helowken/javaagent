@@ -1,4 +1,4 @@
-package agent.server.transform.impl;
+package agent.server.transform.impl.utils;
 
 import agent.base.utils.ClassUtils;
 import agent.base.utils.Logger;
@@ -6,7 +6,7 @@ import agent.server.transform.config.ClassConfig;
 import agent.server.transform.config.MethodConfig;
 import agent.server.transform.config.MethodFilterConfig;
 import agent.server.transform.exception.MultiMethodFoundException;
-import javassist.ClassPool;
+import agent.server.transform.impl.TargetClassConfig;
 import javassist.CtClass;
 import javassist.CtMethod;
 import javassist.NotFoundException;
@@ -27,47 +27,37 @@ public class MethodFinder {
     private MethodFinder() {
     }
 
-    MethodSearchResult rawFind(TargetClassConfig targetClassConfig) throws Exception {
-        ClassPool cp = ClassPool.getDefault();
+    public MethodSearchResult rawFind(AgentClassPool cp, TargetClassConfig targetClassConfig) throws Exception {
         Set<String> methodLongNames = new HashSet<>();
         ClassConfig classConfig = targetClassConfig.classConfig;
         CtClass ctClass = cp.get(classConfig.getTargetClass());
-        try {
-            logger.debug("Start to find methods for class: {}", ctClass.getName());
-            List<CtMethod> candidateList = new ArrayList<>();
-            if (classConfig.getMethodConfigList() != null)
-                candidateList.addAll(findByMethodConfig(classConfig.getMethodConfigList(), ctClass, cp));
-            if (classConfig.getMethodFilterConfig() != null)
-                candidateList.addAll(findByMethodFilter(classConfig.getMethodFilterConfig(), ctClass));
-            List<CtMethod> rsList = collectMethodsIfNeeded(methodLongNames, candidateList);
-            logger.debug("===============");
-            logger.debug("Matched methods:");
-            rsList.forEach(method -> logger.debug(method.getLongName()));
-            logger.debug("===============");
-            return new MethodSearchResult(ctClass, rsList);
-        } catch (Exception e) {
-            if (ctClass != null)
-                ctClass.detach();
-            throw e;
-        }
+        logger.debug("Start to find methods for class: {}", ctClass.getName());
+        List<CtMethod> candidateList = new ArrayList<>();
+        if (classConfig.getMethodConfigList() != null)
+            candidateList.addAll(findByMethodConfig(classConfig.getMethodConfigList(), ctClass, cp));
+        if (classConfig.getMethodFilterConfig() != null)
+            candidateList.addAll(findByMethodFilter(classConfig.getMethodFilterConfig(), ctClass));
+        List<CtMethod> rsList = collectMethodsIfNeeded(methodLongNames, candidateList);
+        logger.debug("===============");
+        logger.debug("Matched methods:");
+        rsList.forEach(method -> logger.debug(method.getLongName()));
+        logger.debug("===============");
+        return new MethodSearchResult(ctClass, rsList);
     }
 
-    public void consume(TargetClassConfig targetClassConfig, Consumer<MethodSearchResult> resultConsumer) {
-        MethodSearchResult result = null;
+    public void consume(AgentClassPool cp, TargetClassConfig targetClassConfig, Consumer<MethodSearchResult> resultConsumer) {
         try {
-            result = ClassPoolUtils.exec(targetClassConfig.targetClass, cp -> rawFind(targetClassConfig));
-            resultConsumer.accept(result);
+            resultConsumer.accept(
+                    rawFind(cp, targetClassConfig)
+            );
         } catch (RuntimeException e) {
             throw e;
         } catch (Exception e) {
             throw new RuntimeException("Find method list failed.", e);
-        } finally {
-            if (result != null)
-                result.release();
         }
     }
 
-    private List<CtMethod> findByMethodConfig(List<MethodConfig> methodConfigList, CtClass ctClass, ClassPool cp) throws Exception {
+    private List<CtMethod> findByMethodConfig(List<MethodConfig> methodConfigList, CtClass ctClass, AgentClassPool cp) throws Exception {
         List<CtMethod> methodList = new ArrayList<>();
         for (MethodConfig methodConfig : methodConfigList) {
             String methodName = methodConfig.getName();
@@ -184,10 +174,6 @@ public class MethodFinder {
         private MethodSearchResult(CtClass ctClass, List<CtMethod> methodList) {
             this.ctClass = ctClass;
             this.methodList = Collections.unmodifiableList(methodList);
-        }
-
-        public void release() {
-            ctClass.detach();
         }
     }
 }

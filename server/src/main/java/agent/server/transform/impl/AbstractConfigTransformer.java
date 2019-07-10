@@ -3,6 +3,8 @@ package agent.server.transform.impl;
 import agent.base.utils.Logger;
 import agent.server.transform.ConfigTransformer;
 import agent.server.transform.exception.InvalidTransformerConfigException;
+import agent.server.transform.impl.utils.AgentClassPool;
+import agent.server.transform.impl.utils.MethodFinder;
 import javassist.CtClass;
 import javassist.CtMethod;
 
@@ -49,15 +51,16 @@ public abstract class AbstractConfigTransformer extends AbstractTransformer impl
     @Override
     protected byte[] doTransform(ClassLoader loader, String className, Class<?> classBeingRedefined,
                                  ProtectionDomain protectionDomain, byte[] classfileBuffer, String targetClassName) throws Exception {
-        MethodFinder.MethodSearchResult rs = MethodFinder.getInstance().rawFind(transformerInfo.getTargetClassConfig(className));
+        MethodFinder.MethodSearchResult rs = MethodFinder.getInstance().rawFind(
+                AgentClassPool.getInstance(),
+                transformerInfo.getTargetClassConfig(className)
+        );
         CtClass ctClass = rs.ctClass;
         for (CtMethod ctMethod : rs.methodList) {
             logger.debug("Transforming method: {}", ctMethod.getLongName());
             transformMethod(ctClass, ctMethod);
         }
-        byte[] byteCode = ctClass.toBytecode();
-        ctClass.detach();
-        return byteCode;
+        return ctClass.toBytecode();
     }
 
     protected abstract void transformMethod(CtClass ctClass, CtMethod ctMethod) throws Exception;

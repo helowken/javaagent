@@ -4,11 +4,12 @@ import agent.common.utils.JSONUtils;
 import agent.server.transform.TransformMgr;
 import agent.server.transform.config.ClassConfig;
 import agent.server.transform.impl.AbstractConfigTransformer;
-import agent.server.transform.impl.MethodFinder;
 import agent.server.transform.impl.TargetClassConfig;
 import agent.server.transform.impl.TransformerInfo;
 import agent.server.transform.impl.user.utils.CostTimeLogger;
 import agent.server.transform.impl.user.utils.LogTimeUtils;
+import agent.server.transform.impl.utils.ClassPoolUtils;
+import agent.server.transform.impl.utils.MethodFinder;
 import agent.server.utils.ParamValueUtils;
 import agent.server.utils.log.LogConfig;
 import agent.server.utils.log.LogMgr;
@@ -39,15 +40,20 @@ public class CostTimeStatisticsTransformer extends AbstractConfigTransformer {
         });
         TransformerInfo transformerInfo = getTransformerInfo();
         List<TargetClassConfig> targetClassConfigList = TransformMgr.getInstance().convert(transformerInfo.getContext(), classConfigList);
-        for (TargetClassConfig targetClassConfig : targetClassConfigList) {
-            MethodFinder.getInstance().consume(targetClassConfig, result ->
-                    result.methodList.forEach(method ->
-                            entryPoints.add(
-                                    getEntryPoint(transformerInfo.getContext(), result.ctClass, method)
-                            )
-                    )
-            );
-        }
+        ClassPoolUtils.exec((cp, classPathRecorder) -> {
+            for (TargetClassConfig targetClassConfig : targetClassConfigList) {
+                classPathRecorder.add(targetClassConfig.targetClass);
+                MethodFinder.getInstance().consume(
+                        cp,
+                        targetClassConfig,
+                        result -> result.methodList.forEach(method ->
+                                entryPoints.add(
+                                        getEntryPoint(transformerInfo.getContext(), result.ctClass, method)
+                                )
+                        )
+                );
+            }
+        });
         LogConfig logConfig = LogMgr.getBinaryLogConfig(logKey);
         CostTimeLogger.getInstance().regOutputPath(transformerInfo.getContext(), logConfig.getOutputPath());
     }

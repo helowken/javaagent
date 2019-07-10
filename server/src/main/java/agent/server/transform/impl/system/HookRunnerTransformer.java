@@ -3,7 +3,7 @@ package agent.server.transform.impl.system;
 import agent.hook.utils.JettyRunnerHook;
 import agent.server.transform.impl.AbstractTransformer;
 import agent.server.transform.impl.TransformerInfo;
-import javassist.ClassPool;
+import agent.server.transform.impl.utils.AgentClassPool;
 import javassist.CtClass;
 import javassist.CtConstructor;
 
@@ -34,13 +34,10 @@ public class HookRunnerTransformer extends AbstractTransformer {
 
     @Override
     protected byte[] doTransform(ClassLoader loader, String className, Class<?> classBeingRedefined, ProtectionDomain protectionDomain, byte[] classfileBuffer, String targetClassName) throws Exception {
-        ClassPool cp = ClassPool.getDefault();
-        CtClass ctClass = cp.get(runnerClass.getName());
+        CtClass ctClass = AgentClassPool.getInstance().get(runnerClass.getName());
         CtConstructor constructor = ctClass.getDeclaredConstructor(new CtClass[0]);
         constructor.insertAfter(JettyRunnerHook.class.getName() + ".runner = this;");
-        byte[] bs = ctClass.toBytecode();
-        ctClass.detach();
-        return bs;
+        return ctClass.toBytecode();
     }
 
 }

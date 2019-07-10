@@ -5,9 +5,13 @@ import agent.base.utils.Logger;
 import agent.server.event.EventListenerMgr;
 import agent.server.event.impl.ResetClassEvent;
 import agent.server.transform.config.*;
-import agent.server.transform.impl.*;
-import agent.server.transform.impl.MethodFinder.MethodSearchResult;
+import agent.server.transform.impl.TargetClassConfig;
+import agent.server.transform.impl.TransformerClassRegistry;
+import agent.server.transform.impl.TransformerInfo;
 import agent.server.transform.impl.system.ResetClassTransformer;
+import agent.server.transform.impl.utils.ClassPoolUtils;
+import agent.server.transform.impl.utils.MethodFinder;
+import agent.server.transform.impl.utils.MethodFinder.MethodSearchResult;
 
 import java.lang.instrument.Instrumentation;
 import java.security.CodeSource;
@@ -58,13 +62,19 @@ public class TransformMgr {
     public void searchMethods(byte[] bs, SearchFunc func) throws Exception {
         Map<ModuleConfig, Map<TransformConfig, TransformerInfo>> rsMap = parseConfig(bs);
         rsMap.forEach((moduleConfig, configToInfo) ->
-                configToInfo.forEach((transformConfig, transformerInfo) ->
-                        transformerInfo.getTargetClassConfigList()
-                                .forEach(targetClassConfig ->
-                                        MethodFinder.getInstance().consume(targetClassConfig,
-                                                result -> func.exec(moduleConfig.getContextPath(), result)
+                ClassPoolUtils.exec((cp, classPathRecorder) ->
+                        configToInfo.forEach((transformConfig, transformerInfo) ->
+                                transformerInfo.getTargetClassConfigList()
+                                        .forEach(targetClassConfig -> {
+                                                    classPathRecorder.add(targetClassConfig.targetClass);
+                                                    MethodFinder.getInstance().consume(
+                                                            cp,
+                                                            targetClassConfig,
+                                                            result -> func.exec(moduleConfig.getContextPath(), result)
+                                                    );
+                                                }
                                         )
-                                )
+                        )
                 )
         );
     }
@@ -128,12 +138,13 @@ public class TransformMgr {
                     refClassSet.addAll(transformer.getRefClassSet());
                     instrumentation.addTransformer(transformer, true);
                 });
-                Exception err;
+                Exception err = null;
                 try {
-                    err = ClassPoolUtils.exec(refClassSet, cp -> {
-                        instrumentation.retransformClasses(transformContext.classSet.toArray(new Class[0]));
-                        return null;
-                    });
+                    ClassPoolUtils.exec((cp, classPathRecorder) -> {
+                                classPathRecorder.add(refClassSet);
+                                instrumentation.retransformClasses(transformContext.classSet.toArray(new Class[0]));
+                            }
+                    );
                 } catch (Exception e) {
                     err = e;
                 } finally {
