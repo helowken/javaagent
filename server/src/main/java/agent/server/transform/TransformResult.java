@@ -3,6 +3,7 @@ package agent.server.transform;
 import agent.base.utils.Utils;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class TransformResult {
@@ -20,8 +21,29 @@ public class TransformResult {
                         .noneMatch(ErrorTraceTransformer::hasError);
     }
 
+    public boolean hasError() {
+        return !isSuccess();
+    }
+
+    public Map<String, Exception> getTransformerToError() {
+        return transformContext.transformerList
+                .stream()
+                .filter(ErrorTraceTransformer::hasError)
+                .collect(
+                        Collectors.toMap(
+                                transformer -> {
+                                    if (transformer instanceof ConfigTransformer)
+                                        return ((ConfigTransformer) transformer).getRegKey();
+                                    return transformer.getClass().getSimpleName();
+                                },
+                                ErrorTraceTransformer::getError
+                        )
+                );
+    }
+
     public List<Exception> getTransformerErrorList() {
-        return transformContext.transformerList.stream()
+        return transformContext.transformerList
+                .stream()
                 .filter(ErrorTraceTransformer::hasError)
                 .map(ErrorTraceTransformer::getError)
                 .collect(Collectors.toList());

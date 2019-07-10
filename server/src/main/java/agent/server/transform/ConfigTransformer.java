@@ -8,4 +8,6 @@ public interface ConfigTransformer extends ErrorTraceTransformer {
     void setTransformerInfo(TransformerInfo transformerInfo);
 
     void setConfig(Map<String, Object> config);
+
+    String getRegKey();
 }

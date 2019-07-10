@@ -5,10 +5,16 @@ import agent.common.message.command.impl.TransformClassCommand;
 import agent.common.message.result.ExecResult;
 import agent.server.transform.TransformMgr;
 
-class TransformClassCmdExecutor extends AbstractCmdExecutor {
+import static agent.common.message.MessageType.CMD_TRANSFORM_CLASS;
+
+class TransformClassCmdExecutor extends AbstractTransformCmdExecutor {
     @Override
     ExecResult doExec(Command cmd) throws Exception {
-        TransformMgr.getInstance().transformByConfig(((TransformClassCommand) cmd).getConfig());
-        return null;
+        return convert(
+                TransformMgr.getInstance().transformByConfig(
+                        ((TransformClassCommand) cmd).getConfig()
+                ),
+                CMD_TRANSFORM_CLASS,
+                "Transform class");
     }
 }

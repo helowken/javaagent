@@ -2,7 +2,7 @@ package agent.server.transform.config;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import agent.base.utils.IOUtils;
-import agent.server.utils.JSONUtils;
+import agent.common.utils.JSONUtils;
 
 import java.io.File;
 import java.io.IOException;

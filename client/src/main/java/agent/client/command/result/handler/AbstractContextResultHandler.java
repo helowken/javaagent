@@ -1,6 +1,5 @@
 package agent.client.command.result.handler;
 
-import agent.base.utils.Logger;
 import agent.client.utils.ClientLogger;
 
 import java.util.Map;

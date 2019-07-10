@@ -11,7 +11,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static agent.common.message.command.CommandType.CMD_TYPE_VIEW;
+import static agent.common.message.MessageType.CMD_VIEW;
 import static agent.common.message.command.impl.ViewCommand.CATALOG_CLASS;
 
 public class ViewCmdExecutor extends AbstractCmdExecutor {
@@ -28,7 +28,7 @@ public class ViewCmdExecutor extends AbstractCmdExecutor {
         }
         if (value == null)
             throw new RuntimeException("No result found.");
-        return DefaultExecResult.toSuccess(CMD_TYPE_VIEW, null, value);
+        return DefaultExecResult.toSuccess(CMD_VIEW, null, value);
     }
 
     private Map<String, Set<String>> getContextToClassSet() {

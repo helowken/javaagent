@@ -3,7 +3,7 @@ package test.server.tools;
 import agent.base.utils.IOUtils;
 import agent.base.utils.IndentUtils;
 import agent.server.transform.impl.user.utils.CostTimeLogger;
-import agent.server.utils.JSONUtils;
+import agent.common.utils.JSONUtils;
 import org.junit.Test;
 
 import java.io.*;

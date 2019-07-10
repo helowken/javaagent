@@ -9,11 +9,20 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+import static agent.common.message.MessageType.*;
+
 public class CommandResultHandlerMgr {
     private static final Map<Integer, ExecResultHandler> typeToResultHandler = new HashMap<>();
     private static final LockObject resultHandlerLock = new LockObject();
 
-    public static void regResultHandlerClass(int type, ExecResultHandler rsHandler) {
+    static {
+        regResultHandlerClass(CMD_TEST_CONFIG, new TestConfigResultHandler());
+        regResultHandlerClass(CMD_VIEW, new ViewResultHandler());
+        regResultHandlerClass(CMD_TRANSFORM_CLASS, new TransformClassResultHandler());
+        regResultHandlerClass(CMD_RESET_CLASS, new ResetClassResultHandler());
+    }
+
+    private static void regResultHandlerClass(int type, ExecResultHandler rsHandler) {
         resultHandlerLock.sync(lock -> typeToResultHandler.put(type, rsHandler));
     }
 

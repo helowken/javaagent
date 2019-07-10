@@ -21,6 +21,10 @@
             <groupId>com.sun</groupId>
             <artifactId>tools</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+        </dependency>
 
         <!-- app -->
         <dependency>

@@ -6,7 +6,7 @@ import agent.common.struct.impl.Structs;
 import java.util.HashSet;
 import java.util.Set;
 
-import static agent.common.message.command.CommandType.CMD_TYPE_VIEW;
+import static agent.common.message.MessageType.CMD_VIEW;
 
 public class ViewCommand extends AbstractCommand<DefaultStruct> {
     public static final String CATALOG_CLASS = "class";
@@ -17,7 +17,7 @@ public class ViewCommand extends AbstractCommand<DefaultStruct> {
     }
 
     public ViewCommand() {
-        super(CMD_TYPE_VIEW, Structs.newStringArray());
+        super(CMD_VIEW, Structs.newStringArray());
     }
 
     public ViewCommand(String catalog) {

@@ -50,9 +50,11 @@ public class IOUtils {
     }
 
     public static void close(Closeable o) {
-        try {
-            o.close();
-        } catch (IOException e) {
+        if (o != null) {
+            try {
+                o.close();
+            } catch (IOException e) {
+            }
         }
     }
 }

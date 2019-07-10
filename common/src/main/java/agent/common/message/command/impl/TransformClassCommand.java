@@ -3,7 +3,7 @@ package agent.common.message.command.impl;
 import agent.common.struct.impl.DefaultStruct;
 import agent.common.struct.impl.Structs;
 
-import static agent.common.message.command.CommandType.CMD_TYPE_TRANSFORM_CLASS;
+import static agent.common.message.MessageType.CMD_TRANSFORM_CLASS;
 
 public class TransformClassCommand extends AbstractCommand<DefaultStruct> {
     public TransformClassCommand() {
@@ -11,7 +11,7 @@ public class TransformClassCommand extends AbstractCommand<DefaultStruct> {
     }
 
     public TransformClassCommand(byte[] bs) {
-        super(CMD_TYPE_TRANSFORM_CLASS, Structs.newByteArray());
+        super(CMD_TRANSFORM_CLASS, Structs.newByteArray());
         getBody().set(bs);
     }
 

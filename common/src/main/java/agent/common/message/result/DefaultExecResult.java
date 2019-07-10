@@ -1,7 +1,7 @@
 package agent.common.message.result;
 
-import agent.common.message.command.CommandType;
 import agent.common.message.AbstractMessage;
+import agent.common.message.MessageType;
 import agent.common.struct.impl.MapStruct;
 
 @SuppressWarnings("unchecked")
@@ -16,23 +16,31 @@ public class DefaultExecResult extends AbstractMessage<MapStruct<String, Object>
     }
 
     public static DefaultExecResult toSuccess(int cmdType, String msg) {
-        return new DefaultExecResult(ResultStatus.SUCCESS, cmdType, msg, null);
+        return toSuccess(cmdType, msg, null);
     }
 
     public static DefaultExecResult toSuccess(int cmdType, String msg, Object content) {
-        return new DefaultExecResult(ResultStatus.SUCCESS, cmdType, msg, content);
+        return toResult(ResultStatus.SUCCESS, cmdType, msg, content);
     }
 
     public static DefaultExecResult toError(int cmdType, String errorMsg) {
-        return new DefaultExecResult(ResultStatus.ERROR, cmdType, errorMsg, null);
+        return toError(cmdType, errorMsg, null);
+    }
+
+    public static DefaultExecResult toError(int cmdType, String errorMsg, Object content) {
+        return toResult(ResultStatus.ERROR, cmdType, errorMsg, content);
     }
 
     public static DefaultExecResult toRuntimeError(String errorMsg) {
-        return new DefaultExecResult(ResultStatus.ERROR, CommandType.CMD_TYPE_NONE, errorMsg, null);
+        return toError(MessageType.CMD_NONE, errorMsg);
+    }
+
+    public static DefaultExecResult toResult(ResultStatus resultStatus, int messageType, String msg, Object content) {
+        return new DefaultExecResult(resultStatus, messageType, msg, content);
     }
 
     public DefaultExecResult() {
-        super(ResultType.RS_TYPE_DEFAULT, new MapStruct<>());
+        super(MessageType.RESULT_DEFAULT, new MapStruct<>());
     }
 
     private DefaultExecResult(ResultStatus resultStatus, int cmdType, String msg, Object content) {

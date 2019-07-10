@@ -9,7 +9,7 @@ import agent.server.event.AgentEventListener;
 import agent.server.event.EventListenerMgr;
 import agent.server.event.impl.LogFlushedEvent;
 import agent.server.event.impl.ResetClassEvent;
-import agent.server.utils.JSONUtils;
+import agent.common.utils.JSONUtils;
 import agent.server.utils.log.LogMgr;
 import agent.server.utils.log.binary.BinaryConverterRegistry;
 

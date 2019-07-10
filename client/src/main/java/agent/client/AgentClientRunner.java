@@ -1,5 +1,6 @@
 package agent.client;
 
+import agent.base.utils.IOUtils;
 import agent.base.utils.Utils;
 import agent.client.command.parser.CommandParserMgr;
 import agent.client.command.parser.exception.CommandParseException;
@@ -20,12 +21,13 @@ import java.util.Arrays;
 import java.util.Optional;
 import java.util.Properties;
 
-import static agent.common.message.command.CommandType.CMD_TYPE_TEST_CONFIG;
-import static agent.common.message.command.CommandType.CMD_TYPE_VIEW;
+import static agent.common.message.MessageType.CMD_TEST_CONFIG;
+import static agent.common.message.MessageType.CMD_VIEW;
 
 public class AgentClientRunner {
     private static final String KEY_HOST = "host";
     private static final String KEY_PORT = "port";
+    private static BufferedReader reader;
 
     public static void run(Properties props) throws Exception {
         String host = Optional.ofNullable(
@@ -33,22 +35,24 @@ public class AgentClientRunner {
         ).orElse("127.0.0.1");
         int port = Utils.parseInt(props.getProperty(KEY_PORT), KEY_PORT);
         init();
-        while (true) {
-            if (connectTo(host, port))
-                break;
-            else
-                ClientLogger.logger.info("Try to reconnect...");
+        try {
+            while (true) {
+                if (connectTo(host, port))
+                    break;
+                else
+                    ClientLogger.logger.info("Try to reconnect...");
+            }
+        } finally {
+            IOUtils.close(reader);
         }
     }
 
     private static void init() {
-        CommandResultHandlerMgr.regResultHandlerClass(CMD_TYPE_TEST_CONFIG, new TestConfigResultHandler());
-        CommandResultHandlerMgr.regResultHandlerClass(CMD_TYPE_VIEW, new ViewResultHandler());
+        reader = new BufferedReader(new InputStreamReader(System.in));
     }
 
     private static boolean connectTo(String host, int port) throws Exception {
         try (Socket socket = new Socket()) {
-            BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
             socket.connect(new InetSocketAddress(host, port));
             ClientLogger.logger.info("Agent Server connected.");
             try (MessageIO io = MessageIO.create(socket)) {

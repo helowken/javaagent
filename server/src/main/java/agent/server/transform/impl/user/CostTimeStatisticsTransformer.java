@@ -1,5 +1,6 @@
 package agent.server.transform.impl.user;
 
+import agent.common.utils.JSONUtils;
 import agent.server.transform.TransformMgr;
 import agent.server.transform.config.ClassConfig;
 import agent.server.transform.impl.AbstractConfigTransformer;
@@ -8,7 +9,6 @@ import agent.server.transform.impl.TargetClassConfig;
 import agent.server.transform.impl.TransformerInfo;
 import agent.server.transform.impl.user.utils.CostTimeLogger;
 import agent.server.transform.impl.user.utils.LogTimeUtils;
-import agent.server.utils.JSONUtils;
 import agent.server.utils.ParamValueUtils;
 import agent.server.utils.log.LogConfig;
 import agent.server.utils.log.LogMgr;
@@ -87,4 +87,8 @@ public class CostTimeStatisticsTransformer extends AbstractConfigTransformer {
             ctMethod.insertAfter(loggerExpr + ".rollback();", true);
     }
 
+    @Override
+    public String getRegKey() {
+        return REG_KEY;
+    }
 }

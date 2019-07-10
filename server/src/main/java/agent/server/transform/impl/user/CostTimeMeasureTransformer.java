@@ -46,4 +46,9 @@ public class CostTimeMeasureTransformer extends AbstractConfigTransformer {
                     .append(");");
         });
     }
+
+    @Override
+    public String getRegKey() {
+        return REG_KEY;
+    }
 }

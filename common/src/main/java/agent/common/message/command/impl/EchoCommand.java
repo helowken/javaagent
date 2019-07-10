@@ -1,11 +1,11 @@
 package agent.common.message.command.impl;
 
-import agent.common.message.command.CommandType;
+import agent.common.message.MessageType;
 import agent.common.struct.impl.DefaultStruct;
 import agent.common.struct.impl.Structs;
 
 public class EchoCommand extends AbstractCommand<DefaultStruct> {
-    private static final int cmdType = CommandType.CMD_TYPE_ECHO;
+    private static final int cmdType = MessageType.CMD_ECHO;
 
     public EchoCommand() {
         this(null);

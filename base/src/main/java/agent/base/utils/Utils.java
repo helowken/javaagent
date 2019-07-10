@@ -1,10 +1,7 @@
 package agent.base.utils;
 
 import java.io.*;
-import java.util.Collections;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -50,12 +47,28 @@ public class Utils {
         }
     }
 
+    public static List<String> getErrorMessages(Throwable t) {
+        List<String> errMsgList = new ArrayList<>();
+        while (t != null) {
+            String msg = t.getMessage();
+            if (!isBlank(msg)) {
+                errMsgList.add(msg);
+            }
+            t = t.getCause();
+        }
+        return errMsgList;
+    }
+
     public static Properties loadProperties(String path) throws Exception {
         try (InputStream in = new FileInputStream(path)) {
             Properties props = new Properties();
             props.load(in);
             return props;
         }
+    }
+
+    public static boolean isBlank(String s) {
+        return s == null || s.trim().isEmpty();
     }
 
     public static String blankToNull(String s) {
