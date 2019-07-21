@@ -29,6 +29,7 @@ cp server-launcher/target/server-launcher-1.0-jar-with-dependencies.jar $SERVER_
 cp -R server-launcher/conf $SERVER_DIR
 # server-lib
 cp server/target/server-1.0.jar $SERVER_LIB_DIR
+cp jni-jvmti/target/jni-jvmti-1.0.jar $SERVER_LIB_DIR
 
 
 # client

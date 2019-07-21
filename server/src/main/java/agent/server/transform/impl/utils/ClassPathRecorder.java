@@ -1,7 +1,7 @@
 package agent.server.transform.impl.utils;
 
-import agent.base.utils.ClassUtils;
 import agent.base.utils.Logger;
+import agent.base.utils.ReflectionUtils;
 import javassist.ClassClassPath;
 import javassist.ClassPath;
 import javassist.CtClass;
@@ -46,7 +46,7 @@ public class ClassPathRecorder {
     }
 
     private boolean isNativePackage(String namePath) {
-        return ClassUtils.isJavaNativePackage(namePath)
+        return ReflectionUtils.isJavaNativePackage(namePath)
                 || skipPackages.stream().anyMatch(namePath::startsWith);
     }
 

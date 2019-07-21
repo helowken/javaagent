@@ -10,23 +10,9 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>server</artifactId>
+    <artifactId>jni-jvmti</artifactId>
 
     <dependencies>
-        <!-- app -->
-        <dependency>
-            <groupId>javaagent</groupId>
-            <artifactId>common</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>javaagent</groupId>
-            <artifactId>hock</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>javaagent</groupId>
-            <artifactId>jni-jvmti</artifactId>
-        </dependency>
-
         <!-- test -->
         <dependency>
             <groupId>junit</groupId>

@@ -1,7 +1,7 @@
 package agent.server.transform.impl.utils;
 
-import agent.base.utils.ClassUtils;
 import agent.base.utils.Logger;
+import agent.base.utils.ReflectionUtils;
 import agent.server.transform.config.ClassConfig;
 import agent.server.transform.config.MethodConfig;
 import agent.server.transform.config.MethodFilterConfig;
@@ -144,7 +144,7 @@ public class MethodFinder {
     private void filterOutJavaNative(List<CtMethod> candidateList, CtMethod... methods) {
         for (CtMethod method : methods) {
             String packageName = method.getDeclaringClass().getPackageName();
-            boolean isNative = ClassUtils.isJavaNativePackage(packageName);
+            boolean isNative = ReflectionUtils.isJavaNativePackage(packageName);
             if (isNative)
                 logger.debug("Method is java native, skip it: {}", method.getLongName());
             else

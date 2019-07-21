@@ -2,9 +2,9 @@ package agent.launcher.basic;
 
 
 import agent.base.utils.ClassLoaderUtils;
-import agent.base.utils.ClassUtils;
 import agent.base.utils.Logger;
 import agent.base.utils.Logger.LoggerLevel;
+import agent.base.utils.ReflectionUtils;
 import agent.base.utils.Utils;
 
 import java.io.File;
@@ -16,9 +16,13 @@ public abstract class AbstractLauncher {
     private static final String RUNNER_METHOD = "run";
     private static final String KEY_LOG_PATH = "log.path";
     private static final String KEY_LOG_LEVEL = "log.level";
-    private static final String KEY_LIB_PATH = "lib.path";
+    private static final String KEY_LIB_DIR = "lib.dir";
     private static final String LIB_PATH_SEP = ";";
     private static String currDir;
+
+    protected void loadLibs(String[] libPaths) throws Exception {
+        ClassLoaderUtils.initContextClassLoader(libPaths);
+    }
 
     protected Properties init(String configFilePath) throws Exception {
         Properties props = Utils.loadProperties(configFilePath);
@@ -26,10 +30,10 @@ public abstract class AbstractLauncher {
                 Utils.blankToNull(props.getProperty(KEY_LOG_PATH)),
                 Utils.blankToNull(props.getProperty(KEY_LOG_LEVEL))
         );
-        ClassLoaderUtils.initContextClassLoader(
+        loadLibs(
                 Stream.of(
                         Utils.splitToArray(
-                                props.getProperty(KEY_LIB_PATH),
+                                props.getProperty(KEY_LIB_DIR),
                                 LIB_PATH_SEP
                         )
                 )
@@ -72,6 +76,6 @@ public abstract class AbstractLauncher {
     }
 
     protected void startRunner(String className, Class<?>[] argTypes, Object... args) throws Exception {
-        ClassUtils.invokeStatic(className, RUNNER_METHOD, argTypes, args);
+        ReflectionUtils.invokeStatic(className, RUNNER_METHOD, argTypes, args);
     }
 }

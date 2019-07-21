@@ -16,4 +16,5 @@ public class ClientLauncher extends AbstractLauncher {
         Properties props = instance.init(args[0]);
         instance.startRunner(RUNNER_CLASS, props);
     }
+
 }

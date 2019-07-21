@@ -57,6 +57,11 @@
                 <artifactId>basic-launcher</artifactId>
                 <version>${project.version}</version>
             </dependency>
+            <dependency>
+                <groupId>javaagent</groupId>
+                <artifactId>jni-jvmti</artifactId>
+                <version>${project.version}</version>
+            </dependency>
 
             <!-- test -->
             <dependency>

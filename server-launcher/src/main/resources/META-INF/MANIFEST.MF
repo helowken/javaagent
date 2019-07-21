@@ -1,3 +1,4 @@
 Premain-Class: agent.launcher.server.ServerLauncher
+Agent-Class: agent.launcher.server.ServerLauncher
 Can-Redefine-Classes: true
 Can-Retransform-Classes: true
