@@ -1,0 +1,5 @@
+#!/bin/bash
+
+export jar=$1
+
+jar tf $jar | grep -v META | grep -v '.class' | sort | awk -F '/' '{b=$1"/"$2; print b}' | uniq

@@ -1,6 +1,7 @@
 package agent.server;
 
 import agent.base.utils.FileUtils;
+import agent.base.utils.ReflectionUtils;
 import agent.base.utils.Utils;
 import agent.hook.utils.AttachType;
 import agent.hook.utils.HookConstants;
@@ -41,7 +42,7 @@ public class AgentServerRunner {
     }
 
     private static void staticHookRunner() throws Exception {
-        Class<?> jettyRunnerClass = Class.forName(JETTY_RUNNER_CLASS);
+        Class<?> jettyRunnerClass = ReflectionUtils.findClass(JETTY_RUNNER_CLASS);
         String context = "Hook Jetty Runner";
         TransformMgr.getInstance().transform(
                 new TransformContext(
@@ -54,14 +55,16 @@ public class AgentServerRunner {
     }
 
     private static void dynamicHookRunner(Properties props) throws Exception {
-        Class<?> runnerClass = Class.forName(JETTY_RUNNER_CLASS);
         JvmtiUtils.getInstance().load(
-                FileUtils.splitPathStringToPathArray(
-                        props.getProperty(KEY_NATIVE_LIB_DIR),
-                        LIB_PATH_SEP,
-                        props.getProperty(HookConstants.KEY_CURR_DIR)
+                FileUtils.collectFiles(
+                        FileUtils.splitPathStringToPathArray(
+                                props.getProperty(KEY_NATIVE_LIB_DIR),
+                                LIB_PATH_SEP,
+                                props.getProperty(HookConstants.KEY_CURR_DIR)
+                        )
                 )
         );
+        Class<?> runnerClass = ReflectionUtils.findClass(JETTY_RUNNER_CLASS);
         JettyRunnerHook.runner = JvmtiUtils.getInstance().findObjectByClass(runnerClass);
     }
 

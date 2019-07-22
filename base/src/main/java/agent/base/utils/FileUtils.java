@@ -54,4 +54,13 @@ public class FileUtils {
         } else if (fileFilter == null || fileFilter.accept(file))
             allFiles.add(file);
     }
+
+    public static void mkdirsByFile(String filePath) {
+        File file = new File(filePath);
+        if (!file.exists()) {
+            File parentFile = file.getParentFile();
+            if (!parentFile.exists())
+                parentFile.mkdirs();
+        }
+    }
 }

@@ -42,6 +42,7 @@ public class Logger {
         if (outputStream == null) {
             streamLock.sync(lock -> {
                 if (outputStream == null) {
+                    FileUtils.mkdirsByFile(outputPath);
                     outputStream = new PrintStream(new FileOutputStream(outputPath, true));
                 }
             });

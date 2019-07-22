@@ -136,8 +136,15 @@ public class ReflectionUtils {
         if (classOrClassName instanceof Class)
             return (Class<?>) classOrClassName;
         else if (classOrClassName instanceof String)
-            return Class.forName((String) classOrClassName);
+            return findClass((String) classOrClassName);
         throw new IllegalArgumentException("Argument must be a class or classname.");
+    }
+
+    public static Class<?> findClass(String className) throws Exception {
+        ClassLoader loader = Thread.currentThread().getContextClassLoader();
+        if (loader == null)
+            return Class.forName(className);
+        return loader.loadClass(className);
     }
 
     private static void assertTarget(Object target) {

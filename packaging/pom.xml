@@ -38,6 +38,10 @@
             <groupId>javaagent</groupId>
             <artifactId>client-launcher</artifactId>
         </dependency>
+        <dependency>
+            <groupId>javaagent</groupId>
+            <artifactId>agent-launcher</artifactId>
+        </dependency>
     </dependencies>
 
     <build>

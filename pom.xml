@@ -22,5 +22,6 @@
         <module>client-launcher</module>
         <module>native</module>
         <module>packaging</module>
+        <module>agent-launcher</module>
     </modules>
 </project>

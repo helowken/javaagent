@@ -2,6 +2,7 @@ package agent.server.transform;
 
 import agent.base.utils.LockObject;
 import agent.base.utils.Logger;
+import agent.base.utils.ReflectionUtils;
 import agent.server.event.EventListenerMgr;
 import agent.server.event.impl.ResetClassEvent;
 import agent.server.transform.config.*;
@@ -116,7 +117,9 @@ public class TransformMgr {
         try {
             String className = transformerConfig.getImplClass();
             if (className != null)
-                return ConfigTransformer.class.cast(Class.forName(className).newInstance());
+                return ConfigTransformer.class.cast(
+                        ReflectionUtils.findClass(className).newInstance()
+                );
             return TransformerClassRegistry.get(transformerConfig.getRef()).newInstance();
         } catch (Exception e) {
             throw new RuntimeException("Create transformer failed.", e);

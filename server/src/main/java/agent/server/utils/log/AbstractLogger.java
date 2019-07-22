@@ -1,5 +1,6 @@
 package agent.server.utils.log;
 
+import agent.base.utils.FileUtils;
 import agent.base.utils.IOUtils;
 import agent.base.utils.LockObject;
 import agent.base.utils.Logger;
@@ -70,7 +71,10 @@ public abstract class AbstractLogger implements ILogger, AgentEventListener {
     public String reg(LogConfig logConfig) {
         getLogger().debug("Log config: {}", logConfig);
         String key = UUID.randomUUID().toString();
-        keyToLogWriterLock.sync(lock -> keyToLogWriter.put(key, newLogWriter(logConfig)));
+        keyToLogWriterLock.sync(lock -> {
+            FileUtils.mkdirsByFile(logConfig.getOutputPath());
+            keyToLogWriter.put(key, newLogWriter(logConfig));
+        });
         return key;
     }
 
@@ -85,7 +89,7 @@ public abstract class AbstractLogger implements ILogger, AgentEventListener {
         }
     }
 
-    public void flush(String outputPath) {
+    private void flush(String outputPath) {
         getLogger().debug("Flush log path: {}", outputPath);
         List<LogWriter> logWriterList = keyToLogWriterLock.syncValue(
                 lock -> keyToLogWriter.values()
@@ -99,7 +103,7 @@ public abstract class AbstractLogger implements ILogger, AgentEventListener {
             flushLogWriterList(logWriterList);
     }
 
-    public void flushAll() {
+    private void flushAll() {
         getLogger().debug("Flush all log paths.");
         List<LogWriter> logWriterList = keyToLogWriterLock.syncValue(lock -> new ArrayList<>(keyToLogWriter.values()));
         if (logWriterList.isEmpty())
@@ -135,7 +139,7 @@ public abstract class AbstractLogger implements ILogger, AgentEventListener {
         });
     }
 
-    protected LogWriter getLogWriter(String key) {
+    private LogWriter getLogWriter(String key) {
         return keyToLogWriterLock.syncValue(lock -> {
             LogWriter logWriter = keyToLogWriter.get(key);
             if (logWriter == null)
@@ -144,7 +148,7 @@ public abstract class AbstractLogger implements ILogger, AgentEventListener {
         });
     }
 
-    protected SyncWriter getSyncWriter(String outputPath) {
+    private SyncWriter getSyncWriter(String outputPath) {
         return pathToSyncWriterLock.syncValue(lock -> {
             SyncWriter syncWriter = pathToSyncWriter.get(outputPath);
             if (syncWriter == null) {

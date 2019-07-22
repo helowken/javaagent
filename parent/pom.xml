@@ -87,6 +87,11 @@
                 <artifactId>client-launcher</artifactId>
                 <version>${project.version}</version>
             </dependency>
+            <dependency>
+                <groupId>javaagent</groupId>
+                <artifactId>agent-launcher</artifactId>
+                <version>${project.version}</version>
+            </dependency>
 
             <!-- test -->
             <dependency>

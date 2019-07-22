@@ -3,19 +3,25 @@ package agent.jvmti;
 
 import agent.base.utils.Logger;
 
+import java.io.File;
+import java.util.List;
+
 public class JvmtiUtils {
     private static final Logger logger = Logger.getLogger(JvmtiUtils.class);
     private static final JvmtiUtils instance = new JvmtiUtils();
-
-    static {
-        System.load("/home/helowken/test_jni/jni_jvmti/libagent_jvmti_JvmtiUtils.so");
-    }
 
     public static JvmtiUtils getInstance() {
         return instance;
     }
 
     private JvmtiUtils() {
+    }
+
+    public void load(List<File> fileList) {
+        load(fileList.stream()
+                .map(File::getAbsolutePath)
+                .toArray(String[]::new)
+        );
     }
 
     public void load(String... libPaths) {
