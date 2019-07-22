@@ -39,7 +39,17 @@
             <!-- app -->
             <dependency>
                 <groupId>javaagent</groupId>
+                <artifactId>base</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>javaagent</groupId>
                 <artifactId>common</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>javaagent</groupId>
+                <artifactId>dependent-lib</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -49,17 +59,32 @@
             </dependency>
             <dependency>
                 <groupId>javaagent</groupId>
-                <artifactId>base</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>javaagent</groupId>
                 <artifactId>basic-launcher</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>javaagent</groupId>
-                <artifactId>jni-jvmti</artifactId>
+                <artifactId>native</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>javaagent</groupId>
+                <artifactId>server</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>javaagent</groupId>
+                <artifactId>server-launcher</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>javaagent</groupId>
+                <artifactId>client</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>javaagent</groupId>
+                <artifactId>client-launcher</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
@@ -113,9 +138,7 @@
                     <artifactId>maven-assembly-plugin</artifactId>
                     <version>3.1.1</version>
                     <configuration>
-                        <descriptorRefs>
-                            <descriptorRef>jar-with-dependencies</descriptorRef>
-                        </descriptorRefs>
+                        <appendAssemblyId>false</appendAssemblyId>
                     </configuration>
                     <executions>
                         <execution>

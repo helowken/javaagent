@@ -2,7 +2,8 @@ package agent.launcher.server;
 
 import agent.base.utils.ClassLoaderUtils;
 import agent.base.utils.Logger;
-import agent.hook.utils.LoadType;
+import agent.hook.utils.AttachType;
+import agent.hook.utils.HookConstants;
 import agent.launcher.basic.AbstractLauncher;
 
 import java.lang.instrument.Instrumentation;
@@ -13,31 +14,32 @@ public class ServerLauncher extends AbstractLauncher {
     private static final Logger logger = Logger.getLogger(ServerLauncher.class);
     private static final String RUNNER_CLASS = "agent.server.AgentServerRunner";
     private static final ServerLauncher instance = new ServerLauncher();
-    private static LoadType loadType;
+    private static AttachType loadType;
 
     public static void premain(String agentArgs, Instrumentation instrumentation) throws Exception {
-        loadType = LoadType.STATIC;
+        loadType = AttachType.STATIC;
         initAgent(agentArgs, instrumentation);
     }
 
     public static void agentmain(String agentArgs, Instrumentation instrumentation) throws Exception {
-        loadType = LoadType.DYNAMIC;
+        loadType = AttachType.DYNAMIC;
         initAgent(agentArgs, instrumentation);
     }
 
     private static void initAgent(String agentArgs, Instrumentation instrumentation) throws Exception {
         logger.info("In agentmain method: {}", agentArgs);
         Properties props = instance.init(agentArgs);
-        props.setProperty(LoadType.KEY_LOAD_TYPE, loadType.name());
+        props.setProperty(HookConstants.KEY_ATTACH_TYPE, loadType.name());
+        props.setProperty(HookConstants.KEY_CURR_DIR, getCurrDir());
         instance.startRunner(RUNNER_CLASS, new Class<?>[]{Instrumentation.class, Properties.class}, instrumentation, props);
     }
 
     @Override
     protected void loadLibs(String[] libPaths) throws Exception {
-        if (LoadType.STATIC.equals(loadType)) {
+        if (AttachType.STATIC.equals(loadType)) {
             logger.debug("Use static loading.");
-            super.loadLibs(libPaths);
-        } else if (LoadType.DYNAMIC.equals(loadType)) {
+            ClassLoaderUtils.initContextClassLoader(libPaths);
+        } else if (AttachType.DYNAMIC.equals(loadType)) {
             logger.debug("Use dynamic loading.");
             ClassLoaderUtils.addLibPaths(libPaths);
         } else

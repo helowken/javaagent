@@ -1,7 +1,7 @@
 package agent.launcher.basic;
 
 
-import agent.base.utils.ClassLoaderUtils;
+import agent.base.utils.FileUtils;
 import agent.base.utils.Logger;
 import agent.base.utils.Logger.LoggerLevel;
 import agent.base.utils.ReflectionUtils;
@@ -9,7 +9,6 @@ import agent.base.utils.Utils;
 
 import java.io.File;
 import java.util.Properties;
-import java.util.stream.Stream;
 
 public abstract class AbstractLauncher {
     private static final Logger logger = Logger.getLogger(AbstractLauncher.class);
@@ -20,9 +19,7 @@ public abstract class AbstractLauncher {
     private static final String LIB_PATH_SEP = ";";
     private static String currDir;
 
-    protected void loadLibs(String[] libPaths) throws Exception {
-        ClassLoaderUtils.initContextClassLoader(libPaths);
-    }
+    protected abstract void loadLibs(String[] libPaths) throws Exception;
 
     protected Properties init(String configFilePath) throws Exception {
         Properties props = Utils.loadProperties(configFilePath);
@@ -31,19 +28,16 @@ public abstract class AbstractLauncher {
                 Utils.blankToNull(props.getProperty(KEY_LOG_LEVEL))
         );
         loadLibs(
-                Stream.of(
-                        Utils.splitToArray(
-                                props.getProperty(KEY_LIB_DIR),
-                                LIB_PATH_SEP
-                        )
+                FileUtils.splitPathStringToPathArray(
+                        props.getProperty(KEY_LIB_DIR),
+                        LIB_PATH_SEP,
+                        getCurrDir()
                 )
-                        .map(libPath -> new File(getCurrDir(), libPath).getAbsolutePath())
-                        .toArray(String[]::new)
         );
         return props;
     }
 
-    private static synchronized String getCurrDir() {
+    protected static synchronized String getCurrDir() {
         if (currDir == null) {
             currDir = new File(
                     AbstractLauncher.class.getProtectionDomain().getCodeSource().getLocation().getFile()

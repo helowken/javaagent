@@ -9,52 +9,18 @@
     <packaging>pom</packaging>
     <version>1.0</version>
 
-    <profiles>
-        <profile>
-            <id>common</id>
-            <modules>
-                <module>parent</module>
-                <module>base</module>
-                <module>common</module>
-            </modules>
-        </profile>
-
-        <profile>
-            <id>server</id>
-            <modules>
-                <module>parent</module>
-                <module>hock</module>
-                <module>jni-jvmti</module>
-                <module>server</module>
-                <module>server-launcher</module>
-            </modules>
-        </profile>
-
-        <profile>
-            <id>launcher</id>
-            <modules>
-                <module>parent</module>
-                <module>basic-launcher</module>
-                <module>server-launcher</module>
-                <module>client-launcher</module>
-            </modules>
-        </profile>
-
-        <profile>
-            <id>default</id>
-            <modules>
-                <module>parent</module>
-                <module>base</module>
-                <module>hock</module>
-                <module>common</module>
-                <module>dependent-lib</module>
-                <module>basic-launcher</module>
-                <module>server</module>
-                <module>server-launcher</module>
-                <module>client</module>
-                <module>client-launcher</module>
-                <module>jni-jvmti</module>
-            </modules>
-        </profile>
-    </profiles>
+    <modules>
+        <module>parent</module>
+        <module>base</module>
+        <module>hock</module>
+        <module>common</module>
+        <module>dependent-lib</module>
+        <module>basic-launcher</module>
+        <module>server</module>
+        <module>server-launcher</module>
+        <module>client</module>
+        <module>client-launcher</module>
+        <module>native</module>
+        <module>packaging</module>
+    </modules>
 </project>
