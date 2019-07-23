@@ -1,10 +1,9 @@
 package agent.server.transform;
 
 import agent.base.utils.Logger;
+import agent.base.utils.ReflectionUtils;
 import agent.hook.utils.JettyRunnerHook;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -19,24 +18,14 @@ public class ClassFinder {
                 if (!inited) {
                     Object runner = JettyRunnerHook.runner;
                     if (runner != null) {
-                        Class<?> runnerClass = runner.getClass();
-                        Field contextsField = runnerClass.getDeclaredField("_contexts");
-                        boolean oldAccessible = contextsField.isAccessible();
-                        contextsField.setAccessible(true);
-                        Object contexts = contextsField.get(runner);
-                        contextsField.setAccessible(oldAccessible);
-                        Class<?> contextsClass = contexts.getClass();
-                        logger.debug("Contexts: {}, Class: {}", contexts, contextsClass);
-                        Method getHandlersMethod = contextsClass.getMethod("getHandlers");
-                        Object[] handlers = (Object[]) getHandlersMethod.invoke(contexts);
+                        Object contexts = ReflectionUtils.getFieldValue("_contexts", runner);
+                        logger.debug("Contexts: {}, Class: {}", contexts, contexts.getClass());
+                        Object[] handlers = ReflectionUtils.getFieldValue("getHandlers", contexts);
                         logger.debug("Handler bytesSize: {}", handlers.length);
                         if (handlers.length > 0) {
-                            Class<?> handlerClass = handlers[0].getClass();
-                            Method getContextPathMethod = handlerClass.getMethod("getContextPath");
-                            Method getClassLoaderMethod = handlerClass.getMethod("getClassLoader");
                             for (Object handler : handlers) {
-                                String contextPath = (String) getContextPathMethod.invoke(handler);
-                                ClassLoader loader = (ClassLoader) getClassLoaderMethod.invoke(handler);
+                                String contextPath = ReflectionUtils.invoke("getContextPath", handler);
+                                ClassLoader loader = ReflectionUtils.invoke("getClassLoader", handler);
                                 contextPathToClassLoader.put(contextPath, loader);
                                 logger.debug("context path: {}, war classLoader: {}", contextPath, loader);
                             }

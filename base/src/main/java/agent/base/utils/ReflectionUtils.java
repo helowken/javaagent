@@ -58,8 +58,17 @@ public class ReflectionUtils {
         return exec(field, () -> (T) field.get(target));
     }
 
+
+    public static <T> T useField(Object classOrClassName, String fieldName, AccessibleObjectConsumer<Field, T> consumer) throws Exception {
+        Field field = getField(classOrClassName, fieldName);
+        return exec(field, () -> consumer.supply(field));
+    }
+
     private static Field getField(Object classOrClassName, String fieldName) throws Exception {
-        return convert(classOrClassName).getDeclaredField(fieldName);
+        Class<?> clazz = convert(classOrClassName);
+        return findFromAncestorClass(clazz,
+                tmpClass -> tmpClass.getDeclaredField(fieldName)
+        );
     }
 
     public static <T> T invokeStatic(Object classOrClassName, String methodName) throws Exception {
@@ -103,23 +112,26 @@ public class ReflectionUtils {
     private static Method getMethod(Object classOrClassName, String methodName, Object... argClassOrClassNames) throws Exception {
         Class<?> clazz = convert(classOrClassName);
         Class[] argTypes = convertArray(argClassOrClassNames);
-        try {
-            return clazz.getDeclaredMethod(methodName, argTypes);
-        } catch (NoSuchMethodException e) {
+        return findFromAncestorClass(clazz,
+                tmpClass -> tmpClass.getDeclaredMethod(methodName, argTypes)
+        );
+    }
+
+    private static <T> T findFromAncestorClass(Class<?> clazz, FindFunc<T> func) throws Exception {
+        Class<?> tmpClass = clazz;
+        Exception e = null;
+        while (tmpClass != null) {
             try {
-                return clazz.getMethod(methodName, argTypes);
-            } catch (NoSuchMethodException e2) {
-                Class<?> superClass = clazz.getSuperclass();
-                while (superClass != null) {
-                    try {
-                        return superClass.getDeclaredMethod(methodName, argTypes);
-                    } catch (NoSuchMethodException e3) {
-                    }
-                    superClass = superClass.getSuperclass();
-                }
-                throw e2;
+                return func.find(tmpClass);
+            } catch (Exception e2) {
+                if (e == null)
+                    e = e2;
             }
+            tmpClass = tmpClass.getSuperclass();
         }
+        if (e != null)
+            throw e;
+        throw new Exception("Unknown exception");
     }
 
     private static Class[] convertArray(Object... classOrClassNames) throws Exception {
@@ -152,6 +164,10 @@ public class ReflectionUtils {
             throw new IllegalArgumentException("Target is null!");
     }
 
+    private interface FindFunc<V> {
+        V find(Class<?> clazz) throws Exception;
+    }
+
     private interface AccessibleObjectFunc<V> {
         V supply() throws Exception;
     }
@@ -159,4 +175,5 @@ public class ReflectionUtils {
     public interface AccessibleObjectConsumer<T extends AccessibleObject, V> {
         V supply(T ao) throws Exception;
     }
+
 }

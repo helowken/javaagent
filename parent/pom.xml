@@ -11,7 +11,7 @@
     <properties>
         <jdk.version>1.8</jdk.version>
         <javaassist.version>3.21.0-GA</javaassist.version>
-        <jackson.version>2.9.1</jackson.version>
+        <jackson.version>2.9.9.1</jackson.version>
         <junit.version>4.12</junit.version>
         <mockito.version>1.95</mockito.version>
     </properties>

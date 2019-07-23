@@ -37,5 +37,13 @@ public class JvmtiUtils {
         }
     }
 
+    public Object findObjectByClassName(String className) {
+        return findObjectByClassNameHelper(
+                className.replaceAll("\\.", "/")
+        );
+    }
+
     public native Object findObjectByClass(Class<?> clazz);
+
+    private native Object findObjectByClassNameHelper(String className);
 }

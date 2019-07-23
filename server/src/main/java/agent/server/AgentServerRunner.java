@@ -64,8 +64,7 @@ public class AgentServerRunner {
                         )
                 )
         );
-        Class<?> runnerClass = ReflectionUtils.findClass(JETTY_RUNNER_CLASS);
-        JettyRunnerHook.runner = JvmtiUtils.getInstance().findObjectByClass(runnerClass);
+        JettyRunnerHook.runner = JvmtiUtils.getInstance().findObjectByClassName(JETTY_RUNNER_CLASS);
     }
 
 }
