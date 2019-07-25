@@ -1,6 +1,6 @@
-package agent.server.transform.impl.system;
+package agent.hook.jetty.transformer;
 
-import agent.hook.utils.JettyRunnerHook;
+import agent.hook.utils.App;
 import agent.server.transform.impl.AbstractTransformer;
 import agent.server.transform.impl.TransformerInfo;
 import agent.server.transform.impl.utils.AgentClassPool;
@@ -11,11 +11,11 @@ import java.security.ProtectionDomain;
 import java.util.HashSet;
 import java.util.Set;
 
-public class HookRunnerTransformer extends AbstractTransformer {
+public class HookJettyRunnerTransformer extends AbstractTransformer {
     private final Class<?> runnerClass;
     private final String classNamePath;
 
-    public HookRunnerTransformer(Class<?> runnerClass) {
+    public HookJettyRunnerTransformer(Class<?> runnerClass) {
         this.runnerClass = runnerClass;
         classNamePath = TransformerInfo.getClassNamePath(runnerClass);
     }
@@ -28,7 +28,7 @@ public class HookRunnerTransformer extends AbstractTransformer {
     @Override
     public Set<Class<?>> getRefClassSet() {
         Set<Class<?>> classSet = new HashSet<>(super.getRefClassSet());
-        classSet.add(JettyRunnerHook.class);
+        classSet.add(App.class);
         return classSet;
     }
 
@@ -36,7 +36,7 @@ public class HookRunnerTransformer extends AbstractTransformer {
     protected byte[] doTransform(ClassLoader loader, String className, Class<?> classBeingRedefined, ProtectionDomain protectionDomain, byte[] classfileBuffer, String targetClassName) throws Exception {
         CtClass ctClass = AgentClassPool.getInstance().get(runnerClass.getName());
         CtConstructor constructor = ctClass.getDeclaredConstructor(new CtClass[0]);
-        constructor.insertAfter(JettyRunnerHook.class.getName() + ".runner = this;");
+        constructor.insertAfter(App.class.getName() + ".instance = this;");
         return ctClass.toBytecode();
     }
 

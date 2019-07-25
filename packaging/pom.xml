@@ -42,6 +42,10 @@
             <groupId>javaagent</groupId>
             <artifactId>agent-launcher</artifactId>
         </dependency>
+        <dependency>
+            <groupId>javaagent</groupId>
+            <artifactId>jetty-runner-hook</artifactId>
+        </dependency>
     </dependencies>
 
     <build>

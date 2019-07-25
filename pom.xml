@@ -11,13 +11,13 @@
 
     <profiles>
         <profile>
-            <id>build</id>
+            <id>all</id>
             <modules>
                 <module>parent</module>
                 <module>dependent-lib</module>
                 <module>base</module>
                 <module>common</module>
-                <module>hock</module>
+                <module>hook</module>
                 <module>native</module>
                 <module>basic-launcher</module>
                 <module>client-launcher</module>
@@ -25,6 +25,7 @@
                 <module>server</module>
                 <module>client</module>
                 <module>agent-launcher</module>
+                <module>plugins/jetty-runner-hook</module>
                 <module>packaging</module>
             </modules>
         </profile>
@@ -51,11 +52,12 @@
             <modules>
                 <module>base</module>
                 <module>common</module>
-                <module>hock</module>
+                <module>hook</module>
                 <module>native</module>
                 <module>packaging</module>
                 <module>server</module>
                 <module>agent-launcher</module>
+                <module>plugins/jetty-runner-hook</module>
             </modules>
         </profile>
 

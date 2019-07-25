@@ -47,6 +47,12 @@ public class Utils {
         }
     }
 
+    public static String getMergedErrorMessage(Throwable t) {
+        StringBuilder sb = new StringBuilder();
+        getErrorMessages(t).forEach(errMsg -> sb.append(errMsg).append("\n"));
+        return sb.toString();
+    }
+
     public static List<String> getErrorMessages(Throwable t) {
         List<String> errMsgList = new ArrayList<>();
         while (t != null) {

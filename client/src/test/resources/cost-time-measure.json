@@ -1,71 +1,71 @@
 [
-  {
-    "contextPath": "/test",
-    "transformConfigs": [
-      {
-        "desc": "Used to measure time cost.",
-        "transformers": [
-          {
-            "ref": "costTimeMeasure",
-            "config": {
-              "log": {
-                "autoFlush": false,
-                "outputFormat": "[${currTime}] - ${currTimeMillis} - ${class}.${method}: ${costTime}ms",
-                "timeFormat": "yyyy-MM-dd HH:mm:ss.SSS",
-                "maxBufferSize": 8192
-              }
+    {
+        "contextPath": "/test",
+        "transformConfigs": [
+            {
+                "desc": "Used to measure time cost.",
+                "transformers": [
+                    {
+                        "ref": "costTimeMeasure",
+                        "config": {
+                            "log": {
+                                "autoFlush": false,
+                                "outputFormat": "[${currTime}] - ${currTimeMillis} - ${class}#${method}: ${costTime}ms",
+                                "timeFormat": "yyyy-MM-dd HH:mm:ss.SSS",
+                                "maxBufferSize": 8192
+                            }
+                        }
+                    }
+                ],
+                "targets": [
+                    {
+                        "class": "test.jetty.TestObject",
+                        "methods": [
+                            {
+                                "name": "test"
+                            },
+                            {
+                                "name": "test2"
+                            },
+                            {
+                                "name": "test3"
+                            }
+                        ]
+                    },
+                    {
+                        "class": "test.jetty.SubTestObject",
+                        "methodFilter": {
+                            "onlyDeclared": true,
+                            "skipJavaNative": true,
+                            "include": [],
+                            "exclude": []
+                        }
+                    }
+                ]
             }
-          }
-        ],
-        "targets": [
-          {
-            "class": "test.jetty.TestObject",
-            "methods": [
-              {
-                "name": "test"
-              },
-              {
-                "name": "test2"
-              },
-              {
-                "name": "test3"
-              }
-            ]
-          },
-          {
-            "class": "test.jetty.SubTestObject",
-            "methodFilter": {
-              "onlyDeclared": true,
-              "skipJavaNative": true,
-              "include": [],
-              "exclude": []
+        ]
+    },
+    {
+        "contextPath": "/test2",
+        "transformConfigs": [
+            {
+                "desc": "Used to measure time cost.",
+                "transformers": [
+                    {
+                        "ref": "costTimeMeasure"
+                    }
+                ],
+                "targets": [
+                    {
+                        "class": "test.jetty.TestObject",
+                        "methods": [
+                            {
+                                "name": "test"
+                            }
+                        ]
+                    }
+                ]
             }
-          }
         ]
-      }
-    ]
-  },
-  {
-    "contextPath": "/test2",
-    "transformConfigs": [
-      {
-        "desc": "Used to measure time cost.",
-        "transformers": [
-          {
-            "ref": "costTimeMeasure"
-          }
-        ],
-        "targets": [
-          {
-            "class": "test.jetty.TestObject",
-            "methods": [
-              {
-                "name": "test"
-              }
-            ]
-          }
-        ]
-      }
-    ]
-  }
+    }
 ]

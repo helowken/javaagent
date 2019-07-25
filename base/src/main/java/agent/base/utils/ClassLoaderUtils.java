@@ -4,9 +4,7 @@ import java.io.File;
 import java.io.FileFilter;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -30,10 +28,14 @@ public class ClassLoaderUtils {
         addLibPathsToClassLoader(loader, libPaths);
     }
 
-    public static void addLibPathsToClassLoader(ClassLoader loader, String... libPaths) throws Exception {
+    public static void addLibPathsToClassLoader(URLClassLoader loader, String... libPaths) throws Exception {
+        Set<URL> existedUrls = new HashSet<>(Arrays.asList(loader.getURLs()));
         ReflectionUtils.invokeMethod(URLClassLoader.class, "addURL", new Object[]{URL.class},
                 method -> {
-                    for (URL url : findLibUrls(libPaths)) {
+                    List<URL> newUrlList = findLibUrls(libPaths);
+                    newUrlList.removeAll(existedUrls);
+                    for (URL url : newUrlList) {
+                        logger.debug("Add url to class loader: {}", url);
                         method.invoke(loader, url);
                     }
                     return null;
@@ -65,9 +67,9 @@ public class ClassLoaderUtils {
             throw new RuntimeException("No jar file found in lib paths: " + Stream.of(libPaths).collect(Collectors.toList()));
         List<URL> totalLibPathList = new ArrayList<>();
         for (File file : allFiles) {
-            URL url = file.toURI().toURL();
-            logger.debug("Jar url: {}", url);
-            totalLibPathList.add(url);
+            totalLibPathList.add(
+                    file.toURI().toURL()
+            );
         }
         return totalLibPathList;
     }

@@ -1,14 +1,21 @@
 package agent.server;
 
+import agent.base.utils.Logger;
+
 public class AgentServerMgr {
+    private static final Logger logger = Logger.getLogger(AgentServerMgr.class);
     private static AgentServer server;
 
-    public static boolean startup(int port) {
-        if (server == null) {
+    public static synchronized boolean startup(int port) {
+        if (server == null)
             server = new AgentServer(port);
-            return server.startup();
-        }
-        return server.isRunning();
+        if (!server.isRunning()) {
+            logger.info("Starting agent server...");
+            server.startup();
+            return true;
+        } else
+            logger.info("Agent server is running.");
+        return false;
     }
 
     public static void shutdown() {

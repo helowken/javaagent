@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class ProcessUtils {
@@ -16,15 +17,21 @@ public class ProcessUtils {
     public static String getJvmPidByDisplayName(String displayName) throws Exception {
         ProcessExecResult result = exec("jps -l");
         if (result.isSuccess()) {
-            logger.debug("Get jvm pid success, Input: \n{}", result.getInputString());
-            return Stream.of(result.getInputString().split("\n"))
+//            logger.debug("Get jvm pid success, Input: \n{}", result.getInputString());
+            List<String[]> jpsList = Stream.of(result.getInputString().split("\n"))
                     .map(String::trim)
                     .filter(s -> !s.isEmpty())
                     .map(s -> s.split(" "))
                     .filter(ts -> ts.length == 2 && ts[1].contains(displayName))
-                    .map(ts -> ts[0])
-                    .findAny()
-                    .orElse(null);
+                    .collect(Collectors.toList());
+            if (jpsList.isEmpty()) {
+                logger.error("No java process found by display name: {}", displayName);
+                return null;
+            } else if (jpsList.size() > 1) {
+                logger.error("More than one java process found by display name: {}", displayName);
+                return null;
+            }
+            return jpsList.get(0)[0].trim();
         }
         logger.error("Get jvm pid failed, exit value: {}\nInput: \n{}\n\nError:\n{}", result.getExitValue(), result.getInputString(), result.getErrorString());
         return null;

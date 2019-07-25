@@ -1,0 +1,27 @@
+[
+    {
+        "contextPath": "/test",
+        "transformConfigs": [
+            {
+                "desc": "Used to trace method info",
+                "transformers": [
+                    {
+                        "ref": "traceMethodInfo",
+                        "config": {
+                            "log": {
+                                "outputFormat": "${class}#${method}: \\n${content}"
+                            },
+                            "printerClass": ""
+                        }
+                    }
+                ],
+                "targets": [
+                    {
+                        "class": "test.jetty.TestObject",
+                        "methodFilter": {}
+                    }
+                ]
+            }
+        ]
+    }
+]

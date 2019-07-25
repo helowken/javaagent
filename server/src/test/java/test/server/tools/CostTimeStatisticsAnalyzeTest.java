@@ -2,8 +2,8 @@ package test.server.tools;
 
 import agent.base.utils.IOUtils;
 import agent.base.utils.IndentUtils;
-import agent.server.transform.impl.user.utils.CostTimeLogger;
 import agent.common.utils.JSONUtils;
+import agent.server.transform.impl.user.utils.CostTimeLogger;
 import org.junit.Test;
 
 import java.io.*;
@@ -23,15 +23,15 @@ public class CostTimeStatisticsAnalyzeTest {
         long length = outputFile.length();
         try (DataInputStream in = new DataInputStream(new BufferedInputStream(new FileInputStream(outputFile)))) {
             while (length > 0) {
-                int entrySize = in.readInt();
-                for (int i = 0; i < entrySize; ++i) {
+                int totalSize = in.readInt();
+                for (int i = 0; i < totalSize; i += 2) {
                     int methodType = in.readInt();
                     int costTime = in.readInt();
                     TimeItem item = typeToTimeItem.computeIfAbsent(methodType, key -> new TimeItem());
                     item.totalTime += costTime;
                     item.count += 1;
                 }
-                length -= Integer.BYTES + Integer.BYTES * 2 * entrySize;
+                length -= Integer.BYTES + Integer.BYTES * totalSize;
             }
         }
 
@@ -43,7 +43,7 @@ public class CostTimeStatisticsAnalyzeTest {
                     TimeItem item = typeToTimeItem.get(type);
                     if (item != null) {
                         int avgTime = item.totalTime / item.count;
-                        System.out.println(IndentUtils.getIndent(2) + "method " + method + ": \t" + avgTime + "ms");
+                        System.out.println(IndentUtils.getIndent(2) + "method " + method + ", count: " + item.count + ", avg time: " + avgTime + "ms");
                     }
                 });
             });

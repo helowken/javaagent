@@ -1,8 +1,11 @@
 package agent.server.transform;
 
+import agent.base.plugin.PluginFactory;
 import agent.base.utils.LockObject;
 import agent.base.utils.Logger;
 import agent.base.utils.ReflectionUtils;
+import agent.hook.plugin.ClassFinder;
+import agent.hook.utils.AppTypePluginFilter;
 import agent.server.event.EventListenerMgr;
 import agent.server.event.impl.ResetClassEvent;
 import agent.server.transform.config.*;
@@ -81,9 +84,13 @@ public class TransformMgr {
     }
 
     public List<TargetClassConfig> convert(String context, List<ClassConfig> classConfigList) {
+        ClassFinder classFinder = PluginFactory.getInstance()
+                .find(ClassFinder.class,
+                        AppTypePluginFilter.getInstance()
+                );
         List<TargetClassConfig> targetClassConfigList = new ArrayList<>();
         classConfigList.forEach(classConfig -> {
-            Class<?> targetClass = ClassFinder.findClass(context, classConfig.getTargetClass());
+            Class<?> targetClass = classFinder.findClass(context, classConfig.getTargetClass());
             if (targetClass.isInterface())
                 throw new RuntimeException("Interface class can not be transformed: " + targetClass.getName());
             CodeSource codeSource = targetClass.getProtectionDomain().getCodeSource();
@@ -175,7 +182,9 @@ public class TransformMgr {
                         Set<Class<?>> resetClassSet = new HashSet<>();
                         classSet.forEach(clazz -> {
                             if (classPatterns == null ||
-                                    classPatterns.stream().anyMatch(classPattern -> classPattern.matcher(clazz.getName()).matches())) {
+                                    classPatterns.stream().anyMatch(
+                                            classPattern -> classPattern.matcher(clazz.getName()).matches())
+                                    ) {
                                 logger.debug("Add to reset, context: {}, class: {}", context, clazz);
                                 resetClassSet.add(clazz);
                             }
@@ -212,6 +221,11 @@ public class TransformMgr {
                     }
                 })
         );
+    }
+
+
+    public List<TransformResult> resetAllClasses() {
+        return resetClasses(null, null);
     }
 
     public List<TransformResult> resetClasses(String contextExpr, Set<String> classExprSet) {

@@ -20,7 +20,7 @@
         </dependency>
         <dependency>
             <groupId>javaagent</groupId>
-            <artifactId>hock</artifactId>
+            <artifactId>hook</artifactId>
         </dependency>
         <dependency>
             <groupId>javaagent</groupId>

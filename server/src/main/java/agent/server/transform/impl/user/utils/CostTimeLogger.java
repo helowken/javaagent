@@ -4,12 +4,12 @@ import agent.base.utils.IOUtils;
 import agent.base.utils.LockObject;
 import agent.base.utils.Logger;
 import agent.common.buffer.ByteUtils;
+import agent.common.utils.JSONUtils;
 import agent.server.event.AgentEvent;
 import agent.server.event.AgentEventListener;
 import agent.server.event.EventListenerMgr;
 import agent.server.event.impl.LogFlushedEvent;
 import agent.server.event.impl.ResetClassEvent;
-import agent.common.utils.JSONUtils;
 import agent.server.utils.log.LogMgr;
 import agent.server.utils.log.binary.BinaryConverterRegistry;
 
@@ -31,14 +31,13 @@ public class CostTimeLogger implements AgentEventListener {
     static {
         BinaryConverterRegistry.reg(CostTimeItem.class, v -> {
             CostTimeItem item = (CostTimeItem) v;
-            int entrySize = item.typeToCostTime.size();
-            int size = entrySize * 2 * Integer.BYTES + Integer.BYTES;
+            int length = item.typeToCostTime.size();
+            int size = length * Integer.BYTES + Integer.BYTES;
             byte[] bs = new byte[size];
             int idx = 0;
-            idx = ByteUtils.putInt(bs, idx, entrySize);
-            for (Map.Entry<Integer, Integer> entry : item.typeToCostTime.entrySet()) {
-                idx = ByteUtils.putInt(bs, idx, entry.getKey());
-                idx = ByteUtils.putInt(bs, idx, entry.getValue());
+            idx = ByteUtils.putInt(bs, idx, length);
+            for (int i = 0; i < length; ++i) {
+                idx = ByteUtils.putInt(bs, idx, item.typeToCostTime.get(i));
             }
             return bs;
         });
@@ -150,11 +149,12 @@ public class CostTimeLogger implements AgentEventListener {
     }
 
     private static class CostTimeItem {
-        private final Map<Integer, Integer> typeToCostTime = new HashMap<>();
+        private final List<Integer> typeToCostTime = new LinkedList<>();
 
         void log(int type, int costTime) {
             logger.debug("Cost time item type: {}, cost time: {}", type, costTime);
-            typeToCostTime.put(type, costTime);
+            typeToCostTime.add(type);
+            typeToCostTime.add(costTime);
         }
     }
 }

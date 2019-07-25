@@ -1,12 +1,10 @@
 package agent.client;
 
 import agent.base.utils.IOUtils;
-import agent.base.utils.Utils;
+import agent.base.utils.SystemConfig;
 import agent.client.command.parser.CommandParserMgr;
 import agent.client.command.parser.exception.CommandParseException;
 import agent.client.command.result.handler.CommandResultHandlerMgr;
-import agent.client.command.result.handler.TestConfigResultHandler;
-import agent.client.command.result.handler.ViewResultHandler;
 import agent.client.utils.ClientLogger;
 import agent.common.message.MessageMgr;
 import agent.common.message.command.Command;
@@ -19,21 +17,17 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.Arrays;
 import java.util.Optional;
-import java.util.Properties;
-
-import static agent.common.message.MessageType.CMD_TEST_CONFIG;
-import static agent.common.message.MessageType.CMD_VIEW;
 
 public class AgentClientRunner {
     private static final String KEY_HOST = "host";
     private static final String KEY_PORT = "port";
     private static BufferedReader reader;
 
-    public static void run(Properties props) throws Exception {
+    public static void run() throws Exception {
         String host = Optional.ofNullable(
-                Utils.blankToNull(props.getProperty(KEY_HOST))
+                SystemConfig.get(KEY_HOST)
         ).orElse("127.0.0.1");
-        int port = Utils.parseInt(props.getProperty(KEY_PORT), KEY_PORT);
+        int port = SystemConfig.getInt(KEY_PORT);
         init();
         try {
             while (true) {
@@ -45,6 +39,9 @@ public class AgentClientRunner {
         } finally {
             IOUtils.close(reader);
         }
+    }
+
+    public static void shutdown() {
     }
 
     private static void init() {

@@ -3,23 +3,17 @@ package agent.base.utils;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileNotFoundException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class FileUtils {
 
-    public static String[] splitPathStringToPathArray(String pathString, String pathSep, String currDir) {
-        return splitPathStringToPathList(pathString, pathSep, currDir).toArray(new String[0]);
+    public static String[] splitPathStringToPathArray(Collection<String> paths, String currDir) {
+        return splitPathStringToPathList(paths, currDir).toArray(new String[0]);
     }
 
-    public static List<String> splitPathStringToPathList(String pathString, String pathSep, String currDir) {
-        return Utils.splitToSet(
-                Utils.blankToNull(pathString),
-                pathSep
-        ).stream()
+    public static List<String> splitPathStringToPathList(Collection<String> paths, String currDir) {
+        return paths.stream()
                 .map(libPath -> new File(currDir, libPath).getAbsolutePath())
                 .collect(Collectors.toList());
     }

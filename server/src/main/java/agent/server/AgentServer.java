@@ -2,6 +2,7 @@ package agent.server;
 
 import agent.base.utils.LockObject;
 import agent.base.utils.Logger;
+import agent.server.exception.AgentServerException;
 
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -31,7 +32,7 @@ class AgentServer {
         return lockObject.syncValue(lock -> running);
     }
 
-    boolean startup() {
+    void startup() {
         t = new Thread(() -> {
             try {
                 serverSocket = new ServerSocket(port);
@@ -56,14 +57,15 @@ class AgentServer {
         });
         t.setDaemon(true);
         t.start();
-        return lockObject.syncValue(lock -> {
+        lockObject.sync(lock -> {
             while (!end) {
                 try {
                     lock.wait();
                 } catch (InterruptedException e) {
                 }
             }
-            return running;
+            if (!running)
+                throw new AgentServerException("Startup agent server failed!");
         });
     }
 

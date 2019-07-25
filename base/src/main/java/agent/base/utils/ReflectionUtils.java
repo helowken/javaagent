@@ -71,12 +71,28 @@ public class ReflectionUtils {
         );
     }
 
-    public static <T> T invokeStatic(Object classOrClassName, String methodName) throws Exception {
-        return invokeStatic(classOrClassName, methodName, new Class[0]);
+    private static Class[] convertToTypes(Object... args) {
+        Class<?>[] argTypes = args == null ?
+                new Class<?>[0] :
+                new Class<?>[args.length];
+        if (argTypes.length > 0) {
+            for (int i = 0; i < argTypes.length; ++i) {
+                argTypes[i] = args[i].getClass();
+            }
+        }
+        return argTypes;
+    }
+
+    public static <T> T invokeStatic(Object classOrClassName, String methodName, Object... args) throws Exception {
+        return invokeStatic(classOrClassName, methodName, convertToTypes(args), args);
     }
 
     public static <T> T invokeStatic(Object classOrClassName, String methodName, Object[] argClassOrClassNames, Object... args) throws Exception {
         return invoke(classOrClassName, methodName, argClassOrClassNames, null, args);
+    }
+
+    public static <T> T invoke(String methodName, Object target, Object... args) throws Exception {
+        return invoke(methodName, convertToTypes(args), target, args);
     }
 
     public static <T> T invoke(String methodName, Object target) throws Exception {

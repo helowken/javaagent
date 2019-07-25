@@ -2,12 +2,12 @@ package agent.launcher.server;
 
 import agent.base.utils.ClassLoaderUtils;
 import agent.base.utils.Logger;
+import agent.base.utils.SystemConfig;
 import agent.hook.utils.AttachType;
 import agent.hook.utils.HookConstants;
 import agent.launcher.basic.AbstractLauncher;
 
 import java.lang.instrument.Instrumentation;
-import java.util.Properties;
 
 
 public class ServerLauncher extends AbstractLauncher {
@@ -28,10 +28,10 @@ public class ServerLauncher extends AbstractLauncher {
 
     private static void initAgent(String agentArgs, Instrumentation instrumentation) throws Exception {
         logger.info("In agentmain method: {}", agentArgs);
-        Properties props = instance.init(agentArgs);
-        props.setProperty(HookConstants.KEY_ATTACH_TYPE, loadType.name());
-        props.setProperty(HookConstants.KEY_CURR_DIR, getCurrDir());
-        instance.startRunner(RUNNER_CLASS, new Class<?>[]{Instrumentation.class, Properties.class}, instrumentation, props);
+        instance.init(agentArgs);
+        SystemConfig.set(HookConstants.KEY_ATTACH_TYPE, loadType.name());
+        SystemConfig.set(HookConstants.KEY_CURR_DIR, getCurrDir());
+        instance.startRunner(RUNNER_CLASS, new Class<?>[]{Instrumentation.class}, instrumentation);
     }
 
     @Override

@@ -7,6 +7,8 @@ public class LockObject {
         synchronized (lock) {
             try {
                 func.exec(lock);
+            } catch (RuntimeException e) {
+                throw e;
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
@@ -17,6 +19,8 @@ public class LockObject {
         synchronized (lock) {
             try {
                 return func.exec(lock);
+            } catch (RuntimeException e) {
+                throw e;
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }

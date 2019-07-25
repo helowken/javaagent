@@ -12,7 +12,10 @@ class ResetClassCmdExecutor extends AbstractTransformCmdExecutor {
     ExecResult doExec(Command cmd) throws Exception {
         ResetClassCommand resetCmd = (ResetClassCommand) cmd;
         return convert(
-                TransformMgr.getInstance().resetClasses(resetCmd.getContextExpr(), resetCmd.getClassExprSet()),
+                TransformMgr.getInstance().resetClasses(
+                        resetCmd.getContextExpr(),
+                        resetCmd.getClassExprSet()
+                ),
                 CMD_RESET_CLASS,
                 "Reset class");
     }

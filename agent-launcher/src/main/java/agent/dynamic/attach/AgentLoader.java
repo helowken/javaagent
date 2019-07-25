@@ -31,10 +31,8 @@ public class AgentLoader {
             throw new FileNotFoundException("Config file not found by path: " + configFile.getAbsolutePath());
 
         String jvmPid = getJvmPid(jvmDisplayNameOrPid);
-        if (jvmPid == null) {
-            logger.error("No jvm pid found for display name: {}", jvmDisplayNameOrPid);
+        if (jvmPid == null)
             System.exit(-1);
-        }
         AgentLoader.run(jvmPid,
                 agentJar.getAbsolutePath(),
                 configFile.getAbsolutePath()

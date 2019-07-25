@@ -1,26 +1,26 @@
-package agent.server.transform;
+package agent.hook.jetty;
 
 import agent.base.utils.Logger;
 import agent.base.utils.ReflectionUtils;
-import agent.hook.utils.JettyRunnerHook;
+import agent.hook.plugin.ClassFinder;
+import agent.hook.utils.App;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class ClassFinder {
-    private static final Logger logger = Logger.getLogger(ClassFinder.class);
+class JettyRunnerClassFinder implements ClassFinder {
+    private static final Logger logger = Logger.getLogger(JettyRunnerClassFinder.class);
     private static Map<String, ClassLoader> contextPathToClassLoader = new HashMap<>();
     private static volatile boolean inited = false;
 
     private static void init() throws Exception {
         if (!inited) {
-            synchronized (ClassFinder.class) {
+            synchronized (JettyRunnerClassFinder.class) {
                 if (!inited) {
-                    Object runner = JettyRunnerHook.runner;
-                    if (runner != null) {
-                        Object contexts = ReflectionUtils.getFieldValue("_contexts", runner);
+                    if (App.instance != null) {
+                        Object contexts = ReflectionUtils.getFieldValue("_contexts", App.instance);
                         logger.debug("Contexts: {}, Class: {}", contexts, contexts.getClass());
-                        Object[] handlers = ReflectionUtils.getFieldValue("getHandlers", contexts);
+                        Object[] handlers = ReflectionUtils.invoke("getHandlers", contexts);
                         logger.debug("Handler bytesSize: {}", handlers.length);
                         if (handlers.length > 0) {
                             for (Object handler : handlers) {
@@ -48,7 +48,7 @@ public class ClassFinder {
         return loader;
     }
 
-    public static Class<?> findClass(String contextPath, String className) {
+    public Class<?> findClass(String contextPath, String className) {
         try {
             return findClassLoader(contextPath).loadClass(className);
         } catch (Exception e) {

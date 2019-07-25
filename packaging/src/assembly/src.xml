@@ -25,6 +25,13 @@
         </dependencySet>
         <dependencySet>
             <useStrictFiltering>true</useStrictFiltering>
+            <outputDirectory>server/plugin</outputDirectory>
+            <includes>
+                <include>javaagent:jetty-runner-hook</include>
+            </includes>
+        </dependencySet>
+        <dependencySet>
+            <useStrictFiltering>true</useStrictFiltering>
             <outputDirectory>server</outputDirectory>
             <includes>
                 <include>javaagent:server-launcher</include>
