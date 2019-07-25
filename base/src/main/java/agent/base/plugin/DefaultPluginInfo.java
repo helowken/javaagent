@@ -22,6 +22,10 @@ public class DefaultPluginInfo implements PluginInfo {
         return new ArrayList<>(info.keySet());
     }
 
+    public boolean isEmpty() {
+        return info.isEmpty();
+    }
+
     @Override
     public String toString() {
         return info.toString();

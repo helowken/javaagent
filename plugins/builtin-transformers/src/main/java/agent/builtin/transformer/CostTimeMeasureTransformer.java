@@ -1,8 +1,8 @@
-package agent.server.transform.impl.user;
+package agent.builtin.transformer;
 
 import agent.base.utils.StringParser;
+import agent.builtin.transformer.utils.LogTimeUtils;
 import agent.server.transform.impl.AbstractConfigTransformer;
-import agent.server.transform.impl.user.utils.LogTimeUtils;
 import agent.server.utils.ParamValueUtils;
 import agent.server.utils.log.LogMgr;
 import agent.server.utils.log.text.TextLogConfigParser;
@@ -13,7 +13,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class CostTimeMeasureTransformer extends AbstractConfigTransformer {
-    public static final String REG_KEY = "costTimeMeasure";
+    public static final String REG_KEY = "sys_costTimeMeasure";
     private static final String KEY_COST_TIME = "costTime";
     private static final String DEFAULT_OUTPUT_FORMAT =
             StringParser.getKey(ParamValueUtils.KEY_CLASS) + "."

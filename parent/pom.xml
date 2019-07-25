@@ -97,6 +97,11 @@
                 <artifactId>jetty-runner-hook</artifactId>
                 <version>${project.version}</version>
             </dependency>
+            <dependency>
+                <groupId>javaagent</groupId>
+                <artifactId>builtin-transformers</artifactId>
+                <version>${project.version}</version>
+            </dependency>
 
             <!-- test -->
             <dependency>

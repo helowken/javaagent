@@ -6,7 +6,7 @@
                 "desc": "Used to time cost analyze.",
                 "transformers": [
                     {
-                        "ref": "costTimeStatistics",
+                        "ref": "sys_costTimeStatistics",
                         "config": {
                             "log": {
                                 "outputPath": "/home/helowken/cost-time/cost-time-statistics.log",

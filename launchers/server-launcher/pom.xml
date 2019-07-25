@@ -6,7 +6,7 @@
         <artifactId>parent</artifactId>
         <groupId>javaagent</groupId>
         <version>1.0</version>
-        <relativePath>../parent</relativePath>
+        <relativePath>../../parent</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 

@@ -6,17 +6,22 @@
         <artifactId>parent</artifactId>
         <groupId>javaagent</groupId>
         <version>1.0</version>
-        <relativePath>../parent</relativePath>
+        <relativePath>../../parent</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>basic-launcher</artifactId>
+    <artifactId>builtin-transformers</artifactId>
 
     <dependencies>
-        <!-- app -->
         <dependency>
             <groupId>javaagent</groupId>
-            <artifactId>base</artifactId>
+            <artifactId>server</artifactId>
+        </dependency>
+
+        <!-- test -->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
         </dependency>
     </dependencies>
 

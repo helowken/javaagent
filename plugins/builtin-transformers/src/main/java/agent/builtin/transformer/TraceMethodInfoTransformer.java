@@ -1,11 +1,11 @@
-package agent.server.transform.impl.user;
+package agent.builtin.transformer;
 
 import agent.server.transform.impl.AbstractConfigTransformer;
 import javassist.CtClass;
 import javassist.CtMethod;
 
 public class TraceMethodInfoTransformer extends AbstractConfigTransformer {
-    public static final String REG_KEY = "traceMethodInfo";
+    public static final String REG_KEY = "sys_traceMethodInfo";
 
 
     @Override

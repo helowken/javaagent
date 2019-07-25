@@ -6,7 +6,7 @@
                 "desc": "Used to trace method info",
                 "transformers": [
                     {
-                        "ref": "traceMethodInfo",
+                        "ref": "sys_traceMethodInfo",
                         "config": {
                             "log": {
                                 "outputFormat": "${class}#${method}: \\n${content}"

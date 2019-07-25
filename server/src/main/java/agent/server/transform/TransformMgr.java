@@ -10,7 +10,6 @@ import agent.server.event.EventListenerMgr;
 import agent.server.event.impl.ResetClassEvent;
 import agent.server.transform.config.*;
 import agent.server.transform.impl.TargetClassConfig;
-import agent.server.transform.impl.TransformerClassRegistry;
 import agent.server.transform.impl.TransformerInfo;
 import agent.server.transform.impl.system.ResetClassTransformer;
 import agent.server.transform.impl.utils.ClassPoolUtils;

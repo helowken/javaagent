@@ -18,14 +18,16 @@ public class PluginFilterByInfo implements PluginFilter {
     @Override
     public boolean accept(Plugin plugin) {
         PluginInfo info = plugin.getInfo();
-        return this.info.getKeys()
-                .stream()
-                .allMatch(key ->
-                        Objects.equals(
-                                this.info.get(key),
-                                info.get(key)
-                        )
-                );
+        return info == null ?
+                this.info.isEmpty() :
+                this.info.getKeys()
+                        .stream()
+                        .allMatch(key ->
+                                Objects.equals(
+                                        this.info.get(key),
+                                        info.get(key)
+                                )
+                        );
     }
 
     @Override

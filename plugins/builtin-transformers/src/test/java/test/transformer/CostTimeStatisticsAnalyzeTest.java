@@ -1,9 +1,9 @@
-package test.server.tools;
+package test.transformer;
 
 import agent.base.utils.IOUtils;
 import agent.base.utils.IndentUtils;
+import agent.builtin.transformer.utils.CostTimeLogger;
 import agent.common.utils.JSONUtils;
-import agent.server.transform.impl.user.utils.CostTimeLogger;
 import org.junit.Test;
 
 import java.io.*;

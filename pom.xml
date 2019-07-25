@@ -19,13 +19,14 @@
                 <module>common</module>
                 <module>hook</module>
                 <module>native</module>
-                <module>basic-launcher</module>
-                <module>client-launcher</module>
-                <module>server-launcher</module>
+                <module>launchers/basic-launcher</module>
+                <module>launchers/client-launcher</module>
+                <module>launchers/server-launcher</module>
                 <module>server</module>
                 <module>client</module>
-                <module>agent-launcher</module>
+                <module>launchers/agent-launcher</module>
                 <module>plugins/jetty-runner-hook</module>
+                <module>plugins/builtin-transformers</module>
                 <module>packaging</module>
             </modules>
         </profile>
@@ -56,8 +57,9 @@
                 <module>native</module>
                 <module>packaging</module>
                 <module>server</module>
-                <module>agent-launcher</module>
+                <module>launchers/agent-launcher</module>
                 <module>plugins/jetty-runner-hook</module>
+                <module>plugins/builtin-transformers</module>
             </modules>
         </profile>
 
@@ -75,10 +77,10 @@
             <id>launcher</id>
             <modules>
                 <module>base</module>
-                <module>basic-launcher</module>
-                <module>client-launcher</module>
-                <module>server-launcher</module>
-                <module>agent-launcher</module>
+                <module>launchers/basic-launcher</module>
+                <module>launchers/client-launcher</module>
+                <module>launchers/server-launcher</module>
+                <module>launchers/agent-launcher</module>
                 <module>packaging</module>
             </modules>
         </profile>

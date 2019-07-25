@@ -1,13 +1,13 @@
-package agent.server.transform.impl.user;
+package agent.builtin.transformer;
 
+import agent.builtin.transformer.utils.CostTimeLogger;
+import agent.builtin.transformer.utils.LogTimeUtils;
 import agent.common.utils.JSONUtils;
 import agent.server.transform.TransformMgr;
 import agent.server.transform.config.ClassConfig;
 import agent.server.transform.impl.AbstractConfigTransformer;
 import agent.server.transform.impl.TargetClassConfig;
 import agent.server.transform.impl.TransformerInfo;
-import agent.server.transform.impl.user.utils.CostTimeLogger;
-import agent.server.transform.impl.user.utils.LogTimeUtils;
 import agent.server.transform.impl.utils.ClassPoolUtils;
 import agent.server.transform.impl.utils.MethodFinder;
 import agent.server.utils.ParamValueUtils;
@@ -21,7 +21,7 @@ import java.util.*;
 
 @SuppressWarnings("unchecked")
 public class CostTimeStatisticsTransformer extends AbstractConfigTransformer {
-    public static final String REG_KEY = "costTimeStatistics";
+    public static final String REG_KEY = "sys_costTimeStatistics";
     private static final String KEY_ENTRY_POINT = "entryPoint";
 
     private String logKey;
