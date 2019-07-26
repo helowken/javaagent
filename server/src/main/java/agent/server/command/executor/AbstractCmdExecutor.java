@@ -23,8 +23,8 @@ public abstract class AbstractCmdExecutor implements CommandExecutor {
         }
     }
 
-    ExecResult handleError(Exception e, Command cmd) {
-        return DefaultExecResult.toError(cmd.getType(), Utils.getErrorStackStrace(e));
+    private ExecResult handleError(Exception e, Command cmd) {
+        return DefaultExecResult.toError(cmd.getType(), Utils.getMergedErrorMessage(e));
     }
 
     abstract ExecResult doExec(Command cmd) throws Exception;

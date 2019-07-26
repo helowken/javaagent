@@ -53,7 +53,7 @@ public class FileUtils {
         File file = new File(filePath);
         if (!file.exists()) {
             File parentFile = file.getParentFile();
-            if (!parentFile.exists())
+            if (parentFile != null && !parentFile.exists())
                 parentFile.mkdirs();
         }
     }

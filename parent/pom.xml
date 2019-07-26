@@ -157,7 +157,7 @@
                     </configuration>
                     <executions>
                         <execution>
-                            <id>make-assembly</id>
+                            <id>make-assembly-package</id>
                             <phase>package</phase>
                             <goals>
                                 <goal>single</goal>

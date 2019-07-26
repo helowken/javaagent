@@ -14,17 +14,22 @@ public abstract class AbstractExecResultHandler implements ExecResultHandler {
         try {
             if (result.getStatus().isSuccess())
                 handleSuccess(command, result);
-            else
+            else if (result.getType() == command.getType())
                 handleFail(command, result);
+            else
+                handleFatal(command, result);
         } catch (Exception e) {
             logger.error("Handle result failed.", e);
         }
     }
 
-    protected void handleFail(Command command, ExecResult result) throws Exception {
+    private void handleFatal(Command command, ExecResult result) throws Exception {
         String message = result.getMessage();
         logger.error("{} failed! Error: {}", command.getClass().getName(), message);
         ClientLogger.logger.error("Failed: {}", message);
+    }
+
+    protected void handleFail(Command command, ExecResult result) throws Exception {
     }
 
     protected void handleSuccess(Command command, ExecResult result) throws Exception {

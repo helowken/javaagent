@@ -72,7 +72,9 @@ public abstract class AbstractLogger implements ILogger, AgentEventListener {
         getLogger().debug("Log config: {}", logConfig);
         String key = UUID.randomUUID().toString();
         keyToLogWriterLock.sync(lock -> {
-            FileUtils.mkdirsByFile(logConfig.getOutputPath());
+            String outputPath = logConfig.getOutputPath();
+            if (!isStdout(outputPath))
+                FileUtils.mkdirsByFile(outputPath);
             keyToLogWriter.put(key, newLogWriter(logConfig));
         });
         return key;
@@ -116,12 +118,16 @@ public abstract class AbstractLogger implements ILogger, AgentEventListener {
         logWriterList.forEach(logWriter -> logWriter.flush(() -> getSyncWriter(logWriter.getConfig().getOutputPath())));
     }
 
+    private boolean isStdout(String outputPath) {
+        return outputPath == null || STDOUT.equals(outputPath);
+    }
+
     private void clear() {
         getLogger().debug("Start to clear...");
         keyToLogWriterLock.sync(lock -> {
             pathToSyncWriterLock.sync(subLock -> {
                 pathToSyncWriter.forEach((outputPath, syncWriter) -> {
-                    if (!outputPath.equals(STDOUT))
+                    if (!isStdout(outputPath))
                         syncWriter.exec(IOUtils::close);
                 });
                 pathToSyncWriter.clear();
@@ -153,7 +159,7 @@ public abstract class AbstractLogger implements ILogger, AgentEventListener {
             SyncWriter syncWriter = pathToSyncWriter.get(outputPath);
             if (syncWriter == null) {
                 OutputStream outputStream;
-                if (STDOUT.equals(outputPath)) {
+                if (isStdout(outputPath)) {
                     getLogger().debug("Output to console.");
                     outputStream = System.out;
                 } else {

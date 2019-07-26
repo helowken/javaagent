@@ -56,7 +56,7 @@
     </dependencySets>
     <fileSets>
         <fileSet>
-            <outputDirectory>/</outputDirectory>
+            <outputDirectory/>
             <directory>${project.basedir}/target/javaagent</directory>
             <includes>
                 <include>**</include>
@@ -66,7 +66,7 @@
             </excludes>
         </fileSet>
         <fileSet>
-            <outputDirectory>/</outputDirectory>
+            <outputDirectory/>
             <directory>${project.basedir}/target/javaagent</directory>
             <fileMode>755</fileMode>
             <includes>

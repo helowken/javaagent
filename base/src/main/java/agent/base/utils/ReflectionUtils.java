@@ -168,11 +168,12 @@ public class ReflectionUtils {
         throw new IllegalArgumentException("Argument must be a class or classname.");
     }
 
-    public static Class<?> findClass(String className) throws Exception {
+    public static <T> Class<T> findClass(String className) throws Exception {
         ClassLoader loader = Thread.currentThread().getContextClassLoader();
-        if (loader == null)
-            return Class.forName(className);
-        return loader.loadClass(className);
+        Class<?> clazz = loader == null ?
+                Class.forName(className) :
+                loader.loadClass(className);
+        return (Class<T>) clazz;
     }
 
     private static void assertTarget(Object target) {

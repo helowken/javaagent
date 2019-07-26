@@ -1,7 +1,7 @@
 package agent.builtin.transformer;
 
 import agent.base.utils.StringParser;
-import agent.builtin.transformer.utils.LogTimeUtils;
+import agent.builtin.transformer.utils.LogUtils;
 import agent.server.transform.impl.AbstractConfigTransformer;
 import agent.server.utils.ParamValueUtils;
 import agent.server.utils.log.LogMgr;
@@ -16,7 +16,7 @@ public class CostTimeMeasureTransformer extends AbstractConfigTransformer {
     public static final String REG_KEY = "sys_costTimeMeasure";
     private static final String KEY_COST_TIME = "costTime";
     private static final String DEFAULT_OUTPUT_FORMAT =
-            StringParser.getKey(ParamValueUtils.KEY_CLASS) + "."
+            StringParser.getKey(ParamValueUtils.KEY_CLASS) + "#"
                     + StringParser.getKey(ParamValueUtils.KEY_METHOD) +
                     " cost time is: " + StringParser.getKey(KEY_COST_TIME) + "ms";
 
@@ -31,19 +31,14 @@ public class CostTimeMeasureTransformer extends AbstractConfigTransformer {
 
     @Override
     public void transformMethod(CtClass ctClass, CtMethod ctMethod) throws Exception {
-        LogTimeUtils.addCostTimeCode(ctMethod, (stVar, etVar, endBlock) -> {
+        LogUtils.addCostTimeCode(ctMethod, (stVar, etVar, endBlock) -> {
             String pvsCode = ParamValueUtils.genCode(
                     ctClass.getName(),
                     ctMethod.getName(),
                     KEY_COST_TIME,
-                    LogTimeUtils.newCostTimeStringExpr(stVar, etVar)
+                    LogUtils.newCostTimeStringExpr(stVar, etVar)
             );
-            endBlock.append(LogMgr.class.getName())
-                    .append(".logText(")
-                    .append(ParamValueUtils.convertToString(logKey))
-                    .append(", ")
-                    .append(pvsCode)
-                    .append(");");
+            LogUtils.addLogTextCode(endBlock, logKey, pvsCode);
         });
     }
 

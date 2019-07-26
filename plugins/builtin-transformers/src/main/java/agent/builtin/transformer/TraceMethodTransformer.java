@@ -1,0 +1,75 @@
+package agent.builtin.transformer;
+
+import agent.base.utils.Logger;
+import agent.base.utils.StringParser;
+import agent.base.utils.Utils;
+import agent.builtin.transformer.utils.DefaultMethodPrinter;
+import agent.builtin.transformer.utils.LogUtils;
+import agent.builtin.transformer.utils.MethodLogger;
+import agent.server.transform.impl.AbstractConfigTransformer;
+import agent.server.transform.impl.utils.AgentClassPool;
+import agent.server.utils.ParamValueUtils;
+import agent.server.utils.ParamValueUtils.Expr;
+import agent.server.utils.log.LogMgr;
+import agent.server.utils.log.text.TextLogConfigParser;
+import javassist.CtClass;
+import javassist.CtMethod;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+
+public class TraceMethodTransformer extends AbstractConfigTransformer {
+    public static final String REG_KEY = "sys_traceMethod";
+    private static final Logger logger = Logger.getLogger(TraceMethodTransformer.class);
+    private static final String KEY_CONTENT = "content";
+    private static final String KEY_PRINTER_CLASS = "printerClass";
+    private static final String DEFAULT_OUTPUT_FORMAT =
+            StringParser.getKey(ParamValueUtils.KEY_CLASS) + "#"
+                    + StringParser.getKey(ParamValueUtils.KEY_METHOD) +
+                    " :\n" + StringParser.getKey(KEY_CONTENT) + "ms";
+
+    private String logKey;
+    private String printerClass;
+
+    @Override
+    protected void doSetConfig(Map<String, Object> config) {
+        printerClass = Optional.ofNullable(
+                Utils.blankToNull(
+                        (String) config.get(KEY_PRINTER_CLASS)
+                )
+        ).orElse(
+                DefaultMethodPrinter.class.getName()
+        );
+        Map<String, Object> defaultValueMap = new HashMap<>();
+        defaultValueMap.put(TextLogConfigParser.CONF_OUTPUT_FORMAT, DEFAULT_OUTPUT_FORMAT);
+        logKey = LogMgr.regText(config, defaultValueMap);
+    }
+
+    @Override
+    protected void transformMethod(CtClass ctClass, CtMethod ctMethod) throws Exception {
+        String methodLoggerClassName = MethodLogger.class.getName();
+        String methodLoggerVar = "methodInfo";
+        ctMethod.addLocalVariable(methodLoggerVar, AgentClassPool.getInstance().get(methodLoggerClassName));
+
+        String block = methodLoggerVar + " = new " + methodLoggerClassName + "(\"" + printerClass + "\");"
+                + methodLoggerVar + ".printArgs($args);";
+//        logger.debug("{}", block);
+        ctMethod.insertBefore(block);
+
+        StringBuilder endBlock = new StringBuilder(methodLoggerVar + ".printReturnValue($_);");
+        String pvsCode = ParamValueUtils.genCode(
+                ctClass.getName(),
+                ctMethod.getName(),
+                KEY_CONTENT,
+                new Expr(methodLoggerVar + ".getContent()"));
+        LogUtils.addLogTextCode(endBlock, logKey, pvsCode);
+//        logger.debug("{}", endBlock.toString());
+        ctMethod.insertAfter(endBlock.toString());
+    }
+
+    @Override
+    public String getRegKey() {
+        return REG_KEY;
+    }
+}

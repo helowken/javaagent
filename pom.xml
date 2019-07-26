@@ -55,11 +55,10 @@
                 <module>common</module>
                 <module>hook</module>
                 <module>native</module>
-                <module>packaging</module>
                 <module>server</module>
-                <module>launchers/agent-launcher</module>
                 <module>plugins/jetty-runner-hook</module>
                 <module>plugins/builtin-transformers</module>
+                <module>packaging</module>
             </modules>
         </profile>
 
@@ -81,6 +80,15 @@
                 <module>launchers/client-launcher</module>
                 <module>launchers/server-launcher</module>
                 <module>launchers/agent-launcher</module>
+                <module>packaging</module>
+            </modules>
+        </profile>
+
+        <profile>
+            <id>plugins</id>
+            <modules>
+                <module>plugins/jetty-runner-hook</module>
+                <module>plugins/builtin-transformers</module>
                 <module>packaging</module>
             </modules>
         </profile>

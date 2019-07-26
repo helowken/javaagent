@@ -1,7 +1,7 @@
 package agent.builtin.transformer;
 
 import agent.builtin.transformer.utils.CostTimeLogger;
-import agent.builtin.transformer.utils.LogTimeUtils;
+import agent.builtin.transformer.utils.LogUtils;
 import agent.common.utils.JSONUtils;
 import agent.server.transform.TransformMgr;
 import agent.server.transform.config.ClassConfig;
@@ -74,12 +74,12 @@ public class CostTimeStatisticsTransformer extends AbstractConfigTransformer {
         String loggerExpr = CostTimeLogger.class.getName() + ".getInstance()";
         int type = CostTimeLogger.getInstance().reg(context, ctClass.getName(), ctMethod.getName() + ctMethod.getSignature());
         final boolean isEP = isEntryPoint(context, ctClass, ctMethod);
-        LogTimeUtils.addCostTimeCode(ctMethod, (stVar, etVar, endBlock) -> {
+        LogUtils.addCostTimeCode(ctMethod, (stVar, etVar, endBlock) -> {
             endBlock.append(loggerExpr)
                     .append(".log(")
                     .append(type)
                     .append(", (int) ")
-                    .append(LogTimeUtils.newCostTimegExpr(stVar, etVar))
+                    .append(LogUtils.newCostTimegExpr(stVar, etVar))
                     .append(");\n");
 
             if (isEP) {
