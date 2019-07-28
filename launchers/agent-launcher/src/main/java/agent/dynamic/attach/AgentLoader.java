@@ -1,7 +1,7 @@
 package agent.dynamic.attach;
 
+import agent.base.utils.JavaToolUtils;
 import agent.base.utils.Logger;
-import agent.base.utils.ProcessUtils;
 import com.sun.tools.attach.VirtualMachine;
 import com.sun.tools.attach.VirtualMachineDescriptor;
 
@@ -44,7 +44,7 @@ public class AgentLoader {
             Integer.parseInt(displayNameOrPid);
             return displayNameOrPid;
         } catch (Exception e) {
-            return ProcessUtils.getJvmPidByDisplayName(displayNameOrPid);
+            return JavaToolUtils.getJvmPidByDisplayName(displayNameOrPid);
         }
     }
 

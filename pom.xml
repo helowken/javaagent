@@ -27,6 +27,7 @@
                 <module>launchers/agent-launcher</module>
                 <module>plugins/jetty-runner-hook</module>
                 <module>plugins/builtin-transformers</module>
+                <module>plugins/tomcat-hook</module>
                 <module>packaging</module>
             </modules>
         </profile>
@@ -58,6 +59,7 @@
                 <module>server</module>
                 <module>plugins/jetty-runner-hook</module>
                 <module>plugins/builtin-transformers</module>
+                <module>plugins/tomcat-hook</module>
                 <module>packaging</module>
             </modules>
         </profile>
@@ -89,6 +91,7 @@
             <modules>
                 <module>plugins/jetty-runner-hook</module>
                 <module>plugins/builtin-transformers</module>
+                <module>plugins/tomcat-hook</module>
                 <module>packaging</module>
             </modules>
         </profile>

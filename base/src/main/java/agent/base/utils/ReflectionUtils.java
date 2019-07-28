@@ -7,6 +7,7 @@ import java.lang.reflect.Method;
 
 @SuppressWarnings("unchecked")
 public class ReflectionUtils {
+    private static final Logger logger = Logger.getLogger(ReflectionUtils.class);
     private static final String[] javaPackages = {"java.", "javax.", "sun."};
 
     public static boolean isJavaNativePackage(String namePath) {
@@ -58,15 +59,26 @@ public class ReflectionUtils {
         return exec(field, () -> (T) field.get(target));
     }
 
+    public static void useDeclaredFields(Object classOrClassName, AccessibleObjectConsumer<Field> consumer) throws Exception {
+        Field[] fields = convert(classOrClassName).getDeclaredFields();
+        if (fields != null) {
+            for (Field field : fields) {
+                exec(field, () -> {
+                    consumer.consume(field);
+                    return null;
+                });
+            }
+        }
+    }
 
-    public static <T> T useField(Object classOrClassName, String fieldName, AccessibleObjectConsumer<Field, T> consumer) throws Exception {
+    public static <T> T useField(Object classOrClassName, String fieldName, AccessibleObjectValueFunc<Field, T> func) throws Exception {
         Field field = getField(classOrClassName, fieldName);
-        return exec(field, () -> consumer.supply(field));
+        return exec(field, () -> func.exec(field));
     }
 
     private static Field getField(Object classOrClassName, String fieldName) throws Exception {
         Class<?> clazz = convert(classOrClassName);
-        return findFromAncestorClass(clazz,
+        return findFromClassCascade(clazz,
                 tmpClass -> tmpClass.getDeclaredField(fieldName)
         );
     }
@@ -109,37 +121,38 @@ public class ReflectionUtils {
         return exec(method, () -> (T) method.invoke(target, args));
     }
 
-    private static <T extends AccessibleObject, V> V exec(T ao, AccessibleObjectFunc<V> func) throws Exception {
+    private static <T extends AccessibleObject, V> V exec(T ao, AccessibleObjectValueSupplier<V> supplier) throws Exception {
         boolean old = ao.isAccessible();
         ao.setAccessible(true);
         try {
-            return func.supply();
+            return supplier.supply();
         } finally {
             ao.setAccessible(old);
         }
     }
 
     public static <T> T invokeMethod(Object classOrClassName, String methodName, Object[] argClassOrClassNames,
-                                     AccessibleObjectConsumer<Method, T> consumer) throws Exception {
+                                     AccessibleObjectValueFunc<Method, T> func) throws Exception {
         Method method = getMethod(classOrClassName, methodName, argClassOrClassNames);
-        return exec(method, () -> consumer.supply(method));
+        return exec(method, () -> func.exec(method));
     }
 
     private static Method getMethod(Object classOrClassName, String methodName, Object... argClassOrClassNames) throws Exception {
         Class<?> clazz = convert(classOrClassName);
         Class[] argTypes = convertArray(argClassOrClassNames);
-        return findFromAncestorClass(clazz,
+        return findFromClassCascade(clazz,
                 tmpClass -> tmpClass.getDeclaredMethod(methodName, argTypes)
         );
     }
 
-    private static <T> T findFromAncestorClass(Class<?> clazz, FindFunc<T> func) throws Exception {
+    private static <T> T findFromClassCascade(Class<?> clazz, FindFunc<T> func) throws Exception {
         Class<?> tmpClass = clazz;
         Exception e = null;
         while (tmpClass != null) {
             try {
                 return func.find(tmpClass);
             } catch (Exception e2) {
+//                logger.debug("Error occurs on {}: {}", tmpClass, e2.getMessage());
                 if (e == null)
                     e = e2;
             }
@@ -185,12 +198,15 @@ public class ReflectionUtils {
         V find(Class<?> clazz) throws Exception;
     }
 
-    private interface AccessibleObjectFunc<V> {
+    private interface AccessibleObjectValueSupplier<V> {
         V supply() throws Exception;
     }
 
-    public interface AccessibleObjectConsumer<T extends AccessibleObject, V> {
-        V supply(T ao) throws Exception;
+    public interface AccessibleObjectValueFunc<T extends AccessibleObject, V> {
+        V exec(T ao) throws Exception;
     }
 
+    public interface AccessibleObjectConsumer<T extends AccessibleObject> {
+        void consume(T ao) throws Exception;
+    }
 }
