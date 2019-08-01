@@ -7,7 +7,6 @@ import java.lang.reflect.Method;
 
 @SuppressWarnings("unchecked")
 public class ReflectionUtils {
-    private static final Logger logger = Logger.getLogger(ReflectionUtils.class);
     private static final String[] javaPackages = {"java.", "javax.", "sun."};
 
     public static boolean isJavaNativePackage(String namePath) {
@@ -152,7 +151,6 @@ public class ReflectionUtils {
             try {
                 return func.find(tmpClass);
             } catch (Exception e2) {
-//                logger.debug("Error occurs on {}: {}", tmpClass, e2.getMessage());
                 if (e == null)
                     e = e2;
             }

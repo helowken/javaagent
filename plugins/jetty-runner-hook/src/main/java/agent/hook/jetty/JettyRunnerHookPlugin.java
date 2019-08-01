@@ -17,6 +17,6 @@ public class JettyRunnerHookPlugin extends AbstractPlugin {
 
     @Override
     public PluginInfo getInfo() {
-        return new DefaultPluginInfo(HookConstants.KEY_APP_TYPE, "jetty-runner");
+        return new DefaultPluginInfo(HookConstants.KEY_APP_TYPE, "jetty-runner_9");
     }
 }

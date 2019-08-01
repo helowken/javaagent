@@ -1,9 +1,7 @@
-package agent.server.transform.impl.system;
+package agent.server.transform.impl;
 
 import agent.base.utils.IOUtils;
 import agent.base.utils.Logger;
-import agent.server.transform.impl.AbstractTransformer;
-import agent.server.transform.impl.TransformerInfo;
 
 import java.io.File;
 import java.net.URL;

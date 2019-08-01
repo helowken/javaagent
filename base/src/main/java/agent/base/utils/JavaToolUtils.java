@@ -65,6 +65,8 @@ public class JavaToolUtils {
     }
 
     private static String getFullPathCmd(String cmd) {
+        if (cmd.startsWith("/"))
+            return cmd;
         int pos = cmd.indexOf(" ");
         String cmdName = pos > -1 ?
                 cmd.substring(0, pos) :

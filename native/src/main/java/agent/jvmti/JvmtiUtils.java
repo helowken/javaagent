@@ -2,9 +2,12 @@ package agent.jvmti;
 
 
 import agent.base.utils.Logger;
+import agent.base.utils.ReflectionUtils;
 
 import java.io.File;
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 public class JvmtiUtils {
     private static final Logger logger = Logger.getLogger(JvmtiUtils.class);
@@ -37,13 +40,28 @@ public class JvmtiUtils {
         }
     }
 
-    public Object findObjectByClassName(String className) {
-        return findObjectByClassNameHelper(
-                className.replaceAll("\\.", "/")
+    public <T> T findObjectByClassName(String className) throws Exception {
+        List<T> rsList = findObjectsByClassName(className, 1);
+        return rsList.isEmpty() ? null : rsList.get(0);
+    }
+
+    public <T> List<T> findObjectsByClassName(String className, int maxCount) throws Exception {
+        return findObjectsByClass(
+                ReflectionUtils.findClass(className),
+                maxCount
         );
     }
 
-    public native Object findObjectByClass(Class<?> clazz);
+    public <T> T findObjectByClass(Class<T> clazz) {
+        List<T> rsList = findObjectsByClass(clazz, 1);
+        return rsList.isEmpty() ? null : rsList.get(0);
+    }
 
-    private native Object findObjectByClassNameHelper(String className);
+    public <T> List<T> findObjectsByClass(Class<T> clazz, int maxCount) {
+        return Optional.ofNullable(
+                findObjectsByClassHelper(clazz, maxCount)
+        ).orElse(Collections.emptyList());
+    }
+
+    private native <T> List<T> findObjectsByClassHelper(Class<T> clazz, int maxCount);
 }

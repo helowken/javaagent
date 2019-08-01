@@ -14,6 +14,7 @@
         <jackson.version>2.9.9.1</jackson.version>
         <junit.version>4.12</junit.version>
         <mockito.version>1.95</mockito.version>
+        <jetty-runner.version>9.4.14.v20181114</jetty-runner.version>
     </properties>
 
     <dependencyManagement>
@@ -99,6 +100,11 @@
             </dependency>
             <dependency>
                 <groupId>javaagent</groupId>
+                <artifactId>tomcat-hook</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>javaagent</groupId>
                 <artifactId>builtin-transformers</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -114,6 +120,12 @@
                 <groupId>org.mockito</groupId>
                 <artifactId>mockito-core</artifactId>
                 <version>${mockito.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.jetty</groupId>
+                <artifactId>jetty-runner</artifactId>
+                <version>${jetty-runner.version}</version>
                 <scope>test</scope>
             </dependency>
         </dependencies>

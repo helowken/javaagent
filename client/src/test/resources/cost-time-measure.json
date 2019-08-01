@@ -52,7 +52,7 @@
                 "desc": "Used to measure time cost.",
                 "transformers": [
                     {
-                        "ref": "costTimeMeasure"
+                        "ref": "sys_costTimeMeasure"
                     }
                 ],
                 "targets": [

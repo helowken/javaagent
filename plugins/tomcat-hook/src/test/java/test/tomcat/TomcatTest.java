@@ -1,75 +1,48 @@
 package test.tomcat;
 
 
-import agent.jvmti.JvmtiUtils;
 import org.apache.catalina.startup.Bootstrap;
 import org.junit.Test;
 
 import java.util.Map;
 
 import static agent.base.utils.ReflectionUtils.getFieldValue;
+import static agent.base.utils.ReflectionUtils.setStaticFieldValue;
 import static org.junit.Assert.assertNotNull;
 
 public class TomcatTest {
     @Test
     public void test() throws Exception {
-        JvmtiUtils.getInstance().load("/home/helowken/projects/javaagent/packaging/resources/server/native/libagent_jvmti_JvmtiUtils.so");
+        Bootstrap bootstrap = new Bootstrap();
         new Thread(() -> {
             try {
                 Thread.sleep(10000);
 
-                String bootstrapClassName = "org.apache.catalina.startup.Bootstrap";
-                Object bootstrap = JvmtiUtils.getInstance()
-                        .findObjectByClassName(bootstrapClassName);
-                assertNotNull(bootstrap);
-
-                Object catalina = getFieldValue(
-                        bootstrapClassName,
-                        "catalinaDaemon",
-                        bootstrap);
+                Object catalina = getFieldValue("catalinaDaemon", bootstrap);
                 assertNotNull(catalina);
 
-                Object server = getFieldValue(
-                        "org.apache.catalina.startup.Catalina",
-                        "server",
-                        catalina);
+                Object server = getFieldValue("server", catalina);
                 assertNotNull(server);
 
-                Object[] services = getFieldValue(
-                        "org.apache.catalina.core.StandardServer",
-                        "services",
-                        server
-                );
+                Object[] services = getFieldValue("services", server);
                 assertNotNull(services);
 
                 Object engine = getEngine(services);
                 assertNotNull(engine);
 
-                Map childrenMap = getFieldValue(
-                        "org.apache.catalina.core.StandardEngine",
-                        "children",
-                        engine
-                );
+                Map childrenMap = getFieldValue("children", engine);
                 assertNotNull(childrenMap);
 
                 Object host = getHost(childrenMap);
                 assertNotNull(host);
 
-                childrenMap = getFieldValue(
-                        "org.apache.catalina.core.StandardHost",
-                        "children",
-                        host
-                );
+                childrenMap = getFieldValue("children", host);
                 assertNotNull(childrenMap);
 
                 Object webappLoader = getWebappLoader(childrenMap);
                 assertNotNull(webappLoader);
 
-                Object webappClassLoader = getFieldValue(
-                        "org.apache.catalina.loader.WebappLoader",
-                        "classLoader",
-                        webappLoader
-                );
+                Object webappClassLoader = getFieldValue("classLoader", webappLoader);
                 assertNotNull(webappClassLoader);
                 System.out.println(webappClassLoader);
 
@@ -77,6 +50,9 @@ public class TomcatTest {
                 e.printStackTrace();
             }
         }).start();
+
+        setStaticFieldValue(Bootstrap.class, "daemon", bootstrap);
+        bootstrap.init();
         Bootstrap.main(new String[]{"start"});
     }
 

@@ -1,4 +1,4 @@
-package agent.hook.jetty.transformer;
+package agent.server.transform.impl;
 
 import agent.hook.utils.App;
 import agent.server.transform.impl.AbstractTransformer;
@@ -11,11 +11,11 @@ import java.security.ProtectionDomain;
 import java.util.HashSet;
 import java.util.Set;
 
-public class HookJettyRunnerTransformer extends AbstractTransformer {
+public class HookAppTransformer extends AbstractTransformer {
     private final Class<?> runnerClass;
     private final String classNamePath;
 
-    public HookJettyRunnerTransformer(Class<?> runnerClass) {
+    public HookAppTransformer(Class<?> runnerClass) {
         this.runnerClass = runnerClass;
         classNamePath = TransformerInfo.getClassNamePath(runnerClass);
     }
