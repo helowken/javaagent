@@ -3,7 +3,6 @@ package agent.server.transform.impl;
 import agent.base.utils.IOUtils;
 import agent.base.utils.Logger;
 
-import java.io.File;
 import java.net.URL;
 import java.security.ProtectionDomain;
 import java.util.HashMap;
@@ -13,9 +12,11 @@ import java.util.Set;
 public class ResetClassTransformer extends AbstractTransformer {
     private static final Logger logger = Logger.getLogger(ResetClassTransformer.class);
     private static final String FILE_SUFFIX = ".class";
-    private Map<String, ClassLoader> classNamePathToLoader = new HashMap<>();
+    private final ClassLoader classLoader;
+    private final Map<String, ClassLoader> classNamePathToLoader = new HashMap<>();
 
-    public ResetClassTransformer(Set<Class<?>> classSet) {
+    public ResetClassTransformer(ClassLoader classLoader, Set<Class<?>> classSet) {
+        this.classLoader = classLoader;
         classSet.forEach(clazz -> classNamePathToLoader.put(TransformerInfo.getClassNamePath(clazz), clazz.getClassLoader()));
     }
 
@@ -27,22 +28,12 @@ public class ResetClassTransformer extends AbstractTransformer {
     @Override
     protected byte[] doTransform(ClassLoader loader, String className, Class<?> classBeingRedefined, ProtectionDomain protectionDomain, byte[] classfileBuffer, String targetClassName) throws Exception {
         byte[] bs = classfileBuffer;
-        URL sourceUrl = getSourceURL(protectionDomain, className);
+        URL sourceUrl = classLoader.getResource(className);
+        logger.debug("{} source url: {}", className, sourceUrl);
         if (sourceUrl != null) {
             bs = IOUtils.readBytes(sourceUrl.openStream());
             logger.debug("Reset {} success.", targetClassName);
         }
         return bs;
-    }
-
-    private URL getSourceURL(ProtectionDomain protectionDomain, String className) {
-        try {
-            File sourceFile = new File(protectionDomain.getCodeSource().getLocation().getFile(), className + FILE_SUFFIX);
-            logger.debug("{} source url: {}", className, sourceFile);
-            return sourceFile.toURI().toURL();
-        } catch (Exception e) {
-            logger.error("Get {} source url failed.", e, className);
-        }
-        return null;
     }
 }

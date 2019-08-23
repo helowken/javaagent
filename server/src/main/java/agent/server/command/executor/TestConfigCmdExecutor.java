@@ -25,27 +25,29 @@ class TestConfigCmdExecutor extends AbstractCmdExecutor {
         byte[] config = ((TestConfigCommand) cmd).getConfig();
         Map<String, List<TestConfigResultEntity>> contextToConfigResultEntityList = new HashMap<>();
         TransformMgr.getInstance().searchMethods(config, (context, result) -> {
-            List<TestConfigResultEntity> configResultEntityList = contextToConfigResultEntityList.computeIfAbsent(context, key -> new ArrayList<>());
+            if (!result.methodList.isEmpty()) {
+                List<TestConfigResultEntity> configResultEntityList = contextToConfigResultEntityList.computeIfAbsent(context, key -> new ArrayList<>());
 
-            TestConfigResultEntity configResultEntity = new TestConfigResultEntity();
-            configResultEntity.setContext(context);
-            configResultEntityList.add(configResultEntity);
+                TestConfigResultEntity configResultEntity = new TestConfigResultEntity();
+                configResultEntity.setContext(context);
+                configResultEntityList.add(configResultEntity);
 
-            ClassResultEntity classResultEntity = new ClassResultEntity();
-            String className = result.ctClass.getName();
-            classResultEntity.setClassName(className);
-            configResultEntity.addClassEntity(classResultEntity);
+                ClassResultEntity classResultEntity = new ClassResultEntity();
+                String className = result.ctClass.getName();
+                classResultEntity.setClassName(className);
+                configResultEntity.addClassEntity(classResultEntity);
 
-            result.methodList.forEach(method -> {
-                String declareClass = method.getDeclaringClass().getName();
-                if (declareClass.equals(className))
-                    declareClass = SELF;
-                MethodResultEntity methodResultEntity = new MethodResultEntity();
-                methodResultEntity.setDeclareClass(declareClass);
-                methodResultEntity.setMethodName(method.getName());
-                methodResultEntity.setSignature(method.getSignature());
-                classResultEntity.addMethodEntity(methodResultEntity);
-            });
+                result.methodList.forEach(method -> {
+                    String declareClass = method.getDeclaringClass().getName();
+                    if (declareClass.equals(className))
+                        declareClass = SELF;
+                    MethodResultEntity methodResultEntity = new MethodResultEntity();
+                    methodResultEntity.setDeclareClass(declareClass);
+                    methodResultEntity.setMethodName(method.getName());
+                    methodResultEntity.setSignature(method.getSignature());
+                    classResultEntity.addMethodEntity(methodResultEntity);
+                });
+            }
         });
         return DefaultExecResult.toSuccess(cmd.getType(),
                 "Test config successfully.",

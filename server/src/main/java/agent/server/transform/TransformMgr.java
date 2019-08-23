@@ -9,9 +9,9 @@ import agent.hook.utils.AppTypePluginFilter;
 import agent.server.event.EventListenerMgr;
 import agent.server.event.impl.ResetClassEvent;
 import agent.server.transform.config.*;
+import agent.server.transform.impl.ResetClassTransformer;
 import agent.server.transform.impl.TargetClassConfig;
 import agent.server.transform.impl.TransformerInfo;
-import agent.server.transform.impl.ResetClassTransformer;
 import agent.server.transform.impl.utils.ClassPoolUtils;
 import agent.server.transform.impl.utils.MethodFinder;
 import agent.server.transform.impl.utils.MethodFinder.MethodSearchResult;
@@ -82,14 +82,16 @@ public class TransformMgr {
         );
     }
 
+    private ClassFinder getClassFinder() {
+        return PluginFactory.getInstance().find(ClassFinder.class,
+                AppTypePluginFilter.getInstance()
+        );
+    }
+
     public List<TargetClassConfig> convert(String context, List<ClassConfig> classConfigList) {
-        ClassFinder classFinder = PluginFactory.getInstance()
-                .find(ClassFinder.class,
-                        AppTypePluginFilter.getInstance()
-                );
         List<TargetClassConfig> targetClassConfigList = new ArrayList<>();
         classConfigList.forEach(classConfig -> {
-            Class<?> targetClass = classFinder.findClass(context, classConfig.getTargetClass());
+            Class<?> targetClass = getClassFinder().findClass(context, classConfig.getTargetClass());
             if (targetClass.isInterface())
                 throw new RuntimeException("Interface class can not be transformed: " + targetClass.getName());
             CodeSource codeSource = targetClass.getProtectionDomain().getCodeSource();
@@ -175,6 +177,7 @@ public class TransformMgr {
                         .map(Pattern::compile)
                         .collect(Collectors.toList());
         List<TransformContext> transformContextList = new ArrayList<>();
+        ClassFinder classFinder = getClassFinder();
         classLock.sync(lock ->
                 contextToTransformedClassSet.forEach((context, classSet) -> {
                     if (contextPattern == null || contextPattern.matcher(context).matches()) {
@@ -192,7 +195,7 @@ public class TransformMgr {
                                 new TransformContext(context,
                                         resetClassSet,
                                         Collections.singletonList(
-                                                new ResetClassTransformer(resetClassSet)
+                                                new ResetClassTransformer(classFinder.findClassLoader(context), resetClassSet)
                                         ),
                                         true
                                 )

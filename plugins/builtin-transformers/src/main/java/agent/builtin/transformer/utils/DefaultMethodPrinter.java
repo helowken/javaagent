@@ -39,24 +39,25 @@ public class DefaultMethodPrinter implements MethodPrinter {
         if (obj == null)
             sb.append("null");
         else {
-            Class<?> tmpClass = obj.getClass();
-            try {
-                while (tmpClass != null) {
-                    ReflectionUtils.useDeclaredFields(tmpClass,
-                            field -> {
-                                if (Modifier.isStatic(field.getModifiers())) {
-
-                                } else {
-
-                                }
-                            }
-                    );
-                    tmpClass = tmpClass.getSuperclass();
-                }
-            } catch (Exception e) {
-                sb.append("#Get value error!#");
-                logger.error("Get value failed.", e);
-            }
+            sb.append(obj);
+//            Class<?> tmpClass = obj.getClass();
+//            try {
+//                while (tmpClass != null) {
+//                    ReflectionUtils.useDeclaredFields(tmpClass,
+//                            field -> {
+//                                if (Modifier.isStatic(field.getModifiers())) {
+//
+//                                } else {
+//
+//                                }
+//                            }
+//                    );
+//                    tmpClass = tmpClass.getSuperclass();
+//                }
+//            } catch (Exception e) {
+//                sb.append("#Get value error!#");
+//                logger.error("Get value failed.", e);
+//            }
         }
     }
 }

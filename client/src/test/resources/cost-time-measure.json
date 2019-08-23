@@ -37,9 +37,19 @@
                         "methodFilter": {
                             "onlyDeclared": true,
                             "skipJavaNative": true,
-                            "include": [],
+                            "include": [
+                                "load"
+                            ],
                             "exclude": []
                         }
+                    },
+                    {
+                        "class": "org.apache.commons.lang3.StringUtils",
+                        "methods": [
+                            {
+                                "name": "trim"
+                            }
+                        ]
                     }
                 ]
             }

@@ -27,11 +27,11 @@ public abstract class AbstractClassFinder implements ClassFinder {
         }
     }
 
-    private ClassLoader findClassLoader(String contextPath) throws Exception {
+    public ClassLoader findClassLoader(String contextPath) {
         init();
         ClassLoader loader = contextPathToClassLoader.get(contextPath);
         if (loader == null)
-            throw new Exception("No class loader found by context path: " + contextPath);
+            throw new RuntimeException("No class loader found by context path: " + contextPath);
         logger.debug("Use class loader to find class: {}", loader);
         return loader;
     }
@@ -39,6 +39,8 @@ public abstract class AbstractClassFinder implements ClassFinder {
     public Class<?> findClass(String contextPath, String className) {
         try {
             return findClassLoader(contextPath).loadClass(className);
+        } catch (RuntimeException e) {
+            throw e;
         } catch (Exception e) {
             throw new RuntimeException("Find class failed on context: " + contextPath, e);
         }

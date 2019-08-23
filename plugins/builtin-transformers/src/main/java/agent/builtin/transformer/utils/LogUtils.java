@@ -48,10 +48,6 @@ public class LogUtils {
                 .append(");");
     }
 
-    public static void newPrintMethodArgsCode() {
-
-    }
-
     public interface CostTimeCodeFunc {
         void exec(String stVar, String etVar, StringBuilder endBlock);
     }

@@ -128,8 +128,10 @@ public class MethodFinder {
     }
 
     private boolean isMatch(Set<Pattern> patternSet, CtMethod method) {
-        final String fullName = method.getDeclaringClass().getName() + "." + method.getName();
-        return patternSet.stream().anyMatch(pattern -> pattern.matcher(fullName).matches());
+        final String fullName = method.getName();
+        return patternSet.stream().anyMatch(
+                pattern -> pattern.matcher(fullName).matches()
+        );
     }
 
     private void filterOutNoBody(List<CtMethod> candidateList, CtMethod... methods) {
