@@ -6,6 +6,7 @@ import agent.base.utils.Logger;
 import agent.base.utils.ReflectionUtils;
 import agent.hook.plugin.ClassFinder;
 import agent.hook.utils.AppTypePluginFilter;
+import agent.server.classloader.DynamicClassLoader;
 import agent.server.event.EventListenerMgr;
 import agent.server.event.impl.ResetClassEvent;
 import agent.server.transform.config.*;
@@ -17,6 +18,7 @@ import agent.server.transform.impl.utils.MethodFinder;
 import agent.server.transform.impl.utils.MethodFinder.MethodSearchResult;
 
 import java.lang.instrument.Instrumentation;
+import java.net.URL;
 import java.security.CodeSource;
 import java.util.*;
 import java.util.regex.Pattern;
@@ -27,8 +29,10 @@ public class TransformMgr {
     private static final TransformMgr instance = new TransformMgr();
     private Instrumentation instrumentation;
     private Map<String, Set<Class<?>>> contextToTransformedClassSet = new HashMap<>();
+    private Map<String, DynamicClassLoader> contextToDynamicClassLoader = new HashMap<>();
     private static final LockObject transformLock = new LockObject();
     private static final LockObject classLock = new LockObject();
+    private static final LockObject loaderLock = new LockObject();
 
     public static TransformMgr getInstance() {
         return instance;
@@ -39,6 +43,30 @@ public class TransformMgr {
 
     public void init(Instrumentation instrumentation) {
         this.instrumentation = instrumentation;
+    }
+
+    private DynamicClassLoader getDynamicClassLoader(String context) {
+        return loaderLock.syncValue(lock ->
+                contextToDynamicClassLoader.computeIfAbsent(context,
+                        key -> {
+                            final ClassLoader classLoader = getClassFinder().findClassLoader(context);
+                            try {
+                                return ReflectionUtils.useField(
+                                        ClassLoader.class,
+                                        "parent",
+                                        field -> {
+                                            ClassLoader parent = (ClassLoader) field.get(classLoader);
+                                            DynamicClassLoader dynamicClassLoader = new DynamicClassLoader(parent);
+                                            field.set(classLoader, dynamicClassLoader);
+                                            return dynamicClassLoader;
+                                        }
+                                );
+                            } catch (Exception e) {
+                                throw new RuntimeException(e);
+                            }
+                        }
+                )
+        );
     }
 
     public List<TransformResult> transformByConfig(byte[] bs) throws Exception {
@@ -177,7 +205,6 @@ public class TransformMgr {
                         .map(Pattern::compile)
                         .collect(Collectors.toList());
         List<TransformContext> transformContextList = new ArrayList<>();
-        ClassFinder classFinder = getClassFinder();
         classLock.sync(lock ->
                 contextToTransformedClassSet.forEach((context, classSet) -> {
                     if (contextPattern == null || contextPattern.matcher(context).matches()) {
@@ -195,7 +222,7 @@ public class TransformMgr {
                                 new TransformContext(context,
                                         resetClassSet,
                                         Collections.singletonList(
-                                                new ResetClassTransformer(classFinder.findClassLoader(context), resetClassSet)
+                                                new ResetClassTransformer(getDynamicClassLoader(context), resetClassSet)
                                         ),
                                         true
                                 )
@@ -225,7 +252,6 @@ public class TransformMgr {
         );
     }
 
-
     public List<TransformResult> resetAllClasses() {
         return resetClasses(null, null);
     }
@@ -250,6 +276,28 @@ public class TransformMgr {
             );
             return rsMap;
         });
+    }
+
+    public Map<String, Set<URL>> getContextToClasspathSet() {
+        return loaderLock.syncValue(lock -> {
+            Map<String, Set<URL>> rsMap = new HashMap<>();
+            contextToDynamicClassLoader.forEach((context, classLoader) ->
+                    rsMap.put(context, classLoader.getURLs())
+            );
+            return rsMap;
+        });
+    }
+
+    public void addURL(String context, URL url) {
+        getDynamicClassLoader(context).addURL(url);
+    }
+
+    public void removeURL(String context, URL url) {
+        getDynamicClassLoader(context).removeURL(url);
+    }
+
+    public void refreshURL(String context, URL url) {
+        getDynamicClassLoader(context).refreshURL(url);
     }
 
     public interface SearchFunc {

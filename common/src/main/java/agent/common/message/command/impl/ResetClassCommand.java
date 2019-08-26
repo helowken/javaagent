@@ -5,6 +5,7 @@ import agent.common.struct.impl.DefaultStruct;
 import agent.common.struct.impl.Structs;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class ResetClassCommand extends AbstractCommand<DefaultStruct> {
     public ResetClassCommand() {
@@ -17,7 +18,12 @@ public class ResetClassCommand extends AbstractCommand<DefaultStruct> {
         if (contextExpr != null) {
             args.add(contextExpr);
             if (classExprSet != null)
-                args.addAll(Arrays.asList(classExprSet));
+                args.addAll(
+                        Arrays.stream(classExprSet)
+                                .map(String::trim)
+                                .filter(s -> !s.isEmpty())
+                                .collect(Collectors.toSet())
+                );
         }
         getBody().set(args.toArray(new String[0]));
     }

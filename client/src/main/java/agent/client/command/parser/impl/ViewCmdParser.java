@@ -4,12 +4,11 @@ import agent.client.command.parser.CommandParser;
 import agent.common.message.command.Command;
 import agent.common.message.command.impl.ViewCommand;
 
-public class ViewCmdParser implements CommandParser {
+public class ViewCmdParser extends AbstractCmdParser {
 
     @Override
     public Command parse(String[] args) {
-        if (args.length == 0)
-            throw new IllegalArgumentException("Usage: view catalog");
+        checkArgs(args, 1, "class");
         String catalog = args[0];
         if (!ViewCommand.isCatalogValid(catalog))
             throw new IllegalArgumentException("Unknown catalog: " + catalog);

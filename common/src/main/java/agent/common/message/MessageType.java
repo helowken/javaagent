@@ -9,4 +9,5 @@ public class MessageType {
     public static final int CMD_ECHO = 5;
     public static final int CMD_TEST_CONFIG = 6;
     public static final int CMD_VIEW = 7;
+    public static final int CMD_CLASSPATH = 8;
 }

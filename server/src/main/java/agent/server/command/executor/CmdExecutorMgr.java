@@ -22,6 +22,7 @@ public class CmdExecutorMgr {
         regCmdClass(CMD_ECHO, new EchoCmdExecutor());
         regCmdClass(CMD_TEST_CONFIG, new TestConfigCmdExecutor());
         regCmdClass(CMD_VIEW, new ViewCmdExecutor());
+        regCmdClass(CMD_CLASSPATH, new ClasspathCmdExecutor());
     }
 
     private static void regCmdClass(int type, CommandExecutor cmdExecutor) {

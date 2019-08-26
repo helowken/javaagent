@@ -10,10 +10,12 @@ import static agent.common.message.MessageType.CMD_VIEW;
 
 public class ViewCommand extends AbstractCommand<DefaultStruct> {
     public static final String CATALOG_CLASS = "class";
+    public static final String CATALOG_CLASSPATH = "classpath";
     private static final Set<String> catalogSet = new HashSet<>();
 
     static {
         catalogSet.add(CATALOG_CLASS);
+        catalogSet.add(CATALOG_CLASSPATH);
     }
 
     public ViewCommand() {
