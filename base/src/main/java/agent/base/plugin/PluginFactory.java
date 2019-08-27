@@ -3,14 +3,15 @@ package agent.base.plugin;
 import agent.base.exception.PluginException;
 import agent.base.utils.LockObject;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.ServiceLoader;
+import java.util.*;
 
 public class PluginFactory {
     private static final PluginFactory instance = new PluginFactory();
     private static final LockObject loaderLock = new LockObject();
     private static volatile ServiceLoader<Plugin> serviceLoader;
+
+    private static final Map<Class<?>, Object> mocks = new HashMap<>();
+    private static final LockObject mockLock = new LockObject();
 
     private PluginFactory() {
     }
@@ -35,6 +36,14 @@ public class PluginFactory {
             });
         }
         return serviceLoader;
+    }
+
+    public static <T> void setMock(Class<T> clazz, T object) {
+        mockLock.sync(lock -> mocks.put(clazz, object));
+    }
+
+    public static void clearMocks() {
+        mockLock.sync(lock -> mocks.clear());
     }
 
     public void reload() {
@@ -74,20 +83,27 @@ public class PluginFactory {
     private <T> List<T> findHelper(Class<T> clazz, PluginFilter filter, boolean all) {
         if (clazz == null)
             throw new IllegalArgumentException("Class of instance can not be null!");
-        List<T> rsList = new ArrayList<>();
-        for (Plugin plugin : getServiceLoader()) {
-            if (plugin.contains(clazz) && (filter == null || filter.accept(plugin))) {
-                T instance = plugin.find(clazz);
-                if (instance != null) {
-                    rsList.add(instance);
-                    if (!all)
-                        return rsList;
-                }
-            }
-        }
-        if (rsList.isEmpty())
-            throw new PluginException("No plugin found for class: " + clazz.getName() + ", by filter: " + filter);
-        return rsList;
+        return Optional.ofNullable(
+                mockLock.syncValue(lock ->
+                        clazz.cast(mocks.get(clazz)))
+        )
+                .map(Collections::singletonList)
+                .orElseGet(() -> {
+                    List<T> rsList = new ArrayList<>();
+                    for (Plugin plugin : getServiceLoader()) {
+                        if (plugin.contains(clazz) && (filter == null || filter.accept(plugin))) {
+                            T instance = plugin.find(clazz);
+                            if (instance != null) {
+                                rsList.add(instance);
+                                if (!all)
+                                    return rsList;
+                            }
+                        }
+                    }
+                    if (rsList.isEmpty())
+                        throw new PluginException("No plugin found for class: " + clazz.getName() + ", by filter: " + filter);
+                    return rsList;
+                });
     }
 
 }

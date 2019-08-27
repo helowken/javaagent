@@ -46,7 +46,7 @@ class AgentServer {
                         Socket socket = serverSocket.accept();
                         executorService.execute(new AgentEndpoint(socket));
                     } catch (Exception e) {
-                        logger.error("Server accept failed.", e);
+                        logger.error("Server isActionValid failed.", e);
                     }
                 }
                 executorService.shutdownNow();

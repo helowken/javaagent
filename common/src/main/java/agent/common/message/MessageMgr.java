@@ -26,7 +26,7 @@ public class MessageMgr {
         reg(MessageType.CMD_ECHO, EchoCommand.class);
         reg(MessageType.CMD_TEST_CONFIG, TestConfigCommand.class);
         reg(MessageType.CMD_VIEW, ViewCommand.class);
-
+        reg(MessageType.CMD_CLASSPATH, ClasspathCommand.class);
     }
 
     private static void reg(int type, Class<? extends Message> msgClass) {

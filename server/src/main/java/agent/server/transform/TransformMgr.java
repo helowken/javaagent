@@ -281,8 +281,11 @@ public class TransformMgr {
     public Map<String, Set<URL>> getContextToClasspathSet() {
         return loaderLock.syncValue(lock -> {
             Map<String, Set<URL>> rsMap = new HashMap<>();
-            contextToDynamicClassLoader.forEach((context, classLoader) ->
-                    rsMap.put(context, classLoader.getURLs())
+            contextToDynamicClassLoader.forEach((context, classLoader) -> {
+                        Set<URL> urls = classLoader.getURLs();
+                        if (!urls.isEmpty())
+                            rsMap.put(context, urls);
+                    }
             );
             return rsMap;
         });
@@ -294,10 +297,6 @@ public class TransformMgr {
 
     public void removeURL(String context, URL url) {
         getDynamicClassLoader(context).removeURL(url);
-    }
-
-    public void refreshURL(String context, URL url) {
-        getDynamicClassLoader(context).refreshURL(url);
     }
 
     public interface SearchFunc {

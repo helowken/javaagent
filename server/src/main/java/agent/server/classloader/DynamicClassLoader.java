@@ -30,7 +30,11 @@ public class DynamicClassLoader extends ClassLoader {
     public void addURL(URL url) {
         loaderLock.sync(lock ->
                 urlToClassLoader.computeIfAbsent(url,
-                        key -> new SingleURLClassLoader(url, this)
+                        key -> {
+                            SingleURLClassLoader loader = new SingleURLClassLoader(url, this);
+                            classLoaders.add(loader);
+                            return loader;
+                        }
                 )
         );
     }
@@ -46,15 +50,9 @@ public class DynamicClassLoader extends ClassLoader {
                         logger.error("close url loader failed: {}", loader.getURL(), e);
                     }
                     classNameToClassLoader.entrySet().removeIf(entry -> entry.getValue().equals(loader));
+                    classLoaders.remove(loader);
                 })
         );
-    }
-
-    public void refreshURL(URL url) {
-        loaderLock.sync(lock -> {
-            removeURL(url);
-            addURL(url);
-        });
     }
 
     @Override
@@ -80,7 +78,7 @@ public class DynamicClassLoader extends ClassLoader {
     }
 
     private static class SingleURLClassLoader extends URLClassLoader {
-        public SingleURLClassLoader(URL url, ClassLoader parent) {
+        SingleURLClassLoader(URL url, ClassLoader parent) {
             super(new URL[]{url}, parent);
         }
 
@@ -88,7 +86,7 @@ public class DynamicClassLoader extends ClassLoader {
             return super.findClass(name);
         }
 
-        public URL getURL() {
+        URL getURL() {
             return getURLs()[0];
         }
     }

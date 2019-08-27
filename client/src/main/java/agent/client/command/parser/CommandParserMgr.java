@@ -18,7 +18,8 @@ public class CommandParserMgr {
         reg(new EchoCmdParser());
         reg(new TestConfigCmdParser());
         reg(new ViewCmdParser());
-        reg(new ClassPathCmdParser());
+        reg(new ClasspathCmdParser.AddParser());
+        reg(new ClasspathCmdParser.RemoveParser());
     }
 
     private static synchronized void reg(CommandParser cmdParser) {
