@@ -9,7 +9,11 @@ import agent.hook.utils.AppTypePluginFilter;
 import agent.server.classloader.DynamicClassLoader;
 import agent.server.event.EventListenerMgr;
 import agent.server.event.impl.ResetClassEvent;
-import agent.server.transform.config.*;
+import agent.server.transform.config.ClassConfig;
+import agent.server.transform.config.ModuleConfig;
+import agent.server.transform.config.TransformConfig;
+import agent.server.transform.config.TransformerConfig;
+import agent.server.transform.config.parser.ConfigParseFactory;
 import agent.server.transform.impl.ResetClassTransformer;
 import agent.server.transform.impl.TargetClassConfig;
 import agent.server.transform.impl.TransformerInfo;
@@ -23,6 +27,8 @@ import java.security.CodeSource;
 import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
+import static agent.server.transform.config.parser.ConfigParseFactory.ConfigItem;
 
 public class TransformMgr {
     private static final Logger logger = Logger.getLogger(TransformMgr.class);
@@ -69,9 +75,9 @@ public class TransformMgr {
         );
     }
 
-    public List<TransformResult> transformByConfig(byte[] bs) throws Exception {
+    public List<TransformResult> transformByConfig(ConfigItem configItem) {
         List<TransformContext> transformContextList = new ArrayList<>();
-        Map<ModuleConfig, Map<TransformConfig, TransformerInfo>> rsMap = parseConfig(bs);
+        Map<ModuleConfig, Map<TransformConfig, TransformerInfo>> rsMap = parseConfig(configItem);
         rsMap.forEach((moduleConfig, configToInfo) -> {
                     Set<Class<?>> classSet = new HashSet<>();
                     List<ErrorTraceTransformer> transformerList = new ArrayList<>();
@@ -90,8 +96,8 @@ public class TransformMgr {
         return transform(transformContextList);
     }
 
-    public void searchMethods(byte[] bs, SearchFunc func) throws Exception {
-        Map<ModuleConfig, Map<TransformConfig, TransformerInfo>> rsMap = parseConfig(bs);
+    public void searchMethods(ConfigItem item, SearchFunc func) {
+        Map<ModuleConfig, Map<TransformConfig, TransformerInfo>> rsMap = parseConfig(item);
         rsMap.forEach((moduleConfig, configToInfo) ->
                 ClassPoolUtils.exec((cp, classPathRecorder) ->
                         configToInfo.forEach((transformConfig, transformerInfo) ->
@@ -132,9 +138,9 @@ public class TransformMgr {
         return targetClassConfigList;
     }
 
-    private Map<ModuleConfig, Map<TransformConfig, TransformerInfo>> parseConfig(byte[] bs) throws Exception {
+    private Map<ModuleConfig, Map<TransformConfig, TransformerInfo>> parseConfig(ConfigItem item) {
         Map<ModuleConfig, Map<TransformConfig, TransformerInfo>> rsMap = new HashMap<>();
-        for (ModuleConfig moduleConfig : ConfigParser.parse(bs)) {
+        for (ModuleConfig moduleConfig : ConfigParseFactory.parse(item)) {
             Map<TransformConfig, TransformerInfo> configToInfo = new HashMap<>();
             for (TransformConfig transformConfig : moduleConfig.getTransformConfigList()) {
                 String context = moduleConfig.getContextPath();

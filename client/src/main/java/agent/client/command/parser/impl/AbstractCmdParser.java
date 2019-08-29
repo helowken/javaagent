@@ -7,4 +7,6 @@ public abstract class AbstractCmdParser implements CommandParser {
         if (args.length < lessCount)
             throw new IllegalArgumentException("Usage: " + getCmdName() + " " + usage);
     }
+
+    
 }

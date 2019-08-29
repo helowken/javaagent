@@ -1,39 +1,31 @@
 package agent.server.command.executor;
 
-import agent.base.utils.LockObject;
 import agent.common.message.command.Command;
 import agent.common.message.command.CommandExecutor;
 import agent.common.message.result.ExecResult;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import agent.common.utils.Registry;
 
 import static agent.common.message.MessageType.*;
 
 public class CmdExecutorMgr {
-    private static final Map<Integer, CommandExecutor> typeToExecutor = new HashMap<>();
-    private static final LockObject cmdLock = new LockObject();
+    private static final Registry<Integer, CommandExecutor> registry = new Registry<>();
 
     static {
-        regCmdClass(CMD_RESET_CLASS, new ResetClassCmdExecutor());
-        regCmdClass(CMD_TRANSFORM_CLASS, new TransformClassCmdExecutor());
-        regCmdClass(CMD_FLUSH_LOG, new FlushLogCmdExecutor());
-        regCmdClass(CMD_ECHO, new EchoCmdExecutor());
-        regCmdClass(CMD_TEST_CONFIG, new TestConfigCmdExecutor());
-        regCmdClass(CMD_VIEW, new ViewCmdExecutor());
-        regCmdClass(CMD_CLASSPATH, new ClasspathCmdExecutor());
-    }
+        CommandExecutor transformCmdExecutor = new TransformCmdExecutor();
+        CommandExecutor testConfigCmdExecutor = new TestConfigCmdExecutor();
 
-    private static void regCmdClass(int type, CommandExecutor cmdExecutor) {
-        cmdLock.sync(lock -> typeToExecutor.put(type, cmdExecutor));
+        registry.reg(CMD_RESET_CLASS, new ResetClassCmdExecutor());
+        registry.reg(CMD_TRANSFORM_BY_FILE, transformCmdExecutor);
+        registry.reg(CMD_TRANSFORM_BY_RULE, transformCmdExecutor);
+        registry.reg(CMD_FLUSH_LOG, new FlushLogCmdExecutor());
+        registry.reg(CMD_ECHO, new EchoCmdExecutor());
+        registry.reg(CMD_TEST_CONFIG_BY_FILE, testConfigCmdExecutor);
+        registry.reg(CMD_TEST_CONFIG_BY_RULE, testConfigCmdExecutor);
+        registry.reg(CMD_VIEW, new ViewCmdExecutor());
+        registry.reg(CMD_CLASSPATH, new ClasspathCmdExecutor());
     }
 
     public static ExecResult exec(Command cmd) {
-        return cmdLock.syncValue(lock ->
-                Optional.ofNullable(typeToExecutor.get(cmd.getType()))
-                        .orElseThrow(() -> new RuntimeException("Unsupported command type: " + cmd.getType()))
-                        .exec(cmd)
-        );
+        return registry.get(cmd.getType()).exec(cmd);
     }
 }

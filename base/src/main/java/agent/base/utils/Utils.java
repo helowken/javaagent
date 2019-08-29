@@ -2,6 +2,7 @@ package agent.base.utils;
 
 import java.io.*;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -77,6 +78,10 @@ public class Utils {
         return s == null || s.trim().isEmpty();
     }
 
+    public static boolean isNotBlank(String s) {
+        return !isBlank(s);
+    }
+
     public static String blankToNull(String s) {
         if (s != null && s.trim().isEmpty())
             return null;
@@ -94,5 +99,25 @@ public class Utils {
 
     public static String[] splitToArray(String s, String sep) {
         return splitToSet(s, sep).toArray(new String[0]);
+    }
+
+    public static <T> T firstValidValue(String errMsg, Function<T, Boolean> checkFunc, T... vs) {
+        if (vs != null) {
+            for (T v : vs) {
+                if (checkFunc.apply(v))
+                    return v;
+            }
+        }
+        if (errMsg != null)
+            throw new IllegalArgumentException(errMsg);
+        return null;
+    }
+
+    public static <T> T firstNotNull(String errMsg, T... vs) {
+        return firstValidValue(errMsg, Objects::nonNull, vs);
+    }
+
+    public static String firstNotBlank(String errMsg, String... vs) {
+        return firstValidValue(errMsg, Utils::isNotBlank, vs);
     }
 }

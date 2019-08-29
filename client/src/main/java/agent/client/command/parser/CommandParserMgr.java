@@ -3,34 +3,30 @@ package agent.client.command.parser;
 import agent.client.command.parser.exception.CommandParseException;
 import agent.client.command.parser.impl.*;
 import agent.common.message.command.Command;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import agent.common.utils.Registry;
 
 public class CommandParserMgr {
-    private static final Map<String, CommandParser> cmdNameToParser = new HashMap<>();
+    private static final Registry<String, CommandParser> registry = new Registry<>();
 
     static {
         reg(new FlushLogCmdParser());
         reg(new ResetClassCmdParser());
-        reg(new TransformClassCmdParser());
+        reg(new TransformCmdParser());
         reg(new EchoCmdParser());
         reg(new TestConfigCmdParser());
         reg(new ViewCmdParser());
-        reg(new ClasspathCmdParser.AddParser());
-        reg(new ClasspathCmdParser.RemoveParser());
+        reg(new ClasspathCmdParser());
     }
 
-    private static synchronized void reg(CommandParser cmdParser) {
-        cmdNameToParser.put(cmdParser.getCmdName(), cmdParser);
+    private static void reg(CommandParser cmdParser) {
+        registry.reg(cmdParser.getCmdName(), cmdParser);
     }
 
-    public static synchronized Command parse(String cmdName, String[] args) {
+    public static Command parse(String cmdName, String[] args) {
         try {
-            return Optional.ofNullable(cmdNameToParser.get(cmdName))
-                    .orElseThrow(() -> new CommandParseException("No command found by name: " + cmdName))
-                    .parse(args);
+            return registry.get(cmdName,
+                    key -> new CommandParseException("No command found by name: " + key)
+            ).parse(args);
         } catch (CommandParseException e) {
             throw e;
         } catch (Exception e) {

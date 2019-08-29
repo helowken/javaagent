@@ -3,6 +3,7 @@ package test.server.transform.config;
 import agent.base.utils.IOUtils;
 import agent.base.utils.Logger;
 import agent.server.transform.config.*;
+import agent.server.transform.config.parser.FileConfigParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Test;
 
@@ -14,22 +15,23 @@ import static org.junit.Assert.assertEquals;
 public class ConfigParserTest {
     private static final Logger logger = Logger.getLogger(ConfigParserTest.class);
     private static final ObjectMapper objectMapper = new ObjectMapper();
+    private static final FileConfigParser fileConfigParser = new FileConfigParser();
 
     @Test
-    public void testParseConfig() throws Exception {
+    public void testParseFileConfig() throws Exception {
         List<ModuleConfig> moduleConfigList = createModuleConfigList();
         String content = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(moduleConfigList);
         logger.info("Content: \n{}", content);
 
-        List<ModuleConfig> parsedList = ConfigParser.parse(content);
+        List<ModuleConfig> parsedList = fileConfigParser.parse(content);
         assertEquals(moduleConfigList, parsedList);
 
-        parsedList = ConfigParser.parse(content.getBytes());
+        parsedList = fileConfigParser.parse(content.getBytes());
         assertEquals(moduleConfigList, parsedList);
 
         File file = File.createTempFile("config", ".json");
         IOUtils.writeString(file.getAbsolutePath(), content, false);
-        parsedList = ConfigParser.parse(file);
+        parsedList = fileConfigParser.parse(file);
         assertEquals(moduleConfigList, parsedList);
     }
 

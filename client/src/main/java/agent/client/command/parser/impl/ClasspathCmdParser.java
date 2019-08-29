@@ -1,27 +1,25 @@
 package agent.client.command.parser.impl;
 
+import agent.client.command.parser.exception.CommandParseException;
 import agent.common.message.command.Command;
 import agent.common.message.command.impl.ClasspathCommand;
 
-public abstract class ClasspathCmdParser extends AbstractCmdParser {
+import static agent.common.message.command.impl.ClasspathCommand.ACTION_ADD;
+import static agent.common.message.command.impl.ClasspathCommand.ACTION_REMOVE;
+
+public class ClasspathCmdParser extends AbstractCmdParser {
 
     @Override
     public Command parse(String[] args) {
-        checkArgs(args, 2, "context classpath");
-        return new ClasspathCommand(getCmdName(), args[0], args[1]);
+        checkArgs(args, 3, "[" + ACTION_ADD + " | " + ACTION_REMOVE + "] context classpath");
+        String action = args[0];
+        if (ClasspathCommand.isValidAction(action))
+            throw new CommandParseException("Invalid action: " + action);
+        return new ClasspathCommand(action, args[1], args[2]);
     }
 
-    public static class AddParser extends ClasspathCmdParser {
-        @Override
-        public String getCmdName() {
-            return ClasspathCommand.ACTION_ADD;
-        }
-    }
-
-    public static class RemoveParser extends ClasspathCmdParser {
-        @Override
-        public String getCmdName() {
-            return ClasspathCommand.ACTION_REMOVE;
-        }
+    @Override
+    public String getCmdName() {
+        return "cp";
     }
 }

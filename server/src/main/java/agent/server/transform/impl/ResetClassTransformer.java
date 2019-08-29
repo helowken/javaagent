@@ -11,7 +11,6 @@ import java.util.Set;
 
 public class ResetClassTransformer extends AbstractTransformer {
     private static final Logger logger = Logger.getLogger(ResetClassTransformer.class);
-    private static final String FILE_SUFFIX = ".class";
     private final ClassLoader classLoader;
     private final Map<String, ClassLoader> classNamePathToLoader = new HashMap<>();
 

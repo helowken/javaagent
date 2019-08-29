@@ -1,28 +1,24 @@
 package agent.server.transform;
 
 import agent.base.plugin.PluginFactory;
-import agent.server.transform.exception.NoTransformerFoundException;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import agent.common.utils.Registry;
+import agent.server.transform.impl.DynamicClassTransformer;
 
 public class TransformerClassRegistry {
-    private static final Map<String, Class<? extends ConfigTransformer>> keyToTransformerClass = new HashMap<>();
+    private static final Registry<String, Class<? extends ConfigTransformer>> registry = new Registry<>();
 
     static {
         PluginFactory.getInstance()
                 .findAll(TransformerClassFactory.class)
                 .stream()
                 .map(TransformerClassFactory::get)
-                .forEach(keyToTransformerClass::putAll);
+                .forEach(keyToClassMap ->
+                        keyToClassMap.forEach(registry::reg)
+                );
+        registry.reg(DynamicClassTransformer.REG_KEY, DynamicClassTransformer.class);
     }
 
     public static Class<? extends ConfigTransformer> get(String key) {
-        return Optional.ofNullable(
-                keyToTransformerClass.get(key)
-        ).orElseThrow(
-                () -> new NoTransformerFoundException("No transformer class found by key: " + key)
-        );
+        return registry.get(key);
     }
 }

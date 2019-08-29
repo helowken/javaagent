@@ -21,10 +21,10 @@ public class MessageMgr {
     static {
         reg(MessageType.RESULT_DEFAULT, DefaultExecResult.class);
         reg(MessageType.CMD_RESET_CLASS, ResetClassCommand.class);
-        reg(MessageType.CMD_TRANSFORM_CLASS, TransformClassCommand.class);
+        reg(MessageType.CMD_TRANSFORM_BY_FILE, TransformByFileCommand.class);
         reg(MessageType.CMD_FLUSH_LOG, FlushLogCommand.class);
         reg(MessageType.CMD_ECHO, EchoCommand.class);
-        reg(MessageType.CMD_TEST_CONFIG, TestConfigCommand.class);
+        reg(MessageType.CMD_TEST_CONFIG_BY_FILE, TestConfigByFileCommand.class);
         reg(MessageType.CMD_VIEW, ViewCommand.class);
         reg(MessageType.CMD_CLASSPATH, ClasspathCommand.class);
     }

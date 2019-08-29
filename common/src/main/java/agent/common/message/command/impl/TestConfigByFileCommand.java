@@ -4,14 +4,14 @@ import agent.common.message.MessageType;
 import agent.common.struct.impl.DefaultStruct;
 import agent.common.struct.impl.Structs;
 
-public class TestConfigCommand extends AbstractCommand<DefaultStruct> {
+public class TestConfigByFileCommand extends AbstractCommand<DefaultStruct> {
 
-    public TestConfigCommand() {
+    public TestConfigByFileCommand() {
         this(null);
     }
 
-    public TestConfigCommand(byte[] bs) {
-        super(MessageType.CMD_TEST_CONFIG, Structs.newByteArray());
+    public TestConfigByFileCommand(byte[] bs) {
+        super(MessageType.CMD_TEST_CONFIG_BY_FILE, Structs.newByteArray());
         getBody().set(bs);
     }
 
