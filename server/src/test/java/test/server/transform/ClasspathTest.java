@@ -23,7 +23,7 @@ public class ClasspathTest extends AbstractServerTest {
                 .getContextToClasspathSet()
                 .forEach((context, classpathSet) ->
                         classpathSet.forEach(classpath ->
-                                TransformMgr.getInstance().removeURL(context, classpath)
+                                TransformMgr.getInstance().removeClasspath(context, classpath)
                         )
                 );
         assertTrue(TransformMgr.getInstance().getContextToClasspathSet().isEmpty());
@@ -41,7 +41,7 @@ public class ClasspathTest extends AbstractServerTest {
         )));
         contextToClasspath.forEach((context, classpathSet) ->
                 classpathSet.forEach(classpath ->
-                        TransformMgr.getInstance().addURL(context, classpath)
+                        TransformMgr.getInstance().addClasspath(context, classpath)
                 )
         );
 

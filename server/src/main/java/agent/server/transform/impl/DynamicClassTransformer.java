@@ -9,6 +9,7 @@ public class DynamicClassTransformer extends AbstractConfigTransformer {
     public static final String KEY_POSITION = "position";
     public static final String KEY_METHOD = "method";
     public static final String KEY_INSTANCE = "instance";
+
     private static final Logger logger = Logger.getLogger(DynamicClassTransformer.class);
 
     @Override

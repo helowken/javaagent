@@ -97,4 +97,7 @@
         </profile>
 
     </profiles>
+    <modules>
+        <module>test-rule</module>
+    </modules>
 </project>

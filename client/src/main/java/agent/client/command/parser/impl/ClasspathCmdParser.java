@@ -8,14 +8,25 @@ import static agent.common.message.command.impl.ClasspathCommand.ACTION_ADD;
 import static agent.common.message.command.impl.ClasspathCommand.ACTION_REMOVE;
 
 public class ClasspathCmdParser extends AbstractCmdParser {
+    private static final String USAGE = "[" + ACTION_ADD + " | " + ACTION_REMOVE + "] context [classpath]";
 
     @Override
     public Command parse(String[] args) {
-        checkArgs(args, 3, "[" + ACTION_ADD + " | " + ACTION_REMOVE + "] context classpath");
+        checkArgs(args, 2, USAGE);
         String action = args[0];
-        if (ClasspathCommand.isValidAction(action))
-            throw new CommandParseException("Invalid action: " + action);
-        return new ClasspathCommand(action, args[1], args[2]);
+        String context = args[1];
+        String url = null;
+        switch (action) {
+            case ACTION_ADD:
+                checkArgs(args, 3, USAGE);
+                url = args[2];
+                break;
+            case ACTION_REMOVE:
+                break;
+            default:
+                throw new CommandParseException("Invalid action: " + action);
+        }
+        return new ClasspathCommand(action, context, url);
     }
 
     @Override

@@ -2,6 +2,7 @@ package agent.server.transform.config.parser;
 
 import agent.base.utils.Logger;
 import agent.base.utils.ReflectionUtils;
+import agent.server.transform.TransformMgr;
 import agent.server.transform.config.*;
 import agent.server.transform.config.parser.exception.ConfigParseException;
 import agent.server.transform.config.rule.ClassRule;
@@ -20,47 +21,39 @@ import static agent.base.utils.Utils.firstNotBlank;
 
 public class RuleConfigParser implements ConfigParser {
     private static final Logger logger = Logger.getLogger(RuleConfigParser.class);
-    private static final String GET_INSTANCE_METHOD = "getInstance";
-
-    private Object getInstanceByClass(Class<?> clazz) {
-        try {
-            return ReflectionUtils.invokeStatic(clazz, GET_INSTANCE_METHOD);
-        } catch (Exception e) {
-            throw new RuntimeException("Call " + GET_INSTANCE_METHOD + " fail by class: " + clazz, e);
-        }
-    }
 
     @Override
-    public List<ModuleConfig> parse(Object source) throws ConfigParseException {
+    public List<ModuleConfig> parse(ConfigItem item) throws ConfigParseException {
+        RuleConfigItem ruleConfigItem = (RuleConfigItem) item;
         try {
-            if (!(source instanceof String))
-                throw new Exception("Invalid source: " + source);
-            Class<?> clazz = ReflectionUtils.findClass((String) source);
+            Class<?> clazz = TransformMgr.getInstance().getClassFinder().findClass(ruleConfigItem.context, ruleConfigItem.className);
+            Object instance = ReflectionUtils.newInstance(clazz);
+
             List<ModuleConfig> moduleConfigList = new ArrayList<>();
             Map<Method, MethodRule> methodToRule = filterRuleMethods(clazz.getDeclaredMethods());
             if (!methodToRule.isEmpty()) {
                 String defaultContext = getContext(clazz);
                 String defaultTargetClass = getTargetClass(clazz);
                 methodToRule.forEach((method, methodRule) -> {
-                    Object instance = getInstanceByClass(clazz);
-
                     String context = getContext(method, defaultContext);
                     String targetClass = getTargetClass(method, defaultTargetClass);
-                    String targetMethod = methodRule.method();
-                    String[] argTypes = methodRule.argTypes();
+                    String targetMethod = Optional.ofNullable(
+                            blankToNull(
+                                    methodRule.method()
+                            )
+                    ).orElseThrow(
+                            () -> new RuntimeException("Invalid method: " + methodRule.method())
+                    );
                     MethodRule.Position position = methodRule.position();
-                    logger.debug("Method: {}, context: {}, targetClass: {}, targetMethod: {}, args: {}, position: {}",
-                            method, context, targetClass, targetMethod, Arrays.toString(argTypes), position);
+                    logger.debug("Method: {}, context: {}, targetClass: {}, targetMethod: {}, position: {}",
+                            method, context, targetClass, targetMethod, position);
 
-                    MethodConfig methodConfig = new MethodConfig();
-                    methodConfig.setName(targetMethod);
-                    methodConfig.setArgTypes(argTypes);
-                    List<MethodConfig> methodConfigList = new ArrayList<>();
-                    methodConfigList.add(methodConfig);
+                    MethodFilterConfig methodFilterConfig = new MethodFilterConfig();
+                    methodFilterConfig.setIncludeExprSet(Collections.singleton(targetMethod));
 
                     ClassConfig classConfig = new ClassConfig();
                     classConfig.setTargetClass(targetClass);
-                    classConfig.setMethodConfigList(methodConfigList);
+                    classConfig.setMethodFilterConfig(methodFilterConfig);
                     List<ClassConfig> classConfigList = new ArrayList<>();
                     classConfigList.add(classConfig);
 
@@ -69,10 +62,11 @@ public class RuleConfigParser implements ConfigParser {
                     config.put(DynamicClassTransformer.KEY_METHOD, method);
                     config.put(DynamicClassTransformer.KEY_INSTANCE, instance);
 
-                    List<TransformerConfig> transformerConfigList = new ArrayList<>();
                     TransformerConfig transformerConfig = new TransformerConfig();
                     transformerConfig.setRef(DynamicClassTransformer.REG_KEY);
                     transformerConfig.setConfig(config);
+                    List<TransformerConfig> transformerConfigList = new ArrayList<>();
+                    transformerConfigList.add(transformerConfig);
 
                     TransformConfig transformConfig = new TransformConfig();
                     transformConfig.setTargetList(classConfigList);
@@ -81,13 +75,14 @@ public class RuleConfigParser implements ConfigParser {
                     ModuleConfig moduleConfig = new ModuleConfig();
                     moduleConfig.setContextPath(context);
                     moduleConfig.setTransformConfigList(Collections.singletonList(transformConfig));
+                    logger.debug("moduleConfig: {}", moduleConfig);
 
                     moduleConfigList.add(moduleConfig);
                 });
             }
             return moduleConfigList;
         } catch (Exception e) {
-            throw new ConfigParseException("Config parse failed: " + source, e);
+            throw new ConfigParseException("Config parse failed: " + item, e);
         }
     }
 
@@ -154,5 +149,20 @@ public class RuleConfigParser implements ConfigParser {
     @Override
     public ConfigParserType getType() {
         return ConfigParserType.RULE;
+    }
+
+    public static class RuleConfigItem implements ConfigItem {
+        public final String context;
+        public final String className;
+
+        public RuleConfigItem(String context, String className) {
+            this.context = context;
+            this.className = className;
+        }
+
+        @Override
+        public ConfigParserType getType() {
+            return ConfigParserType.RULE;
+        }
     }
 }

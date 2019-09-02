@@ -4,18 +4,9 @@ import agent.common.message.MessageType;
 import agent.common.struct.impl.DefaultStruct;
 import agent.common.struct.impl.Structs;
 
-import java.util.HashSet;
-import java.util.Set;
-
 public class ClasspathCommand extends AbstractCommand<DefaultStruct> {
     public static final String ACTION_ADD = "add";
     public static final String ACTION_REMOVE = "remove";
-    private static final Set<String> actions = new HashSet<>();
-
-    static {
-        actions.add(ACTION_ADD);
-        actions.add(ACTION_REMOVE);
-    }
 
     public ClasspathCommand() {
         this(null, null, null);
@@ -35,14 +26,11 @@ public class ClasspathCommand extends AbstractCommand<DefaultStruct> {
     }
 
     public String getURL() {
-        return getArgs()[2];
+        String[] args = getArgs();
+        return args.length > 2 ? args[2] : null;
     }
 
     private String[] getArgs() {
         return getBody().get();
-    }
-
-    public static boolean isValidAction(String action) {
-        return actions.contains(action);
     }
 }

@@ -11,12 +11,17 @@ import java.util.List;
 
 public class FileConfigParser implements ConfigParser {
     @Override
-    public List<ModuleConfig> parse(Object source) throws ConfigParseException {
+    public List<ModuleConfig> parse(ConfigItem item) throws ConfigParseException {
         try {
-            return JSONUtils.read(getContent(source), new TypeReference<List<ModuleConfig>>() {
-            });
+            return JSONUtils.read(
+                    getContent(
+                            ((FileConfigItem) item).source
+                    ),
+                    new TypeReference<List<ModuleConfig>>() {
+                    }
+            );
         } catch (Exception e) {
-            throw new ConfigParseException("Config parse failed: " + source, e);
+            throw new ConfigParseException("Config parse failed: " + item, e);
         }
     }
 
@@ -34,5 +39,18 @@ public class FileConfigParser implements ConfigParser {
         if (v instanceof String)
             return (String) v;
         throw new Exception("Invalid source: " + source);
+    }
+
+    public static class FileConfigItem implements ConfigItem {
+        private final Object source;
+
+        public FileConfigItem(Object source) {
+            this.source = source;
+        }
+
+        @Override
+        public ConfigParserType getType() {
+            return ConfigParserType.FILE;
+        }
     }
 }

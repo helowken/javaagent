@@ -27,6 +27,13 @@ public class DynamicClassLoader extends ClassLoader {
         );
     }
 
+    public void clear() {
+        loaderLock.sync(lock -> {
+            new ArrayList<>(urlToClassLoader.keySet())
+                    .forEach(this::removeURL);
+        });
+    }
+
     public void addURL(URL url) {
         loaderLock.sync(lock ->
                 urlToClassLoader.computeIfAbsent(url,
@@ -56,8 +63,20 @@ public class DynamicClassLoader extends ClassLoader {
     }
 
     @Override
-    protected synchronized Class<?> findClass(final String name) throws ClassNotFoundException {
-        Class<?> foundClass = loaderLock.syncValue(lock -> {
+    public Class<?> loadClass(final String name, boolean resolve) throws ClassNotFoundException {
+        try {
+            return super.loadClass(name, resolve);
+        } catch (ClassNotFoundException e) {
+            Class<?> clazz = findClassBySelf(name);
+            if (clazz == null)
+                throw e;
+            return clazz;
+        }
+    }
+
+    private Class<?> findClassBySelf(final String name) {
+        logger.debug("Use dynamic loader to load class: {}", name);
+        return loaderLock.syncValue(lock -> {
             SingleURLClassLoader classLoader = classNameToClassLoader.get(name);
             if (classLoader != null)
                 return classLoader.loadClass(name);
@@ -72,9 +91,6 @@ public class DynamicClassLoader extends ClassLoader {
             }
             return null;
         });
-        if (foundClass == null)
-            throw new ClassNotFoundException("No Class define found by name: " + name);
-        return foundClass;
     }
 
     private static class SingleURLClassLoader extends URLClassLoader {
@@ -88,6 +104,11 @@ public class DynamicClassLoader extends ClassLoader {
 
         URL getURL() {
             return getURLs()[0];
+        }
+
+        @Override
+        public String toString() {
+            return getClass().getName() + "(URL=" + getURL() + ")";
         }
     }
 }

@@ -1,6 +1,7 @@
 package agent.hook.jetty;
 
 import agent.base.utils.Logger;
+import agent.base.utils.ReflectionUtils;
 import agent.hook.plugin.AbstractClassFinder;
 
 import java.util.Map;
@@ -38,4 +39,8 @@ class JettyRunnerClassFinder extends AbstractClassFinder {
         }
     }
 
+    @Override
+    protected void postSetParentClassLoader(String contextPath, ClassLoader parentLoader, LoaderItem item) throws Exception {
+        ReflectionUtils.setFieldValue("_parent", item.loader, parentLoader);
+    }
 }

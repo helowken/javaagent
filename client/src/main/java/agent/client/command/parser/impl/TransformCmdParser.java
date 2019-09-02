@@ -1,8 +1,8 @@
 package agent.client.command.parser.impl;
 
 import agent.common.message.command.Command;
-import agent.common.message.command.impl.TransformByFileCommand;
-import agent.common.message.command.impl.TransformByRuleCommand;
+import agent.common.message.command.impl.ByFileCommand;
+import agent.common.message.command.impl.ByRuleCommand;
 
 public class TransformCmdParser extends AbstractConfigCmdParser {
 
@@ -13,11 +13,11 @@ public class TransformCmdParser extends AbstractConfigCmdParser {
 
     @Override
     Command newFileCmd(byte[] bs) {
-        return new TransformByFileCommand(bs);
+        return new ByFileCommand.TransformByFileCommand(bs);
     }
 
     @Override
-    Command newRuleCmd(String className) {
-        return new TransformByRuleCommand(className);
+    Command newRuleCmd(String context, String className) {
+        return new ByRuleCommand.TransformByRuleCommand(context, className);
     }
 }

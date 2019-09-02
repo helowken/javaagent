@@ -20,10 +20,13 @@ public class ClasspathCmdExecutor extends AbstractCmdExecutor {
         final String action = classPathCommand.getAction();
         switch (action) {
             case ACTION_ADD:
-                transformMgr.addURL(context, url);
+                transformMgr.addClasspath(context, url);
                 break;
             case ACTION_REMOVE:
-                transformMgr.removeURL(context, url);
+                if (url == null)
+                    transformMgr.clearClasspath(context);
+                else
+                    transformMgr.removeClasspath(context, url);
                 break;
             default:
                 throw new RuntimeException("Unknown action: " + action);
@@ -32,9 +35,17 @@ public class ClasspathCmdExecutor extends AbstractCmdExecutor {
     }
 
     private URL parseURL(String s) {
+        if (s == null)
+            return null;
         try {
             return new URL(s);
         } catch (Exception e) {
+            if (s.startsWith("/")) {
+                String t = "file://" + s;
+                if (!s.endsWith("/"))
+                    t += "/";
+                return parseURL(t);
+            }
             throw new RuntimeException("Invalid url: " + s);
         }
     }

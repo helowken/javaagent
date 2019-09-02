@@ -74,4 +74,16 @@ public class ClassLoaderUtils {
         return totalLibPathList;
     }
 
+    public static void printClassLoaderCascade(ClassLoader loader) {
+        StringBuilder sb = new StringBuilder();
+        ClassLoader tmpLoader = loader;
+        int level = 0;
+        while (tmpLoader != null) {
+            sb.append(IndentUtils.getIndent(level++))
+                    .append(tmpLoader.getClass().getName())
+                    .append("\n");
+            tmpLoader = tmpLoader.getParent();
+        }
+        logger.debug("classLoader cascade: \n{}", sb);
+    }
 }

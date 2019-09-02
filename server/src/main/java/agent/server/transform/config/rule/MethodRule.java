@@ -11,7 +11,7 @@ import java.lang.annotation.Target;
 public @interface MethodRule {
     String method();
 
-    String[] argTypes() default "";
+    String[] argTypes() default {};
 
     Position position();
 

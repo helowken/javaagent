@@ -1,6 +1,7 @@
 package agent.server.transform;
 
 import agent.base.plugin.PluginFactory;
+import agent.base.utils.ClassLoaderUtils;
 import agent.base.utils.LockObject;
 import agent.base.utils.Logger;
 import agent.base.utils.ReflectionUtils;
@@ -13,6 +14,7 @@ import agent.server.transform.config.ClassConfig;
 import agent.server.transform.config.ModuleConfig;
 import agent.server.transform.config.TransformConfig;
 import agent.server.transform.config.TransformerConfig;
+import agent.server.transform.config.parser.ConfigItem;
 import agent.server.transform.config.parser.ConfigParseFactory;
 import agent.server.transform.impl.ResetClassTransformer;
 import agent.server.transform.impl.TargetClassConfig;
@@ -27,8 +29,6 @@ import java.security.CodeSource;
 import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-
-import static agent.server.transform.config.parser.ConfigParseFactory.ConfigItem;
 
 public class TransformMgr {
     private static final Logger logger = Logger.getLogger(TransformMgr.class);
@@ -55,20 +55,19 @@ public class TransformMgr {
         return loaderLock.syncValue(lock ->
                 contextToDynamicClassLoader.computeIfAbsent(context,
                         key -> {
-                            final ClassLoader classLoader = getClassFinder().findClassLoader(context);
+                            ClassFinder classFinder = getClassFinder();
+                            final ClassLoader classLoader = classFinder.findClassLoader(context);
                             try {
-                                return ReflectionUtils.useField(
-                                        ClassLoader.class,
-                                        "parent",
-                                        field -> {
-                                            ClassLoader parent = (ClassLoader) field.get(classLoader);
-                                            DynamicClassLoader dynamicClassLoader = new DynamicClassLoader(parent);
-                                            field.set(classLoader, dynamicClassLoader);
-                                            return dynamicClassLoader;
-                                        }
+                                DynamicClassLoader dynamicClassLoader = new DynamicClassLoader(
+                                        ReflectionUtils.getFieldValue("parent", classLoader)
                                 );
+                                classFinder.setParentClassLoader(context, dynamicClassLoader);
+                                return dynamicClassLoader;
                             } catch (Exception e) {
                                 throw new RuntimeException(e);
+                            } finally {
+                                logger.debug("context: {}", context);
+                                ClassLoaderUtils.printClassLoaderCascade(classLoader);
                             }
                         }
                 )
@@ -116,7 +115,7 @@ public class TransformMgr {
         );
     }
 
-    private ClassFinder getClassFinder() {
+    public ClassFinder getClassFinder() {
         return PluginFactory.getInstance().find(ClassFinder.class,
                 AppTypePluginFilter.getInstance()
         );
@@ -297,12 +296,16 @@ public class TransformMgr {
         });
     }
 
-    public void addURL(String context, URL url) {
+    public void addClasspath(String context, URL url) {
         getDynamicClassLoader(context).addURL(url);
     }
 
-    public void removeURL(String context, URL url) {
+    public void removeClasspath(String context, URL url) {
         getDynamicClassLoader(context).removeURL(url);
+    }
+
+    public void clearClasspath(String context) {
+        getDynamicClassLoader(context).clear();
     }
 
     public interface SearchFunc {

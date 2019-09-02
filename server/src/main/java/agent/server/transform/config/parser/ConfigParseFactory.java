@@ -18,16 +18,6 @@ public class ConfigParseFactory {
     }
 
     public static List<ModuleConfig> parse(ConfigItem item) {
-        return registry.get(item.type).parse(item.source);
-    }
-
-    public static class ConfigItem {
-        private final ConfigParser.ConfigParserType type;
-        private final Object source;
-
-        public ConfigItem(ConfigParser.ConfigParserType type, Object source) {
-            this.type = type;
-            this.source = source;
-        }
+        return registry.get(item.getType()).parse(item);
     }
 }

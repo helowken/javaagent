@@ -1,14 +1,16 @@
 package agent.server.command.executor;
 
 import agent.common.message.command.Command;
-import agent.common.message.command.impl.TestConfigByFileCommand;
-import agent.common.message.command.impl.TestConfigByRuleCommand;
+import agent.common.message.command.impl.ByFileCommand.TestConfigByFileCommand;
+import agent.common.message.command.impl.ByRuleCommand.TestConfigByRuleCommand;
 import agent.common.message.result.DefaultExecResult;
 import agent.common.message.result.ExecResult;
 import agent.common.message.result.entity.TestConfigResultEntity;
 import agent.common.utils.JSONUtils;
 import agent.server.transform.TransformMgr;
-import agent.server.transform.config.parser.ConfigParseFactory.ConfigItem;
+import agent.server.transform.config.parser.ConfigItem;
+import agent.server.transform.config.parser.FileConfigParser;
+import agent.server.transform.config.parser.RuleConfigParser;
 import com.fasterxml.jackson.core.type.TypeReference;
 
 import java.util.ArrayList;
@@ -20,10 +22,8 @@ import static agent.common.message.MessageType.CMD_TEST_CONFIG_BY_FILE;
 import static agent.common.message.MessageType.CMD_TEST_CONFIG_BY_RULE;
 import static agent.common.message.result.entity.TestConfigResultEntity.ClassResultEntity;
 import static agent.common.message.result.entity.TestConfigResultEntity.MethodResultEntity;
-import static agent.server.transform.config.parser.ConfigParser.ConfigParserType.FILE;
-import static agent.server.transform.config.parser.ConfigParser.ConfigParserType.RULE;
 
-class TestConfigCmdExecutor extends AbstractCmdExecutor {
+public class TestConfigCmdExecutor extends AbstractCmdExecutor {
     private static final String SELF = "self";
 
     @Override
@@ -32,13 +32,15 @@ class TestConfigCmdExecutor extends AbstractCmdExecutor {
         ConfigItem item;
         switch (cmdType) {
             case CMD_TEST_CONFIG_BY_FILE:
-                item = new ConfigItem(FILE,
+                item = new FileConfigParser.FileConfigItem(
                         ((TestConfigByFileCommand) cmd).getConfig()
                 );
                 break;
             case CMD_TEST_CONFIG_BY_RULE:
-                item = new ConfigItem(RULE,
-                        ((TestConfigByRuleCommand) cmd).getConfig()
+                TestConfigByRuleCommand ruleCmd = (TestConfigByRuleCommand) cmd;
+                item = new RuleConfigParser.RuleConfigItem(
+                        ruleCmd.getContext(),
+                        ruleCmd.getClassName()
                 );
                 break;
             default:

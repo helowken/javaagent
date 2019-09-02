@@ -1,15 +1,16 @@
 package agent.server.command.executor;
 
 import agent.common.message.command.Command;
-import agent.common.message.command.impl.TransformByFileCommand;
-import agent.common.message.command.impl.TransformByRuleCommand;
+import agent.common.message.command.impl.ByFileCommand.TransformByFileCommand;
+import agent.common.message.command.impl.ByRuleCommand.TransformByRuleCommand;
 import agent.common.message.result.ExecResult;
 import agent.server.transform.TransformMgr;
-import agent.server.transform.config.parser.ConfigParseFactory.ConfigItem;
+import agent.server.transform.config.parser.ConfigItem;
+import agent.server.transform.config.parser.FileConfigParser;
+import agent.server.transform.config.parser.RuleConfigParser;
 
 import static agent.common.message.MessageType.CMD_TRANSFORM_BY_FILE;
 import static agent.common.message.MessageType.CMD_TRANSFORM_BY_RULE;
-import static agent.server.transform.config.parser.ConfigParser.ConfigParserType.FILE;
 
 class TransformCmdExecutor extends AbstractTransformCmdExecutor {
     @Override
@@ -18,13 +19,15 @@ class TransformCmdExecutor extends AbstractTransformCmdExecutor {
         ConfigItem item;
         switch (cmdType) {
             case CMD_TRANSFORM_BY_FILE:
-                item = new ConfigItem(FILE,
+                item = new FileConfigParser.FileConfigItem(
                         ((TransformByFileCommand) cmd).getConfig()
                 );
                 break;
             case CMD_TRANSFORM_BY_RULE:
-                item = new ConfigItem(FILE,
-                        ((TransformByRuleCommand) cmd).getConfig()
+                TransformByRuleCommand ruleCmd = (TransformByRuleCommand) cmd;
+                item = new RuleConfigParser.RuleConfigItem(
+                        ruleCmd.getContext(),
+                        ruleCmd.getClassName()
                 );
                 break;
             default:

@@ -6,7 +6,7 @@ import agent.server.transform.config.parser.exception.ConfigParseException;
 import java.util.List;
 
 public interface ConfigParser {
-    List<ModuleConfig> parse(Object source) throws ConfigParseException;
+    List<ModuleConfig> parse(ConfigItem item) throws ConfigParseException;
 
     ConfigParserType getType();
 

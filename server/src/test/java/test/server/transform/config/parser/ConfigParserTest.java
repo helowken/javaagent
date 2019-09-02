@@ -1,9 +1,10 @@
-package test.server.transform.config;
+package test.server.transform.config.parser;
 
 import agent.base.utils.IOUtils;
 import agent.base.utils.Logger;
 import agent.server.transform.config.*;
 import agent.server.transform.config.parser.FileConfigParser;
+import agent.server.transform.config.parser.FileConfigParser.FileConfigItem;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Test;
 
@@ -23,15 +24,15 @@ public class ConfigParserTest {
         String content = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(moduleConfigList);
         logger.info("Content: \n{}", content);
 
-        List<ModuleConfig> parsedList = fileConfigParser.parse(content);
+        List<ModuleConfig> parsedList = fileConfigParser.parse(new FileConfigItem(content));
         assertEquals(moduleConfigList, parsedList);
 
-        parsedList = fileConfigParser.parse(content.getBytes());
+        parsedList = fileConfigParser.parse(new FileConfigItem(content.getBytes()));
         assertEquals(moduleConfigList, parsedList);
 
         File file = File.createTempFile("config", ".json");
         IOUtils.writeString(file.getAbsolutePath(), content, false);
-        parsedList = fileConfigParser.parse(file);
+        parsedList = fileConfigParser.parse(new FileConfigItem(file));
         assertEquals(moduleConfigList, parsedList);
     }
 
