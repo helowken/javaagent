@@ -4,6 +4,7 @@ import agent.base.exception.PluginException;
 import agent.base.utils.LockObject;
 
 import java.util.*;
+import java.util.function.Supplier;
 
 public class PluginFactory {
     private static final PluginFactory instance = new PluginFactory();
@@ -69,7 +70,12 @@ public class PluginFactory {
     }
 
     public <T> T find(Class<T> clazz, PluginFilter filter) {
-        return findHelper(clazz, filter, false).get(0);
+        return find(clazz, filter, () -> newNotFoundError(clazz, filter));
+    }
+
+    public <T> T find(Class<T> clazz, PluginFilter filter, Supplier<RuntimeException> notFoundErrorSupplier) {
+        List<T> rsList = findHelper(clazz, filter, false, notFoundErrorSupplier);
+        return rsList.isEmpty() ? null : rsList.get(0);
     }
 
     public <T> List<T> findAll(Class<T> clazz) {
@@ -77,10 +83,14 @@ public class PluginFactory {
     }
 
     public <T> List<T> findAll(Class<T> clazz, PluginFilter filter) {
-        return findHelper(clazz, filter, true);
+        return findAll(clazz, filter, () -> newNotFoundError(clazz, filter));
     }
 
-    private <T> List<T> findHelper(Class<T> clazz, PluginFilter filter, boolean all) {
+    public <T> List<T> findAll(Class<T> clazz, PluginFilter filter, Supplier<RuntimeException> notFoundErrorSupplier) {
+        return findHelper(clazz, filter, true, notFoundErrorSupplier);
+    }
+
+    private <T> List<T> findHelper(Class<T> clazz, PluginFilter filter, boolean all, Supplier<RuntimeException> notFoundErrorSupplier) {
         if (clazz == null)
             throw new IllegalArgumentException("Class of instance can not be null!");
         return Optional.ofNullable(
@@ -96,14 +106,18 @@ public class PluginFactory {
                             if (instance != null) {
                                 rsList.add(instance);
                                 if (!all)
-                                    return rsList;
+                                    break;
                             }
                         }
                     }
-                    if (rsList.isEmpty())
-                        throw new PluginException("No plugin found for class: " + clazz.getName() + ", by filter: " + filter);
+                    if (rsList.isEmpty() && notFoundErrorSupplier != null)
+                        throw notFoundErrorSupplier.get();
                     return rsList;
                 });
     }
 
+
+    private RuntimeException newNotFoundError(Class<?> clazz, PluginFilter filter) {
+        return new PluginException("No plugin found for class: " + clazz.getName() + ", by filter: " + filter);
+    }
 }

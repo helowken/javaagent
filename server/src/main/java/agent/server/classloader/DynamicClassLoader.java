@@ -28,10 +28,10 @@ public class DynamicClassLoader extends ClassLoader {
     }
 
     public void clear() {
-        loaderLock.sync(lock -> {
-            new ArrayList<>(urlToClassLoader.keySet())
-                    .forEach(this::removeURL);
-        });
+        loaderLock.sync(lock ->
+                new ArrayList<>(urlToClassLoader.keySet())
+                        .forEach(this::removeURL)
+        );
     }
 
     public void addURL(URL url) {

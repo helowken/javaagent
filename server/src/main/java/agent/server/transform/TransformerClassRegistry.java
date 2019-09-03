@@ -9,7 +9,7 @@ public class TransformerClassRegistry {
 
     static {
         PluginFactory.getInstance()
-                .findAll(TransformerClassFactory.class)
+                .findAll(TransformerClassFactory.class, null, null)
                 .stream()
                 .map(TransformerClassFactory::get)
                 .forEach(keyToClassMap ->

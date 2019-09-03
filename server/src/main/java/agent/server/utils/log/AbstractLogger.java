@@ -1,9 +1,6 @@
 package agent.server.utils.log;
 
-import agent.base.utils.FileUtils;
-import agent.base.utils.IOUtils;
-import agent.base.utils.LockObject;
-import agent.base.utils.Logger;
+import agent.base.utils.*;
 import agent.server.event.AgentEvent;
 import agent.server.event.AgentEventListener;
 import agent.server.event.EventListenerMgr;
@@ -70,7 +67,7 @@ public abstract class AbstractLogger implements ILogger, AgentEventListener {
 
     public String reg(LogConfig logConfig) {
         getLogger().debug("Log config: {}", logConfig);
-        String key = UUID.randomUUID().toString();
+        String key = Utils.sUuid();
         keyToLogWriterLock.sync(lock -> {
             String outputPath = logConfig.getOutputPath();
             if (!isStdout(outputPath))

@@ -12,7 +12,7 @@ import agent.server.transform.config.parser.RuleConfigParser;
 import static agent.common.message.MessageType.CMD_TRANSFORM_BY_FILE;
 import static agent.common.message.MessageType.CMD_TRANSFORM_BY_RULE;
 
-class TransformCmdExecutor extends AbstractTransformCmdExecutor {
+public class TransformCmdExecutor extends AbstractTransformCmdExecutor {
     @Override
     ExecResult doExec(Command cmd) {
         int cmdType = cmd.getType();

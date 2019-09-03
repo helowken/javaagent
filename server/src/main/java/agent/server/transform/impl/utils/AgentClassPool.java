@@ -9,6 +9,7 @@ import javassist.CtClass;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Stream;
 
 @SuppressWarnings("unchecked")
 public class AgentClassPool {
@@ -41,6 +42,7 @@ public class AgentClassPool {
     public CtClass[] get(String[] classNames) {
         return cpLock.syncValue(lock -> {
             CtClass[] ctClasses = cp.get(classNames);
+            Stream.of(ctClasses).forEach(CtClass::defrost);
             Collections.addAll(classSet, ctClasses);
             return ctClasses;
         });

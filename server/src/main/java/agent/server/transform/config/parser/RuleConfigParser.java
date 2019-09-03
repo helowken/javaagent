@@ -9,6 +9,7 @@ import agent.server.transform.config.rule.ClassRule;
 import agent.server.transform.config.rule.ContextRule;
 import agent.server.transform.config.rule.MethodRule;
 import agent.server.transform.impl.DynamicClassTransformer;
+import agent.server.transform.impl.utils.DynamicConfigRegistry.DynamicConfigItem;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
@@ -29,7 +30,7 @@ public class RuleConfigParser implements ConfigParser {
             Class<?> clazz = TransformMgr.getInstance().getClassFinder().findClass(ruleConfigItem.context, ruleConfigItem.className);
             Object instance = ReflectionUtils.newInstance(clazz);
 
-            List<ModuleConfig> moduleConfigList = new ArrayList<>();
+            Map<String, ModuleConfig> contextToModuleConfig = new HashMap<>();
             Map<Method, MethodRule> methodToRule = filterRuleMethods(clazz.getDeclaredMethods());
             if (!methodToRule.isEmpty()) {
                 String defaultContext = getContext(clazz);
@@ -58,9 +59,7 @@ public class RuleConfigParser implements ConfigParser {
                     classConfigList.add(classConfig);
 
                     Map<String, Object> config = new HashMap<>();
-                    config.put(DynamicClassTransformer.KEY_POSITION, position);
-                    config.put(DynamicClassTransformer.KEY_METHOD, method);
-                    config.put(DynamicClassTransformer.KEY_INSTANCE, instance);
+                    config.put(DynamicClassTransformer.KEY_CONFIG, new DynamicConfigItem(position, method, instance));
 
                     TransformerConfig transformerConfig = new TransformerConfig();
                     transformerConfig.setRef(DynamicClassTransformer.REG_KEY);
@@ -72,15 +71,17 @@ public class RuleConfigParser implements ConfigParser {
                     transformConfig.setTargetList(classConfigList);
                     transformConfig.setTransformerConfigList(transformerConfigList);
 
-                    ModuleConfig moduleConfig = new ModuleConfig();
-                    moduleConfig.setContextPath(context);
-                    moduleConfig.setTransformConfigList(Collections.singletonList(transformConfig));
-                    logger.debug("moduleConfig: {}", moduleConfig);
-
-                    moduleConfigList.add(moduleConfig);
+                    ModuleConfig moduleConfig = contextToModuleConfig.computeIfAbsent(context, key -> {
+                        ModuleConfig mc = new ModuleConfig();
+                        mc.setContextPath(context);
+                        mc.setTransformConfigList(new ArrayList<>());
+                        return mc;
+                    });
+                    moduleConfig.getTransformConfigList().add(transformConfig);
                 });
             }
-            return moduleConfigList;
+            logger.debug("context to moduleConfig: {}", contextToModuleConfig);
+            return new ArrayList<>(contextToModuleConfig.values());
         } catch (Exception e) {
             throw new ConfigParseException("Config parse failed: " + item, e);
         }

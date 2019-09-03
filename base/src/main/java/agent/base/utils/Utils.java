@@ -8,6 +8,10 @@ import java.util.stream.Stream;
 
 @SuppressWarnings("unchecked")
 public class Utils {
+    public static String sUuid() {
+        return UUID.randomUUID().toString();
+    }
+
     public static int parseInt(String s, String name) {
         try {
             return Integer.parseInt(s);
@@ -120,4 +124,5 @@ public class Utils {
     public static String firstNotBlank(String errMsg, String... vs) {
         return firstValidValue(errMsg, Utils::isNotBlank, vs);
     }
+
 }
