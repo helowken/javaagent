@@ -111,14 +111,14 @@ public class TestConfigRuleTest extends AbstractTest {
         public void test3(int a, float b, String c) {
         }
 
-        public void run() {
-//            System.out.println("11111");
-//            String b = "a".trim();
-//            b += 222;
+        public Date run() {
+            System.out.println("11111");
+            String b = "a".trim();
+            b += 222;
             Date d = new Date();
             long c = d.getTime();
-//            System.out.println("b: " + b + ", c: " + c);
-//            return new Date(c);
+            System.out.println("b: " + b + ", c: " + c);
+            return new Date(c);
         }
     }
 }

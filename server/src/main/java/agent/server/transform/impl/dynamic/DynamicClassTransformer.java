@@ -18,7 +18,7 @@ public class DynamicClassTransformer extends AbstractConfigTransformer {
     public static final String REG_KEY = "$sys_dynamic";
     public static final String KEY_CONFIG = "config";
     private static final Logger logger = Logger.getLogger(DynamicClassTransformer.class);
-    private static final String METHOD_BEFORE = "Before";
+    private static final String METHOD_AFTER = "After";
 
     private DynamicConfigItem item;
     private String key;
@@ -102,7 +102,7 @@ public class DynamicClassTransformer extends AbstractConfigTransformer {
         if (item.needMethodCallInfo)
             sb.append(", \"").append(mcKey).append("\"");
         sb.append(", $args");
-        if (method.contains(METHOD_BEFORE))
+        if (method.contains(METHOD_AFTER))
             sb.append(", ($w) $_");
         sb.append(");");
         String code = sb.toString();
