@@ -2,14 +2,18 @@ package agent.server.transform.config.parser;
 
 import agent.base.utils.Logger;
 import agent.base.utils.ReflectionUtils;
+import agent.base.utils.Utils;
 import agent.server.transform.TransformMgr;
 import agent.server.transform.config.*;
 import agent.server.transform.config.parser.exception.ConfigParseException;
 import agent.server.transform.config.rule.ClassRule;
 import agent.server.transform.config.rule.ContextRule;
 import agent.server.transform.config.rule.MethodRule;
-import agent.server.transform.impl.DynamicClassTransformer;
-import agent.server.transform.impl.utils.DynamicConfigRegistry.DynamicConfigItem;
+import agent.server.transform.config.rule.MethodRule.Position;
+import agent.server.transform.impl.dynamic.DynamicClassTransformer;
+import agent.server.transform.impl.dynamic.DynamicConfigItem;
+import agent.server.transform.impl.dynamic.MethodCallFilter;
+import agent.server.transform.impl.dynamic.RuleValidateMgr;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
@@ -38,16 +42,19 @@ public class RuleConfigParser implements ConfigParser {
                 methodToRule.forEach((method, methodRule) -> {
                     String context = getContext(method, defaultContext);
                     String targetClass = getTargetClass(method, defaultTargetClass);
-                    String targetMethod = Optional.ofNullable(
-                            blankToNull(
-                                    methodRule.method()
-                            )
-                    ).orElseThrow(
-                            () -> new RuntimeException("Invalid method: " + methodRule.method())
+                    String targetMethod = getTargetMethod(methodRule.method());
+                    Position position = methodRule.position();
+                    String mcFilterClass = methodRule.methodCallFilter();
+                    logger.debug("Method: {}, context: {}, targetClass: {}, targetMethod: {}, position: {}, methodCallFilter: {}",
+                            method, context, targetClass, targetMethod, position, mcFilterClass);
+
+                    DynamicConfigItem configItem = new DynamicConfigItem(
+                            position,
+                            method,
+                            instance,
+                            newMethodCallFilter(Utils.blankToNull(mcFilterClass))
                     );
-                    MethodRule.Position position = methodRule.position();
-                    logger.debug("Method: {}, context: {}, targetClass: {}, targetMethod: {}, position: {}",
-                            method, context, targetClass, targetMethod, position);
+                    RuleValidateMgr.checkMethodValid(configItem);
 
                     MethodFilterConfig methodFilterConfig = new MethodFilterConfig();
                     methodFilterConfig.setIncludeExprSet(Collections.singleton(targetMethod));
@@ -55,21 +62,14 @@ public class RuleConfigParser implements ConfigParser {
                     ClassConfig classConfig = new ClassConfig();
                     classConfig.setTargetClass(targetClass);
                     classConfig.setMethodFilterConfig(methodFilterConfig);
-                    List<ClassConfig> classConfigList = new ArrayList<>();
-                    classConfigList.add(classConfig);
-
-                    Map<String, Object> config = new HashMap<>();
-                    config.put(DynamicClassTransformer.KEY_CONFIG, new DynamicConfigItem(position, method, instance));
 
                     TransformerConfig transformerConfig = new TransformerConfig();
                     transformerConfig.setRef(DynamicClassTransformer.REG_KEY);
-                    transformerConfig.setConfig(config);
-                    List<TransformerConfig> transformerConfigList = new ArrayList<>();
-                    transformerConfigList.add(transformerConfig);
+                    transformerConfig.setConfig(Collections.singletonMap(DynamicClassTransformer.KEY_CONFIG, configItem));
 
                     TransformConfig transformConfig = new TransformConfig();
-                    transformConfig.setTargetList(classConfigList);
-                    transformConfig.setTransformerConfigList(transformerConfigList);
+                    transformConfig.setTargetList(Collections.singletonList(classConfig));
+                    transformConfig.setTransformerConfigList(Collections.singletonList(transformerConfig));
 
                     ModuleConfig moduleConfig = contextToModuleConfig.computeIfAbsent(context, key -> {
                         ModuleConfig mc = new ModuleConfig();
@@ -87,6 +87,22 @@ public class RuleConfigParser implements ConfigParser {
         }
     }
 
+    private MethodCallFilter newMethodCallFilter(String mcFilterClassName) {
+        try {
+            return mcFilterClassName == null ? null : ReflectionUtils.newInstance(mcFilterClassName);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private String getTargetMethod(String methodExpr) {
+        return Optional.ofNullable(
+                blankToNull(methodExpr)
+        ).orElseThrow(
+                () -> new RuntimeException("Invalid ruleMethod: " + methodExpr)
+        );
+    }
+
     private String getContext(Class<?> clazz) {
         return getValue(
                 () -> clazz.getAnnotation(ContextRule.class),
@@ -101,7 +117,7 @@ public class RuleConfigParser implements ConfigParser {
                 () -> method.getAnnotation(ContextRule.class),
                 ContextRule::value,
                 defaultValue,
-                "No context found for method: " + method
+                "No context found for ruleMethod: " + method
         );
     }
 
@@ -119,7 +135,7 @@ public class RuleConfigParser implements ConfigParser {
                 () -> method.getAnnotation(ClassRule.class),
                 ClassRule::value,
                 defaultValue,
-                "No target class found for method: " + method
+                "No target class found for ruleMethod: " + method
         );
     }
 

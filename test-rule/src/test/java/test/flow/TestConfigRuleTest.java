@@ -14,6 +14,8 @@ import agent.server.transform.TransformMgr;
 import agent.server.transform.config.rule.ClassRule;
 import agent.server.transform.config.rule.ContextRule;
 import agent.server.transform.config.rule.MethodRule;
+import agent.server.transform.impl.dynamic.MethodCallFilter;
+import agent.server.transform.impl.dynamic.MethodCallInfo;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import test.AbstractTest;
@@ -23,6 +25,7 @@ import test.utils.TestInstrumentation;
 
 import java.net.URL;
 import java.util.Arrays;
+import java.util.Date;
 
 public class TestConfigRuleTest extends AbstractTest {
     private static final String context = "/test";
@@ -65,19 +68,36 @@ public class TestConfigRuleTest extends AbstractTest {
         ReflectionUtils.invoke("test", a);
         ReflectionUtils.invoke("test2", a, "aaa");
 //        ReflectionUtils.invoke("test3", a, 1, 3.5f, "bbb");
+        ReflectionUtils.invoke("run", a);
     }
 
     @ContextRule(context)
     @ClassRule(aClassName)
     public static class TestRule {
         @MethodRule(method = "test.*", position = MethodRule.Position.BEFORE)
-        public void rule1(Object[] args) {
+        public void methodBefore(Object[] args) {
             System.out.println("Args: " + Arrays.toString(args));
         }
 
         @MethodRule(method = "test.*", position = MethodRule.Position.AFTER)
-        public void rule2(Object[] args, Object returnValue) {
+        public void methodAfter(Object[] args, Object returnValue) {
             System.out.println("Return value: " + returnValue);
+        }
+
+        @MethodRule(method = "run", position = MethodRule.Position.WRAP_MC)
+        public void methodThrough(Object[] args, Object returnValue, MethodCallInfo mcInfo, boolean isBefore) {
+            System.out.println("-------------------------------------");
+            System.out.print(mcInfo + ", args: " + Arrays.toString(args));
+            if (!isBefore)
+                System.out.print(", return value: " + returnValue);
+            System.out.println();
+        }
+    }
+
+    public static class TestRuleMcFilter implements MethodCallFilter {
+        @Override
+        public boolean accept(MethodCallInfo methodCallInfo) {
+            return false;
         }
     }
 
@@ -89,6 +109,16 @@ public class TestConfigRuleTest extends AbstractTest {
         }
 
         public void test3(int a, float b, String c) {
+        }
+
+        public void run() {
+//            System.out.println("11111");
+//            String b = "a".trim();
+//            b += 222;
+            Date d = new Date();
+            long c = d.getTime();
+//            System.out.println("b: " + b + ", c: " + c);
+//            return new Date(c);
         }
     }
 }

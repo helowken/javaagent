@@ -1,25 +1,30 @@
 package agent.common.utils;
 
-import agent.base.utils.LockObject;
-
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 
 @SuppressWarnings("unchecked")
 public class Registry<K, V> {
-    private final Map<K, V> map = new HashMap<>();
-    private final LockObject mLock = new LockObject();
+    private final Map<K, V> map = new ConcurrentHashMap<>();
 
     public void reg(K key, V value) {
         reg(key, value, (k, v) -> new RuntimeException("Reg key exists: " + key));
     }
 
     public <T extends RuntimeException> void reg(K key, V value, KeyExistedErrorSupplier<K, V, T> errorSupplier) {
-        mLock.sync(lock -> {
-            if (map.containsKey(key) && errorSupplier != null)
-                throw errorSupplier.get(key, value);
-            map.put(key, value);
-        });
+        map.compute(
+                key,
+                (k, oldValue) -> {
+                    if (oldValue != null && errorSupplier != null)
+                        throw errorSupplier.get(key, value);
+                    return value;
+                }
+        );
+    }
+
+    public V regIfAbsent(K key, Function<K, V> valueSupplier) {
+        return map.computeIfAbsent(key, valueSupplier);
     }
 
     public V get(K key) {
@@ -27,7 +32,7 @@ public class Registry<K, V> {
     }
 
     public <T extends RuntimeException> V get(K key, NotFoundErrorSupplier<K, T> errorSupplier) {
-        V v = mLock.syncValue(lock -> map.get(key));
+        V v = map.get(key);
         if (v == null && errorSupplier != null)
             throw errorSupplier.get(key);
         return v;

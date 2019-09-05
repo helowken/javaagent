@@ -11,11 +11,17 @@ import java.lang.annotation.Target;
 public @interface MethodRule {
     String method();
 
-    String[] argTypes() default {};
-
     Position position();
 
+    String methodCallFilter() default "";
+
     enum Position {
-        BEFORE, AFTER
+        BEFORE,
+        AFTER,
+        WRAP,
+
+        BEFORE_MC,
+        AFTER_MC,
+        WRAP_MC
     }
 }
