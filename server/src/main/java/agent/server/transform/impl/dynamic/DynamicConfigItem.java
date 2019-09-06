@@ -8,21 +8,21 @@ public class DynamicConfigItem {
     public final Position position;
     public final Method ruleMethod;
     public final Object ruleInstance;
-    public final MethodCallFilter methodCallFilter;
+    public final MethodFilter methodCallFilter;
     public final boolean needMethodInfo;
-    public final boolean needMethodCallInfo;
     public final boolean needPosition;
     public final boolean needReturnValue;
+    public final int maxLevel;
 
-    public DynamicConfigItem(Position position, Method ruleMethod, Object ruleInstance, MethodCallFilter methodCallFilter) {
+    public DynamicConfigItem(Position position, Method ruleMethod, Object ruleInstance, MethodFilter methodCallFilter, int maxLevel) {
         this.position = position;
         this.ruleMethod = ruleMethod;
         this.ruleInstance = ruleInstance;
         this.methodCallFilter = methodCallFilter;
         this.needMethodInfo = needMethodInfo(ruleMethod);
-        this.needMethodCallInfo = needMethodCallInfo(ruleMethod);
         this.needPosition = needPosition(position);
         this.needReturnValue = needReturnValue(position);
+        this.maxLevel = maxLevel;
     }
 
     private boolean needPosition(Position position) {
@@ -59,10 +59,6 @@ public class DynamicConfigItem {
 
     private boolean needMethodInfo(Method method) {
         return containsParamType(method, MethodInfo.class);
-    }
-
-    private boolean needMethodCallInfo(Method method) {
-        return containsParamType(method, MethodCallInfo.class);
     }
 
     private boolean containsParamType(Method method, Class<?> paramType) {

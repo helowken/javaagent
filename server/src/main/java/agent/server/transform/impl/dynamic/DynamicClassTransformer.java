@@ -3,16 +3,14 @@ package agent.server.transform.impl.dynamic;
 import agent.base.utils.Logger;
 import agent.base.utils.Utils;
 import agent.server.transform.impl.AbstractConfigTransformer;
-import javassist.CannotCompileException;
+import agent.server.transform.impl.utils.AgentClassPool;
+import agent.server.transform.impl.utils.MethodFinder;
 import javassist.CtClass;
 import javassist.CtMethod;
-import javassist.bytecode.Descriptor;
 import javassist.expr.ExprEditor;
 import javassist.expr.MethodCall;
 
 import java.util.Map;
-
-import static agent.server.transform.config.rule.MethodRule.Position.*;
 
 public class DynamicClassTransformer extends AbstractConfigTransformer {
     public static final String REG_KEY = "$sys_dynamic";
@@ -20,8 +18,13 @@ public class DynamicClassTransformer extends AbstractConfigTransformer {
     private static final Logger logger = Logger.getLogger(DynamicClassTransformer.class);
     private static final String METHOD_AFTER = "After";
 
+    private static final String methodInfoClassName = MethodInfo.class.getName();
+    private static final String methodInfoVar = "methodInfo";
+    private static final int defaultMaxLevel = 10;
+
     private DynamicConfigItem item;
     private String key;
+    private int maxLevel;
 
     @Override
     public String getRegKey() {
@@ -34,101 +37,108 @@ public class DynamicClassTransformer extends AbstractConfigTransformer {
         if (item == null)
             throw new RuntimeException("No config item found.");
         key = Utils.sUuid();
+        maxLevel = Math.min(Math.max(item.maxLevel, 1), defaultMaxLevel);
     }
 
     @Override
     protected void transformMethod(CtClass ctClass, CtMethod ctMethod) throws Exception {
-        MethodInfo methodInfo = DynamicRuleRegistry.getInstance().regMethodInfoIfAbsent(
-                ctMethod.getLongName(),
-                k -> newMethodInfo(ctMethod)
-        );
-        DynamicRuleRegistry.getInstance().regRuleInvokeIfAbsent(key,
-                k -> new RuleInvokeItem(item, methodInfo)
-        );
+        DynamicRuleRegistry.getInstance().regRuleInvokeIfAbsent(key, k -> new RuleInvokeItem(item));
+        final int level = 0;
+        MethodInfo methodInfo = newMethodInfo(ctMethod, level);
         switch (item.position) {
             case BEFORE:
-                ctMethod.insertBefore(newCode("invokeBefore"));
-                break;
             case AFTER:
-                ctMethod.insertAfter(newCode("invokeAfter"));
-                break;
             case WRAP:
-                ctMethod.insertBefore(newCode("invokeWrapBefore"));
-                ctMethod.insertAfter(newCode("invokeWrapAfter"));
+                processMethodCode(ctMethod, methodInfo);
                 break;
             case BEFORE_MC:
             case AFTER_MC:
             case WRAP_MC:
-                replaceCode(ctMethod, methodInfo);
+                ctMethod.instrument(new NestedExprEditor(level));
                 break;
             default:
                 throw new RuntimeException("Unknown position: " + item.position);
         }
     }
 
-    private void replaceCode(CtMethod ctMethod, MethodInfo methodInfo) throws Exception {
-        ctMethod.instrument(new ExprEditor() {
-            @Override
-            public void edit(MethodCall mc) throws CannotCompileException {
-                final String mcKey = getMethodCallKey(mc);
-                MethodCallInfo mcInfo = methodInfo.regIfAbsent(
-                        mcKey,
-                        k -> newMethodCallInfo(mc)
-                );
-                if (item.methodCallFilter == null || item.methodCallFilter.accept(mcInfo)) {
-                    mc.replace(newMcCode(mcKey));
-                }
-            }
-        });
+    private void processMethodCode(CtMethod ctMethod, MethodInfo methodInfo) throws Exception {
+        String preCode = "";
+        if (item.needMethodInfo) {
+            ctMethod.addLocalVariable(methodInfoVar, AgentClassPool.getInstance().get(methodInfoClassName));
+            preCode = methodInfoVar + " = " + methodInfo.newCode();
+        }
+        switch (item.position) {
+            case BEFORE:
+            case BEFORE_MC:
+                ctMethod.insertBefore(newCode(preCode, "invokeBefore"));
+                break;
+            case AFTER:
+            case AFTER_MC:
+                ctMethod.insertAfter(newCode(preCode, "invokeAfter"));
+                break;
+            case WRAP:
+            case WRAP_MC:
+                ctMethod.insertBefore(newCode(preCode, "invokeWrapBefore"));
+                ctMethod.insertAfter(newCode("", "invokeWrapAfter"));
+                break;
+        }
     }
 
-    private String newMcCode(String mcKey) {
-        StringBuilder sb = new StringBuilder();
-        if (item.position == BEFORE_MC || item.position == WRAP_MC)
-            sb.append(newCode("invokeBeforeMC", mcKey));
-        sb.append("$_ = $proceed($$);");
-        if (item.position == AFTER_MC || item.position == WRAP_MC)
-            sb.append(newCode("invokeAfterMC", mcKey));
-        return sb.toString();
-    }
+    private String newCode(String preCode, String method) {
+        StringBuilder sb = new StringBuilder(preCode);
 
-    private String newCode(String method) {
-        return newCode(method, null);
-    }
+        sb.append(RuleInvokeMgr.class.getName()).append(".").append(method)
+                .append("(\"").append(key).append("\"");
 
-    private String newCode(String method, String mcKey) {
-        StringBuilder sb = new StringBuilder();
-        sb.append(RuleInvokeMgr.class.getName()).append(".").append(method).append("(\"").append(key).append("\"");
-        if (item.needMethodCallInfo)
-            sb.append(", \"").append(mcKey).append("\"");
+        if (item.needMethodInfo)
+            sb.append(", ").append(methodInfoVar);
+        else
+            sb.append(", null");
+
         sb.append(", $args");
         if (method.contains(METHOD_AFTER))
             sb.append(", ($w) $_");
+
         sb.append(");");
         String code = sb.toString();
         logger.debug("Position: {}, code: {}", item.position, code);
         return code;
     }
 
-    private MethodInfo newMethodInfo(CtMethod ctMethod) {
+    public class NestedExprEditor extends ExprEditor {
+        private final int level;
+
+        NestedExprEditor(int level) {
+            this.level = level;
+        }
+
+        @Override
+        public void edit(MethodCall mc) {
+            try {
+                CtMethod method = mc.getMethod();
+                if (!MethodFinder.isMethodEmpty(method)) {
+                    MethodInfo methodInfo = newMethodInfo(method, level);
+                    int nextLevel = level + 1;
+                    if (nextLevel < maxLevel &&
+                            (item.methodCallFilter == null ||
+                                    item.methodCallFilter.accept(methodInfo))
+                            ) {
+                        method.instrument(new NestedExprEditor(nextLevel));
+                        processMethodCode(mc.getMethod(), methodInfo);
+                    }
+                }
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+    private MethodInfo newMethodInfo(CtMethod ctMethod, int level) {
         return new MethodInfo(
                 ctMethod.getDeclaringClass().getName(),
                 ctMethod.getName(),
-                ctMethod.getSignature()
+                ctMethod.getSignature(),
+                level
         );
     }
-
-    private String getMethodCallKey(MethodCall mc) {
-        return mc.getClassName() + "."
-                + mc.getMethodName() + Descriptor.toString(mc.getSignature());
-    }
-
-    private MethodCallInfo newMethodCallInfo(MethodCall mc) {
-        return new MethodCallInfo(
-                mc.getClassName(),
-                mc.getMethodName(),
-                mc.getSignature()
-        );
-    }
-
 }

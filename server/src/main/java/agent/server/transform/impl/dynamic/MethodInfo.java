@@ -1,21 +1,29 @@
 package agent.server.transform.impl.dynamic;
 
-import agent.common.utils.Registry;
-
-import java.util.function.Function;
-
 public class MethodInfo extends AbstractMethodInfo {
-    private Registry<String, MethodCallInfo> registry = new Registry<>();
+    public final String className;
+    public final String methodName;
+    public final String signature;
+    public final int level;
 
-    MethodInfo(String className, String methodName, String signature) {
-        super(className, methodName, signature);
+    public MethodInfo(String className, String methodName, String signature, int level) {
+        this.className = className;
+        this.methodName = methodName;
+        this.signature = signature;
+        this.level = level;
     }
 
-    MethodCallInfo regIfAbsent(String key, Function<String, MethodCallInfo> supplier) {
-        return registry.regIfAbsent(key, supplier);
+    @Override
+    public String toString() {
+        return className + "#" + methodName + signature;
     }
 
-    MethodCallInfo get(String key) {
-        return registry.get(key);
+    public String newCode() {
+        return "new " + getClass().getName() + "(\"" +
+                className + "\", \"" +
+                methodName + "\", \"" +
+                signature + "\", " +
+                level + ");";
+
     }
 }

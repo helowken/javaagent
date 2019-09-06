@@ -12,7 +12,7 @@ import agent.server.transform.config.rule.MethodRule;
 import agent.server.transform.config.rule.MethodRule.Position;
 import agent.server.transform.impl.dynamic.DynamicClassTransformer;
 import agent.server.transform.impl.dynamic.DynamicConfigItem;
-import agent.server.transform.impl.dynamic.MethodCallFilter;
+import agent.server.transform.impl.dynamic.MethodFilter;
 import agent.server.transform.impl.dynamic.RuleValidateMgr;
 
 import java.lang.annotation.Annotation;
@@ -44,15 +44,17 @@ public class RuleConfigParser implements ConfigParser {
                     String targetClass = getTargetClass(method, defaultTargetClass);
                     String targetMethod = getTargetMethod(methodRule.method());
                     Position position = methodRule.position();
-                    String mcFilterClass = methodRule.methodCallFilter();
-                    logger.debug("Method: {}, context: {}, targetClass: {}, targetMethod: {}, position: {}, methodCallFilter: {}",
-                            method, context, targetClass, targetMethod, position, mcFilterClass);
+                    String mcFilterClass = methodRule.filter();
+                    int maxLevel = methodRule.maxLevel();
+                    logger.debug("Method: {}, context: {}, targetClass: {}, targetMethod: {}, position: {}, filter: {}, maxLevel: {}",
+                            method, context, targetClass, targetMethod, position, mcFilterClass, maxLevel);
 
                     DynamicConfigItem configItem = new DynamicConfigItem(
                             position,
                             method,
                             instance,
-                            newMethodCallFilter(Utils.blankToNull(mcFilterClass))
+                            newMethodCallFilter(Utils.blankToNull(mcFilterClass)),
+                            maxLevel
                     );
                     RuleValidateMgr.checkMethodValid(configItem);
 
@@ -87,7 +89,7 @@ public class RuleConfigParser implements ConfigParser {
         }
     }
 
-    private MethodCallFilter newMethodCallFilter(String mcFilterClassName) {
+    private MethodFilter newMethodCallFilter(String mcFilterClassName) {
         try {
             return mcFilterClassName == null ? null : ReflectionUtils.newInstance(mcFilterClassName);
         } catch (Exception e) {

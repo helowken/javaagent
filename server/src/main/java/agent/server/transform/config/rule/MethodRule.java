@@ -13,7 +13,9 @@ public @interface MethodRule {
 
     Position position();
 
-    String methodCallFilter() default "";
+    String filter() default "";
+
+    int maxLevel() default 1;
 
     enum Position {
         BEFORE,

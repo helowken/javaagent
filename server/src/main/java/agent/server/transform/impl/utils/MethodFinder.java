@@ -136,7 +136,7 @@ public class MethodFinder {
 
     private void filterOutNoBody(List<CtMethod> candidateList, CtMethod... methods) {
         for (CtMethod method : methods) {
-            if (method.getMethodInfo().getCodeAttribute() != null)
+            if (!isMethodEmpty(method))
                 candidateList.add(method);
             else
                 logger.debug("Method has no body, skip it: {}", method.getLongName());
@@ -177,5 +177,9 @@ public class MethodFinder {
             this.ctClass = ctClass;
             this.methodList = Collections.unmodifiableList(methodList);
         }
+    }
+
+    public static boolean isMethodEmpty(CtMethod method) {
+        return method.getMethodInfo().getCodeAttribute() == null;
     }
 }

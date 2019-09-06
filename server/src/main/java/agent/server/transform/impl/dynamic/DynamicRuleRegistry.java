@@ -7,7 +7,6 @@ import java.util.function.Function;
 public class DynamicRuleRegistry {
     private static final DynamicRuleRegistry instance = new DynamicRuleRegistry();
     private final Registry<String, RuleInvokeItem> ruleInvokeRegistry = new Registry<>();
-    private final Registry<String, MethodInfo> methodInfoRegistry = new Registry<>();
 
     public static DynamicRuleRegistry getInstance() {
         return instance;
@@ -24,7 +23,4 @@ public class DynamicRuleRegistry {
         return ruleInvokeRegistry.get(key);
     }
 
-    MethodInfo regMethodInfoIfAbsent(String key, Function<String, MethodInfo> supplier) {
-        return methodInfoRegistry.regIfAbsent(key, supplier);
-    }
 }
