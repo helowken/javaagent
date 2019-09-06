@@ -8,13 +8,13 @@ public class DynamicConfigItem {
     public final Position position;
     public final Method ruleMethod;
     public final Object ruleInstance;
-    public final MethodFilter methodCallFilter;
+    public final MethodRuleFilter methodCallFilter;
     public final boolean needMethodInfo;
     public final boolean needPosition;
     public final boolean needReturnValue;
     public final int maxLevel;
 
-    public DynamicConfigItem(Position position, Method ruleMethod, Object ruleInstance, MethodFilter methodCallFilter, int maxLevel) {
+    public DynamicConfigItem(Position position, Method ruleMethod, Object ruleInstance, MethodRuleFilter methodCallFilter, int maxLevel) {
         this.position = position;
         this.ruleMethod = ruleMethod;
         this.ruleInstance = ruleInstance;

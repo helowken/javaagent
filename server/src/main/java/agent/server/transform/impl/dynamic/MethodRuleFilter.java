@@ -1,5 +1,5 @@
 package agent.server.transform.impl.dynamic;
 
-public interface MethodFilter {
+public interface MethodRuleFilter {
     boolean accept(MethodInfo methodInfo);
 }

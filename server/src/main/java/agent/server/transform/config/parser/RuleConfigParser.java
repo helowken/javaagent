@@ -12,7 +12,7 @@ import agent.server.transform.config.rule.MethodRule;
 import agent.server.transform.config.rule.MethodRule.Position;
 import agent.server.transform.impl.dynamic.DynamicClassTransformer;
 import agent.server.transform.impl.dynamic.DynamicConfigItem;
-import agent.server.transform.impl.dynamic.MethodFilter;
+import agent.server.transform.impl.dynamic.MethodRuleFilter;
 import agent.server.transform.impl.dynamic.RuleValidateMgr;
 
 import java.lang.annotation.Annotation;
@@ -31,7 +31,7 @@ public class RuleConfigParser implements ConfigParser {
     public List<ModuleConfig> parse(ConfigItem item) throws ConfigParseException {
         RuleConfigItem ruleConfigItem = (RuleConfigItem) item;
         try {
-            Class<?> clazz = TransformMgr.getInstance().getClassFinder().findClass(ruleConfigItem.context, ruleConfigItem.className);
+            Class<?> clazz = findClass(ruleConfigItem.context, ruleConfigItem.className);
             Object instance = ReflectionUtils.newInstance(clazz);
 
             Map<String, ModuleConfig> contextToModuleConfig = new HashMap<>();
@@ -53,7 +53,7 @@ public class RuleConfigParser implements ConfigParser {
                             position,
                             method,
                             instance,
-                            newMethodCallFilter(Utils.blankToNull(mcFilterClass)),
+                            newMethodCallFilter(context, Utils.blankToNull(mcFilterClass)),
                             maxLevel
                     );
                     RuleValidateMgr.checkMethodValid(configItem);
@@ -89,9 +89,17 @@ public class RuleConfigParser implements ConfigParser {
         }
     }
 
-    private MethodFilter newMethodCallFilter(String mcFilterClassName) {
+    private Class<?> findClass(String context, String className) {
+        return TransformMgr.getInstance().getClassFinder().findClass(context, className);
+    }
+
+    private MethodRuleFilter newMethodCallFilter(String context, String mcFilterClassName) {
         try {
-            return mcFilterClassName == null ? null : ReflectionUtils.newInstance(mcFilterClassName);
+            return mcFilterClassName == null ?
+                    null :
+                    ReflectionUtils.newInstance(
+                            findClass(context, mcFilterClassName)
+                    );
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

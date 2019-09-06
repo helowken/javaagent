@@ -14,7 +14,7 @@ import agent.server.transform.TransformMgr;
 import agent.server.transform.config.rule.ClassRule;
 import agent.server.transform.config.rule.ContextRule;
 import agent.server.transform.config.rule.MethodRule;
-import agent.server.transform.impl.dynamic.MethodFilter;
+import agent.server.transform.impl.dynamic.MethodRuleFilter;
 import agent.server.transform.impl.dynamic.MethodInfo;
 import agent.server.transform.impl.dynamic.rule.TreeTimeMeasureRule;
 import org.junit.BeforeClass;
@@ -110,7 +110,7 @@ public class TestConfigRuleTest extends AbstractTest {
 
     @ContextRule(context)
     @ClassRule(aClassName)
-    public static class TestTimeRule extends TreeTimeMeasureRule {
+    public static class TestTimeRule extends TreeTimeMeasureRule implements MethodRuleFilter {
         @MethodRule(method = "runTasks", position = WRAP)
         public void wrap(Object[] args, Object returnValue, MethodInfo methodInfo, boolean isBefore) {
             if (isBefore)
@@ -119,7 +119,7 @@ public class TestConfigRuleTest extends AbstractTest {
                 super.methodEnd(returnValue);
         }
 
-        @MethodRule(method = "runTasks", position = WRAP_MC, maxLevel = 5)
+        @MethodRule(method = "runTasks", position = WRAP_MC, maxLevel = 20, filter="test.flow.TestConfigRuleTest$TestTimeRule")
         public void wrapMC(Object[] args, Object returnValue, MethodInfo methodInfo, boolean isBefore) {
             if (isBefore)
                 super.methodCallStart(args, methodInfo);
@@ -127,12 +127,10 @@ public class TestConfigRuleTest extends AbstractTest {
                 super.methodCallEnd(returnValue);
         }
 
-    }
-
-    public static class TestRuleMcFilter implements MethodFilter {
         @Override
         public boolean accept(MethodInfo methodInfo) {
-            return false;
+            return !ReflectionUtils.isJavaNativePackage(methodInfo.className);
+//            return methodInfo.methodName.contains("task3");
         }
     }
 
@@ -183,6 +181,7 @@ public class TestConfigRuleTest extends AbstractTest {
 
         private void task211() throws Exception {
             Thread.sleep(20);
+            task4();
         }
 
         private void task3() throws Exception {
@@ -202,6 +201,11 @@ public class TestConfigRuleTest extends AbstractTest {
 
         private void task3111() throws Exception {
             Thread.sleep(30);
+            task4();
+        }
+
+        private void task4() throws Exception{
+            Thread.sleep(40);
         }
     }
 }

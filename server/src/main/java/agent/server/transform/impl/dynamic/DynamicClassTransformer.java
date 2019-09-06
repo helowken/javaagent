@@ -10,21 +10,25 @@ import javassist.CtMethod;
 import javassist.expr.ExprEditor;
 import javassist.expr.MethodCall;
 
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 public class DynamicClassTransformer extends AbstractConfigTransformer {
     public static final String REG_KEY = "$sys_dynamic";
     public static final String KEY_CONFIG = "config";
     private static final Logger logger = Logger.getLogger(DynamicClassTransformer.class);
     private static final String METHOD_AFTER = "After";
+    private static final String skipPackage = "agent.";
 
     private static final String methodInfoClassName = MethodInfo.class.getName();
     private static final String methodInfoVar = "methodInfo";
-    private static final int defaultMaxLevel = 10;
+    private static final int defaultMaxLevel = 50;
 
     private DynamicConfigItem item;
     private String key;
     private int maxLevel;
+    private Set<String> transformedMethods = new HashSet<>();
 
     @Override
     public String getRegKey() {
@@ -62,6 +66,11 @@ public class DynamicClassTransformer extends AbstractConfigTransformer {
     }
 
     private void processMethodCode(CtMethod ctMethod, MethodInfo methodInfo) throws Exception {
+        String methodLongName = methodInfo.toString();
+        if (transformedMethods.contains(methodLongName)) {
+            logger.debug("{} has been transformed.", methodLongName);
+            return;
+        }
         String preCode = "";
         if (item.needMethodInfo) {
             ctMethod.addLocalVariable(methodInfoVar, AgentClassPool.getInstance().get(methodInfoClassName));
@@ -82,6 +91,7 @@ public class DynamicClassTransformer extends AbstractConfigTransformer {
                 ctMethod.insertAfter(newCode("", "invokeWrapAfter"));
                 break;
         }
+        transformedMethods.add(methodLongName);
     }
 
     private String newCode(String preCode, String method) {
@@ -118,13 +128,15 @@ public class DynamicClassTransformer extends AbstractConfigTransformer {
                 CtMethod method = mc.getMethod();
                 if (!MethodFinder.isMethodEmpty(method)) {
                     MethodInfo methodInfo = newMethodInfo(method, level);
-                    int nextLevel = level + 1;
-                    if (nextLevel < maxLevel &&
-                            (item.methodCallFilter == null ||
-                                    item.methodCallFilter.accept(methodInfo))
-                            ) {
-                        method.instrument(new NestedExprEditor(nextLevel));
-                        processMethodCode(mc.getMethod(), methodInfo);
+                    if (!methodInfo.className.startsWith(skipPackage)) {
+                        int nextLevel = level + 1;
+                        if (nextLevel < maxLevel &&
+                                (item.methodCallFilter == null ||
+                                        item.methodCallFilter.accept(methodInfo))
+                                ) {
+                            method.instrument(new NestedExprEditor(nextLevel));
+                            processMethodCode(mc.getMethod(), methodInfo);
+                        }
                     }
                 }
             } catch (Exception e) {

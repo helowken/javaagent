@@ -3,6 +3,8 @@ package agent.server.transform.impl.dynamic.rule;
 import agent.base.utils.IndentUtils;
 import agent.server.transform.impl.dynamic.MethodInfo;
 
+import java.io.PrintStream;
+
 public class TreeTimeMeasureRule extends TraverseRule<TreeTimeMeasureRule.TimeData> {
 
     @Override
@@ -22,8 +24,12 @@ public class TreeTimeMeasureRule extends TraverseRule<TreeTimeMeasureRule.TimeDa
         data.endTime = System.currentTimeMillis();
     }
 
-    private void printTree(RuleTree<TimeData> tree) {
-        TreeUtils.printTree(tree,
+    protected void printTree(RuleTree<TimeData> tree) {
+        printTree(System.out, tree);
+    }
+
+    protected void printTree(PrintStream out, RuleTree<TimeData> tree) {
+        TreeUtils.printTree(out, tree,
                 (outputStream, node) -> {
                     int level = node.getLevel();
                     String prefix = "";
@@ -39,7 +45,7 @@ public class TreeTimeMeasureRule extends TraverseRule<TreeTimeMeasureRule.TimeDa
         );
     }
 
-    static class TimeData {
+    public static class TimeData {
         final String key;
         final long startTime;
         long endTime;
