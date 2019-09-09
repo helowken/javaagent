@@ -33,6 +33,8 @@ import static agent.server.transform.config.rule.MethodRule.Position.*;
 public class TestConfigRuleTest extends AbstractTest {
     private static final String context = "/test";
     private static final String aClassName = "test.flow.TestConfigRuleTest$A";
+    private static final String bClassName = "test.flow.TestConfigRuleTest$B";
+    private static final String baseClassName = "test.flow.TestConfigRuleTest$Base";
     private static final TestClassLoader classloader = new TestClassLoader();
     private static final TestInstrumentation instrumentation = new TestInstrumentation();
 
@@ -80,6 +82,8 @@ public class TestConfigRuleTest extends AbstractTest {
         ExecResult result = new TransformCmdExecutor().exec(cmd);
         CommandResultHandlerMgr.handleResult(cmd, result);
 
+         classloader.defineClass(bClassName, instrumentation.getBytes(bClassName));
+         classloader.defineClass(baseClassName, instrumentation.getBytes(baseClassName));
         Class<?> aClass = classloader.defineClass(aClassName, instrumentation.getBytes(aClassName));
         Object a = ReflectionUtils.newInstance(aClass);
         ReflectionUtils.invoke("runTasks", a);
@@ -129,12 +133,29 @@ public class TestConfigRuleTest extends AbstractTest {
 
         @Override
         public boolean accept(MethodInfo methodInfo) {
-            return !ReflectionUtils.isJavaNativePackage(methodInfo.className);
-//            return methodInfo.methodName.contains("task3");
+//            return !ReflectionUtils.isJavaNativePackage(methodInfo.className);
+//            return methodInfo.methodName.contains("task3111");
+//            return methodInfo.className.equals(aClassName);
+            return methodInfo.className.startsWith("test.flow.");
+        }
+
+        @Override
+        public boolean stepInto(MethodInfo methodInfo) {
+//            return methodInfo.className.equals(aClassName);
+            return methodInfo.className.startsWith("test.flow.");
         }
     }
 
-    static class A {
+    static abstract class Base {
+        void task4() throws Exception{
+            System.out.println("------ task4-------");
+            Thread.sleep(40);
+        }
+    }
+
+    static class A extends Base {
+        private B b = new B();
+
         public void test() {
         }
 
@@ -155,19 +176,11 @@ public class TestConfigRuleTest extends AbstractTest {
         }
 
         public void runTasks() throws Exception {
-            task1();
+            b.task1();
             task2();
             task3();
         }
 
-        private void task1() throws Exception {
-            Thread.sleep(10);
-            task11();
-        }
-
-        private void task11() throws Exception {
-            Thread.sleep(10);
-        }
 
         private void task2() throws Exception {
             Thread.sleep(20);
@@ -204,8 +217,16 @@ public class TestConfigRuleTest extends AbstractTest {
             task4();
         }
 
-        private void task4() throws Exception{
-            Thread.sleep(40);
+    }
+
+    private static class B {
+        void task1() throws Exception {
+            Thread.sleep(10);
+            task11();
+        }
+
+        private void task11() throws Exception {
+            Thread.sleep(10);
         }
     }
 }

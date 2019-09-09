@@ -50,10 +50,11 @@ public class RuleConfigParser implements ConfigParser {
                             method, context, targetClass, targetMethod, position, mcFilterClass, maxLevel);
 
                     DynamicConfigItem configItem = new DynamicConfigItem(
+                            context,
                             position,
                             method,
                             instance,
-                            newMethodCallFilter(context, Utils.blankToNull(mcFilterClass)),
+                            newMethodRuleFilter(context, Utils.blankToNull(mcFilterClass)),
                             maxLevel
                     );
                     RuleValidateMgr.checkMethodValid(configItem);
@@ -93,7 +94,7 @@ public class RuleConfigParser implements ConfigParser {
         return TransformMgr.getInstance().getClassFinder().findClass(context, className);
     }
 
-    private MethodRuleFilter newMethodCallFilter(String context, String mcFilterClassName) {
+    private MethodRuleFilter newMethodRuleFilter(String context, String mcFilterClassName) {
         try {
             return mcFilterClassName == null ?
                     null :

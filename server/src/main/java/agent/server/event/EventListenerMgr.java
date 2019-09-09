@@ -17,11 +17,15 @@ public class EventListenerMgr {
             5, TimeUnit.MINUTES, new ArrayBlockingQueue<>(100));
 
     public static void reg(AgentEventListener listener) {
-        synchronized (listenerLock) {
+        listenerLock.sync(lock -> {
             if (!listenerList.contains(listener)) {
                 listenerList.add(listener);
             }
-        }
+        });
+    }
+
+    public static void unreg(AgentEventListener listener) {
+        listenerLock.sync(lock -> listenerList.remove(listener));
     }
 
     public static void fireEvent(AgentEvent event) {

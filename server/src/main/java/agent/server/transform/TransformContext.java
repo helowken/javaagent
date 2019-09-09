@@ -20,4 +20,14 @@ public class TransformContext {
         this.transformerList = transformerList;
         this.skipRecordClass = skipRecordClass;
     }
+
+    @Override
+    public String toString() {
+        return "TransformContext{" +
+                "context='" + context + '\'' +
+                ", classSet=" + classSet +
+                ", transformerList=" + transformerList +
+                ", skipRecordClass=" + skipRecordClass +
+                '}';
+    }
 }

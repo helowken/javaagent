@@ -15,7 +15,7 @@ public @interface MethodRule {
 
     String filter() default "";
 
-    int maxLevel() default 1;
+    int maxLevel() default 10;
 
     enum Position {
         BEFORE,

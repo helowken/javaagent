@@ -27,4 +27,9 @@ public class TestRule implements MethodRuleFilter {
     public boolean accept(MethodInfo methodInfo) {
         return true;
     }
+
+    @Override
+    public boolean stepInto(MethodInfo methodInfo) {
+        return true;
+    }
 }

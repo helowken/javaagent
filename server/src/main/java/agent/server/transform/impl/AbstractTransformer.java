@@ -21,12 +21,17 @@ public abstract class AbstractTransformer implements ErrorTraceTransformer {
             try {
                 byte[] bs = doTransform(loader, className, classBeingRedefined, protectionDomain, classfileBuffer, targetClassName);
                 logger.debug("Transform successfully.");
+                postTransform(loader, className, classBeingRedefined, protectionDomain, classfileBuffer, bs);
                 return bs;
             } catch (Exception e) {
                 this.error = e;
             }
         }
         return classfileBuffer;
+    }
+
+    protected void postTransform(ClassLoader loader, String className, Class<?> classBeingRedefined,
+                                 ProtectionDomain protectionDomain, byte[] classfileBuffer, byte[] newBuffer) throws Exception {
     }
 
     @Override

@@ -5,20 +5,22 @@ import agent.server.transform.config.rule.MethodRule.Position;
 import java.lang.reflect.Method;
 
 public class DynamicConfigItem {
+    public final String context;
     public final Position position;
     public final Method ruleMethod;
     public final Object ruleInstance;
-    public final MethodRuleFilter methodCallFilter;
+    public final MethodRuleFilter methodRuleFilter;
     public final boolean needMethodInfo;
     public final boolean needPosition;
     public final boolean needReturnValue;
     public final int maxLevel;
 
-    public DynamicConfigItem(Position position, Method ruleMethod, Object ruleInstance, MethodRuleFilter methodCallFilter, int maxLevel) {
+    public DynamicConfigItem(String context, Position position, Method ruleMethod, Object ruleInstance, MethodRuleFilter methodRuleFilter, int maxLevel) {
+        this.context = context;
         this.position = position;
         this.ruleMethod = ruleMethod;
         this.ruleInstance = ruleInstance;
-        this.methodCallFilter = methodCallFilter;
+        this.methodRuleFilter = methodRuleFilter;
         this.needMethodInfo = needMethodInfo(ruleMethod);
         this.needPosition = needPosition(position);
         this.needReturnValue = needReturnValue(position);

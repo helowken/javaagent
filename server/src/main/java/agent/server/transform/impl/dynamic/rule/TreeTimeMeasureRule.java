@@ -10,6 +10,7 @@ public class TreeTimeMeasureRule extends TraverseRule<TreeTimeMeasureRule.TimeDa
     @Override
     protected TimeData newNodeData(Object[] args, MethodInfo methodInfo) {
         String key = " <" + methodInfo.className + "> " + methodInfo.methodName + methodInfo.signature;
+        System.out.println("======== new key: " + key);
         return new TimeData(key, System.currentTimeMillis());
     }
 
