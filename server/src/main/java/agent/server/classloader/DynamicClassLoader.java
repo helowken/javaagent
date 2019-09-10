@@ -34,6 +34,21 @@ public class DynamicClassLoader extends ClassLoader {
         );
     }
 
+    public void refreshURL(URL url) {
+        loaderLock.sync(lock -> {
+            removeURL(url);
+            addURL(url);
+        });
+    }
+
+    public void refreshAll() {
+        loaderLock.sync(lock -> {
+            List<URL> urls = new ArrayList<>(urlToClassLoader.keySet());
+            clear();
+            urls.forEach(this::addURL);
+        });
+    }
+
     public void addURL(URL url) {
         loaderLock.sync(lock ->
                 urlToClassLoader.computeIfAbsent(url,

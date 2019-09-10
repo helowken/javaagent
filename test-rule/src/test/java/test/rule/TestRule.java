@@ -35,8 +35,4 @@ public class TestRule implements MethodRuleFilter {
         return true;
     }
 
-    @Override
-    public Collection<String> getImplClasses(MethodInfo methodInfo) {
-        return null;
-    }
 }

@@ -4,11 +4,10 @@ import agent.client.command.parser.exception.CommandParseException;
 import agent.common.message.command.Command;
 import agent.common.message.command.impl.ClasspathCommand;
 
-import static agent.common.message.command.impl.ClasspathCommand.ACTION_ADD;
-import static agent.common.message.command.impl.ClasspathCommand.ACTION_REMOVE;
+import static agent.common.message.command.impl.ClasspathCommand.*;
 
 public class ClasspathCmdParser extends AbstractCmdParser {
-    private static final String USAGE = "[" + ACTION_ADD + " | " + ACTION_REMOVE + "] context [classpath]";
+    private static final String USAGE = "[" + ACTION_ADD + " | " + ACTION_REMOVE + " | " + ACTION_REFRESH + "] context [classpath]";
 
     @Override
     public Command parse(String[] args) {
@@ -22,6 +21,7 @@ public class ClasspathCmdParser extends AbstractCmdParser {
                 url = args[2];
                 break;
             case ACTION_REMOVE:
+            case ACTION_REFRESH:
                 break;
             default:
                 throw new CommandParseException("Invalid action: " + action);

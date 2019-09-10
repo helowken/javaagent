@@ -7,6 +7,7 @@ import agent.common.struct.impl.Structs;
 public class ClasspathCommand extends AbstractCommand<DefaultStruct> {
     public static final String ACTION_ADD = "add";
     public static final String ACTION_REMOVE = "remove";
+    public static final String ACTION_REFRESH = "refresh";
 
     public ClasspathCommand() {
         this(null, null, null);

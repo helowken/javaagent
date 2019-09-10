@@ -7,8 +7,7 @@ import agent.server.transform.TransformMgr;
 
 import java.net.URL;
 
-import static agent.common.message.command.impl.ClasspathCommand.ACTION_ADD;
-import static agent.common.message.command.impl.ClasspathCommand.ACTION_REMOVE;
+import static agent.common.message.command.impl.ClasspathCommand.*;
 
 public class ClasspathCmdExecutor extends AbstractCmdExecutor {
     @Override
@@ -28,6 +27,11 @@ public class ClasspathCmdExecutor extends AbstractCmdExecutor {
                 else
                     transformMgr.removeClasspath(context, url);
                 break;
+            case ACTION_REFRESH:
+                if (url == null)
+                    transformMgr.refreshClasspath(context);
+                else
+                    transformMgr.refreshClasspath(context, url);
             default:
                 throw new RuntimeException("Unknown action: " + action);
         }

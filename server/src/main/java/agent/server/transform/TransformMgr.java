@@ -308,6 +308,14 @@ public class TransformMgr {
         getDynamicClassLoader(context).clear();
     }
 
+    public void refreshClasspath(String context) {
+        getDynamicClassLoader(context).refreshAll();
+    }
+
+    public void refreshClasspath(String context, URL url) {
+        getDynamicClassLoader(context).refreshURL(url);
+    }
+
     public interface SearchFunc {
         void exec(String context, MethodSearchResult result);
     }

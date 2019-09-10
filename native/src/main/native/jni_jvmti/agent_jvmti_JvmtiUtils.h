@@ -15,6 +15,14 @@ extern "C" {
 JNIEXPORT jobject JNICALL Java_agent_jvmti_JvmtiUtils_findObjectsByClassHelper
   (JNIEnv *, jobject, jclass, jint);
 
+/*
+ * Class:     agent_jvmti_JvmtiUtils
+ * Method:    getLoadedClasses
+ * Signature: ()Ljava/util/List;
+ */
+JNIEXPORT jobject JNICALL Java_agent_jvmti_JvmtiUtils_getLoadedClasses
+  (JNIEnv *, jobject);
+
 #ifdef __cplusplus
 }
 #endif

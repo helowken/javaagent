@@ -7,5 +7,7 @@ public interface MethodRuleFilter {
 
     boolean stepInto(MethodInfo methodInfo);
 
-    Collection<String> getImplClasses(MethodInfo methodInfo);
+    default Collection<String> getImplClasses(MethodInfo methodInfo) {
+        return null;
+    }
 }
