@@ -14,9 +14,10 @@ import agent.server.transform.TransformMgr;
 import agent.server.transform.config.rule.ClassRule;
 import agent.server.transform.config.rule.ContextRule;
 import agent.server.transform.config.rule.MethodRule;
-import agent.server.transform.impl.dynamic.MethodRuleFilter;
 import agent.server.transform.impl.dynamic.MethodInfo;
+import agent.server.transform.impl.dynamic.MethodRuleFilter;
 import agent.server.transform.impl.dynamic.rule.TreeTimeMeasureRule;
+import agent.server.transform.impl.utils.AgentClassPool;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import test.AbstractTest;
@@ -24,17 +25,22 @@ import test.utils.TestClassFinder;
 import test.utils.TestClassLoader;
 import test.utils.TestInstrumentation;
 
+import java.lang.reflect.Modifier;
 import java.net.URL;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Date;
 
 import static agent.server.transform.config.rule.MethodRule.Position.*;
 
 public class TestConfigRuleTest extends AbstractTest {
     private static final String context = "/test";
+    private static final String bIntfClassName = "test.flow.TestConfigRuleTest$BIntf";
+    private static final String baseAClassName = "test.flow.TestConfigRuleTest$BaseA";
+    private static final String abstractBClassName = "test.flow.TestConfigRuleTest$AbstractB";
+    private static final String b1ClassName = "test.flow.TestConfigRuleTest$B1";
+    private static final String b2ClassName = "test.flow.TestConfigRuleTest$B2";
     private static final String aClassName = "test.flow.TestConfigRuleTest$A";
-    private static final String bClassName = "test.flow.TestConfigRuleTest$B";
-    private static final String baseClassName = "test.flow.TestConfigRuleTest$Base";
     private static final TestClassLoader classloader = new TestClassLoader();
     private static final TestInstrumentation instrumentation = new TestInstrumentation();
 
@@ -77,13 +83,40 @@ public class TestConfigRuleTest extends AbstractTest {
     }
 
     @Test
+    public void test111() throws Exception {
+        ReflectionUtils.invokeMethod(BIntf.class, "task1", new Class[0], method -> {
+            System.out.println(Modifier.isAbstract(method.getModifiers()));
+            return null;
+        });
+        ReflectionUtils.invokeMethod(B1.class, "task1", new Class[0], method -> {
+            System.out.println(method.getDeclaringClass());
+            return null;
+        });
+        ReflectionUtils.invokeMethod(B2.class, "task1", new Class[0], method -> {
+            System.out.println(method.getDeclaringClass());
+            return null;
+        });
+        AgentClassPool pool = AgentClassPool.getInstance();
+        System.out.println(pool.get(b1ClassName).subclassOf(pool.get(bIntfClassName)));
+        System.out.println(pool.get(abstractBClassName).subclassOf(pool.get(bIntfClassName)));
+        System.out.println(pool.get(b1ClassName).subclassOf(pool.get(abstractBClassName)));
+
+        System.out.println(pool.get(b1ClassName).subtypeOf(pool.get(bIntfClassName)));
+        System.out.println(pool.get(abstractBClassName).subtypeOf(pool.get(bIntfClassName)));
+        System.out.println(pool.get(b1ClassName).subtypeOf(pool.get(abstractBClassName)));
+    }
+
+    @Test
     public void testTimeRule() throws Exception {
         Command cmd = new ByRuleCommand.TransformByRuleCommand(context, TestTimeRule.class.getName());
         ExecResult result = new TransformCmdExecutor().exec(cmd);
         CommandResultHandlerMgr.handleResult(cmd, result);
 
-         classloader.defineClass(bClassName, instrumentation.getBytes(bClassName));
-         classloader.defineClass(baseClassName, instrumentation.getBytes(baseClassName));
+        classloader.defineClass(baseAClassName, instrumentation.getBytes(baseAClassName));
+        classloader.defineClass(bIntfClassName, AgentClassPool.getInstance().get(bIntfClassName).toBytecode());
+        classloader.defineClass(abstractBClassName, instrumentation.getBytes(abstractBClassName));
+        classloader.defineClass(b1ClassName, instrumentation.getBytes(b1ClassName));
+        classloader.defineClass(b2ClassName, instrumentation.getBytes(b2ClassName));
         Class<?> aClass = classloader.defineClass(aClassName, instrumentation.getBytes(aClassName));
         Object a = ReflectionUtils.newInstance(aClass);
         ReflectionUtils.invoke("runTasks", a);
@@ -123,7 +156,7 @@ public class TestConfigRuleTest extends AbstractTest {
                 super.methodEnd(returnValue);
         }
 
-        @MethodRule(method = "runTasks", position = WRAP_MC, maxLevel = 20, filter="test.flow.TestConfigRuleTest$TestTimeRule")
+        @MethodRule(method = "runTasks", position = WRAP_MC, maxLevel = 20, filter = "test.flow.TestConfigRuleTest$TestTimeRule")
         public void wrapMC(Object[] args, Object returnValue, MethodInfo methodInfo, boolean isBefore) {
             if (isBefore)
                 super.methodCallStart(args, methodInfo);
@@ -144,18 +177,32 @@ public class TestConfigRuleTest extends AbstractTest {
 //            return methodInfo.className.equals(aClassName);
             return methodInfo.className.startsWith("test.flow.");
         }
-    }
 
-    static abstract class Base {
-        void task4() throws Exception{
-            System.out.println("------ task4-------");
-            Thread.sleep(40);
+        @Override
+        public Collection<String> getImplClasses(MethodInfo methodInfo) {
+            if (methodInfo.className.equals(bIntfClassName))
+                return Arrays.asList(
+                        abstractBClassName, b1ClassName, b2ClassName
+                );
+            return null;
         }
     }
 
-    static class A extends Base {
-        private B b = new B();
+    static abstract class BaseA {
+        private BIntf b1 = new B1();
+        private BIntf b2 = new B2();
 
+        void task4() throws Exception {
+            System.out.println("------ task4-------");
+            Thread.sleep(40);
+        }
+
+        BIntf getB(int v) {
+            return v == 0 ? b1 : b2;
+        }
+    }
+
+    static class A extends BaseA {
         public void test() {
         }
 
@@ -176,9 +223,10 @@ public class TestConfigRuleTest extends AbstractTest {
         }
 
         public void runTasks() throws Exception {
-            b.task1();
+            getB(0).task1();
             task2();
             task3();
+            getB(1).task1();
         }
 
 
@@ -219,14 +267,38 @@ public class TestConfigRuleTest extends AbstractTest {
 
     }
 
-    private static class B {
-        void task1() throws Exception {
+    interface BIntf {
+        void task1() throws Exception;
+    }
+
+    private static abstract class AbstractB implements BIntf {
+        public void task1() throws Exception {
+            Thread.sleep(30);
+            doTask();
+        }
+
+        abstract void doTask() throws Exception;
+    }
+
+    private static class B1 extends AbstractB {
+        void doTask() throws Exception {
             Thread.sleep(10);
             task11();
         }
 
         private void task11() throws Exception {
             Thread.sleep(10);
+        }
+    }
+
+    private static class B2 extends AbstractB {
+        void doTask() throws Exception {
+            Thread.sleep(20);
+            task21();
+        }
+
+        private void task21() throws Exception {
+            Thread.sleep(20);
         }
     }
 }

@@ -13,11 +13,11 @@ import javassist.CtMethod;
 import javassist.expr.ExprEditor;
 import javassist.expr.MethodCall;
 
+import java.lang.reflect.Modifier;
 import java.security.ProtectionDomain;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class DynamicClassTransformer extends AbstractConfigTransformer {
     public static final String REG_KEY = "$sys_dynamic";
@@ -137,7 +137,7 @@ public class DynamicClassTransformer extends AbstractConfigTransformer {
         return code;
     }
 
-    public class NestedExprEditor extends ExprEditor {
+    private class NestedExprEditor extends ExprEditor {
         private final int level;
 
         NestedExprEditor(int level) {
@@ -147,33 +147,101 @@ public class DynamicClassTransformer extends AbstractConfigTransformer {
         @Override
         public void edit(MethodCall mc) {
             try {
-                CtMethod method = mc.getMethod();
-                if (!MethodFinder.isMethodEmpty(method)) {
-                    MethodInfo methodInfo = newMethodInfo(method, level);
-                    if (!methodInfo.className.startsWith(skipPackage)) {
-                        int nextLevel = level + 1;
-                        if (nextLevel < maxLevel &&
-                                (item.methodRuleFilter == null ||
-                                        item.methodRuleFilter.stepInto(methodInfo))
-                                ) {
-                            logger.debug("stepInto: {}", methodInfo);
-                            method.instrument(new NestedExprEditor(nextLevel));
-                        }
-                        if (item.methodRuleFilter.accept(methodInfo)) {
-                            logger.debug("accept: {}", methodInfo);
-                            processMethodCode(mc.getMethod(), methodInfo);
-                        }
+                CtMethod ctMethod = mc.getMethod();
+                MethodInfo methodInfo = newMethodInfo(ctMethod, level);
+                if (Modifier.isAbstract(ctMethod.getModifiers())) {
+                    logger.debug("Method is abstract: {}", ctMethod.getLongName());
+                    Collection<CtMethod> implMethods = findImplMethods(ctMethod.getDeclaringClass(), methodInfo);
+                    implMethods.forEach(implMethod -> logger.debug("Find impl method: {}", implMethod.getLongName()));
+                    for (CtMethod implMethod : implMethods) {
+                        if (!skipMethod(implMethod))
+                            processMethod(implMethod, newMethodInfo(implMethod, level));
                     }
+                } else if (!skipMethod(ctMethod)) {
+                    logger.debug("Method is concrete: {}", ctMethod.getLongName());
+                    processMethod(ctMethod, methodInfo);
                 }
+            } catch (RuntimeException e) {
+                throw e;
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
         }
+
+        private Collection<CtMethod> findImplMethods(CtClass baseClass, MethodInfo methodInfo) throws Exception {
+            Collection<String> implClassNames = item.methodRuleFilter.getImplClasses(methodInfo);
+            logger.debug("Find impl classes: {}", implClassNames);
+            if (implClassNames == null || implClassNames.isEmpty()) {
+                return Collections.emptyList();
+            } else {
+                Set<String> implClassSet = new HashSet<>(implClassNames);
+                if (implClassSet.isEmpty())
+                    return Collections.emptyList();
+                CtClass[] implClasses = AgentClassPool.getInstance().get(
+                        implClassSet.toArray(new String[0])
+                );
+                for (CtClass implClass : implClasses) {
+                    if (!implClass.subtypeOf(baseClass))
+                        throw new RuntimeException("Class " + implClass.getName() + " is not sub type of " + baseClass.getName());
+                }
+                return Stream.of(implClasses)
+                        .map(ctClass -> findMethod(ctClass, methodInfo))
+                        .filter(Objects::nonNull)
+                        .collect(Collectors.toList());
+            }
+        }
+
+        private CtMethod findMethod(CtClass ctClass, MethodInfo methodInfo) {
+            try {
+                CtMethod rsMethod = Stream.of(ctClass.getDeclaredMethods())
+                        .filter(ctMethod -> ctMethod.getSignature().equals(methodInfo.signature))
+                        .findAny()
+                        .orElse(null);
+                if (rsMethod == null)
+                    logger.warn("No method find by class: {}, method name: {}, method desc: {}",
+                            ctClass.getName(), methodInfo.methodName, methodInfo.signature);
+                return rsMethod;
+            } catch (Exception e) {
+                logger.error("Find method failed, class: {}, method name: {}, method desc: {}", e,
+                        ctClass.getName(), methodInfo.methodName, methodInfo.signature);
+                return null;
+            }
+        }
+
+        private void processMethod(CtMethod ctMethod, MethodInfo methodInfo) {
+            try {
+                logger.debug("Process method: {}", ctMethod.getLongName());
+                int nextLevel = level + 1;
+                if (nextLevel < maxLevel &&
+                        (item.methodRuleFilter == null ||
+                                item.methodRuleFilter.stepInto(methodInfo))
+                        ) {
+                    logger.debug("stepInto: {}", methodInfo);
+                    ctMethod.instrument(new NestedExprEditor(nextLevel));
+                }
+                if (item.methodRuleFilter.accept(methodInfo)) {
+                    logger.debug("accept: {}", methodInfo);
+                    processMethodCode(ctMethod, methodInfo);
+                }
+            } catch (Exception e) {
+                throw new RuntimeException("Process method failed: " + ctMethod.getLongName(), e);
+            }
+        }
+    }
+
+    private boolean skipMethod(CtMethod ctMethod) {
+        String declaredClassName = ctMethod.getDeclaringClass().getName();
+        boolean skip = MethodFinder.isMethodEmpty(ctMethod) ||
+                declaredClassName.startsWith(skipPackage);
+        if (skip)
+            logger.debug("Skip method: {}", ctMethod.getLongName());
+        return skip;
     }
 
     private MethodInfo newMethodInfo(CtMethod ctMethod, int level) {
+        CtClass ctClass = ctMethod.getDeclaringClass();
         return new MethodInfo(
-                ctMethod.getDeclaringClass().getName(),
+                ctClass.getName(),
                 ctMethod.getName(),
                 ctMethod.getSignature(),
                 level

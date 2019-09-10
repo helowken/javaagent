@@ -6,6 +6,8 @@ import agent.server.transform.config.rule.MethodRule;
 import agent.server.transform.impl.dynamic.MethodInfo;
 import agent.server.transform.impl.dynamic.MethodRuleFilter;
 
+import java.util.Collection;
+
 import static agent.server.transform.config.rule.MethodRule.Position;
 
 @ContextRule("/test")
@@ -31,5 +33,10 @@ public class TestRule implements MethodRuleFilter {
     @Override
     public boolean stepInto(MethodInfo methodInfo) {
         return true;
+    }
+
+    @Override
+    public Collection<String> getImplClasses(MethodInfo methodInfo) {
+        return null;
     }
 }
