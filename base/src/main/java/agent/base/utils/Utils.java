@@ -3,6 +3,7 @@ package agent.base.utils;
 import java.io.*;
 import java.util.*;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -10,6 +11,38 @@ import java.util.stream.Stream;
 public class Utils {
     public static String sUuid() {
         return UUID.randomUUID().toString();
+    }
+
+    public static void wrapToRtError(WithoutValueFunc func) {
+        wrapToRtError(func, null);
+    }
+
+    public static void wrapToRtError(WithoutValueFunc func, Supplier<String> errMsgSupplier) {
+        try {
+            func.run();
+        } catch (Exception e) {
+            throw toRtError(e, errMsgSupplier);
+        }
+    }
+
+    public static <T> T wrapToRtError(WithValueFunc<T> func) {
+        return wrapToRtError(func, null);
+    }
+
+    public static <T> T wrapToRtError(WithValueFunc<T> func, Supplier<String> errMsgSupplier) {
+        try {
+            return func.run();
+        } catch (Throwable e) {
+            throw toRtError(e, errMsgSupplier);
+        }
+    }
+
+    public static RuntimeException toRtError(Throwable e, Supplier<String> errMsgSupplier) {
+        if (e instanceof RuntimeException)
+            return (RuntimeException) e;
+        return errMsgSupplier == null ?
+                new RuntimeException(e) :
+                new RuntimeException(errMsgSupplier.get(), e);
     }
 
     public static int parseInt(String s, String name) {
@@ -125,4 +158,11 @@ public class Utils {
         return firstValidValue(errMsg, Utils::isNotBlank, vs);
     }
 
+    public interface WithValueFunc<T> {
+        T run() throws Exception;
+    }
+
+    public interface WithoutValueFunc {
+        void run() throws Exception;
+    }
 }

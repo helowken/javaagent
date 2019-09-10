@@ -32,6 +32,7 @@ public class ClasspathCmdExecutor extends AbstractCmdExecutor {
                     transformMgr.refreshClasspath(context);
                 else
                     transformMgr.refreshClasspath(context, url);
+                break;
             default:
                 throw new RuntimeException("Unknown action: " + action);
         }

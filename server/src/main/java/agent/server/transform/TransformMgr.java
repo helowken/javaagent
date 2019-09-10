@@ -1,10 +1,7 @@
 package agent.server.transform;
 
 import agent.base.plugin.PluginFactory;
-import agent.base.utils.ClassLoaderUtils;
-import agent.base.utils.LockObject;
-import agent.base.utils.Logger;
-import agent.base.utils.ReflectionUtils;
+import agent.base.utils.*;
 import agent.hook.plugin.ClassFinder;
 import agent.hook.utils.AppTypePluginFilter;
 import agent.server.classloader.DynamicClassLoader;
@@ -155,16 +152,17 @@ public class TransformMgr {
     }
 
     private ConfigTransformer newTransformer(TransformerConfig transformerConfig) {
-        try {
-            String className = transformerConfig.getImplClass();
-            if (className != null)
-                return ConfigTransformer.class.cast(
-                        ReflectionUtils.findClass(className).newInstance()
-                );
-            return TransformerClassRegistry.get(transformerConfig.getRef()).newInstance();
-        } catch (Exception e) {
-            throw new RuntimeException("Create transformer failed.", e);
-        }
+        return Utils.wrapToRtError(
+                () -> {
+                    String className = transformerConfig.getImplClass();
+                    if (className != null)
+                        return ConfigTransformer.class.cast(
+                                ReflectionUtils.findClass(className).newInstance()
+                        );
+                    return TransformerClassRegistry.get(transformerConfig.getRef()).newInstance();
+                },
+                () -> "Create transformer failed."
+        );
     }
 
     public TransformResult transform(TransformContext transformContext) {

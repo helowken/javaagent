@@ -3,6 +3,7 @@ package agent.hook.plugin;
 import agent.base.utils.LockObject;
 import agent.base.utils.Logger;
 import agent.base.utils.ReflectionUtils;
+import agent.base.utils.Utils;
 import agent.hook.utils.App;
 
 import java.util.HashMap;
@@ -63,13 +64,10 @@ public abstract class AbstractClassFinder implements ClassFinder {
     }
 
     public Class<?> findClass(String contextPath, String className) {
-        try {
-            return findClassLoader(contextPath).loadClass(className);
-        } catch (RuntimeException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new RuntimeException("Find class failed on context: " + contextPath, e);
-        }
+        return Utils.wrapToRtError(
+                () -> findClassLoader(contextPath).loadClass(className),
+                () -> "Find class failed on context: " + contextPath
+        );
     }
 
     protected static class LoaderItem {

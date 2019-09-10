@@ -8,6 +8,7 @@ import agent.common.message.command.impl.ByRuleCommand;
 import agent.common.message.result.ExecResult;
 import agent.hook.plugin.ClassFinder;
 import agent.hook.utils.App;
+import agent.jvmti.JvmtiUtils;
 import agent.server.command.executor.TestConfigCmdExecutor;
 import agent.server.command.executor.TransformCmdExecutor;
 import agent.server.transform.TransformMgr;
@@ -108,6 +109,10 @@ public class TestConfigRuleTest extends AbstractTest {
 
     @Test
     public void testTimeRule() throws Exception {
+        // import class B1, B2
+        new B1();
+        new B2();
+
         Command cmd = new ByRuleCommand.TransformByRuleCommand(context, TestTimeRule.class.getName());
         ExecResult result = new TransformCmdExecutor().exec(cmd);
         CommandResultHandlerMgr.handleResult(cmd, result);
@@ -176,15 +181,6 @@ public class TestConfigRuleTest extends AbstractTest {
         public boolean stepInto(MethodInfo methodInfo) {
 //            return methodInfo.className.equals(aClassName);
             return methodInfo.className.startsWith("test.flow.");
-        }
-
-        @Override
-        public Collection<String> getImplClasses(MethodInfo methodInfo) {
-            if (methodInfo.className.equals(bIntfClassName))
-                return Arrays.asList(
-                        abstractBClassName, b1ClassName, b2ClassName
-                );
-            return null;
         }
     }
 

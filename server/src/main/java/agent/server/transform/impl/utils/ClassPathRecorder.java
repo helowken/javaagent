@@ -2,6 +2,7 @@ package agent.server.transform.impl.utils;
 
 import agent.base.utils.Logger;
 import agent.base.utils.ReflectionUtils;
+import agent.base.utils.Utils;
 import javassist.ClassClassPath;
 import javassist.ClassPath;
 import javassist.CtClass;
@@ -27,16 +28,21 @@ public class ClassPathRecorder {
         add(Collections.singleton(clazz));
     }
 
-    public void add(Set<Class<?>> classSet) {
-        for (Class<?> clazz : classSet) {
-            addRefClassToPool(clazz);
-            loaderToRefClassNames.computeIfAbsent(clazz.getClassLoader(), key -> new HashSet<>())
-                    .addAll(getRefClassNames(clazz));
+    public void add(Collection<Class<?>> classSet) {
+        if (!classSet.isEmpty()) {
+            for (Class<?> clazz : classSet) {
+                ClassLoader classLoader = clazz.getClassLoader();
+                if (classLoader != null) {
+                    addRefClassToPool(clazz);
+                    loaderToRefClassNames.computeIfAbsent(classLoader, key -> new HashSet<>())
+                            .addAll(getRefClassNames(clazz));
+                }
+            }
+            loaderToRefClassNames.forEach((loader, refClassNames) ->
+                    findRefClassSet(loader, refClassNames)
+                            .forEach(this::addRefClassToPool)
+            );
         }
-        loaderToRefClassNames.forEach((loader, refClassNames) ->
-                findRefClassSet(loader, refClassNames)
-                        .forEach(this::addRefClassToPool)
-        );
     }
 
     void clear() {
@@ -67,7 +73,7 @@ public class ClassPathRecorder {
     }
 
     private Collection<Class<?>> findRefClassSet(ClassLoader loader, Collection<String> refClassNameSet) {
-        try {
+        return Utils.wrapToRtError(() -> {
             Set<Class<?>> refClassSet = new HashSet<>();
             for (String refClassName : refClassNameSet) {
                 logger.debug("Load class {} by loader: {}", refClassName, loader);
@@ -75,9 +81,7 @@ public class ClassPathRecorder {
                 refClassSet.add(refClass);
             }
             return refClassSet;
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        });
     }
 
     private void addRefClassToPool(Class<?> refClass) {

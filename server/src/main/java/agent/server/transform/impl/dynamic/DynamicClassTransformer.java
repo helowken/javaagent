@@ -2,11 +2,14 @@ package agent.server.transform.impl.dynamic;
 
 import agent.base.utils.Logger;
 import agent.base.utils.Utils;
+import agent.jvmti.JvmtiUtils;
 import agent.server.event.EventListenerMgr;
 import agent.server.event.impl.AdditionalTransformEvent;
+import agent.server.transform.TransformMgr;
 import agent.server.transform.impl.AbstractConfigTransformer;
 import agent.server.transform.impl.TransformerInfo;
 import agent.server.transform.impl.utils.AgentClassPool;
+import agent.server.transform.impl.utils.ClassPoolUtils;
 import agent.server.transform.impl.utils.MethodFinder;
 import javassist.CtClass;
 import javassist.CtMethod;
@@ -146,7 +149,7 @@ public class DynamicClassTransformer extends AbstractConfigTransformer {
 
         @Override
         public void edit(MethodCall mc) {
-            try {
+            Utils.wrapToRtError(() -> {
                 CtMethod ctMethod = mc.getMethod();
                 MethodInfo methodInfo = newMethodInfo(ctMethod, level);
                 if (Modifier.isAbstract(ctMethod.getModifiers())) {
@@ -161,34 +164,61 @@ public class DynamicClassTransformer extends AbstractConfigTransformer {
                     logger.debug("Method is concrete: {}", ctMethod.getLongName());
                     processMethod(ctMethod, methodInfo);
                 }
-            } catch (RuntimeException e) {
-                throw e;
-            } catch (Exception e) {
-                throw new RuntimeException(e);
+            });
+        }
+
+        private Collection<String> findImplClassNames(MethodInfo methodInfo) throws Exception {
+            MethodRuleFilter.FindImplClassPolicy policy = item.methodRuleFilter.getFindImplClassPolicy();
+            switch (policy) {
+                case FROM_LOADED_CLASSES:
+                    return Utils.wrapToRtError(
+                            () -> {
+                                List<Class<?>> subClassList = JvmtiUtils.getInstance()
+                                        .findLoadedSubTypes(
+                                                TransformMgr.getInstance()
+                                                        .getClassFinder()
+                                                        .findClass(item.context, methodInfo.className)
+                                        );
+                                ClassPoolUtils.getClassPathRecorder().add(subClassList);
+
+                                return subClassList.stream()
+                                        .map(Class::getName)
+                                        .collect(Collectors.toList());
+                            },
+                            () -> "Get impl classes failed: " + methodInfo
+                    );
+                case USER_DEFINED:
+                    return item.methodRuleFilter.getImplClasses(methodInfo);
+                default:
+                    throw new RuntimeException("Invalid policy: " + policy);
             }
         }
 
-        private Collection<CtMethod> findImplMethods(CtClass baseClass, MethodInfo methodInfo) throws Exception {
-            Collection<String> implClassNames = item.methodRuleFilter.getImplClasses(methodInfo);
-            logger.debug("Find impl classes: {}", implClassNames);
-            if (implClassNames == null || implClassNames.isEmpty()) {
-                return Collections.emptyList();
-            } else {
-                Set<String> implClassSet = new HashSet<>(implClassNames);
-                if (implClassSet.isEmpty())
-                    return Collections.emptyList();
-                CtClass[] implClasses = AgentClassPool.getInstance().get(
-                        implClassSet.toArray(new String[0])
-                );
-                for (CtClass implClass : implClasses) {
-                    if (!implClass.subtypeOf(baseClass))
-                        throw new RuntimeException("Class " + implClass.getName() + " is not sub type of " + baseClass.getName());
-                }
-                return Stream.of(implClasses)
-                        .map(ctClass -> findMethod(ctClass, methodInfo))
-                        .filter(Objects::nonNull)
-                        .collect(Collectors.toList());
-            }
+        private Collection<CtMethod> findImplMethods(CtClass baseClass, MethodInfo methodInfo) {
+            return Utils.wrapToRtError(() -> {
+                        Collection<String> implClassNames = findImplClassNames(methodInfo);
+                        logger.debug("Find class {} impl classes: {}", methodInfo.className, implClassNames);
+                        if (implClassNames == null || implClassNames.isEmpty()) {
+                            return Collections.emptyList();
+                        } else {
+                            Set<String> implClassSet = new HashSet<>(implClassNames);
+                            if (implClassSet.isEmpty())
+                                return Collections.emptyList();
+                            CtClass[] implClasses = AgentClassPool.getInstance().get(
+                                    implClassSet.toArray(new String[0])
+                            );
+                            for (CtClass implClass : implClasses) {
+                                if (!implClass.subtypeOf(baseClass))
+                                    throw new RuntimeException("Class " + implClass.getName() + " is not sub type of " + baseClass.getName());
+                            }
+                            return Stream.of(implClasses)
+                                    .map(ctClass -> findMethod(ctClass, methodInfo))
+                                    .filter(Objects::nonNull)
+                                    .collect(Collectors.toList());
+                        }
+                    },
+                    () -> "Find impl methods failed: " + methodInfo.toString()
+            );
         }
 
         private CtMethod findMethod(CtClass ctClass, MethodInfo methodInfo) {
@@ -209,23 +239,23 @@ public class DynamicClassTransformer extends AbstractConfigTransformer {
         }
 
         private void processMethod(CtMethod ctMethod, MethodInfo methodInfo) {
-            try {
-                logger.debug("Process method: {}", ctMethod.getLongName());
-                int nextLevel = level + 1;
-                if (nextLevel < maxLevel &&
-                        (item.methodRuleFilter == null ||
-                                item.methodRuleFilter.stepInto(methodInfo))
-                        ) {
-                    logger.debug("stepInto: {}", methodInfo);
-                    ctMethod.instrument(new NestedExprEditor(nextLevel));
-                }
-                if (item.methodRuleFilter.accept(methodInfo)) {
-                    logger.debug("accept: {}", methodInfo);
-                    processMethodCode(ctMethod, methodInfo);
-                }
-            } catch (Exception e) {
-                throw new RuntimeException("Process method failed: " + ctMethod.getLongName(), e);
-            }
+            Utils.wrapToRtError(() -> {
+                        logger.debug("Process method: {}", ctMethod.getLongName());
+                        int nextLevel = level + 1;
+                        if (nextLevel < maxLevel &&
+                                (item.methodRuleFilter == null ||
+                                        item.methodRuleFilter.stepInto(methodInfo))
+                                ) {
+                            logger.debug("stepInto: {}", methodInfo);
+                            ctMethod.instrument(new NestedExprEditor(nextLevel));
+                        }
+                        if (item.methodRuleFilter.accept(methodInfo)) {
+                            logger.debug("accept: {}", methodInfo);
+                            processMethodCode(ctMethod, methodInfo);
+                        }
+                    },
+                    () -> "Process method failed: " + ctMethod.getLongName()
+            );
         }
     }
 

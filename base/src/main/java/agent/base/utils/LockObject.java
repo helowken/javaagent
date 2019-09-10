@@ -5,25 +5,13 @@ public class LockObject {
 
     public void sync(SyncVoidFunc func) {
         synchronized (lock) {
-            try {
-                func.exec(lock);
-            } catch (RuntimeException e) {
-                throw e;
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
+            Utils.wrapToRtError(() -> func.exec(lock));
         }
     }
 
     public <T> T syncValue(SyncValueFunc<T> func) {
         synchronized (lock) {
-            try {
-                return func.exec(lock);
-            } catch (RuntimeException e) {
-                throw e;
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
+            return Utils.wrapToRtError(() -> func.exec(lock));
         }
     }
 

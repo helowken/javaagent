@@ -2,6 +2,7 @@ package agent.server.transform.impl.utils;
 
 import agent.base.utils.Logger;
 import agent.base.utils.ReflectionUtils;
+import agent.base.utils.Utils;
 import agent.server.transform.config.ClassConfig;
 import agent.server.transform.config.MethodConfig;
 import agent.server.transform.config.MethodFilterConfig;
@@ -46,15 +47,12 @@ public class MethodFinder {
     }
 
     public void consume(AgentClassPool cp, TargetClassConfig targetClassConfig, Consumer<MethodSearchResult> resultConsumer) {
-        try {
-            resultConsumer.accept(
-                    rawFind(cp, targetClassConfig)
-            );
-        } catch (RuntimeException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new RuntimeException("Find method list failed.", e);
-        }
+        Utils.wrapToRtError(
+                () -> resultConsumer.accept(
+                        rawFind(cp, targetClassConfig)
+                ),
+                () -> "Find method list failed."
+        );
     }
 
     private List<CtMethod> findByMethodConfig(List<MethodConfig> methodConfigList, CtClass ctClass, AgentClassPool cp) throws Exception {
