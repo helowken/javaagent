@@ -1,5 +1,6 @@
 package agent.server.transform.impl.utils;
 
+import agent.base.utils.ClassLoaderUtils;
 import agent.base.utils.Logger;
 import agent.base.utils.ReflectionUtils;
 import agent.base.utils.Utils;
@@ -10,11 +11,17 @@ import javassist.CtClass;
 import java.net.URL;
 import java.security.CodeSource;
 import java.util.*;
+import java.util.function.BiConsumer;
 
 @SuppressWarnings("unchecked")
 public class ClassPathRecorder {
     private static final Logger logger = Logger.getLogger(ClassPoolUtils.class);
-    private static final Collection<String> skipPackages = Collections.singleton("javassist.");
+    private static final Collection<String> skipPackages = new HashSet<>(
+            Arrays.asList(
+                    "javassist.",
+                    "agent."
+            )
+    );
 
     private AgentClassPool cp;
     private final Map<URL, Class<?>> urlToClass = new HashMap<>();
@@ -29,17 +36,33 @@ public class ClassPathRecorder {
     }
 
     public void add(Collection<Class<?>> classSet) {
+        this.add(classSet, null);
+    }
+
+    public void add(Collection<Class<?>> classSet, BiConsumer<Class<?>, RuntimeException> errorHandler) {
         if (!classSet.isEmpty()) {
+            Map<ClassLoader, Set<String>> dirtyMap = new HashMap<>();
             for (Class<?> clazz : classSet) {
-                ClassLoader classLoader = clazz.getClassLoader();
-                if (classLoader != null) {
+                final ClassLoader classLoader = clazz.getClassLoader();
+                if (!ClassLoaderUtils.isSystem(classLoader)) {
                     addRefClassToPool(clazz);
-                    loaderToRefClassNames.computeIfAbsent(classLoader, key -> new HashSet<>())
-                            .addAll(getRefClassNames(clazz));
+                    Collection<String> refClassNames = getRefClassNames(clazz, errorHandler);
+                    Set<String> existedRefClassNames = loaderToRefClassNames.computeIfAbsent(
+                            classLoader,
+                            key -> new HashSet<>()
+                    );
+                    if (refClassNames.removeAll(existedRefClassNames) &&
+                            !refClassNames.isEmpty()) {
+                        dirtyMap.computeIfAbsent(
+                                classLoader,
+                                key -> new HashSet<>()
+                        ).addAll(refClassNames);
+                        existedRefClassNames.addAll(refClassNames);
+                    }
                 }
             }
-            loaderToRefClassNames.forEach((loader, refClassNames) ->
-                    findRefClassSet(loader, refClassNames)
+            dirtyMap.forEach(
+                    (loader, refClassNames) -> findRefClassSet(loader, refClassNames)
                             .forEach(this::addRefClassToPool)
             );
         }
@@ -51,25 +74,33 @@ public class ClassPathRecorder {
         loaderToRefClassNames.clear();
     }
 
-    private boolean isNativePackage(String namePath) {
+    public static boolean isNativePackage(String namePath) {
         return ReflectionUtils.isJavaNativePackage(namePath)
                 || skipPackages.stream().anyMatch(namePath::startsWith);
     }
 
-    private Collection<String> getRefClassNames(Class<?> clazz) {
-        Set<String> refClassNameSet = new HashSet<>();
-        String currClassName = clazz.getName();
-        CtClass cc = cp.get(currClassName);
-        cc.getRefClasses().forEach(refClass -> {
-            if (refClass instanceof String) {
-                String refClassName = (String) refClass;
-                if (!isNativePackage(refClassName))
-                    refClassNameSet.add(refClassName);
+    private Collection<String> getRefClassNames(Class<?> clazz, BiConsumer<Class<?>, RuntimeException> errorHandler) {
+        try {
+            Set<String> refClassNameSet = new HashSet<>();
+            String currClassName = clazz.getName();
+            CtClass cc = cp.get(currClassName);
+            cc.getRefClasses().forEach(refClass -> {
+                if (refClass instanceof String) {
+                    String refClassName = (String) refClass;
+                    if (!isNativePackage(refClassName))
+                        refClassNameSet.add(refClassName);
+                } else
+                    logger.debug("Unknown ref class: {}, type: {}", refClass, refClass == null ? null : refClass.getClass());
+            });
+            refClassNameSet.remove(currClassName);
+            return refClassNameSet;
+        } catch (RuntimeException e) {
+            if (errorHandler != null) {
+                errorHandler.accept(clazz, e);
+                return Collections.emptyList();
             } else
-                logger.debug("Unknown ref class: {}, type: {}", refClass, refClass == null ? null : refClass.getClass());
-        });
-        refClassNameSet.remove(currClassName);
-        return refClassNameSet;
+                throw e;
+        }
     }
 
     private Collection<Class<?>> findRefClassSet(ClassLoader loader, Collection<String> refClassNameSet) {

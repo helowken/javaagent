@@ -8,7 +8,7 @@ public abstract class TraverseRule<T> {
     private ThreadLocal<TraverseItem<T>> local = new ThreadLocal<>();
 
     protected void methodStart(Object[] args, MethodInfo methodInfo) {
-        logger.debug("method start: {}", methodInfo);
+//        logger.debug("method start: {}", methodInfo);
         TraverseItem<T> item = local.get();
         if (item != null && item.tree != null)
             item.tree.destroy();
@@ -28,18 +28,18 @@ public abstract class TraverseRule<T> {
         if (item != null) {
             RuleTree<T> tree = item.tree;
             if (tree != null) {
-                logger.debug("method end: {}", tree.getData());
+//                logger.debug("method end: {}", tree.getData());
                 onTreeEnd(tree, tree.getData(), returnValue);
                 tree.destroy();
             } else {
-                logger.debug("No tree found.");
+                logger.warn("No tree found.");
             }
             local.remove();
         }
     }
 
     protected void methodCallStart(Object[] args, MethodInfo methodInfo) {
-        logger.debug("method call start: {}", methodInfo);
+//        logger.debug("method call start: {}", methodInfo);
         if (methodInfo != null) {
             TraverseItem<T> item = local.get();
             if (item != null) {
@@ -59,7 +59,7 @@ public abstract class TraverseRule<T> {
         TraverseItem<T> item = local.get();
         if (item != null) {
             RuleNode<T> node = item.currNode;
-            logger.debug("method call end: {}", node.getData());
+//            logger.debug("method call end: {}", node.getData());
             onNodeEnd(node, node.getData(), returnValue);
             item.currNode = node.getParent();
         } else {

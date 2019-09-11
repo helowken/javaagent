@@ -12,6 +12,14 @@ public class ClassLoaderUtils {
     private static final Logger logger = Logger.getLogger(ClassLoaderUtils.class);
     private static final FileFilter jarFilter = file -> file.getName().endsWith(".jar");
 
+    public static boolean isSystem(ClassLoader classLoader) {
+        if (classLoader == null)
+            return true;
+        String className = classLoader.getClass().getName();
+        return className.equals("sun.misc.Launcher$AppClassLoader") ||
+                className.equals("sun.misc.Launcher$ExtClassLoader");
+    }
+
     public static ClassLoader initContextClassLoader(String... libPaths) throws Exception {
         ClassLoader parentLoader = Thread.currentThread().getContextClassLoader();
         ClassLoader loader = newClassLoader(parentLoader, libPaths);
@@ -74,15 +82,23 @@ public class ClassLoaderUtils {
         return totalLibPathList;
     }
 
+    public static List<ClassLoader> getClassLoaderChain(ClassLoader loader) {
+        List<ClassLoader> chain = new ArrayList<>();
+        ClassLoader tmpLoader = loader;
+        while (tmpLoader != null) {
+            chain.add(tmpLoader);
+            tmpLoader = tmpLoader.getParent();
+        }
+        return chain;
+    }
+
     public static void printClassLoaderCascade(ClassLoader loader) {
         StringBuilder sb = new StringBuilder();
-        ClassLoader tmpLoader = loader;
-        int level = 0;
-        while (tmpLoader != null) {
-            sb.append(IndentUtils.getIndent(level++))
-                    .append(tmpLoader.getClass().getName())
+        List<ClassLoader> chain = getClassLoaderChain(loader);
+        for (int i = 0, len = chain.size(); i < len; ++i) {
+            sb.append(IndentUtils.getIndent(i))
+                    .append(chain.get(i).getClass().getName())
                     .append("\n");
-            tmpLoader = tmpLoader.getParent();
         }
         logger.debug("classLoader cascade: \n{}", sb);
     }

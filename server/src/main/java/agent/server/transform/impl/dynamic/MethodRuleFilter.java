@@ -3,20 +3,19 @@ package agent.server.transform.impl.dynamic;
 import java.util.Collection;
 
 public interface MethodRuleFilter {
-    boolean accept(MethodInfo methodInfo);
-
-    boolean stepInto(MethodInfo methodInfo);
-
-    default FindImplClassPolicy getFindImplClassPolicy() {
-        return FindImplClassPolicy.FROM_LOADED_CLASSES;
+    default boolean accept(MethodInfo methodInfo) {
+        return !methodInfo.isNative;
     }
 
-    default Collection<String> getImplClasses(MethodInfo methodInfo) {
-        return null;
+    default boolean stepInto(MethodInfo methodInfo) {
+        return !methodInfo.isNative;
     }
 
-    enum FindImplClassPolicy {
-        FROM_LOADED_CLASSES,
-        USER_DEFINED
+    default boolean needGetImplClasses(MethodInfo methodInfo) {
+        return !methodInfo.isNative;
+    }
+
+    default Collection<String> getImplClasses(MethodInfo methodInfo, Collection<String> loadedSubClassNames) {
+        return loadedSubClassNames;
     }
 }

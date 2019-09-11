@@ -20,7 +20,7 @@ public class DynamicConfigItem {
         this.position = position;
         this.ruleMethod = ruleMethod;
         this.ruleInstance = ruleInstance;
-        this.methodRuleFilter = methodRuleFilter;
+        this.methodRuleFilter = methodRuleFilter == null ? DefaultMethodRuleFilter.instance : methodRuleFilter;
         this.needMethodInfo = needMethodInfo(ruleMethod);
         this.needPosition = needPosition(position);
         this.needReturnValue = needReturnValue(position);

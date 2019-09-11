@@ -8,7 +8,6 @@ import agent.common.message.command.impl.ByRuleCommand;
 import agent.common.message.result.ExecResult;
 import agent.hook.plugin.ClassFinder;
 import agent.hook.utils.App;
-import agent.jvmti.JvmtiUtils;
 import agent.server.command.executor.TestConfigCmdExecutor;
 import agent.server.command.executor.TransformCmdExecutor;
 import agent.server.transform.TransformMgr;
@@ -22,15 +21,16 @@ import agent.server.transform.impl.utils.AgentClassPool;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import test.AbstractTest;
+import test.rule.TestRuleTest;
 import test.utils.TestClassFinder;
 import test.utils.TestClassLoader;
 import test.utils.TestInstrumentation;
+import test.utils.TestMap;
 
 import java.lang.reflect.Modifier;
 import java.net.URL;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Date;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static agent.server.transform.config.rule.MethodRule.Position.*;
 
@@ -112,6 +112,7 @@ public class TestConfigRuleTest extends AbstractTest {
         // import class B1, B2
         new B1();
         new B2();
+        new TestMap();
 
         Command cmd = new ByRuleCommand.TransformByRuleCommand(context, TestTimeRule.class.getName());
         ExecResult result = new TransformCmdExecutor().exec(cmd);
@@ -181,6 +182,13 @@ public class TestConfigRuleTest extends AbstractTest {
         public boolean stepInto(MethodInfo methodInfo) {
 //            return methodInfo.className.equals(aClassName);
             return methodInfo.className.startsWith("test.flow.");
+        }
+
+        @Override
+        public Collection<String> getImplClasses(MethodInfo methodInfo, Collection<String> loadedSubClassNames) {
+            return loadedSubClassNames.stream()
+                    .filter(className -> className.startsWith("test.flow."))
+                    .collect(Collectors.toList());
         }
     }
 
@@ -268,7 +276,14 @@ public class TestConfigRuleTest extends AbstractTest {
     }
 
     private static abstract class AbstractB implements BIntf {
+        private Map<String, Object> map = new HashMap<>();
+
         public void task1() throws Exception {
+            map.put("aaa", 111);
+            if (map.containsKey("bbb"))
+                System.out.println(111);
+            Map map = new TestMap();
+            map.put("111", "333");
             Thread.sleep(30);
             doTask();
         }
