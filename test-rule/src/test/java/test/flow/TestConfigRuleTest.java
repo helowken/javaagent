@@ -248,6 +248,7 @@ public class TestConfigRuleTest extends AbstractTest {
         private void task2() throws Exception {
             Thread.sleep(20);
             task21();
+            task22();
         }
 
         private void task21() throws Exception {
@@ -258,6 +259,15 @@ public class TestConfigRuleTest extends AbstractTest {
         private void task211() throws Exception {
             Thread.sleep(20);
             task4();
+        }
+
+        private void task22() throws Exception {
+            Thread.sleep(20);
+            task221();
+        }
+
+        private void task221() throws Exception {
+            Thread.sleep(20);
         }
 
         private void task3() throws Exception {
@@ -273,9 +283,15 @@ public class TestConfigRuleTest extends AbstractTest {
         private void task311() throws Exception {
             Thread.sleep(30);
             task3111();
+            task3121();
         }
 
         private void task3111() throws Exception {
+            Thread.sleep(30);
+            task4();
+        }
+
+        private void task3121() throws Exception {
             Thread.sleep(30);
             task4();
         }
