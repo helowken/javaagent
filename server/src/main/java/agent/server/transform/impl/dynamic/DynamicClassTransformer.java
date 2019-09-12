@@ -1,10 +1,8 @@
 package agent.server.transform.impl.dynamic;
 
-import agent.base.utils.ClassLoaderUtils;
 import agent.base.utils.Logger;
 import agent.base.utils.Utils;
 import agent.hook.plugin.ClassFinder;
-import agent.jvmti.JvmtiUtils;
 import agent.server.event.EventListenerMgr;
 import agent.server.event.impl.AdditionalTransformEvent;
 import agent.server.transform.TransformMgr;
@@ -22,6 +20,9 @@ import javassist.expr.MethodCall;
 import java.lang.reflect.Modifier;
 import java.security.ProtectionDomain;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentSkipListSet;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -40,7 +41,8 @@ public class DynamicClassTransformer extends AbstractConfigTransformer {
     private int maxLevel;
     private Set<String> transformedMethods = new HashSet<>();
     private Set<String> additionalClassNames = new HashSet<>();
-    private List<ClassLoader> loaderChain;
+    private Map<String, Map<String, Class<?>>> baseToSubClassMap = new ConcurrentHashMap<>();
+    private Set<String> invalidClassNames = new ConcurrentSkipListSet<>();
 
     @Override
     public String getRegKey() {
@@ -65,7 +67,8 @@ public class DynamicClassTransformer extends AbstractConfigTransformer {
             case BEFORE:
             case AFTER:
             case WRAP:
-                processMethodCode(ctMethod, methodInfo);
+                if (needToBeTransformed(ctMethod))
+                    processMethodCode(ctMethod, methodInfo);
                 break;
             case BEFORE_MC:
             case AFTER_MC:
@@ -82,7 +85,7 @@ public class DynamicClassTransformer extends AbstractConfigTransformer {
                                  ProtectionDomain protectionDomain, byte[] classfileBuffer, byte[] newBuffer) throws Exception {
         additionalClassNames.remove(TransformerInfo.getClassName(className));
         if (!additionalClassNames.isEmpty()) {
-            additionalClassNames.forEach(additionalClassName -> logger.debug("Additional class: {}", additionalClassName));
+//            additionalClassNames.forEach(additionalClassName -> logger.debug("Additional class: {}", additionalClassName));
 
             Map<String, byte[]> classNameToBytes = new HashMap<>();
             for (String additionalClassName : additionalClassNames) {
@@ -92,35 +95,42 @@ public class DynamicClassTransformer extends AbstractConfigTransformer {
         }
     }
 
-    private void processMethodCode(CtMethod ctMethod, MethodInfo methodInfo) throws Exception {
-        String longKey = methodInfo.toString();
-        if (transformedMethods.contains(longKey)) {
-//            logger.debug("{} has been transformed.", longKey);
-            return;
-        }
-        logger.debug("accept: {}", longKey);
-        String preCode = "";
-        if (item.needMethodInfo) {
-            ctMethod.addLocalVariable(methodInfoVar, AgentClassPool.getInstance().get(methodInfoClassName));
-            preCode = methodInfoVar + " = " + methodInfo.newCode();
-        }
-        switch (item.position) {
-            case BEFORE:
-            case BEFORE_MC:
-                ctMethod.insertBefore(newCode(preCode, "invokeBefore"));
-                break;
-            case AFTER:
-            case AFTER_MC:
-                ctMethod.insertAfter(newCode(preCode, "invokeAfter"));
-                break;
-            case WRAP:
-            case WRAP_MC:
-                ctMethod.insertBefore(newCode(preCode, "invokeWrapBefore"));
-                ctMethod.insertAfter(newCode("", "invokeWrapAfter"));
-                break;
-        }
-        transformedMethods.add(longKey);
-        additionalClassNames.add(methodInfo.className);
+    private boolean needToBeTransformed(CtMethod ctMethod) {
+        return !transformedMethods.contains(ctMethod.getLongName());
+    }
+
+    private void addToTransformed(CtMethod ctMethod) {
+        transformedMethods.add(ctMethod.getLongName());
+    }
+
+    private void processMethodCode(CtMethod ctMethod, MethodInfo methodInfo) {
+//        time("processMethodCode", () ->
+        Utils.wrapToRtError(() -> {
+            logger.debug("accept: {}", methodInfo);
+            String preCode = "";
+            if (item.needMethodInfo) {
+                ctMethod.addLocalVariable(methodInfoVar, AgentClassPool.getInstance().get(methodInfoClassName));
+                preCode = methodInfoVar + " = " + methodInfo.newCode();
+            }
+            switch (item.position) {
+                case BEFORE:
+                case BEFORE_MC:
+                    ctMethod.insertBefore(newCode(preCode, "invokeBefore"));
+                    break;
+                case AFTER:
+                case AFTER_MC:
+                    ctMethod.insertAfter(newCode(preCode, "invokeAfter"));
+                    break;
+                case WRAP:
+                case WRAP_MC:
+                    ctMethod.insertBefore(newCode(preCode, "invokeWrapBefore"));
+                    ctMethod.insertAfter(newCode("", "invokeWrapAfter"));
+                    break;
+            }
+            addToTransformed(ctMethod);
+            additionalClassNames.add(methodInfo.className);
+        });
+//        );
     }
 
     private String newCode(String preCode, String method) {
@@ -154,92 +164,99 @@ public class DynamicClassTransformer extends AbstractConfigTransformer {
         public void edit(MethodCall mc) {
             Utils.wrapToRtError(() -> {
                 CtMethod ctMethod = mc.getMethod();
-                MethodInfo methodInfo = newMethodInfo(ctMethod, level);
-                if (Modifier.isAbstract(ctMethod.getModifiers())) {
-                    if (item.methodRuleFilter.needGetImplClasses(methodInfo)) {
-//                        logger.debug("Method is abstract: {}", ctMethod.getLongName());
-                        Collection<CtMethod> implMethods = findImplMethods(ctMethod.getDeclaringClass(), methodInfo);
-                        implMethods.forEach(implMethod -> logger.debug("Find impl method: {}", implMethod.getLongName()));
-                        for (CtMethod implMethod : implMethods) {
-                            if (!skipMethod(implMethod))
-                                processMethod(implMethod, newMethodInfo(implMethod, level));
+                if (needToBeTransformed(ctMethod)) {
+                    if (Modifier.isAbstract(ctMethod.getModifiers())) {
+                        MethodInfo methodInfo = newMethodInfo(ctMethod, level);
+                        if (item.methodRuleFilter.needGetImplClasses(methodInfo)) {
+//                            logger.debug("Method is abstract: {}", ctMethod.getLongName());
+                            findImplMethods(
+                                    ctMethod.getDeclaringClass(),
+                                    methodInfo
+                            ).forEach(
+                                    implMethod -> processMethod(
+                                            implMethod,
+                                            newMethodInfo(implMethod, level)
+                                    )
+                            );
                         }
-                    }
-                } else if (!skipMethod(ctMethod)) {
-//                    logger.debug("Method is concrete: {}", ctMethod.getLongName());
-                    processMethod(ctMethod, methodInfo);
+                        addToTransformed(ctMethod);
+                    } else
+                        processMethod(ctMethod, newMethodInfo(ctMethod, level));
                 }
             });
         }
 
-        private boolean isLoaderValid(ClassLoader classLoader) {
-            if (loaderChain == null)
-                loaderChain = ClassLoaderUtils.getClassLoaderChain(
-                        getClassFinder().findClassLoader(item.context)
-                );
-            return classLoader == null || loaderChain.contains(classLoader);
-        }
-
         private Collection<String> findImplClassNames(MethodInfo methodInfo) {
+//            return time("findImplClassNames", () ->
             return Utils.wrapToRtError(
-                    () -> {
-                        Class<?> baseClass = getClassFinder().findClass(item.context, methodInfo.className);
-                        List<Class<?>> subClassList = JvmtiUtils.getInstance()
-                                .findLoadedSubTypes(baseClass)
-                                .stream()
-                                .filter(clazz -> isLoaderValid(clazz.getClassLoader()) &&
-                                        !ClassPathRecorder.isNativePackage(clazz.getName())
-                                )
-                                .collect(Collectors.toList());
-                        Map<String, Class<?>> subClassMap = new HashMap<>();
-                        subClassList.forEach(clazz -> {
-                            String className = clazz.getName();
-                            if (subClassMap.containsKey(className))
-                                logger.warn("Duplicated sub class: {}, loader: {}, base class: {}",
-                                        className, clazz.getClassLoader(), methodInfo.className);
-                            subClassMap.put(className, clazz);
-                        });
-                        Collection<String> implClassNames = item.methodRuleFilter.getImplClasses(
-                                methodInfo,
-                                new HashSet<>(subClassMap.keySet())
-                        );
-                        Collection<String> invalidClassNames = new HashSet<>();
-                        ClassPoolUtils.getClassPathRecorder().add(
-                                implClassNames.stream()
-                                        .map(subClassMap::get)
-                                        .filter(Objects::nonNull)
-                                        .collect(Collectors.toList()),
-                                (clazz, error) -> {
-                                    invalidClassNames.add(clazz.getName());
-                                    logger.error("Add classpath failed: " + clazz.getName(), error);
-                                }
-                        );
-                        implClassNames.removeAll(invalidClassNames);
-                        return implClassNames;
-                    },
+                    () -> Collections.unmodifiableCollection(
+                            baseToSubClassMap.computeIfAbsent(
+                                    methodInfo.className,
+                                    baseClassName -> {
+                                        Map<String, Class<?>> subClassMap = new HashMap<>(
+                                                item.methodRuleFilter.getImplClasses(
+                                                        methodInfo,
+                                                        () -> ClassCache.getInstance().getSubClassMap(item.context, baseClassName)
+                                                )
+                                        );
+                                        ClassFinder classFinder = getClassFinder();
+                                        subClassMap.entrySet().removeIf(
+                                                entry -> {
+                                                    String subClassName = entry.getKey();
+                                                    if (invalidClassNames.contains(subClassName))
+                                                        return true;
+                                                    if (entry.getValue() == null) {
+                                                        try {
+                                                            entry.setValue(
+                                                                    classFinder.findClass(item.context, subClassName)
+                                                            );
+                                                        } catch (Exception e) {
+                                                            logger.error("Find class failed, context: {}, class: {}", item.context, subClassName);
+                                                            invalidClassNames.add(subClassName);
+                                                            return true;
+                                                        }
+                                                    }
+                                                    return false;
+                                                }
+                                        );
+
+                                        ClassPoolUtils.getClassPathRecorder().add(
+                                                Collections.unmodifiableCollection(subClassMap.values()),
+                                                (clazz, error) -> logger.error("Add classpath failed: " + clazz.getName(), error)
+                                        );
+                                        return subClassMap;
+                                    }
+                            ).keySet()
+                    ),
                     () -> "Get impl classes failed: " + methodInfo
             );
+//            );
         }
 
         private Collection<CtMethod> findImplMethods(CtClass baseClass, MethodInfo methodInfo) {
+//            return time("findImplMethods", () ->
             return Utils.wrapToRtError(() -> {
-                        logger.debug("Find impl classes of class {}", methodInfo.className);
+//                        logger.debug("Find impl classes of class {}", methodInfo.className);
                         Collection<String> implClassNames = findImplClassNames(methodInfo);
-                        logger.debug("Found impl classes: {}", implClassNames);
+//                        logger.debug("Found impl classes: {}", implClassNames);
                         if (implClassNames == null || implClassNames.isEmpty())
                             return Collections.emptyList();
                         else {
-                            Set<String> implClassSet = new HashSet<>(implClassNames);
-                            if (implClassSet.isEmpty())
-                                return Collections.emptyList();
-                            CtClass[] implClasses = AgentClassPool.getInstance().get(
-                                    implClassSet.toArray(new String[0])
-                            );
-                            for (CtClass implClass : implClasses) {
-                                if (!implClass.subtypeOf(baseClass))
-                                    throw new RuntimeException("Class " + implClass.getName() + " is not sub type of " + baseClass.getName());
+                            Collection<CtClass> implClasses = new LinkedList<>();
+                            for (String implClassName : implClassNames) {
+                                CtClass implClass = null;
+                                try {
+                                    implClass = AgentClassPool.getInstance().get(implClassName);
+                                } catch (Exception e) {
+                                    logger.error("Find impl class failed: {}", implClassName, e);
+                                }
+                                if (implClass != null) {
+                                    if (!implClass.subtypeOf(baseClass))
+                                        throw new RuntimeException("Class " + implClass.getName() + " is not sub type of " + baseClass.getName());
+                                    implClasses.add(implClass);
+                                }
                             }
-                            return Stream.of(implClasses)
+                            return implClasses.stream()
                                     .map(ctClass -> findMethod(ctClass, methodInfo))
                                     .filter(Objects::nonNull)
                                     .collect(Collectors.toList());
@@ -247,6 +264,7 @@ public class DynamicClassTransformer extends AbstractConfigTransformer {
                     },
                     () -> "Find impl methods failed: " + methodInfo.toString()
             );
+//            );
         }
 
         private CtMethod findMethod(CtClass ctClass, MethodInfo methodInfo) {
@@ -267,17 +285,20 @@ public class DynamicClassTransformer extends AbstractConfigTransformer {
         }
 
         private void processMethod(CtMethod ctMethod, MethodInfo methodInfo) {
+            if (skipMethod(ctMethod)) {
+                addToTransformed(ctMethod);
+                return;
+            }
             Utils.wrapToRtError(() -> {
-                        logger.debug("Process method: {}", ctMethod.getLongName());
+//                        logger.debug("Process method: {}", ctMethod.getLongName());
                         int nextLevel = level + 1;
                         if (nextLevel < maxLevel &&
                                 item.methodRuleFilter.stepInto(methodInfo)) {
-                            logger.debug("stepInto: {}", methodInfo);
+//                            logger.debug("stepInto: {}", methodInfo);
                             ctMethod.instrument(new NestedExprEditor(nextLevel));
                         }
-                        if (item.methodRuleFilter.accept(methodInfo)) {
+                        if (item.methodRuleFilter.accept(methodInfo))
                             processMethodCode(ctMethod, methodInfo);
-                        }
                     },
                     () -> "Process method failed: " + ctMethod.getLongName()
             );
@@ -286,11 +307,10 @@ public class DynamicClassTransformer extends AbstractConfigTransformer {
 
     private boolean skipMethod(CtMethod ctMethod) {
         String declaredClassName = ctMethod.getDeclaringClass().getName();
-        boolean skip = MethodFinder.isMethodEmpty(ctMethod) ||
+        return MethodFinder.isMethodEmpty(ctMethod) ||
                 ClassPathRecorder.isNativePackage(declaredClassName);
-        if (skip)
-            logger.debug("Skip method: {}", ctMethod.getLongName());
-        return skip;
+//        if (skip)
+//            logger.debug("Skip method: {}", ctMethod.getLongName());
     }
 
     private MethodInfo newMethodInfo(CtMethod ctMethod, int level) {
@@ -305,5 +325,29 @@ public class DynamicClassTransformer extends AbstractConfigTransformer {
 
     private ClassFinder getClassFinder() {
         return TransformMgr.getInstance().getClassFinder();
+    }
+
+    private <T> T time(String msg, Supplier<T> func) {
+        long st = System.currentTimeMillis();
+        try {
+            return func.get();
+        } finally {
+            long et = System.currentTimeMillis();
+            System.out.println("@@@@@" + msg + ": " + (et - st) + "ms");
+        }
+    }
+
+    private void time(String msg, Func func) {
+        long st = System.currentTimeMillis();
+        try {
+            func.run();
+        } finally {
+            long et = System.currentTimeMillis();
+            System.out.println("@@@@@" + msg + ": " + (et - st) + "ms");
+        }
+    }
+
+    private interface Func {
+        void run();
     }
 }

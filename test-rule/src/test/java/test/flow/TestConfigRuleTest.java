@@ -16,12 +16,12 @@ import agent.server.transform.config.rule.ContextRule;
 import agent.server.transform.config.rule.MethodRule;
 import agent.server.transform.impl.dynamic.MethodInfo;
 import agent.server.transform.impl.dynamic.MethodRuleFilter;
+import agent.server.transform.impl.dynamic.SubClassSearcher;
 import agent.server.transform.impl.dynamic.rule.TreeTimeMeasureRule;
 import agent.server.transform.impl.utils.AgentClassPool;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import test.AbstractTest;
-import test.rule.TestRuleTest;
 import test.utils.TestClassFinder;
 import test.utils.TestClassLoader;
 import test.utils.TestInstrumentation;
@@ -29,7 +29,10 @@ import test.utils.TestMap;
 
 import java.lang.reflect.Modifier;
 import java.net.URL;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static agent.server.transform.config.rule.MethodRule.Position.*;
@@ -115,7 +118,10 @@ public class TestConfigRuleTest extends AbstractTest {
         new TestMap();
 
         Command cmd = new ByRuleCommand.TransformByRuleCommand(context, TestTimeRule.class.getName());
+        long st = System.currentTimeMillis();
         ExecResult result = new TransformCmdExecutor().exec(cmd);
+        long et = System.currentTimeMillis();
+        System.out.println("===================: " + (et - st) + "ms");
         CommandResultHandlerMgr.handleResult(cmd, result);
 
         classloader.defineClass(baseAClassName, instrumentation.getBytes(baseAClassName));
@@ -185,10 +191,15 @@ public class TestConfigRuleTest extends AbstractTest {
         }
 
         @Override
-        public Collection<String> getImplClasses(MethodInfo methodInfo, Collection<String> loadedSubClassNames) {
-            return loadedSubClassNames.stream()
-                    .filter(className -> className.startsWith("test.flow."))
-                    .collect(Collectors.toList());
+        public Map<String, Class<?>> getImplClasses(MethodInfo methodInfo, SubClassSearcher subClassSearcher) {
+            return subClassSearcher.get().entrySet().stream()
+                    .filter(entry -> entry.getKey().startsWith("test.flow."))
+                    .collect(
+                            Collectors.toMap(
+                                    Map.Entry::getKey,
+                                    Map.Entry::getValue
+                            )
+                    );
         }
     }
 

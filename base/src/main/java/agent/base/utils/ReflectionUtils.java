@@ -4,6 +4,9 @@ import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @SuppressWarnings("unchecked")
 public class ReflectionUtils {
@@ -15,6 +18,19 @@ public class ReflectionUtils {
                 return true;
         }
         return false;
+    }
+
+    public static List<Class<?>> findSubTypes(Class<?> baseClass, Collection<Class<?>> candidateClasses) {
+        return candidateClasses.stream()
+                .filter(clazz -> baseClass != clazz &&
+                        baseClass.isAssignableFrom(clazz)
+                ).collect(Collectors.toList());
+    }
+
+    public static List<Class<?>> findSubClasses(Class<?> baseClass, Collection<Class<?>> candidateClasses) {
+        return candidateClasses.stream()
+                .filter(clazz -> clazz.getSuperclass() == baseClass)
+                .collect(Collectors.toList());
     }
 
     public static <T> T newInstance(Object classOrClassName) throws Exception {

@@ -55,19 +55,31 @@ public abstract class AbstractClassFinder implements ClassFinder {
         return item;
     }
 
+    @Override
     public ClassLoader findClassLoader(String contextPath) {
         LoaderItem item = getLoaderItem(contextPath);
         return item.loaderLock.syncValue(lock -> {
-            logger.debug("Use class loader to find class: {}", item.loader);
+//            logger.debug("Use class loader to find class: {}", item.loader);
             return item.loader;
         });
     }
 
+    @Override
     public Class<?> findClass(String contextPath, String className) {
         return Utils.wrapToRtError(
                 () -> findClassLoader(contextPath).loadClass(className),
                 () -> "Find class failed on context: " + contextPath
         );
+    }
+
+    @Override
+    public Map<String, ClassLoader> getContextToLoader() {
+        init();
+        Map<String, ClassLoader> rsMap = new HashMap<>();
+        contextPathToClassLoader.forEach(
+                (context, loaderItem) -> rsMap.put(context, loaderItem.loader)
+        );
+        return rsMap;
     }
 
     protected static class LoaderItem {

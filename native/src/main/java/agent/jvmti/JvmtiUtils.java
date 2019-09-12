@@ -8,7 +8,6 @@ import java.io.File;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 public class JvmtiUtils {
     private static final Logger logger = Logger.getLogger(JvmtiUtils.class);
@@ -64,28 +63,11 @@ public class JvmtiUtils {
         ).orElse(Collections.emptyList());
     }
 
-    public List<Class<?>> findLoadedSubTypes(Class<?> baseClass) {
-        return findLoadedClasses(clazz -> baseClass != clazz && baseClass.isAssignableFrom(clazz));
-    }
-
-    public List<Class<?>> findLoadedSubClasses(Class<?> baseClass) {
-        return findLoadedClasses(clazz -> clazz.getSuperclass() == baseClass);
-    }
-
-    public List<Class<?>> findLoadedClasses(ClassFilter classFilter) {
-        List<Class<?>> loadedClasses = getLoadedClasses();
-        return loadedClasses == null ?
-                null :
-                loadedClasses.stream()
-                        .filter(classFilter::accept)
-                        .collect(Collectors.toList());
+    public List<Class<?>> findLoadedClassList() {
+        return getLoadedClasses();
     }
 
     private native <T> List<T> findObjectsByClassHelper(Class<T> clazz, int maxCount);
 
     private native List<Class<?>> getLoadedClasses();
-
-    public interface ClassFilter {
-        boolean accept(Class<?> clazz);
-    }
 }

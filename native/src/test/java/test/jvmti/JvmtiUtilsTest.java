@@ -1,7 +1,10 @@
 package test.jvmti;
 
+import agent.base.utils.ReflectionUtils;
 import agent.jvmti.JvmtiUtils;
 import org.junit.Test;
+
+import java.util.List;
 
 import static org.junit.Assert.*;
 
@@ -33,17 +36,18 @@ public class JvmtiUtilsTest {
         new B();
         new SubB();
         new SubSubB();
-        jvmtiUtils.findLoadedSubTypes(T.class).forEach(System.out::println);
+        List<Class<?>> loadedClasses = jvmtiUtils.findLoadedClassList();
+        ReflectionUtils.findSubTypes(T.class, loadedClasses).forEach(System.out::println);
         System.out.println("=================");
-        jvmtiUtils.findLoadedSubClasses(T.class).forEach(System.out::println);
+        ReflectionUtils.findSubClasses(T.class, loadedClasses).forEach(System.out::println);
         System.out.println("=================");
-        jvmtiUtils.findLoadedSubTypes(B.class).forEach(System.out::println);
+        ReflectionUtils.findSubTypes(B.class, loadedClasses).forEach(System.out::println);
         System.out.println("=================");
-        jvmtiUtils.findLoadedSubClasses(B.class).forEach(System.out::println);
+        ReflectionUtils.findSubClasses(B.class, loadedClasses).forEach(System.out::println);
         System.out.println("=================");
-        jvmtiUtils.findLoadedSubTypes(SubB.class).forEach(System.out::println);
+        ReflectionUtils.findSubTypes(SubB.class, loadedClasses).forEach(System.out::println);
         System.out.println("=================");
-        jvmtiUtils.findLoadedSubClasses(SubB.class).forEach(System.out::println);
+        ReflectionUtils.findSubClasses(SubB.class, loadedClasses).forEach(System.out::println);
     }
 
     private interface T {

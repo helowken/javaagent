@@ -1,6 +1,6 @@
 package agent.server.transform.impl.dynamic;
 
-import java.util.Collection;
+import java.util.Map;
 
 public interface MethodRuleFilter {
     default boolean accept(MethodInfo methodInfo) {
@@ -15,7 +15,8 @@ public interface MethodRuleFilter {
         return !methodInfo.isNative;
     }
 
-    default Collection<String> getImplClasses(MethodInfo methodInfo, Collection<String> loadedSubClassNames) {
-        return loadedSubClassNames;
+    default Map<String, Class<?>> getImplClasses(MethodInfo methodInfo, SubClassSearcher subClassSearcher) {
+        return subClassSearcher.get();
     }
+
 }
