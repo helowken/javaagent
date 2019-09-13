@@ -6,6 +6,8 @@ import java.text.DateFormat;
 import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static agent.base.utils.Logger.LoggerLevel.*;
 
@@ -21,6 +23,7 @@ public class Logger {
     private static final LockObject levelLock = new LockObject();
     private static volatile PrintStream outputStream;
     private static volatile LoggerLevel defaultLevel = DEBUG;
+    private static final Map<String, String> patternToFormat = new ConcurrentHashMap<>();
 
     private final LockObject selfLock = new LockObject();
     private final Class<?> clazz;
@@ -103,20 +106,24 @@ public class Logger {
     }
 
     private static String convertPattern(String pattern) {
-        StringBuilder sb = new StringBuilder();
-        int start = 0;
-        int idx = 0;
-        while (true) {
-            int pos = pattern.indexOf(PLACE_HOLDER, start);
-            if (pos > -1) {
-                sb.append(pattern, start, pos).append("{").append(idx++).append("}");
-                start = pos + PLACE_HOLDER_LEN;
-            } else
-                break;
-        }
-        if (start < pattern.length())
-            sb.append(pattern.substring(start));
-        return sb.toString();
+        return patternToFormat.computeIfAbsent(pattern,
+                patternKey -> {
+                    StringBuilder sb = new StringBuilder();
+                    int start = 0;
+                    int idx = 0;
+                    while (true) {
+                        int pos = patternKey.indexOf(PLACE_HOLDER, start);
+                        if (pos > -1) {
+                            sb.append(patternKey, start, pos).append("{").append(idx++).append("}");
+                            start = pos + PLACE_HOLDER_LEN;
+                        } else
+                            break;
+                    }
+                    if (start < patternKey.length())
+                        sb.append(patternKey.substring(start));
+                    return sb.toString();
+                }
+        );
     }
 
     private void println(String s) {

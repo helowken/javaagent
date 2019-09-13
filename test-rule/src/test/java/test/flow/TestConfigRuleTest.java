@@ -204,8 +204,8 @@ public class TestConfigRuleTest extends AbstractTest {
     }
 
     static abstract class BaseA {
-        private BIntf b1 = new B1();
-        private BIntf b2 = new B2();
+        protected BIntf b1 = new B1();
+        protected BIntf b2 = new B2();
 
         void task4() throws Exception {
             System.out.println("------ task4-------");
@@ -240,6 +240,8 @@ public class TestConfigRuleTest extends AbstractTest {
         public void runTasks() throws Exception {
             getB(0).task1();
             task2();
+            ((AbstractB) b1).doTaskBBB();
+            ((AbstractB) b2).doTaskBBB();
             task3();
             getB(1).task1();
         }
@@ -316,12 +318,19 @@ public class TestConfigRuleTest extends AbstractTest {
         }
 
         abstract void doTask() throws Exception;
+
+        public abstract void doTaskBBB();
     }
 
     private static class B1 extends AbstractB {
         void doTask() throws Exception {
             Thread.sleep(10);
             task11();
+        }
+
+        @Override
+        public void doTaskBBB() {
+            System.out.println("B1 do BBB");
         }
 
         private void task11() throws Exception {
@@ -333,6 +342,11 @@ public class TestConfigRuleTest extends AbstractTest {
         void doTask() throws Exception {
             Thread.sleep(20);
             task21();
+        }
+
+        @Override
+        public void doTaskBBB() {
+            System.out.println("B2 do BBB");
         }
 
         private void task21() throws Exception {
