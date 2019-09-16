@@ -16,7 +16,7 @@ import agent.server.transform.config.rule.ContextRule;
 import agent.server.transform.config.rule.MethodRule;
 import agent.server.transform.impl.dynamic.MethodInfo;
 import agent.server.transform.impl.dynamic.MethodRuleFilter;
-import agent.server.transform.impl.dynamic.SubClassSearcher;
+import agent.server.transform.impl.dynamic.SubTypeSearcher;
 import agent.server.transform.impl.dynamic.rule.TreeTimeMeasureRule;
 import agent.server.transform.impl.utils.AgentClassPool;
 import org.junit.BeforeClass;
@@ -191,7 +191,7 @@ public class TestConfigRuleTest extends AbstractTest {
         }
 
         @Override
-        public Map<String, Class<?>> getImplClasses(MethodInfo methodInfo, SubClassSearcher subClassSearcher) {
+        public Map<String, Class<?>> getImplClasses(MethodInfo methodInfo, SubTypeSearcher subClassSearcher) {
             return subClassSearcher.get().entrySet().stream()
                     .filter(entry -> entry.getKey().startsWith("test.flow."))
                     .collect(

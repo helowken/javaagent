@@ -86,12 +86,12 @@ public class CostTimeLogger implements AgentEventListener {
         else {
             LogMgr.logBinary(logKey, currItem);
             currItemLocal.remove();
-            logger.debug("Current item is committed.");
+//            logger.debug("Current item is committed.");
         }
     }
 
     public void rollback() {
-        logger.debug("rollback.");
+//        logger.debug("rollback.");
         currItemLocal.remove();
     }
 
@@ -152,7 +152,7 @@ public class CostTimeLogger implements AgentEventListener {
         private final List<Integer> typeToCostTime = new LinkedList<>();
 
         void log(int type, int costTime) {
-            logger.debug("Cost time item type: {}, cost time: {}", type, costTime);
+//            logger.debug("Cost time item type: {}, cost time: {}", type, costTime);
             typeToCostTime.add(type);
             typeToCostTime.add(costTime);
         }

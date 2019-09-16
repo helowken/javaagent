@@ -28,12 +28,12 @@ public class CostTimeStatisticsTransformer extends AbstractConfigTransformer {
     private Set<String> entryPoints = new HashSet<>();
 
     @Override
-    protected void doSetConfig(Map<String, Object> config) throws Exception {
+    protected void doSetConfig(Map<String, Object> config) {
         logKey = LogMgr.regBinary(config, Collections.EMPTY_MAP);
         configEntryPoint(config);
     }
 
-    private void configEntryPoint(Map<String, Object> config) throws Exception {
+    private void configEntryPoint(Map<String, Object> config) {
         List<Map<String, Object>> entryPointConfig = (List) Optional.ofNullable(config.get(KEY_ENTRY_POINT))
                 .orElseThrow(() -> new RuntimeException("No entry point found in config."));
         List<ClassConfig> classConfigList = JSONUtils.convert(entryPointConfig, new TypeReference<List<ClassConfig>>() {

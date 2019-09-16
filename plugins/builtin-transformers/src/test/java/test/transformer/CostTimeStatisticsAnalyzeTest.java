@@ -4,7 +4,6 @@ import agent.base.utils.IOUtils;
 import agent.base.utils.IndentUtils;
 import agent.builtin.transformer.utils.CostTimeLogger;
 import agent.common.utils.JSONUtils;
-import org.junit.Test;
 
 import java.io.*;
 import java.util.HashMap;
@@ -12,9 +11,9 @@ import java.util.Map;
 import java.util.TreeMap;
 
 public class CostTimeStatisticsAnalyzeTest {
-    @Test
-    public void test() throws Exception {
+    public static void main(String[] args) throws Exception {
         String outputPath = "/home/helowken/cost-time/cost-time-statistics.log";
+//        String outputPath = args[0];
         String metadataPath = outputPath + CostTimeLogger.METADATA_FILE;
         Map<String, Map<String, Map<String, Integer>>> contextToClassToMethodToType = readMetadata(metadataPath);
 
@@ -30,6 +29,8 @@ public class CostTimeStatisticsAnalyzeTest {
                     TimeItem item = typeToTimeItem.computeIfAbsent(methodType, key -> new TimeItem());
                     item.totalTime += costTime;
                     item.count += 1;
+                    if (costTime > item.maxTime)
+                        item.maxTime = costTime;
                 }
                 length -= Integer.BYTES + Integer.BYTES * totalSize;
             }
@@ -43,7 +44,8 @@ public class CostTimeStatisticsAnalyzeTest {
                     TimeItem item = typeToTimeItem.get(type);
                     if (item != null) {
                         int avgTime = item.totalTime / item.count;
-                        System.out.println(IndentUtils.getIndent(2) + "method " + method + ", count: " + item.count + ", avg time: " + avgTime + "ms");
+                        System.out.println(IndentUtils.getIndent(2) + "method " + method + ", count: " + item.count +
+                                ", avg time: " + avgTime + "ms, max time: " + item.maxTime + "ms");
                     }
                 });
             });
@@ -58,5 +60,6 @@ public class CostTimeStatisticsAnalyzeTest {
     private static class TimeItem {
         int totalTime = 0;
         int count = 0;
+        int maxTime = 0;
     }
 }

@@ -7,8 +7,6 @@ server_launcher_jar=$base_dir/server-launcher-$version.jar
 server_lib_dir=$base_dir/lib
 server_plugin_dir=$base_dir/plugin
 tools_jar=$JAVA_HOME/lib/tools.jar
-classpath=.:$common_lib_dir/*:$server_lib_dir/*:$server_plugin_dir/*:$server_launcher_jar:$tools_jar
+classpath=$common_lib_dir/*:$server_lib_dir/*:$server_plugin_dir/*:$server_launcher_jar:$tools_jar
 dest_dir=$1
 java_file=$2
-
-$JAVA_HOME/bin/javac -d $dest_dir -cp $classpath $java_file

@@ -15,10 +15,10 @@
                             },
                             "entryPoint": [
                                 {
-                                    "class": "test.jetty.StatisticsCostTimeObject",
+                                    "class": "test.jetty.TestFilter2",
                                     "methods": [
                                         {
-                                            "name": "service"
+                                            "name": "test"
                                         }
                                     ]
                                 }
@@ -27,6 +27,14 @@
                     }
                 ],
                 "targets": [
+                    {
+                        "class": "test.jetty.TestFilter2",
+                        "methods": [
+                            {
+                                "name": "test"
+                            }
+                        ]
+                    },
                     {
                         "class": "test.jetty.StatisticsCostTimeObject",
                         "methodFilter": {}

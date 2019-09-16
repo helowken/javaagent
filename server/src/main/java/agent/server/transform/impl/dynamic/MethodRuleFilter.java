@@ -15,7 +15,7 @@ public interface MethodRuleFilter {
         return !methodInfo.isNative;
     }
 
-    default Map<String, Class<?>> getImplClasses(MethodInfo methodInfo, SubClassSearcher subClassSearcher) {
+    default Map<String, Class<?>> getImplClasses(MethodInfo methodInfo, SubTypeSearcher subClassSearcher) {
         return subClassSearcher.get();
     }
 

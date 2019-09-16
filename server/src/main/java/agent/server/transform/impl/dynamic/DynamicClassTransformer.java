@@ -244,7 +244,7 @@ public class DynamicClassTransformer extends AbstractConfigTransformer {
             return Utils.wrapToRtError(() -> {
 //                        logger.debug("Find impl classes of class {}", methodInfo.className);
                         Collection<String> implClassNames = findImplClassNames(methodInfo);
-//                        logger.debug("Found impl classes: {}", implClassNames);
+                        logger.debug("Found {} impl classes: {}", methodInfo, implClassNames);
                         if (implClassNames == null || implClassNames.isEmpty())
                             return Collections.emptyList();
                         else {
