@@ -16,6 +16,10 @@ public class EventListenerMgr {
     private static final ThreadPoolExecutor executor = new ThreadPoolExecutor(2, 10,
             5, TimeUnit.MINUTES, new ArrayBlockingQueue<>(100));
 
+    static {
+        Runtime.getRuntime().addShutdownHook(new Thread(executor::shutdown));
+    }
+
     public static void reg(AgentEventListener listener) {
         listenerLock.sync(lock -> {
             if (!listenerList.contains(listener)) {

@@ -1,11 +1,11 @@
 package agent.server.utils.log;
 
-import java.util.function.Supplier;
+public interface LogWriter<T extends LogItem> {
+    void write(T item);
 
-public interface LogWriter {
-    void write(Object content, Supplier<SyncWriter> syncWriterSupplier);
+    void flush();
 
-    void flush(Supplier<SyncWriter> syncWriterSupplier);
+    void close();
 
     LogConfig getConfig();
 }

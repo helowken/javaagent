@@ -11,15 +11,15 @@ import agent.server.event.EventListenerMgr;
 import agent.server.event.impl.LogFlushedEvent;
 import agent.server.event.impl.ResetClassEvent;
 import agent.server.utils.log.LogMgr;
-import agent.server.utils.log.binary.BinaryConverterRegistry;
+import agent.server.utils.log.binary.BinaryLogItem;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class CostTimeLogger implements AgentEventListener {
+    public static final String METADATA_FILE = ".metadata";
     private static final Logger logger = Logger.getLogger(CostTimeLogger.class);
     private static final CostTimeLogger instance = new CostTimeLogger();
-    public static final String METADATA_FILE = ".metadata";
 
     private final LockObject methodTypeLock = new LockObject();
     private final Map<String, Map<String, Map<String, Integer>>> contextToClassToMethodToType = new HashMap<>();
@@ -27,21 +27,6 @@ public class CostTimeLogger implements AgentEventListener {
     private final AtomicInteger typeCounter = new AtomicInteger(0);
     private final Map<String, Set<String>> outputPathToContexts = new HashMap<>();
     private final ThreadLocal<CostTimeItem> currItemLocal = new ThreadLocal<>();
-
-    static {
-        BinaryConverterRegistry.reg(CostTimeItem.class, v -> {
-            CostTimeItem item = (CostTimeItem) v;
-            int length = item.typeToCostTime.size();
-            int size = length * Integer.BYTES + Integer.BYTES;
-            byte[] bs = new byte[size];
-            int idx = 0;
-            idx = ByteUtils.putInt(bs, idx, length);
-            for (int i = 0; i < length; ++i) {
-                idx = ByteUtils.putInt(bs, idx, item.typeToCostTime.get(i));
-            }
-            return bs;
-        });
-    }
 
     public static CostTimeLogger getInstance() {
         return instance;
@@ -84,7 +69,7 @@ public class CostTimeLogger implements AgentEventListener {
         if (currItem == null)
             logger.warn("No cost time item found, but commit is called, log key is: {}", logKey);
         else {
-            LogMgr.logBinary(logKey, currItem);
+            LogMgr.logBinary(logKey, currItem.getBinaryLogItem());
             currItemLocal.remove();
 //            logger.debug("Current item is committed.");
         }
@@ -149,12 +134,28 @@ public class CostTimeLogger implements AgentEventListener {
     }
 
     private static class CostTimeItem {
-        private final List<Integer> typeToCostTime = new LinkedList<>();
+        private static final int BUFFER_SIZE = 4096;
+        private static final int INT_SIZE = Integer.BYTES;
+        private static final int DOUBLE_INT_SIZE = INT_SIZE * 2;
+        private byte[] bs = new byte[BUFFER_SIZE];
+        private int idx = INT_SIZE;
+        private int count = 0;
 
         void log(int type, int costTime) {
 //            logger.debug("Cost time item type: {}, cost time: {}", type, costTime);
-            typeToCostTime.add(type);
-            typeToCostTime.add(costTime);
+            if (idx + DOUBLE_INT_SIZE >= bs.length) {
+                byte[] newBs = new byte[bs.length * 2];
+                System.arraycopy(bs, 0, newBs, 0, bs.length);
+                bs = newBs;
+            }
+            idx = ByteUtils.putInt(bs, idx, type);
+            idx = ByteUtils.putInt(bs, idx, costTime);
+            ++count;
+        }
+
+        BinaryLogItem getBinaryLogItem() {
+            ByteUtils.putInt(bs, 0, count);
+            return new BinaryLogItem(bs, 0, idx);
         }
     }
 }

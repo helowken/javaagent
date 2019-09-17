@@ -35,7 +35,7 @@ public class LogUtils {
         ).append("\n");
         func.exec(stVar, etVar, endBlock);
         String content = endBlock.toString();
-        logger.debug("Cost time code end block: {}", content);
+//        logger.debug("Cost time code end block: {}", content);
         ctMethod.insertAfter(content);
     }
 

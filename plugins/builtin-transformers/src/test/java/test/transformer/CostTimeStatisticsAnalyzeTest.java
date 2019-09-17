@@ -22,7 +22,7 @@ public class CostTimeStatisticsAnalyzeTest {
         long length = outputFile.length();
         try (DataInputStream in = new DataInputStream(new BufferedInputStream(new FileInputStream(outputFile)))) {
             while (length > 0) {
-                int totalSize = in.readInt();
+                int totalSize = in.readInt() * 2;
                 for (int i = 0; i < totalSize; i += 2) {
                     int methodType = in.readInt();
                     int costTime = in.readInt();
@@ -32,7 +32,7 @@ public class CostTimeStatisticsAnalyzeTest {
                     if (costTime > item.maxTime)
                         item.maxTime = costTime;
                 }
-                length -= Integer.BYTES + Integer.BYTES * totalSize;
+                length -= Integer.BYTES * (totalSize + 1);
             }
         }
 
