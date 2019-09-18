@@ -7,5 +7,7 @@ public interface LogConfig {
 
     boolean isAutoFlush();
 
-    int getMaxBufferSize();
+    long getMaxBufferSize();
+
+    int getBufferCount();
 }

@@ -3,7 +3,6 @@ package agent.builtin.transformer.utils;
 import agent.base.utils.IOUtils;
 import agent.base.utils.LockObject;
 import agent.base.utils.Logger;
-import agent.common.buffer.ByteUtils;
 import agent.common.utils.JSONUtils;
 import agent.server.event.AgentEvent;
 import agent.server.event.AgentEventListener;
@@ -69,7 +68,8 @@ public class CostTimeLogger implements AgentEventListener {
         if (currItem == null)
             logger.warn("No cost time item found, but commit is called, log key is: {}", logKey);
         else {
-            LogMgr.logBinary(logKey, currItem.getBinaryLogItem());
+            currItem.end();
+            LogMgr.logBinary(logKey, currItem.logItem);
             currItemLocal.remove();
 //            logger.debug("Current item is committed.");
         }
@@ -134,28 +134,22 @@ public class CostTimeLogger implements AgentEventListener {
     }
 
     private static class CostTimeItem {
-        private static final int BUFFER_SIZE = 4096;
-        private static final int INT_SIZE = Integer.BYTES;
-        private static final int DOUBLE_INT_SIZE = INT_SIZE * 2;
-        private byte[] bs = new byte[BUFFER_SIZE];
-        private int idx = INT_SIZE;
+        private final BinaryLogItem logItem = new BinaryLogItem();
         private int count = 0;
+
+        private CostTimeItem() {
+            logItem.position(Integer.BYTES);
+        }
 
         void log(int type, int costTime) {
 //            logger.debug("Cost time item type: {}, cost time: {}", type, costTime);
-            if (idx + DOUBLE_INT_SIZE >= bs.length) {
-                byte[] newBs = new byte[bs.length * 2];
-                System.arraycopy(bs, 0, newBs, 0, bs.length);
-                bs = newBs;
-            }
-            idx = ByteUtils.putInt(bs, idx, type);
-            idx = ByteUtils.putInt(bs, idx, costTime);
+            logItem.putInt(type);
+            logItem.putInt(costTime);
             ++count;
         }
 
-        BinaryLogItem getBinaryLogItem() {
-            ByteUtils.putInt(bs, 0, count);
-            return new BinaryLogItem(bs, 0, idx);
+        void end() {
+            logItem.putInt(0, count);
         }
     }
 }

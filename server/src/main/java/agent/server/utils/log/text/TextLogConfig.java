@@ -6,8 +6,8 @@ public class TextLogConfig extends AbstractLogConfig {
     private final String outputFormat;
     private final String timeFormat;
 
-    public TextLogConfig(String outputPath, boolean autoFlush, int maxBufferSize, String outputFormat, String timeFormat) {
-        super(outputPath, autoFlush, maxBufferSize);
+    public TextLogConfig(String outputPath, boolean autoFlush, long maxBufferSize, int bufferCount, String outputFormat, String timeFormat) {
+        super(outputPath, autoFlush, maxBufferSize, bufferCount);
         this.outputFormat = outputFormat;
         this.timeFormat = timeFormat;
     }

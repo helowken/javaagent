@@ -18,25 +18,29 @@ import static agent.server.utils.log.LogConfig.STDOUT;
 
 public abstract class AbstractLogWriter<T extends LogConfig, V extends LogItem> implements LogWriter<V> {
     private static final Logger logger = Logger.getLogger(AbstractLogWriter.class);
-    private static final int MAX_AVAILABLE_BUFFERS = 20;
     protected final T logConfig;
-    private final LinkedBlockingQueue<Runnable> taskQueue = new LinkedBlockingQueue<>();
+    private final LinkedBlockingQueue<ItemBuffer> taskQueue = new LinkedBlockingQueue<>();
     private Thread writerThread;
-    private final LinkedBlockingQueue<List<V>> availableBuffers = new LinkedBlockingQueue<>(MAX_AVAILABLE_BUFFERS);
+    private final LinkedBlockingQueue<ItemBuffer> availableBuffers;
     private final LockObject bufferLock = new LockObject();
-    private volatile List<V> currBuffer;
-    private int bufferSize = 0;
+    private ItemBuffer dummyBuffer = new DummyItemBuffer();
+    private ItemBuffer currBuffer;
+    private final long maxBufferSize;
     private final boolean autoFlush;
-    private final int maxBufferSize;
     private AtomicBoolean closed = new AtomicBoolean(false);
+    protected boolean stdout;
 
     protected AbstractLogWriter(T logConfig) {
         this.logConfig = logConfig;
-        for (int i = 0; i < MAX_AVAILABLE_BUFFERS; ++i) {
-            availableBuffers.add(new LinkedList<>());
+        int bufferCount = logConfig.getBufferCount();
+        availableBuffers = new LinkedBlockingQueue<>(bufferCount);
+        for (int i = 0; i < bufferCount; ++i) {
+            availableBuffers.add(new ItemBuffer());
         }
         autoFlush = logConfig.isAutoFlush();
         maxBufferSize = logConfig.getMaxBufferSize();
+        String outputPath = logConfig.getOutputPath();
+        stdout = outputPath == null || STDOUT.equals(outputPath);
         startThread();
     }
 
@@ -44,11 +48,9 @@ public abstract class AbstractLogWriter<T extends LogConfig, V extends LogItem> 
         writerThread = new Thread(() -> {
             while (!closed.get()) {
                 try {
-                    Runnable task = taskQueue.take();
-                    if (closed.get())
-                        break;
-                    task.run();
+                    taskQueue.take().write();
                 } catch (InterruptedException e) {
+                    logger.error("Write thread is interrupted.", e);
                 }
             }
         });
@@ -58,63 +60,33 @@ public abstract class AbstractLogWriter<T extends LogConfig, V extends LogItem> 
     @Override
     public void write(V item) {
         try {
-            int size = autoFlush ? 0 : computeSize(item);
+            long size = autoFlush ? 0 : computeSize(item);
             bufferLock.sync(lock -> {
                 if (currBuffer == null)
                     currBuffer = availableBuffers.take();
-                currBuffer.add(item);
-                bufferSize += size;
-                if (autoFlush || bufferSize >= maxBufferSize)
-                    taskQueue.add(
-                            () -> writeDirtyBuffer(
-                                    getDirtyBuffer(),
-                                    autoFlush
-                            )
-                    );
+                currBuffer.add(item, size);
+                if (autoFlush || currBuffer.bufferSize >= maxBufferSize)
+                    taskQueue.add(getDirtyBuffer());
             });
         } catch (Exception e) {
             logger.error("Write failed", e);
         }
     }
 
-    private List<V> getDirtyBuffer() {
-        List<V> dirtyBuffer = currBuffer;
+    private ItemBuffer getDirtyBuffer() {
+        ItemBuffer dirtyBuffer = currBuffer;
         currBuffer = null;
-        bufferSize = 0;
         return dirtyBuffer;
-    }
-
-    private void writeDirtyBuffer(final List<V> dirtyBuffer, final boolean flush) {
-        if (dirtyBuffer != null) {
-            try {
-                while (!dirtyBuffer.isEmpty()) {
-                    doWrite(dirtyBuffer.remove(0));
-                }
-            } catch (Exception e) {
-                logger.error("Write dirty buffer failed.", e);
-            }
-            if (!dirtyBuffer.isEmpty()) {
-                logger.error("Buffer is still dirty, do clearing.");
-                dirtyBuffer.clear();
-            }
-            availableBuffers.add(dirtyBuffer);
-        }
-        if (flush) {
-            try {
-                doFlush();
-            } catch (Exception e) {
-                logger.error("Flush failed.", e);
-            }
-            EventListenerMgr.fireEvent(new LogFlushedEvent(logConfig.getOutputPath()), true);
-        }
     }
 
     @Override
     public void flush() {
-        List<V> dirtyBuffer = bufferLock.syncValue(lock -> getDirtyBuffer());
-        taskQueue.add(
-                () -> writeDirtyBuffer(dirtyBuffer, true)
-        );
+        ItemBuffer dirtyBuffer = bufferLock.syncValue(lock -> getDirtyBuffer());
+        if (dirtyBuffer != null)
+            dirtyBuffer.flush = true;
+        else
+            dirtyBuffer = dummyBuffer;
+        taskQueue.add(dirtyBuffer);
     }
 
     @Override
@@ -124,7 +96,7 @@ public abstract class AbstractLogWriter<T extends LogConfig, V extends LogItem> 
 
     protected OutputStream getOutputStream() throws FileNotFoundException {
         String outputPath = logConfig.getOutputPath();
-        if (isStdout(outputPath)) {
+        if (stdout) {
             logger.debug("Output to console.");
             return System.out;
         } else {
@@ -133,27 +105,23 @@ public abstract class AbstractLogWriter<T extends LogConfig, V extends LogItem> 
         }
     }
 
-    private boolean isStdout(String outputPath) {
-        return outputPath == null || STDOUT.equals(outputPath);
-    }
-
     @Override
     public void close() {
         if (closed.compareAndSet(false, true)) {
             logger.debug("Start to close logger: {}", logConfig);
-            taskQueue.add(() -> {
-            });
+            taskQueue.add(dummyBuffer);
             try {
                 writerThread.join();
             } catch (InterruptedException e) {
+                logger.error("Write thread is interrupted.", e);
             }
-            if (!isStdout(logConfig.getOutputPath()))
+            if (!stdout)
                 doClose();
             logger.debug("Logger closed: {}", logConfig);
         }
     }
 
-    protected abstract int computeSize(V item);
+    protected abstract long computeSize(V item);
 
     protected abstract void doWrite(V item) throws IOException;
 
@@ -161,4 +129,67 @@ public abstract class AbstractLogWriter<T extends LogConfig, V extends LogItem> 
 
     protected abstract void doClose();
 
+    private class ItemBuffer {
+        private final List<V> buffer = new LinkedList<>();
+        private long bufferSize = 0;
+        boolean flush = false;
+
+        private void add(V item, long itemSize) {
+            buffer.add(item);
+            bufferSize += itemSize;
+        }
+
+        private void write() {
+            try {
+                while (!closed.get() && !buffer.isEmpty()) {
+                    V item = buffer.remove(0);
+                    try {
+                        doWrite(item);
+                    } catch (Exception e) {
+                        logger.error("Write dirty buffer failed.", e);
+                    }
+                    item.postWrite();
+                }
+                tryToFlush();
+            } finally {
+                clear();
+            }
+        }
+
+        private void tryToFlush() {
+            if (flush) {
+                if (!closed.get()) {
+                    try {
+                        doFlush();
+                    } catch (Exception e) {
+                        logger.error("Flush failed.", e);
+                    }
+                }
+                EventListenerMgr.fireEvent(new LogFlushedEvent(logConfig.getOutputPath()), true);
+            }
+        }
+
+        private void clear() {
+            buffer.forEach(V::postWrite);
+            buffer.clear();
+            bufferSize = 0;
+            flush = autoFlush;
+            release();
+        }
+
+        void release() {
+            availableBuffers.add(this);
+        }
+    }
+
+    private class DummyItemBuffer extends ItemBuffer {
+        DummyItemBuffer() {
+            super();
+            flush = true;
+        }
+
+        @Override
+        void release() {
+        }
+    }
 }

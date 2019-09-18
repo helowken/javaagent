@@ -22,7 +22,7 @@ public class TextLogWriter extends AbstractLogWriter<TextLogConfig, TextLogItem>
     }
 
     @Override
-    protected int computeSize(TextLogItem item) {
+    protected long computeSize(TextLogItem item) {
         item.content = expr.eval(
                 item.paramValues,
                 (pvs, key) -> ParamValueUtils.formatValue(

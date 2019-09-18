@@ -3,19 +3,22 @@ package agent.server.utils.log;
 public abstract class AbstractLogConfig implements LogConfig {
     private final String outputPath;
     private final boolean autoFlush;
-    private final int maxBufferSize;
+    private final long maxBufferSize;
+    private final int bufferCount;
 
-    public AbstractLogConfig(String outputPath, boolean autoFlush, int maxBufferSize) {
+    public AbstractLogConfig(String outputPath, boolean autoFlush, long maxBufferSize, int bufferCount) {
         this.outputPath = outputPath;
         this.autoFlush = autoFlush;
         this.maxBufferSize = maxBufferSize;
+        this.bufferCount = bufferCount;
     }
 
     @Override
     public String toString() {
         return "outputPath='" + outputPath + '\'' +
                 ", autoFlush=" + autoFlush +
-                ", maxBufferSize=" + maxBufferSize;
+                ", maxBufferSize=" + maxBufferSize +
+                ", bufferCount=" + bufferCount;
     }
 
     @Override
@@ -29,7 +32,12 @@ public abstract class AbstractLogConfig implements LogConfig {
     }
 
     @Override
-    public int getMaxBufferSize() {
+    public long getMaxBufferSize() {
         return maxBufferSize;
+    }
+
+    @Override
+    public int getBufferCount() {
+        return bufferCount;
     }
 }
