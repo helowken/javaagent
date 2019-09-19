@@ -1,7 +1,5 @@
 package test.utils;
 
-import agent.base.utils.ReflectionUtils;
-
 public class TestClassLoader extends ClassLoader {
 
     public Class<?> defineClass(String className, byte[] bs) {

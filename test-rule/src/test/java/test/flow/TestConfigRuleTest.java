@@ -44,6 +44,7 @@ public class TestConfigRuleTest extends AbstractTest {
     private static final String abstractBClassName = "test.flow.TestConfigRuleTest$AbstractB";
     private static final String b1ClassName = "test.flow.TestConfigRuleTest$B1";
     private static final String b2ClassName = "test.flow.TestConfigRuleTest$B2";
+    private static final String c1ClassName = "test.flow.TestConfigRuleTest$C1";
     private static final String aClassName = "test.flow.TestConfigRuleTest$A";
     private static final TestClassLoader classloader = new TestClassLoader();
     private static final TestInstrumentation instrumentation = new TestInstrumentation();
@@ -115,6 +116,7 @@ public class TestConfigRuleTest extends AbstractTest {
         // import class B1, B2
         new B1();
         new B2();
+        new C1();
         new TestMap();
 
         Command cmd = new ByRuleCommand.TransformByRuleCommand(context, TestTimeRule.class.getName());
@@ -129,6 +131,7 @@ public class TestConfigRuleTest extends AbstractTest {
         classloader.defineClass(abstractBClassName, instrumentation.getBytes(abstractBClassName));
         classloader.defineClass(b1ClassName, instrumentation.getBytes(b1ClassName));
         classloader.defineClass(b2ClassName, instrumentation.getBytes(b2ClassName));
+        classloader.defineClass(c1ClassName, instrumentation.getBytes(c1ClassName));
         Class<?> aClass = classloader.defineClass(aClassName, instrumentation.getBytes(aClassName));
         Object a = ReflectionUtils.newInstance(aClass);
         ReflectionUtils.invoke("runTasks", a);
@@ -204,8 +207,9 @@ public class TestConfigRuleTest extends AbstractTest {
     }
 
     static abstract class BaseA {
-        protected BIntf b1 = new B1();
-        protected BIntf b2 = new B2();
+        BIntf b1 = new B1();
+        BIntf b2 = new B2();
+        BIntf c1 = new C1();
 
         void task4() throws Exception {
             System.out.println("------ task4-------");
@@ -213,7 +217,8 @@ public class TestConfigRuleTest extends AbstractTest {
         }
 
         BIntf getB(int v) {
-            return v == 0 ? b1 : b2;
+            return v == 0 ? b1 :
+                    v == 1 ? c1 : b2;
         }
     }
 
@@ -242,10 +247,11 @@ public class TestConfigRuleTest extends AbstractTest {
             task2();
             ((AbstractB) b1).doTaskBBB();
             ((AbstractB) b2).doTaskBBB();
+            ((AbstractB) c1).doTaskBBB();
             task3();
             getB(1).task1();
+            getB(2).task1();
         }
-
 
         private void task2() throws Exception {
             Thread.sleep(20);
@@ -315,6 +321,10 @@ public class TestConfigRuleTest extends AbstractTest {
             map.put("111", "333");
             Thread.sleep(30);
             doTask();
+            doTestB();
+        }
+
+        void doTestB() throws Exception {
         }
 
         abstract void doTask() throws Exception;
@@ -323,6 +333,7 @@ public class TestConfigRuleTest extends AbstractTest {
     }
 
     private static class B1 extends AbstractB {
+
         void doTask() throws Exception {
             Thread.sleep(10);
             task11();
@@ -334,6 +345,10 @@ public class TestConfigRuleTest extends AbstractTest {
         }
 
         private void task11() throws Exception {
+            Thread.sleep(10);
+        }
+
+        void doTestB() throws Exception {
             Thread.sleep(10);
         }
     }
@@ -350,6 +365,12 @@ public class TestConfigRuleTest extends AbstractTest {
         }
 
         private void task21() throws Exception {
+            Thread.sleep(20);
+        }
+    }
+
+    private static class C1 extends B1 {
+        void doTestB() throws Exception {
             Thread.sleep(20);
         }
     }
