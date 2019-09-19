@@ -53,6 +53,14 @@ public class Utils {
         }
     }
 
+    public static long parseLong(String s, String name) {
+        try {
+            return Long.parseLong(s);
+        } catch (NumberFormatException e) {
+            throw new RuntimeException(name + " is not a long string.");
+        }
+    }
+
     public static void sleep(long time) {
         try {
             Thread.sleep(time);

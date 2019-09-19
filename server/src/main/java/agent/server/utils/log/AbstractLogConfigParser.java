@@ -5,6 +5,8 @@ import agent.base.utils.Utils;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 
 import static agent.server.utils.log.LogConfig.STDOUT;
 
@@ -14,12 +16,15 @@ public abstract class AbstractLogConfigParser implements LogConfigParser {
     public static final String CONF_AUTO_FLUSH = "autoFlush";
     public static final String CONF_MAX_BUFFER_SIZE = "maxBufferSize";
     public static final String CONF_BUFFER_COUNT = "bufferCount";
+    public static final String CONF_ROLL_FILE_SIZE = "rollFileSize";
 
     private static final String KEY_LOG = "log";
     private static final int MAX_BUFFER_SIZE = 1024 * 1024;
     private static final int MAX_BUFFER_COUNT = 1000;
+    private static final long MAX_ROLL_FILE_SIZE = 1024 * 1024 * 100;
+    private static final long MIN_ROLL_FILE_SIZE = 1024 * 1024;
 
-    protected abstract LogConfig doParse(String outputPath, boolean autoFlush, long maxBufferSize, int bufferCount,
+    protected abstract LogConfig doParse(String outputPath, boolean autoFlush, long maxBufferSize, int bufferCount, long rollFileSize,
                                          Map<String, Object> logConf, Map<String, Object> defaults);
 
     protected void populateDefaults(Map<String, Object> defaults) {
@@ -27,6 +32,7 @@ public abstract class AbstractLogConfigParser implements LogConfigParser {
         defaults.putIfAbsent(CONF_AUTO_FLUSH, false);
         defaults.putIfAbsent(CONF_MAX_BUFFER_SIZE, 8192);
         defaults.putIfAbsent(CONF_BUFFER_COUNT, 20);
+        defaults.putIfAbsent(CONF_ROLL_FILE_SIZE, 1024 * 1024 * 10);
     }
 
     @Override
@@ -39,22 +45,57 @@ public abstract class AbstractLogConfigParser implements LogConfigParser {
                 Utils.getConfigValue(logConf, CONF_AUTO_FLUSH, defaults),
                 getMaxBufferSize(logConf, defaults),
                 getBufferCount(logConf, defaults),
+                getRollFileSize(logConf, defaults),
                 logConf,
                 defaults
         );
     }
 
     protected long getMaxBufferSize(Map<String, Object> logConf, Map<String, Object> defaults) {
-        Integer maxBufferSize = Utils.getConfigValue(logConf, CONF_MAX_BUFFER_SIZE, defaults);
-        if (maxBufferSize == null || maxBufferSize < 0 || maxBufferSize > MAX_BUFFER_SIZE)
-            throw new IllegalArgumentException("Invalid max buffer bytesSize: " + maxBufferSize);
-        return maxBufferSize;
+        return getAndCheckRange(
+                logConf,
+                defaults,
+                CONF_MAX_BUFFER_SIZE,
+                0,
+                MAX_BUFFER_SIZE,
+                v -> Integer.parseInt(v.toString()),
+                (v1, v2) -> (long) v1 - v2
+        );
     }
 
     protected int getBufferCount(Map<String, Object> logConf, Map<String, Object> defaults) {
-        Integer bufferCount = Utils.getConfigValue(logConf, CONF_BUFFER_COUNT, defaults);
-        if (bufferCount == null || bufferCount < 1 || bufferCount > MAX_BUFFER_COUNT)
-            throw new IllegalArgumentException("Invalid buffer count: " + bufferCount);
-        return bufferCount;
+        String key = CONF_BUFFER_COUNT;
+        return getAndCheckRange(
+                logConf,
+                defaults,
+                key,
+                1,
+                MAX_BUFFER_COUNT,
+                v -> Utils.parseInt(v.toString(), key),
+                (v1, v2) -> (long) v1 - v2
+        );
+    }
+
+    protected long getRollFileSize(Map<String, Object> logConf, Map<String, Object> defaults) {
+        String key = CONF_ROLL_FILE_SIZE;
+        return getAndCheckRange(
+                logConf,
+                defaults,
+                key,
+                MIN_ROLL_FILE_SIZE,
+                MAX_ROLL_FILE_SIZE,
+                v -> Utils.parseLong(v.toString(), key),
+                (v1, v2) -> v1 - v2
+        );
+    }
+
+    private <T> T getAndCheckRange(Map<String, Object> logConf, Map<String, Object> defaults, String key,
+                                   T minValue, T maxValue, Function<Object, T> convertFunc, BiFunction<T, T, Long> compareFunc) {
+        T value = convertFunc.apply(
+                Utils.getConfigValue(logConf, key, defaults)
+        );
+        if (value == null || compareFunc.apply(value, minValue) < 0 || compareFunc.apply(value, maxValue) > 0)
+            throw new IllegalArgumentException("Invalid " + key + ": " + value + ", range is [" + minValue + ", " + maxValue + "].");
+        return value;
     }
 }

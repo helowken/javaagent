@@ -56,7 +56,10 @@ public class TextLogWriter extends AbstractLogWriter<TextLogConfig, TextLogItem>
 
     @Override
     protected void doClose() {
-        IOUtils.close(writer);
+        writerLock.sync(lock -> {
+            IOUtils.close(writer);
+            writer = null;
+        });
     }
 
 }

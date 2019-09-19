@@ -53,10 +53,12 @@ public class BinaryLogWriter extends AbstractLogWriter<BinaryLogConfig, BinaryLo
 
     @Override
     protected void doClose() {
-        if (stdout)
+        writerLock.sync(lock -> {
             IOUtils.close(out);
-        else
             IOUtils.close(channel);
+            out = null;
+            channel = null;
+        });
     }
 
     private OutputStream getOut() {

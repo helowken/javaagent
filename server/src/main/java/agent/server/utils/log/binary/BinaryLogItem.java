@@ -1,6 +1,6 @@
 package agent.server.utils.log.binary;
 
-import agent.common.buffer.BufferAllocator;
+import agent.server.utils.MemoryPool;
 import agent.server.utils.log.AbstractLogItem;
 
 import java.nio.ByteBuffer;
@@ -24,7 +24,7 @@ public class BinaryLogItem extends AbstractLogItem {
 
     private ByteBuffer getBuffer() {
         if (currBuffer == null || !currBuffer.hasRemaining()) {
-            currBuffer = BufferAllocator.get();
+            currBuffer = MemoryPool.get();
             bufferList.add(currBuffer);
         }
         return currBuffer;
@@ -53,7 +53,7 @@ public class BinaryLogItem extends AbstractLogItem {
 
     @Override
     public void postWrite() {
-        BufferAllocator.put(bufferList);
+        MemoryPool.put(bufferList);
         bufferList.clear();
         currBuffer = null;
         super.postWrite();

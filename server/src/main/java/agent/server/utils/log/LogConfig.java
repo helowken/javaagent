@@ -10,4 +10,6 @@ public interface LogConfig {
     long getMaxBufferSize();
 
     int getBufferCount();
+
+    long getRollFileSize();
 }

@@ -1,18 +1,16 @@
 package test;
 
+import agent.base.utils.ReflectionUtils;
 import org.junit.Test;
 import sun.misc.Launcher;
+import sun.misc.Resource;
+import sun.misc.URLClassPath;
 import sun.net.www.ParseUtil;
 
 import java.io.File;
 import java.lang.reflect.Method;
-import java.net.JarURLConnection;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.net.URLConnection;
-
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 
 public class LoaderTest {
 
@@ -42,6 +40,48 @@ public class LoaderTest {
             Class<?> stringClass = appClassLoader.loadClass("com.sun.nio.zipfs.ZipPath");
             System.out.println(stringClass == String.class);
         }
+    }
+
+    @Test
+    public void testFileLoaderGetResource() throws Exception {
+        URLClassPath ucp = new URLClassPath(new URL[0]);
+        URL url = ParseUtil.fileToEncodedURL(new File("/home/helowken/test_loader/classes"));
+        System.out.println("Local dir url: " + url);
+        Object loader = ReflectionUtils.invoke("getLoader", ucp, url);
+        System.out.println(loader.getClass());
+        URL baseUrl = ReflectionUtils.invoke("getBaseURL", loader);
+        System.out.println("Base url: " + baseUrl);
+        URL var4 = new URL(baseUrl, ".");
+        final URL var3 = new URL(baseUrl, ParseUtil.encodePath("bb/cc/dd/../../../../aa.txt", false));
+        System.out.println("var4: " + var4 + ", " + var4.getFile());
+        System.out.println("var3: " + var3 + ", " + var3.getFile());
+
+
+        Resource res = ReflectionUtils.invoke("sun.misc.URLClassPath$FileLoader", "getResource",
+                new Object[]{String.class, boolean.class}, loader, new Object[]{"aa.txt", false});
+        System.out.println("Resource: " + res);
+    }
+
+    @Test
+    public void testGetLoaderForURL() throws Exception {
+        URLClassPath ucp = new URLClassPath(new URL[0]);
+
+        URL url = new URL("http://localhost:8080/test/repository/classes/");
+        System.out.println("Remote dir url: " + url);
+        Object loader = ReflectionUtils.invoke("getLoader", ucp, url);
+        System.out.println(loader.getClass());
+        System.out.println("--------------------");
+
+        url = ParseUtil.fileToEncodedURL(new File("/home/helowken/test_loader/classes"));
+        System.out.println("Local dir url: " + url);
+        loader = ReflectionUtils.invoke("getLoader", ucp, url);
+        System.out.println(loader.getClass());
+        System.out.println("--------------------");
+
+        url = ParseUtil.fileToEncodedURL(new File("/home/helowken/test_loader/entity.jar"));
+        System.out.println("Local jar url: " + url);
+        loader = ReflectionUtils.invoke("getLoader", ucp, url);
+        System.out.println(loader.getClass());
     }
 
     @Test

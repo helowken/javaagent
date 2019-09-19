@@ -19,16 +19,16 @@ import static agent.server.utils.log.LogConfig.STDOUT;
 public abstract class AbstractLogWriter<T extends LogConfig, V extends LogItem> implements LogWriter<V> {
     private static final Logger logger = Logger.getLogger(AbstractLogWriter.class);
     protected final T logConfig;
+    protected boolean stdout;
     private final LinkedBlockingQueue<ItemBuffer> taskQueue = new LinkedBlockingQueue<>();
-    private Thread writerThread;
     private final LinkedBlockingQueue<ItemBuffer> availableBuffers;
     private final LockObject bufferLock = new LockObject();
-    private ItemBuffer dummyBuffer = new DummyItemBuffer();
+    private final ItemBuffer dummyBuffer = new DummyItemBuffer();
     private ItemBuffer currBuffer;
-    private final long maxBufferSize;
-    private final boolean autoFlush;
+    private Thread writerThread;
     private AtomicBoolean closed = new AtomicBoolean(false);
-    protected boolean stdout;
+    private long currFileSize = 0;
+    private int fileIdx = 0;
 
     protected AbstractLogWriter(T logConfig) {
         this.logConfig = logConfig;
@@ -37,8 +37,6 @@ public abstract class AbstractLogWriter<T extends LogConfig, V extends LogItem> 
         for (int i = 0; i < bufferCount; ++i) {
             availableBuffers.add(new ItemBuffer());
         }
-        autoFlush = logConfig.isAutoFlush();
-        maxBufferSize = logConfig.getMaxBufferSize();
         String outputPath = logConfig.getOutputPath();
         stdout = outputPath == null || STDOUT.equals(outputPath);
         startThread();
@@ -48,6 +46,7 @@ public abstract class AbstractLogWriter<T extends LogConfig, V extends LogItem> 
         writerThread = new Thread(() -> {
             while (!closed.get()) {
                 try {
+                    tryToRollFile();
                     taskQueue.take().write();
                 } catch (InterruptedException e) {
                     logger.error("Write thread is interrupted.", e);
@@ -60,12 +59,12 @@ public abstract class AbstractLogWriter<T extends LogConfig, V extends LogItem> 
     @Override
     public void write(V item) {
         try {
-            long size = autoFlush ? 0 : computeSize(item);
+            long size = logConfig.isAutoFlush() ? 0 : computeSize(item);
             bufferLock.sync(lock -> {
                 if (currBuffer == null)
                     currBuffer = availableBuffers.take();
                 currBuffer.add(item, size);
-                if (autoFlush || currBuffer.bufferSize >= maxBufferSize)
+                if (logConfig.isAutoFlush() || currBuffer.bufferSize >= logConfig.getMaxBufferSize())
                     taskQueue.add(getDirtyBuffer());
             });
         } catch (Exception e) {
@@ -94,14 +93,21 @@ public abstract class AbstractLogWriter<T extends LogConfig, V extends LogItem> 
         return logConfig;
     }
 
-    protected OutputStream getOutputStream() throws FileNotFoundException {
+    private String getOutputFileName() {
         String outputPath = logConfig.getOutputPath();
+        if (fileIdx > 0)
+            outputPath += "." + fileIdx;
+        return outputPath;
+    }
+
+    protected OutputStream getOutputStream() throws FileNotFoundException {
         if (stdout) {
             logger.debug("Output to console.");
             return System.out;
         } else {
-            logger.debug("Output to {}.", outputPath);
-            return new FileOutputStream(outputPath, true);
+            String fileName = getOutputFileName();
+            logger.debug("Output to {}.", fileName);
+            return new FileOutputStream(fileName);
         }
     }
 
@@ -118,6 +124,37 @@ public abstract class AbstractLogWriter<T extends LogConfig, V extends LogItem> 
             if (!stdout)
                 doClose();
             logger.debug("Logger closed: {}", logConfig);
+        }
+    }
+
+    private void tryToFlush() {
+        if (!closed.get())
+            flushOutput();
+        EventListenerMgr.fireEvent(new LogFlushedEvent(logConfig.getOutputPath()), true);
+    }
+
+    private void tryToRollFile() {
+        if (currFileSize >= logConfig.getRollFileSize() && !closed.get() && !stdout) {
+            flushOutput();
+            doClose();
+            ++fileIdx;
+            currFileSize = 0;
+        }
+    }
+
+    private void writeItem(V item) {
+        try {
+            doWrite(item);
+        } catch (Exception e) {
+            logger.error("Write dirty buffer failed.", e);
+        }
+    }
+
+    private void flushOutput() {
+        try {
+            doFlush();
+        } catch (Exception e) {
+            logger.error("Flush failed.", e);
         }
     }
 
@@ -143,29 +180,14 @@ public abstract class AbstractLogWriter<T extends LogConfig, V extends LogItem> 
             try {
                 while (!closed.get() && !buffer.isEmpty()) {
                     V item = buffer.remove(0);
-                    try {
-                        doWrite(item);
-                    } catch (Exception e) {
-                        logger.error("Write dirty buffer failed.", e);
-                    }
+                    writeItem(item);
                     item.postWrite();
                 }
-                tryToFlush();
+                if (flush)
+                    tryToFlush();
             } finally {
+                currFileSize += bufferSize;
                 clear();
-            }
-        }
-
-        private void tryToFlush() {
-            if (flush) {
-                if (!closed.get()) {
-                    try {
-                        doFlush();
-                    } catch (Exception e) {
-                        logger.error("Flush failed.", e);
-                    }
-                }
-                EventListenerMgr.fireEvent(new LogFlushedEvent(logConfig.getOutputPath()), true);
             }
         }
 
@@ -173,7 +195,7 @@ public abstract class AbstractLogWriter<T extends LogConfig, V extends LogItem> 
             buffer.forEach(V::postWrite);
             buffer.clear();
             bufferSize = 0;
-            flush = autoFlush;
+            flush = logConfig.isAutoFlush();
             release();
         }
 
