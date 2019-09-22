@@ -21,7 +21,6 @@ import java.lang.reflect.Modifier;
 import java.security.ProtectionDomain;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -41,7 +40,6 @@ public class DynamicClassTransformer extends AbstractConfigTransformer {
     private Set<String> transformedMethods = new HashSet<>();
     private Set<String> additionalClassNames = new HashSet<>();
     private Map<String, Map<String, Class<?>>> baseToSubClassMap = new ConcurrentHashMap<>();
-    private Set<String> invalidClassNames = new ConcurrentSkipListSet<>();
 
     @Override
     public String getRegKey() {
@@ -54,7 +52,7 @@ public class DynamicClassTransformer extends AbstractConfigTransformer {
         if (item == null)
             throw new RuntimeException("No config item found.");
         key = Utils.sUuid();
-        maxLevel = Math.min(Math.max(item.maxLevel, 1), defaultMaxLevel);
+        maxLevel = Math.min(Math.max(item.maxLevel, 10), defaultMaxLevel);
     }
 
     @Override
@@ -218,7 +216,7 @@ public class DynamicClassTransformer extends AbstractConfigTransformer {
                                         subClassMap.entrySet().removeIf(
                                                 entry -> {
                                                     String subClassName = entry.getKey();
-                                                    if (invalidClassNames.contains(subClassName))
+                                                    if (InvalidClassNameCache.getInstance().contains(subClassName))
                                                         return true;
                                                     if (entry.getValue() == null) {
                                                         try {
@@ -227,7 +225,7 @@ public class DynamicClassTransformer extends AbstractConfigTransformer {
                                                             );
                                                         } catch (Exception e) {
                                                             logger.error("Find class failed, context: {}, class: {}", item.context, subClassName);
-                                                            invalidClassNames.add(subClassName);
+                                                            InvalidClassNameCache.getInstance().add(subClassName);
                                                             return true;
                                                         }
                                                     }
@@ -240,7 +238,7 @@ public class DynamicClassTransformer extends AbstractConfigTransformer {
                                                 (clazz, error) -> {
                                                     logger.error("Find ref class failed: {}", error, clazz.getName());
                                                     String invalidClassName = clazz.getName();
-                                                    invalidClassNames.add(invalidClassName);
+                                                    InvalidClassNameCache.getInstance().add(invalidClassName);
                                                     subClassMap.remove(invalidClassName);
                                                 }
                                         );
@@ -267,7 +265,7 @@ public class DynamicClassTransformer extends AbstractConfigTransformer {
                                     implClass = AgentClassPool.getInstance().get(implClassName);
                                 } catch (Exception e) {
                                     logger.error("Find impl class failed: {}", e, implClassName);
-                                    invalidClassNames.add(implClassName);
+                                    InvalidClassNameCache.getInstance().add(implClassName);
                                 }
                                 if (implClass != null) {
                                     if (!implClass.subtypeOf(baseClass))
@@ -318,11 +316,13 @@ public class DynamicClassTransformer extends AbstractConfigTransformer {
             addToTransformed(ctMethod);
             Utils.wrapToRtError(() -> {
                         int nextLevel = level + 1;
-                        if (nextLevel < maxLevel &&
-                                item.methodRuleFilter.stepInto(methodInfo)) {
-                            logger.debug("stepInto: {}", methodInfo);
-                            ctMethod.instrument(new NestedExprEditor(nextLevel));
-                        }
+                        if (nextLevel < maxLevel) {
+                            if (item.methodRuleFilter.stepInto(methodInfo)) {
+                                logger.debug("stepInto: {}", methodInfo);
+                                ctMethod.instrument(new NestedExprEditor(nextLevel));
+                            }
+                        } else
+                            logger.warn("Reach the max nested level: {}, methodInfo: {}", maxLevel, methodInfo);
                         if (item.methodRuleFilter.accept(methodInfo))
                             processMethodCode(ctMethod, methodInfo);
                     },

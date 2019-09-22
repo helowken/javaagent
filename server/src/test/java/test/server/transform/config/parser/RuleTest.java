@@ -20,7 +20,7 @@ public class RuleTest {
     private static final String bContext = "/bb";
     private static final String bClassName = "bbb.A";
     private static final String bMethod = "test2";
-    private static final RuleConfigParser ruleConfigParser = new RuleConfigParser();
+    private static final RuleConfigParser ruleConfigParser = RuleConfigParser.getInstance();
 
     @Test
     public void test() {
