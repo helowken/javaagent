@@ -1,5 +1,7 @@
 package agent.client;
 
+import agent.base.runner.Runner;
+import agent.base.utils.Logger;
 import agent.base.utils.SystemConfig;
 import agent.client.command.parser.CommandParserMgr;
 import agent.client.command.parser.exception.CommandParseException;
@@ -15,13 +17,17 @@ import java.net.Socket;
 import java.util.Arrays;
 import java.util.Optional;
 
-abstract class AbstractClientRunner {
+abstract class AbstractClientRunner implements Runner {
     private static final String KEY_HOST = "host";
     private static final String KEY_PORT = "port";
     private static final String CMD_QUIT = "quit";
     private static final CmdItem QUIT_ITEM = new CmdItem(null, true);
 
     abstract String readCmdLine() throws Exception;
+
+    @Override
+    public void shutdown() {
+    }
 
     private CmdItem parseCommand(String cmdLine) {
         String line = cmdLine;
@@ -41,14 +47,14 @@ abstract class AbstractClientRunner {
         return QUIT_ITEM;
     }
 
-    boolean connectTo() throws Exception {
+    boolean connectTo() {
         String host = Optional.ofNullable(
                 SystemConfig.get(KEY_HOST)
         ).orElse("127.0.0.1");
         int port = SystemConfig.getInt(KEY_PORT);
         try (Socket socket = new Socket()) {
             socket.connect(new InetSocketAddress(host, port));
-            ClientLogger.logger.info("Agent Server connected.");
+            getClientLogger().info("Agent Server connected.");
             try (MessageIO io = MessageIO.create(socket)) {
                 while (true) {
                     try {
@@ -59,16 +65,19 @@ abstract class AbstractClientRunner {
                             return true;
                         sendAndReceive(io, cmdItem.cmd);
                     } catch (CommandParseException e) {
-                        ClientLogger.logger.error(e.getMessage());
+                        getClientLogger().error(e.getMessage());
                     } catch (Exception e) {
                         if (MessageIO.isNetworkException(e))
-                            ClientLogger.logger.error("Disconnected from Agent Server.");
+                            getClientLogger().error("Disconnected from Agent Server.");
                         else
-                            ClientLogger.logger.error("Error occurred.", e);
+                            getClientLogger().error("Error occurred.", e);
                         return false;
                     }
                 }
             }
+        } catch (Exception e) {
+            getClientLogger().error("Connect to server failed.", e);
+            return true;
         }
     }
 
@@ -76,6 +85,10 @@ abstract class AbstractClientRunner {
         io.send(cmd);
         ExecResult result = MessageMgr.parseResult(io.receive());
         CommandResultHandlerMgr.handleResult(cmd, result);
+    }
+
+    Logger getClientLogger() {
+        return ClientLogger.logger;
     }
 
     static class CmdItem {

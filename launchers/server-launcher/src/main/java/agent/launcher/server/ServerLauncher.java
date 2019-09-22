@@ -12,7 +12,7 @@ import java.lang.instrument.Instrumentation;
 
 public class ServerLauncher extends AbstractLauncher {
     private static final Logger logger = Logger.getLogger(ServerLauncher.class);
-    private static final String RUNNER_CLASS = "agent.server.AgentServerRunner";
+    private static final String RUNNER_TYPE = "serverRunner";
     private static final ServerLauncher instance = new ServerLauncher();
     private static AttachType attachType;
 
@@ -31,7 +31,7 @@ public class ServerLauncher extends AbstractLauncher {
         instance.init(agentArgs);
         SystemConfig.set(HookConstants.KEY_ATTACH_TYPE, attachType.name());
         SystemConfig.set(HookConstants.KEY_CURR_DIR, getCurrDir());
-        instance.startRunner(RUNNER_CLASS, new Class<?>[]{Instrumentation.class}, instrumentation);
+        instance.startRunner(RUNNER_TYPE, instrumentation);
     }
 
     @Override
@@ -45,4 +45,5 @@ public class ServerLauncher extends AbstractLauncher {
         } else
             throw new RuntimeException("Unknown attach type: " + attachType);
     }
+
 }

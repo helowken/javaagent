@@ -158,6 +158,20 @@ public class Utils {
         return null;
     }
 
+    public static <T> String join(String sep, T... vs) {
+        if (vs == null)
+            return null;
+        if (vs.length == 0)
+            return "";
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < vs.length; ++i) {
+            if (i > 0)
+                sb.append(sep);
+            sb.append(vs[i]);
+        }
+        return sb.toString();
+    }
+
     public static <T> T firstNotNull(String errMsg, T... vs) {
         return firstValidValue(errMsg, Objects::nonNull, vs);
     }

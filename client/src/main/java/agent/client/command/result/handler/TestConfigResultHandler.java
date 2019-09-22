@@ -1,7 +1,6 @@
 package agent.client.command.result.handler;
 
 import agent.base.utils.IndentUtils;
-import agent.base.utils.Logger;
 import agent.common.message.command.Command;
 import agent.common.message.result.ExecResult;
 import agent.common.message.result.entity.TestConfigResultEntity;
@@ -14,7 +13,6 @@ import java.util.Map;
 import java.util.TreeMap;
 
 public class TestConfigResultHandler extends AbstractContextResultHandler {
-    private static final Logger logger = Logger.getLogger(TestConfigResultHandler.class);
 
     @Override
     public void handleSuccess(Command command, ExecResult result) {

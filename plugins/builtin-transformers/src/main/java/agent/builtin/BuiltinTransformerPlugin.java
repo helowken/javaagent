@@ -10,7 +10,7 @@ public class BuiltinTransformerPlugin extends AbstractPlugin {
     }
 
     @Override
-    public PluginInfo getInfo() {
+    protected PluginInfo newPluginInfo() {
         return null;
     }
 }

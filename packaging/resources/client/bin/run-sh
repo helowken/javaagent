@@ -5,4 +5,4 @@ version=1.0
 client_launcher_jar=$baseDir/client-launcher-$version.jar
 config_file=$baseDir/conf/client.conf
 
-$JAVA_HOME/bin/java -jar $client_launcher_jar $config_file
+$JAVA_HOME/bin/java -cp $client_launcher_jar agent.launcher.client.ShellLauncher $config_file $*

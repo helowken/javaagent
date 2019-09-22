@@ -4,14 +4,14 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
 
-public class PluginFilterByInfo implements PluginFilter {
+public class InfoPluginFilter implements PluginFilter {
     private DefaultPluginInfo info;
 
-    public PluginFilterByInfo(String key, Object value) {
+    public InfoPluginFilter(String key, Object value) {
         this(Collections.singletonMap(key, value));
     }
 
-    public PluginFilterByInfo(Map<String, Object> map) {
+    public InfoPluginFilter(Map<String, Object> map) {
         info = new DefaultPluginInfo(map);
     }
 

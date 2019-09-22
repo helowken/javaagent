@@ -1,37 +1,26 @@
 package agent.client;
 
 import agent.base.utils.IOUtils;
-import agent.client.utils.ClientLogger;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 
 public class AgentClientRunner extends AbstractClientRunner {
-    private static BufferedReader reader;
-    private static final AgentClientRunner instance = new AgentClientRunner();
+    private BufferedReader reader;
 
-    private AgentClientRunner() {
-    }
-
-    public static void run() throws Exception {
-        init();
+    @Override
+    public void startup(Object... args) {
+        reader = new BufferedReader(new InputStreamReader(System.in));
         try {
             while (true) {
-                if (instance.connectTo())
+                if (connectTo())
                     break;
                 else
-                    ClientLogger.logger.info("Try to reconnect...");
+                    getClientLogger().info("Try to reconnect...");
             }
         } finally {
             IOUtils.close(reader);
         }
-    }
-
-    public static void shutdown() {
-    }
-
-    private static void init() {
-        reader = new BufferedReader(new InputStreamReader(System.in));
     }
 
     @Override

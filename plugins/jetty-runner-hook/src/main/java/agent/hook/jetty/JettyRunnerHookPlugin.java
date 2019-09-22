@@ -5,7 +5,6 @@ import agent.base.plugin.DefaultPluginInfo;
 import agent.base.plugin.PluginInfo;
 import agent.hook.plugin.AppHook;
 import agent.hook.plugin.ClassFinder;
-import agent.hook.utils.AppTypePluginFilter;
 import agent.hook.utils.HookConstants;
 
 public class JettyRunnerHookPlugin extends AbstractPlugin {
@@ -16,7 +15,7 @@ public class JettyRunnerHookPlugin extends AbstractPlugin {
     }
 
     @Override
-    public PluginInfo getInfo() {
+    protected PluginInfo newPluginInfo() {
         return new DefaultPluginInfo(HookConstants.KEY_APP_TYPE, "jetty-runner_9");
     }
 }

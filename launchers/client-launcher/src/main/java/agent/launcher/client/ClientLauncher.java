@@ -4,7 +4,7 @@ import agent.base.utils.ClassLoaderUtils;
 import agent.launcher.basic.AbstractLauncher;
 
 public class ClientLauncher extends AbstractLauncher {
-    private static final String RUNNER_CLASS = "agent.client.AgentClientRunner";
+    private static final String RUNNER_TYPE = "clientRunner";
     private static final ClientLauncher instance = new ClientLauncher();
 
     protected void loadLibs(String[] libPaths) throws Exception {
@@ -17,7 +17,7 @@ public class ClientLauncher extends AbstractLauncher {
             System.exit(-1);
         }
         instance.init(args[0]);
-        instance.startRunner(RUNNER_CLASS, new Class[0]);
+        instance.startRunner(RUNNER_TYPE);
     }
 
 }

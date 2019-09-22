@@ -1,9 +1,9 @@
 package agent.hook.utils;
 
-import agent.base.plugin.PluginFilterByInfo;
+import agent.base.plugin.InfoPluginFilter;
 import agent.base.utils.SystemConfig;
 
-public class AppTypePluginFilter extends PluginFilterByInfo {
+public class AppTypePluginFilter extends InfoPluginFilter {
     private static final AppTypePluginFilter instance = new AppTypePluginFilter();
 
     public static AppTypePluginFilter getInstance() {

@@ -1,8 +1,14 @@
 package agent.launcher.basic;
 
 
-import agent.base.utils.*;
+import agent.base.plugin.InfoPluginFilter;
+import agent.base.plugin.PluginFactory;
+import agent.base.runner.Runner;
+import agent.base.utils.FileUtils;
+import agent.base.utils.Logger;
 import agent.base.utils.Logger.LoggerLevel;
+import agent.base.utils.SystemConfig;
+import agent.base.utils.Utils;
 
 import java.io.File;
 
@@ -11,8 +17,6 @@ public abstract class AbstractLauncher {
     private static final String KEY_LOG_PATH = "log.path";
     private static final String KEY_LOG_LEVEL = "log.level";
     private static final String KEY_LIB_DIR = "lib.dir";
-    private static final String RUNNER_METHOD = "run";
-    private static final String RUNNER_SHUTDOWN = "shutdown";
     private static String currDir;
 
     protected abstract void loadLibs(String[] libPaths) throws Exception;
@@ -45,25 +49,35 @@ public abstract class AbstractLauncher {
             String path = outputPath.startsWith("/") ?
                     outputPath :
                     new File(getCurrDir(), outputPath).getAbsolutePath();
-            logger.info("Log path: {}", path);
+//            logger.info("Log path: {}", path);
             Logger.setOutputFile(path);
         } else
-            logger.info("Log path: stdout.");
+//            logger.info("Log path: stdout.");
         if (level != null)
             Logger.setDefaultLevel(LoggerLevel.valueOf(level));
     }
 
-    protected void startRunner(String className, Class<?>[] argTypes, Object... args) {
+    protected void startRunner(String runnerType, Object... args) {
+        Runner runner = PluginFactory.getInstance().find(
+                Runner.class,
+                new RunnerPluginFilter(runnerType)
+        );
         try {
-            ReflectionUtils.invokeStatic(className, RUNNER_METHOD, argTypes, args);
+            runner.startup(args);
         } catch (Exception e) {
             logger.error("Start runner failed.", e);
             try {
-                ReflectionUtils.invokeStatic(className, RUNNER_SHUTDOWN);
+                runner.shutdown();
             } catch (Exception e2) {
                 logger.error("Shutdown runner failed.", e2);
             }
             throw new RuntimeException(Utils.getMergedErrorMessage(e));
+        }
+    }
+
+    private static class RunnerPluginFilter extends InfoPluginFilter {
+        RunnerPluginFilter(String runnerType) {
+            super(Runner.TYPE, runnerType);
         }
     }
 }

@@ -15,7 +15,7 @@ public class TomcatHookPlugin extends AbstractPlugin {
     }
 
     @Override
-    public PluginInfo getInfo() {
+    protected PluginInfo newPluginInfo() {
         return new DefaultPluginInfo(HookConstants.KEY_APP_TYPE, "tomcat_7");
     }
 }
