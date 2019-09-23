@@ -1,20 +1,27 @@
-package agent.server.transform.impl.dynamic.rule;
+package agent.server.tree;
 
 import java.util.LinkedList;
 import java.util.List;
 
-public class RuleNode<T> implements INode<T, RuleNode<T>> {
-    private RuleNode<T> parent;
-    private LinkedList<RuleNode<T>> children = new LinkedList<>();
+public class Node<T> implements INode<T, Node<T>> {
+    private Node<T> parent;
+    private LinkedList<Node<T>> children = new LinkedList<>();
     private T data;
 
+    public Node() {
+    }
+
+    public Node(T data) {
+        this.setData(data);
+    }
+
     @Override
-    public RuleNode<T> getParent() {
+    public Node<T> getParent() {
         return parent;
     }
 
     @Override
-    public List<RuleNode<T>> getChildren() {
+    public List<Node<T>> getChildren() {
         return new LinkedList<>(children);
     }
 
@@ -29,19 +36,21 @@ public class RuleNode<T> implements INode<T, RuleNode<T>> {
     }
 
     @Override
-    public void addChildAt(int idx, RuleNode<T> child) {
+    public Node<T> addChildAt(int idx, Node<T> child) {
         children.add(idx, child);
         child.parent = this;
+        return child;
     }
 
     @Override
-    public void appendChild(RuleNode<T> child) {
+    public Node<T> appendChild(Node<T> child) {
         children.add(child);
         child.parent = this;
+        return child;
     }
 
     @Override
-    public void removeChild(RuleNode<T> child) {
+    public void removeChild(Node<T> child) {
         children.remove(child);
     }
 
@@ -53,7 +62,7 @@ public class RuleNode<T> implements INode<T, RuleNode<T>> {
     @Override
     public void removeAll(boolean destroy) {
         if (destroy) {
-            getChildren().forEach(RuleNode::destroy);
+            getChildren().forEach(Node::destroy);
         } else {
             children.forEach(child -> child.parent = null);
             children.clear();
@@ -61,34 +70,34 @@ public class RuleNode<T> implements INode<T, RuleNode<T>> {
     }
 
     @Override
-    public RuleNode<T> lastChild() {
+    public Node<T> lastChild() {
         return children.isEmpty() ? null : children.getLast();
     }
 
     @Override
-    public RuleNode<T> firstChild() {
+    public Node<T> firstChild() {
         return children.isEmpty() ? null : children.getFirst();
     }
 
     @Override
-    public RuleNode<T> getChildAt(int idx) {
+    public Node<T> getChildAt(int idx) {
         if (idx < 0 || idx >= countChildren())
             throw new IllegalArgumentException("Invalid index: " + idx);
         return children.get(idx);
     }
 
     @Override
-    public int indexOf(RuleNode<T> child) {
+    public int indexOf(Node<T> child) {
         return children.indexOf(child);
     }
 
     @Override
-    public boolean isFirstChild(RuleNode<T> child) {
+    public boolean isFirstChild(Node<T> child) {
         return !children.isEmpty() && children.getFirst() == child;
     }
 
     @Override
-    public boolean isLastChild(RuleNode<T> child) {
+    public boolean isLastChild(Node<T> child) {
         return !children.isEmpty() && children.getLast() == child;
     }
 

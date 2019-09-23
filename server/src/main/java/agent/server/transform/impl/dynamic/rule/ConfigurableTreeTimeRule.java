@@ -4,6 +4,7 @@ import agent.base.utils.Logger;
 import agent.server.transform.config.parser.handler.TreeTimeRuleConfig;
 import agent.server.transform.impl.dynamic.MethodInfo;
 import agent.server.transform.impl.dynamic.SubTypeSearcher;
+import agent.server.tree.Tree;
 
 import java.io.BufferedOutputStream;
 import java.io.FileOutputStream;
@@ -81,7 +82,7 @@ public class ConfigurableTreeTimeRule extends TreeTimeMeasureRule implements Tre
     }
 
     @Override
-    protected void printTree(RuleTree<TimeData> tree) {
+    protected void printTree(Tree<TimeData> tree) {
         if (STDOUT.equals(outputPath)) {
             printTree(System.out, tree);
         } else {

@@ -1,52 +1,104 @@
 package test.transformer;
 
 import agent.base.utils.IOUtils;
-import agent.base.utils.IndentUtils;
 import agent.base.utils.Utils;
 import agent.builtin.transformer.utils.CostTimeLogger;
 import agent.common.utils.JSONUtils;
+import agent.server.tree.Node;
+import agent.server.tree.Tree;
+import agent.server.tree.TreeUtils;
 
 import java.io.*;
+import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
+import java.text.DecimalFormat;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ForkJoinPool;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class CostTimeStatisticsAnalyzeTest {
+    private static final String RATE_SEP = ",";
+    private static final Set<Float> DEFAULT_RATES = new TreeSet<>(
+            Arrays.asList(0.9F, 0.95F, 0.99F)
+    );
+
     public static void main(String[] args) throws Exception {
 //        String outputPath = "/home/helowken/cost-time/cost-time-statistics.log";
         String outputPath = args[0];
-        printResult(outputPath);
+        Set<Float> rates = parseRates("0.9, 0.95, 0.99");
+        printResult(outputPath, rates);
     }
 
-    private static void printResult(String outputPath) throws Exception {
+    private static Set<Float> parseRates(String s) {
+        if (s == null)
+            return DEFAULT_RATES;
+        s = s.trim();
+        if (s.isEmpty())
+            return DEFAULT_RATES;
+        String[] ts = s.split(RATE_SEP);
+        Set<Float> rates = new TreeSet<>();
+        for (String t : ts) {
+            t = t.trim();
+            try {
+                rates.add(Float.parseFloat(t));
+            } catch (NumberFormatException e) {
+                System.err.println("Invalid rate: " + t);
+                System.exit(1);
+            }
+        }
+        return rates;
+    }
+
+    private static void printResult(String outputPath, Set<Float> rates) throws Exception {
         String metadataPath = outputPath + CostTimeLogger.METADATA_FILE;
         Map<String, Map<String, Map<String, Integer>>> contextToClassToMethodToType = readMetadata(metadataPath);
-        ForkJoinPool pool = new ForkJoinPool(Runtime.getRuntime().availableProcessors());
+        long st = System.currentTimeMillis();
+        ForkJoinPool pool = new ForkJoinPool(Runtime.getRuntime().availableProcessors() - 1);
         try {
-            long st = System.currentTimeMillis();
-            Map<Integer, TimeItem> typeToTimeItem = pool.submit(
+            Map<Integer, CostTimeItem> typeToCostTimeItem = pool.submit(
                     () -> calculate(outputPath)
             ).get();
             long et = System.currentTimeMillis();
             System.out.println("Result calculation used time: " + (et - st) + "ms");
+            Tree<String> tree = new Tree<>();
             contextToClassToMethodToType.forEach((context, classToMethodToType) -> {
-                System.out.println("===== Context: " + context);
+                Node<String> contextNode = tree.appendChild(
+                        new Node<>("Context: " + context)
+                );
                 classToMethodToType.forEach((className, methodToType) -> {
-                    System.out.println(IndentUtils.getIndent(1) + "Class: " + className);
+                    Node<String> classNode = contextNode.appendChild(
+                            new Node<>("Class: " + className)
+                    );
                     new TreeMap<>(methodToType).forEach((method, type) -> {
-                        TimeItem item = typeToTimeItem.get(type);
+                        CostTimeItem item = typeToCostTimeItem.get(type);
                         if (item != null) {
-                            System.out.println(IndentUtils.getIndent(2) + "method " + formatMethod(method) + ", " + item);
+                            item.freeze();
+                            Node<String> methodNode = classNode.appendChild(
+                                    new Node<>("method " + method)
+                            );
+                            methodNode.appendChild(
+                                    new Node<>(item.getAvgTimeString())
+                            );
+                            methodNode.appendChild(
+                                    new Node<>(item.getMaxTimeString())
+                            );
+                            methodNode.appendChild(
+                                    new Node<>(item.getCountString())
+                            );
+                            methodNode.appendChild(
+                                    new Node<>(item.getTimeDistributionString(rates))
+                            );
                         }
                     });
                 });
             });
+            TreeUtils.printTree(
+                    tree,
+                    new TreeUtils.PrintConfig(false),
+                    (node, config) -> node.getData()
+            );
         } finally {
             pool.shutdown();
         }
@@ -59,26 +111,24 @@ public class CostTimeStatisticsAnalyzeTest {
         return method;
     }
 
-    private static Map<Integer, TimeItem> calculate(String outputPath) {
-        return findDataFiles(outputPath)
+    private static Map<Integer, CostTimeItem> calculate(String outputPath) {
+        Map<Integer, CostTimeItem> sumMap = new ConcurrentHashMap<>();
+        findDataFiles(outputPath)
                 .parallelStream()
                 .map(CostTimeStatisticsAnalyzeTest::doCalculate)
-                .reduce(
-                        new ConcurrentHashMap<>(),
-                        (sumMap, itemMap) -> {
-                            itemMap.forEach(
-                                    (type, item) -> sumMap.computeIfAbsent(
-                                            type,
-                                            key -> new TimeItem()
-                                    ).merge(item)
-                            );
-                            return sumMap;
-                        }
+                .forEach(
+                        itemMap -> itemMap.forEach(
+                                (type, item) -> sumMap.computeIfAbsent(
+                                        type,
+                                        key -> new CostTimeItem()
+                                ).merge(item)
+                        )
                 );
+        return sumMap;
     }
 
-    private static Map<Integer, TimeItem> doCalculate(String dataFilePath) {
-        Map<Integer, TimeItem> typeToTimeItem = new TreeMap<>();
+    private static Map<Integer, CostTimeItem> doCalculate(String dataFilePath) {
+        Map<Integer, CostTimeItem> typeToCostTimeItem = new ConcurrentHashMap<>();
         try {
             long st = System.currentTimeMillis();
             File outputFile = new File(dataFilePath);
@@ -89,9 +139,9 @@ public class CostTimeStatisticsAnalyzeTest {
                     for (int i = 0; i < totalSize; i += 2) {
                         int methodType = in.readInt();
                         int costTime = in.readInt();
-                        typeToTimeItem.computeIfAbsent(
+                        typeToCostTimeItem.computeIfAbsent(
                                 methodType,
-                                key -> new TimeItem()
+                                key -> new CostTimeItem()
                         ).add(costTime);
                     }
                     length -= Integer.BYTES * (totalSize + 1);
@@ -102,7 +152,7 @@ public class CostTimeStatisticsAnalyzeTest {
         } catch (IOException e) {
             System.err.println("Read data file failed: " + dataFilePath + "\n" + Utils.getErrorStackStrace(e));
         }
-        return typeToTimeItem;
+        return typeToCostTimeItem;
     }
 
     private static List<String> findDataFiles(String dataFilePath) {
@@ -132,12 +182,17 @@ public class CostTimeStatisticsAnalyzeTest {
         return JSONUtils.read(content);
     }
 
-    private static class TimeItem {
+
+    static class CostTimeItem {
+        private static final DecimalFormat df = new DecimalFormat("#");
         private BigInteger totalTime = BigInteger.ZERO;
         private BigInteger count = BigInteger.ZERO;
         private long currTotalTime = 0;
         private long currCount = 0;
         private long maxTime = 0;
+        private Map<Long, Long> timeToCount = new TreeMap<>();
+        private Map<Long, BigInteger> timeToBigCount = new TreeMap<>();
+        private boolean freezed = false;
 
         private BigInteger wrap(long t) {
             return BigInteger.valueOf(t);
@@ -159,14 +214,15 @@ public class CostTimeStatisticsAnalyzeTest {
             count = count.add(v);
         }
 
-        void add(long time) {
-            if (currTotalTime + time < 0) {
+        synchronized void add(long time) {
+            checkFreezed();
+            if (currTotalTime + time <= 0) {
                 updateTotalTime(currTotalTime);
                 currTotalTime = time;
             } else
                 currTotalTime += time;
 
-            if (currCount + 1 < 0) {
+            if (currCount + 1 <= 0) {
                 updateCount(currCount);
                 currCount = 1;
             } else
@@ -174,41 +230,205 @@ public class CostTimeStatisticsAnalyzeTest {
 
             if (maxTime < time)
                 maxTime = time;
+
+            timeToCount.compute(time,
+                    (key, oldValue) -> {
+                        if (oldValue == null)
+                            return 1L;
+                        if (oldValue + 1 < 0) {
+                            updateTimeToBigCount(key, oldValue);
+                            return 1L;
+                        }
+                        return oldValue + 1;
+                    }
+            );
         }
 
-        synchronized void merge(TimeItem other) {
+        private void updateTimeToBigCount(long costTime, long timeCount) {
+            timeToBigCount.compute(costTime,
+                    (key, oldValue) -> {
+                        BigInteger v = wrap(timeCount);
+                        if (oldValue == null)
+                            return v;
+                        else
+                            return oldValue.add(v);
+                    }
+            );
+        }
+
+        synchronized void merge(CostTimeItem other) {
+            checkFreezed();
             updateTotalTime(other.totalTime);
-            if (this.currTotalTime + other.currTotalTime < 0)
+            if (this.currTotalTime + other.currTotalTime < 0) {
+                updateTotalTime(this.currTotalTime);
                 updateTotalTime(other.currTotalTime);
-            else
+                this.currTotalTime = 0;
+            } else
                 this.currTotalTime += other.currTotalTime;
 
             updateCount(other.count);
-            if (this.currCount + other.currCount < 0)
+            if (this.currCount + other.currCount < 0) {
+                updateCount(this.currCount);
                 updateCount(other.currCount);
-            else
+                this.currCount = 0;
+            } else
                 this.currCount += other.currCount;
 
             if (other.maxTime > this.maxTime)
                 this.maxTime = other.maxTime;
+
+            other.timeToBigCount.forEach(
+                    (costTime, bigCount) ->
+                            this.timeToBigCount.compute(
+                                    costTime,
+                                    (key, oldValue) -> {
+                                        if (oldValue == null)
+                                            return bigCount;
+                                        return oldValue.add(bigCount);
+                                    }
+                            )
+            );
+
+            other.timeToCount.forEach(
+                    (costTime, timeCount) ->
+                            this.timeToCount.compute(
+                                    costTime,
+                                    (key, oldValue) -> {
+                                        if (oldValue == null)
+                                            return timeCount;
+                                        else if (oldValue + timeCount < 0) {
+                                            updateTimeToBigCount(key, oldValue);
+                                            updateTimeToBigCount(key, timeCount);
+                                            return 0L;
+                                        }
+                                        return oldValue + timeCount;
+                                    }
+                            )
+            );
         }
 
-        BigInteger getTotalTime() {
-            return totalTime.add(wrap(currTotalTime));
+        private void checkFreezed() {
+            if (freezed)
+                throw new RuntimeException("It's freezed!");
         }
 
-        BigInteger getCount() {
-            return count.add(wrap(currCount));
+        synchronized void freeze() {
+            checkFreezed();
+            freezed = true;
+            if (currTotalTime > 0) {
+                updateTotalTime(currTotalTime);
+                currTotalTime = 0;
+            }
+            if (currCount > 0) {
+                updateCount(currCount);
+                currCount = 0;
+            }
+            timeToCount.forEach(this::updateTimeToBigCount);
+            timeToCount.clear();
+            timeToBigCount.values()
+                    .stream()
+                    .reduce(BigInteger::add)
+                    .ifPresent(v -> {
+                        if (v.compareTo(count) != 0)
+                            throw new RuntimeException("Invalid calculation: " + v + ", " + count);
+                    });
         }
 
-        @Override
-        public String toString() {
-            BigInteger totalTime = getTotalTime();
-            BigInteger count = getCount();
+        Map<Float, Long> calculateTimeDistribution(Set<Float> rates) {
+            if (rates.isEmpty())
+                return Collections.emptyMap();
+            List<BigInteger> boundaryList = new ArrayList<>();
+            Map<BigInteger, Float> boundaryToRate = new HashMap<>();
+            rates.forEach(
+                    rate -> {
+                        if (rate <= 0)
+                            throw new IllegalArgumentException("Rate must be > 0");
+                        BigInteger boundary = new BigDecimal(count).multiply(
+                                BigDecimal.valueOf(rate)
+                        ).toBigInteger();
+                        boundaryList.add(boundary);
+                        boundaryToRate.put(boundary, rate);
+                    }
+            );
+            Collections.sort(boundaryList);
+            BigInteger sumCount = BigInteger.ZERO;
+            Map<Float, Long> rateToCostTime = new TreeMap<>();
+            Iterator<Map.Entry<Long, BigInteger>> iter = timeToBigCount.entrySet().iterator();
+            Map.Entry<Long, BigInteger> entry = null;
+            while (!boundaryList.isEmpty()) {
+                BigInteger boundary = boundaryList.remove(0);
+                Float rate = boundaryToRate.get(boundary);
+                if (rate == null)
+                    throw new RuntimeException("No rate found for boundary: " + boundary);
+                while (sumCount.compareTo(boundary) < 0) {
+                    boolean found = false;
+                    while (iter.hasNext()) {
+                        entry = iter.next();
+                        sumCount = sumCount.add(entry.getValue());
+                        if (sumCount.compareTo(boundary) >= 0) {
+                            found = true;
+                            break;
+                        }
+                    }
+                    if (!found)
+                        throw new RuntimeException("No cost time found for rate: " + rate);
+                }
+                if (entry == null)
+                    throw new RuntimeException("Unknown error.");
+                rateToCostTime.put(rate, entry.getKey());
+            }
+            return rateToCostTime;
+        }
+
+        private String formatRate(float rate) {
+            return df.format(rate * 100) + "%";
+        }
+
+        long getAvgTime() {
             long avgTime = 0;
             if (count.compareTo(BigInteger.ZERO) > 0)
                 avgTime = totalTime.divide(count).longValue();
-            return "avg: " + avgTime + "ms, max: " + maxTime + "ms, count: " + count;
+            return avgTime;
+        }
+
+        String getAvgTimeString() {
+            return "Avg: " + getAvgTime() + "ms";
+        }
+
+        long getMaxTime() {
+            return maxTime;
+        }
+
+        String getMaxTimeString() {
+            return "Max: " + getMaxTime() + "ms";
+        }
+
+        BigInteger getCount() {
+            return count;
+        }
+
+        String getCountString() {
+            return "Count: " + getCount();
+        }
+
+        String getTimeDistributionString(Set<Float> rates) {
+            StringBuilder sb = new StringBuilder();
+            sb.append("Time Distribution: [");
+            Map<Float, Long> rateToCostTime = calculateTimeDistribution(rates);
+            int idx = 0;
+            for (Map.Entry<Float, Long> entry : rateToCostTime.entrySet()) {
+                if (idx > 0)
+                    sb.append(",  ");
+                sb.append(
+                        formatRate(entry.getKey())
+                )
+                        .append(entry.getValue() == 0 ? " = " : " <= ")
+                        .append(entry.getValue())
+                        .append("ms");
+                ++idx;
+            }
+            sb.append("]");
+            return sb.toString();
         }
     }
 }

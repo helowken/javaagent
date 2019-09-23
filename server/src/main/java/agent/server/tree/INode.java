@@ -1,4 +1,4 @@
-package agent.server.transform.impl.dynamic.rule;
+package agent.server.tree;
 
 import java.util.List;
 
@@ -11,9 +11,9 @@ public interface INode<T, N extends INode> {
 
     boolean isRoot();
 
-    void addChildAt(int idx, N child);
+    N addChildAt(int idx, N child);
 
-    void appendChild(N child);
+    N appendChild(N child);
 
     void removeChild(N child);
 

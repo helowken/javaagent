@@ -1,6 +1,8 @@
 package agent.server.transform.impl.dynamic.rule;
 
 import agent.server.transform.impl.dynamic.MethodInfo;
+import agent.server.tree.Node;
+import agent.server.tree.Tree;
 
 import java.util.Objects;
 
@@ -12,19 +14,19 @@ public class TreeTimeMeasureRule extends TraverseRule<TreeTimeMeasureRule.TimeDa
     }
 
     @Override
-    protected void onTreeEnd(RuleTree<TimeData> tree, TimeData data, Object returnValue) {
+    protected void onTreeEnd(Tree<TimeData> tree, TimeData data, Object returnValue) {
         data.endTime = System.currentTimeMillis();
         printTree(tree);
     }
 
     @Override
-    protected void onNodeEnd(RuleNode<TimeData> node, TimeData data, Object returnValue) {
+    protected void onNodeEnd(Node<TimeData> node, TimeData data, Object returnValue) {
         data.endTime = System.currentTimeMillis();
     }
 
     @Override
-    protected String nodeToString(RuleNode<TimeData> node) {
-        RuleNode<TimeData> parent = node.getParent();
+    protected String nodeToString(Node<TimeData> node) {
+        Node<TimeData> parent = node.getParent();
         TimeData nodeData = node.getData();
         if (parent != null) {
             TimeData parentData = parent.getData();
