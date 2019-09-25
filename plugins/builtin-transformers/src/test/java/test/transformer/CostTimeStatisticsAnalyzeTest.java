@@ -51,57 +51,61 @@ public class CostTimeStatisticsAnalyzeTest {
         return rates;
     }
 
-    private static void printResult(String outputPath, Set<Float> rates) throws Exception {
-        String metadataPath = outputPath + CostTimeLogger.METADATA_FILE;
-        Map<String, Map<String, Map<String, Integer>>> contextToClassToMethodToType = readMetadata(metadataPath);
+    private static Map<Integer, CostTimeItem> calculateStats(String outputPath) throws Exception {
         long st = System.currentTimeMillis();
         ForkJoinPool pool = new ForkJoinPool(Runtime.getRuntime().availableProcessors() - 1);
         try {
-            Map<Integer, CostTimeItem> typeToCostTimeItem = pool.submit(
+            return pool.submit(
                     () -> calculate(outputPath)
             ).get();
+        } finally {
             long et = System.currentTimeMillis();
             System.out.println("Result calculation used time: " + (et - st) + "ms");
-            Tree<String> tree = new Tree<>();
-            contextToClassToMethodToType.forEach((context, classToMethodToType) -> {
-                Node<String> contextNode = tree.appendChild(
-                        new Node<>("Context: " + context)
-                );
-                classToMethodToType.forEach((className, methodToType) -> {
-                    Node<String> classNode = contextNode.appendChild(
-                            new Node<>("Class: " + className)
-                    );
-                    new TreeMap<>(methodToType).forEach((method, type) -> {
-                        CostTimeItem item = typeToCostTimeItem.get(type);
-                        if (item != null) {
-                            item.freeze();
-                            Node<String> methodNode = classNode.appendChild(
-                                    new Node<>("method " + method)
-                            );
-                            methodNode.appendChild(
-                                    new Node<>(item.getAvgTimeString())
-                            );
-                            methodNode.appendChild(
-                                    new Node<>(item.getMaxTimeString())
-                            );
-                            methodNode.appendChild(
-                                    new Node<>(item.getCountString())
-                            );
-                            methodNode.appendChild(
-                                    new Node<>(item.getTimeDistributionString(rates))
-                            );
-                        }
-                    });
-                });
-            });
-            TreeUtils.printTree(
-                    tree,
-                    new TreeUtils.PrintConfig(false),
-                    (node, config) -> node.getData()
-            );
-        } finally {
             pool.shutdown();
         }
+    }
+
+    private static void printResult(String outputPath, Set<Float> rates) throws Exception {
+        String metadataPath = outputPath + CostTimeLogger.METADATA_FILE;
+        Map<String, Map<String, Map<String, Integer>>> contextToClassToMethodToType = readMetadata(metadataPath);
+        Map<Integer, CostTimeItem> typeToCostTimeItem = calculateStats(outputPath);
+        Tree<String> tree = new Tree<>();
+        contextToClassToMethodToType.forEach((context, classToMethodToType) -> {
+            Node<String> contextNode = tree.appendChild(
+                    new Node<>("Context: " + context)
+            );
+            classToMethodToType.forEach((className, methodToType) -> {
+                Node<String> classNode = contextNode.appendChild(
+                        new Node<>("Class: " + className)
+                );
+                new TreeMap<>(methodToType).forEach((method, type) -> {
+                    CostTimeItem item = typeToCostTimeItem.get(type);
+                    if (item != null) {
+                        item.freeze();
+                        Node<String> methodNode = classNode.appendChild(
+                                new Node<>("method " + method)
+                        );
+                        methodNode.appendChild(
+                                new Node<>(item.getAvgTimeString())
+                        );
+                        methodNode.appendChild(
+                                new Node<>(item.getMaxTimeString())
+                        );
+                        methodNode.appendChild(
+                                new Node<>(item.getCountString())
+                        );
+                        methodNode.appendChild(
+                                new Node<>(item.getTimeDistributionString(rates))
+                        );
+                    }
+                });
+            });
+        });
+        TreeUtils.printTree(
+                tree,
+                new TreeUtils.PrintConfig(false),
+                (node, config) -> node.getData()
+        );
     }
 
     private static String formatMethod(String method) {

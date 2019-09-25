@@ -17,6 +17,7 @@ import agent.server.transform.config.rule.MethodRule;
 import agent.server.transform.impl.dynamic.MethodInfo;
 import agent.server.transform.impl.dynamic.MethodRuleFilter;
 import agent.server.transform.impl.dynamic.SubTypeSearcher;
+import agent.server.transform.impl.dynamic.rule.ConfigurableTreeRule;
 import agent.server.transform.impl.dynamic.rule.TreeTimeMeasureRule;
 import agent.server.transform.impl.utils.AgentClassPool;
 import org.junit.BeforeClass;
@@ -113,13 +114,22 @@ public class TestConfigRuleTest extends AbstractTest {
 
     @Test
     public void testTimeRule() throws Exception {
+        doTestTimeRule(TestTimeRule.class.getName());
+    }
+
+    @Test
+    public void testTreeTimeRule() throws Exception {
+        doTestTimeRule(TestTreeTimeRule.class.getName());
+    }
+
+    private void doTestTimeRule(String ruleClassName) throws Exception {
         // import class B1, B2
         new B1();
         new B2();
         new C1();
         new TestMap();
 
-        Command cmd = new ByRuleCommand.TransformByRuleCommand(context, TestTimeRule.class.getName());
+        Command cmd = new ByRuleCommand.TransformByRuleCommand(context, ruleClassName);
         long st = System.currentTimeMillis();
         ExecResult result = new TransformCmdExecutor().exec(cmd);
         long et = System.currentTimeMillis();
@@ -203,6 +213,18 @@ public class TestConfigRuleTest extends AbstractTest {
                                     Map.Entry::getValue
                             )
                     );
+        }
+    }
+
+    public static class TestTreeTimeRule extends ConfigurableTreeRule {
+
+        public TestTreeTimeRule() {
+            super(context, aClassName, "runTasks", new TreeTimeMeasureRule());
+        }
+
+        @Override
+        protected boolean doFilter(String className) {
+            return className.startsWith("test.flow.");
         }
     }
 

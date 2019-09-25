@@ -25,8 +25,7 @@ public class RuleValidateMgr {
 
     public static void checkMethodValid(DynamicConfigItem item) {
         Class<?>[] paramTypes = item.ruleMethod.getParameterTypes();
-        if (paramTypes == null)
-            doCheck(false, item);
+        doCheck(paramTypes != null, item);
 
         int idx = 0;
         doCheck(isValidType(paramTypes, idx++, Object[].class), item);

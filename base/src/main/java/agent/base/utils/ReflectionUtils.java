@@ -5,8 +5,10 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @SuppressWarnings("unchecked")
 public class ReflectionUtils {
@@ -150,6 +152,20 @@ public class ReflectionUtils {
                                      AccessibleObjectValueFunc<Method, T> func) throws Exception {
         Method method = getMethod(classOrClassName, methodName, argClassOrClassNames);
         return exec(method, () -> func.exec(method));
+    }
+
+    public static List<Method> findMethods(Object classOrClassName, String methodName) throws Exception {
+        return findFromClassCascade(
+                convert(classOrClassName),
+                tmpClass -> {
+                    Method[] methods = tmpClass.getDeclaredMethods();
+                    if (methods != null)
+                        return Stream.of(methods)
+                                .filter(method -> method.getName().equals(methodName))
+                                .collect(Collectors.toList());
+                    return Collections.emptyList();
+                }
+        );
     }
 
     private static Method getMethod(Object classOrClassName, String methodName, Object... argClassOrClassNames) throws Exception {

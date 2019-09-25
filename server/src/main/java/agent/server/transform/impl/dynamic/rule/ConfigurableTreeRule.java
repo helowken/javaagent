@@ -1,38 +1,36 @@
 package agent.server.transform.impl.dynamic.rule;
 
-import agent.base.utils.Logger;
-import agent.server.transform.config.parser.handler.TreeTimeRuleConfig;
+import agent.server.transform.config.parser.handler.TreeRule;
 import agent.server.transform.impl.dynamic.MethodInfo;
 import agent.server.transform.impl.dynamic.SubTypeSearcher;
-import agent.server.tree.Tree;
 
-import java.io.BufferedOutputStream;
-import java.io.FileOutputStream;
-import java.io.PrintStream;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static agent.server.utils.log.LogConfig.STDOUT;
 
-public class ConfigurableTreeTimeRule extends TreeTimeMeasureRule implements TreeTimeRuleConfig {
-    private final Logger logger;
+public class ConfigurableTreeRule implements TreeRule {
     private final String context;
     private final String className;
     private final String method;
-    private final int maxLevel;
-    private final String outputPath;
+    private int maxLevel = 50;
+    private String outputPath = null;
+    private final TraverseRule traverseRule;
 
-    public ConfigurableTreeTimeRule(String context, String className, String method, String outputPath) {
-        this(context, className, method, 0, outputPath);
-    }
-
-    public ConfigurableTreeTimeRule(String context, String className, String method, int maxLevel, String outputPath) {
+    public ConfigurableTreeRule(String context, String className, String method, TraverseRule traverseRule) {
+        if (traverseRule == null)
+            throw new IllegalArgumentException("Traverse rule can not be null.");
         this.context = context;
         this.className = className;
         this.method = method;
+        this.traverseRule = traverseRule;
+    }
+
+    public void setMaxLevel(int maxLevel) {
         this.maxLevel = maxLevel;
-        this.outputPath = outputPath == null ? STDOUT : outputPath;
-        this.logger = Logger.getLogger(getClass());
+    }
+
+    public void setOutputPath(String outputPath) {
+        this.outputPath = outputPath;
     }
 
     @Override
@@ -41,18 +39,23 @@ public class ConfigurableTreeTimeRule extends TreeTimeMeasureRule implements Tre
     }
 
     @Override
-    public String getClassName() {
+    public String getTargetClass() {
         return className;
     }
 
     @Override
-    public String getMethod() {
+    public String getTargetMethod() {
         return method;
     }
 
     @Override
     public int getMaxLevel() {
         return maxLevel;
+    }
+
+    @Override
+    public TraverseRule getTraverseRule() {
+        return traverseRule;
     }
 
     @Override
@@ -81,16 +84,16 @@ public class ConfigurableTreeTimeRule extends TreeTimeMeasureRule implements Tre
         return true;
     }
 
-    @Override
-    protected void printTree(Tree<TimeData> tree) {
-        if (STDOUT.equals(outputPath)) {
-            printTree(System.out, tree);
-        } else {
-            try (PrintStream out = new PrintStream(new BufferedOutputStream(new FileOutputStream(outputPath)))) {
-                printTree(out, tree);
-            } catch (Exception e) {
-                logger.error("print tree failed.", e);
-            }
-        }
-    }
+//    @Override
+//    protected void printTree(Tree<TimeData> tree) {
+//        if (STDOUT.equals(outputPath)) {
+//            printTree(System.out, tree);
+//        } else {
+//            try (PrintStream out = new PrintStream(new BufferedOutputStream(new FileOutputStream(outputPath)))) {
+//                printTree(out, tree);
+//            } catch (Exception e) {
+//                logger.error("print tree failed.", e);
+//            }
+//        }
+//    }
 }

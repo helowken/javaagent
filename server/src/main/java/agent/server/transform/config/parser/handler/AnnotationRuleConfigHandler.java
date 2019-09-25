@@ -3,17 +3,14 @@ package agent.server.transform.config.parser.handler;
 import agent.base.utils.Logger;
 import agent.base.utils.ReflectionUtils;
 import agent.base.utils.Utils;
-import agent.server.transform.TransformMgr;
-import agent.server.transform.config.*;
+import agent.server.transform.config.ModuleConfig;
 import agent.server.transform.config.parser.RuleConfigParser.RuleConfigItem;
 import agent.server.transform.config.rule.ClassRule;
 import agent.server.transform.config.rule.ContextRule;
 import agent.server.transform.config.rule.MethodRule;
 import agent.server.transform.config.rule.MethodRule.Position;
-import agent.server.transform.impl.dynamic.DynamicClassTransformer;
 import agent.server.transform.impl.dynamic.DynamicConfigItem;
 import agent.server.transform.impl.dynamic.MethodRuleFilter;
-import agent.server.transform.impl.dynamic.RuleValidateMgr;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
@@ -24,7 +21,7 @@ import java.util.function.Supplier;
 import static agent.base.utils.Utils.blankToNull;
 import static agent.base.utils.Utils.firstNotBlank;
 
-public class AnnotationRuleConfigHandler implements RuleConfigHandler {
+public class AnnotationRuleConfigHandler extends AbstractRuleConfigHandler {
     private static final Logger logger = Logger.getLogger(AnnotationRuleConfigHandler.class);
 
     @Override
@@ -58,30 +55,12 @@ public class AnnotationRuleConfigHandler implements RuleConfigHandler {
                         newMethodRuleFilter(context, Utils.blankToNull(mcFilterClass)),
                         maxLevel
                 );
-                RuleValidateMgr.checkMethodValid(configItem);
 
-                MethodFilterConfig methodFilterConfig = new MethodFilterConfig();
-                methodFilterConfig.setIncludeExprSet(Collections.singleton(targetMethod));
-
-                ClassConfig classConfig = new ClassConfig();
-                classConfig.setTargetClass(targetClass);
-                classConfig.setMethodFilterConfig(methodFilterConfig);
-
-                TransformerConfig transformerConfig = new TransformerConfig();
-                transformerConfig.setRef(DynamicClassTransformer.REG_KEY);
-                transformerConfig.setConfig(Collections.singletonMap(DynamicClassTransformer.KEY_CONFIG, configItem));
-
-                TransformConfig transformConfig = new TransformConfig();
-                transformConfig.setTargetList(Collections.singletonList(classConfig));
-                transformConfig.setTransformerConfigList(Collections.singletonList(transformerConfig));
-
-                ModuleConfig moduleConfig = contextToModuleConfig.computeIfAbsent(context, key -> {
-                    ModuleConfig mc = new ModuleConfig();
-                    mc.setContextPath(context);
-                    mc.setTransformConfigList(new ArrayList<>());
-                    return mc;
-                });
-                moduleConfig.getTransformConfigList().add(transformConfig);
+                contextToModuleConfig.computeIfAbsent(context, this::newModuleConfig)
+                        .getTransformConfigList()
+                        .add(
+                                newTransformConfig(targetMethod, targetClass, configItem)
+                        );
             });
         }
         logger.debug("context to moduleConfig: {}", contextToModuleConfig);
@@ -156,19 +135,5 @@ public class AnnotationRuleConfigHandler implements RuleConfigHandler {
         );
     }
 
-    private Map<Method, MethodRule> filterRuleMethods(Method[] methods) {
-        Map<Method, MethodRule> rsMap = new HashMap<>();
-        if (methods != null) {
-            for (Method method : methods) {
-                MethodRule methodRule = method.getAnnotation(MethodRule.class);
-                if (methodRule != null)
-                    rsMap.put(method, methodRule);
-            }
-        }
-        return rsMap;
-    }
 
-    private Class<?> findClass(String context, String className) {
-        return TransformMgr.getInstance().getClassFinder().findClass(context, className);
-    }
 }

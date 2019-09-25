@@ -6,6 +6,7 @@ import agent.server.transform.config.ModuleConfig;
 import agent.server.transform.config.parser.exception.ConfigParseException;
 import agent.server.transform.config.parser.handler.AnnotationRuleConfigHandler;
 import agent.server.transform.config.parser.handler.RuleConfigHandler;
+import agent.server.transform.config.parser.handler.TreeRuleConfigHandler;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,16 +16,15 @@ public class RuleConfigParser implements ConfigParser {
     private static final List<RuleConfigHandler> handlerList = new ArrayList<>();
     private static final RuleConfigHandler defaultHandler = new AnnotationRuleConfigHandler();
 
+    static {
+        handlerList.add(new TreeRuleConfigHandler());
+    }
+
     public static RuleConfigParser getInstance() {
         return instance;
     }
 
     private RuleConfigParser() {
-    }
-
-    public void reg(RuleConfigHandler handler) {
-        if (!handlerList.contains(handler))
-            handlerList.add(handler);
     }
 
     @Override
