@@ -101,7 +101,7 @@ public class DynamicClassLoader extends ClassLoader {
                     classNameToClassLoader.put(name, cl);
                     return clazz;
                 } catch (ClassNotFoundException e) {
-                    logger.debug("load class: {} by classLoader: {}, error: {}", name, cl, e.getMessage());
+//                    logger.debug("load class: {} by classLoader: {}, error: {}", name, cl, e.getMessage());
                 }
             }
             return null;

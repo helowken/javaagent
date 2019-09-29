@@ -14,6 +14,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class ClassCache {
     private static final Logger logger = Logger.getLogger(ClassCache.class);
+    private static final String COMMON_CONTEXT = "@common@";
     private static final ClassCache instance = new ClassCache();
     private final LockObject cacheLock = new LockObject();
     private final Map<String, Collection<Class<?>>> contextToClasses = new HashMap<>();
@@ -63,7 +64,12 @@ public class ClassCache {
         }
     }
 
-    public Map<String, Class<?>> getSubClassMap(String context, String baseClassName) {
+    public Map<String, Class<?>> getSubClassMap(String baseClassName) {
+        return getSubClassMap(COMMON_CONTEXT, baseClassName);
+    }
+
+    public Map<String, Class<?>> getSubClassMap(String contextPath, String baseClassName) {
+        String context = contextPath == null ? COMMON_CONTEXT : contextPath;
         return registry.regIfAbsent(
                 context,
                 key -> new ClassCacheItem(context)

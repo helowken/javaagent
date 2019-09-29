@@ -22,7 +22,6 @@ import agent.server.transform.impl.utils.MethodFinder.MethodSearchResult;
 
 import java.lang.instrument.Instrumentation;
 import java.net.URL;
-import java.security.CodeSource;
 import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -124,11 +123,11 @@ public class TransformMgr {
             Class<?> targetClass = getClassFinder().findClass(context, classConfig.getTargetClass());
             if (targetClass.isInterface())
                 throw new RuntimeException("Interface class can not be transformed: " + targetClass.getName());
-            CodeSource codeSource = targetClass.getProtectionDomain().getCodeSource();
-            logger.debug("{} source location is: {}",
-                    targetClass,
-                    codeSource == null ? null : codeSource.getLocation()
-            );
+//            CodeSource codeSource = targetClass.getProtectionDomain().getCodeSource();
+//            logger.debug("{} source location is: {}",
+//                    targetClass,
+//                    codeSource == null ? null : codeSource.getLocation()
+//            );
             targetClassConfigList.add(new TargetClassConfig(targetClass, classConfig));
         });
         return targetClassConfigList;
@@ -175,7 +174,7 @@ public class TransformMgr {
             transformContextList.forEach(transformContext -> {
                 if (!transformContext.skipRecordClass)
                     contextToTransformedClassSet.put(transformContext.context, transformContext.classSet);
-                Set<Class<?>> refClassSet = new HashSet<>(transformContext.classSet);
+                Set<Class<?>> refClassSet = new HashSet<>(transformContext.getRefClassSet());
                 transformContext.transformerList.forEach(transformer -> {
                     refClassSet.addAll(transformer.getRefClassSet());
                     instrumentation.addTransformer(transformer, true);
@@ -222,10 +221,14 @@ public class TransformMgr {
                             }
                         });
                         transformContextList.add(
-                                new TransformContext(context,
+                                new TransformContext(
+                                        context,
                                         resetClassSet,
                                         Collections.singletonList(
-                                                new ResetClassTransformer(getDynamicClassLoader(context), resetClassSet)
+                                                new ResetClassTransformer(
+                                                        getDynamicClassLoader(context),
+                                                        resetClassSet
+                                                )
                                         ),
                                         true
                                 )
@@ -249,7 +252,12 @@ public class TransformMgr {
                             logger.debug("No transformed class left, remove context: {}", context);
                             contextToTransformedClassSet.remove(context);
                         }
-                        EventListenerMgr.fireEvent(new ResetClassEvent(transformContext, contextToTransformedClassSet.isEmpty()));
+                        EventListenerMgr.fireEvent(
+                                new ResetClassEvent(
+                                        transformContext,
+                                        contextToTransformedClassSet.isEmpty()
+                                )
+                        );
                     }
                 })
         );

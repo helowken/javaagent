@@ -95,8 +95,15 @@ public class DynamicClassTransformer extends AbstractConfigTransformer {
     }
 
     private boolean needToBeTransformed(CtMethod ctMethod) {
-        return !transformedMethods.contains(ctMethod.getLongName()) &&
-                !Modifier.isNative(ctMethod.getModifiers());
+        return !transformedMethods.contains(
+                ctMethod.getLongName()
+        ) &&
+                !Modifier.isNative(
+                        ctMethod.getModifiers()
+                ) &&
+                !ClassPathRecorder.isNativePackage(
+                        ctMethod.getDeclaringClass().getName()
+                );
     }
 
     private void addToTransformed(CtMethod ctMethod) {
@@ -216,7 +223,7 @@ public class DynamicClassTransformer extends AbstractConfigTransformer {
                                         subClassMap.entrySet().removeIf(
                                                 entry -> {
                                                     String subClassName = entry.getKey();
-                                                    if (InvalidClassNameCache.getInstance().contains(subClassName))
+                                                    if (InvalidClassNameCache.getInstance().contains(item.context, subClassName))
                                                         return true;
                                                     if (entry.getValue() == null) {
                                                         try {
@@ -225,7 +232,7 @@ public class DynamicClassTransformer extends AbstractConfigTransformer {
                                                             );
                                                         } catch (Exception e) {
                                                             logger.error("Find class failed, context: {}, class: {}", item.context, subClassName);
-                                                            InvalidClassNameCache.getInstance().add(subClassName);
+                                                            InvalidClassNameCache.getInstance().add(item.context, subClassName);
                                                             return true;
                                                         }
                                                     }
@@ -238,7 +245,7 @@ public class DynamicClassTransformer extends AbstractConfigTransformer {
                                                 (clazz, error) -> {
                                                     logger.error("Find ref class failed: {}", error, clazz.getName());
                                                     String invalidClassName = clazz.getName();
-                                                    InvalidClassNameCache.getInstance().add(invalidClassName);
+                                                    InvalidClassNameCache.getInstance().add(item.context, invalidClassName);
                                                     subClassMap.remove(invalidClassName);
                                                 }
                                         );
@@ -265,7 +272,7 @@ public class DynamicClassTransformer extends AbstractConfigTransformer {
                                     implClass = AgentClassPool.getInstance().get(implClassName);
                                 } catch (Exception e) {
                                     logger.error("Find impl class failed: {}", e, implClassName);
-                                    InvalidClassNameCache.getInstance().add(implClassName);
+                                    InvalidClassNameCache.getInstance().add(item.context, implClassName);
                                 }
                                 if (implClass != null) {
                                     if (!implClass.subtypeOf(baseClass))
