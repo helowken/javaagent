@@ -178,18 +178,31 @@ public class DynamicClassTransformer extends AbstractConfigTransformer {
 
                     if (mayBeOverridden(ctMethod)) {
                         MethodInfo methodInfo = newMethodInfo(ctMethod, level);
-                        if (item.methodRuleFilter.needGetImplClasses(methodInfo)) {
-                            logger.debug("Method may be overridden: {}", ctMethod.getLongName());
-                            findImplMethods(
-                                    ctMethod.getDeclaringClass(),
-                                    methodInfo
-                            ).forEach(
-                                    implMethod -> processMethod(
-                                            implMethod,
-                                            newMethodInfo(implMethod, level)
+                        List<CtMethod> relatedMethods = new LinkedList<>();
+                        if (item.methodRuleFilter.needGetImplMethods(methodInfo)) {
+//                            logger.debug("Method may have impl methods: {}", ctMethod.getLongName());
+                            relatedMethods.addAll(
+                                    findImplMethods(
+                                            ctMethod.getDeclaringClass(),
+                                            methodInfo
                                     )
                             );
                         }
+                        if (item.methodRuleFilter.needGetBytecodeMethods(methodInfo)) {
+//                            logger.debug("Method may have bytecode methods: {}", ctMethod.getLongName());
+                            relatedMethods.addAll(
+                                    findBytecodeMethods(
+                                            ctMethod.getDeclaringClass(),
+                                            methodInfo
+                                    )
+                            );
+                        }
+                        relatedMethods.forEach(
+                                implMethod -> processMethod(
+                                        implMethod,
+                                        newMethodInfo(implMethod, level)
+                                )
+                        );
                     }
                 }
             });
@@ -255,6 +268,10 @@ public class DynamicClassTransformer extends AbstractConfigTransformer {
                     ),
                     () -> "Get impl classes failed: " + methodInfo
             );
+        }
+
+        private Collection<CtMethod> findBytecodeMethods(CtClass baseClass, MethodInfo methodInfo) {
+            return null;
         }
 
         private Collection<CtMethod> findImplMethods(CtClass baseClass, MethodInfo methodInfo) {

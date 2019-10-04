@@ -5,6 +5,10 @@ public class AAA {
         System.out.println("In AAA.");
     }
 
+    public void testBBB() {
+        System.out.println("In BBB.");
+    }
+
     public void run() {
         testAAA();
     }

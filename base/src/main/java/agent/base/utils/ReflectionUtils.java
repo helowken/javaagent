@@ -96,7 +96,10 @@ public class ReflectionUtils {
     private static Field getField(Object classOrClassName, String fieldName) throws Exception {
         Class<?> clazz = convert(classOrClassName);
         return findFromClassCascade(clazz,
-                tmpClass -> tmpClass.getDeclaredField(fieldName)
+                tmpClass -> new Pair<>(
+                        tmpClass.getDeclaredField(fieldName),
+                        TraverseFlag.STOP
+                )
         );
     }
 
@@ -154,25 +157,52 @@ public class ReflectionUtils {
         return exec(method, () -> func.exec(method));
     }
 
-    public static List<Method> findMethods(Object classOrClassName, String methodName) throws Exception {
-        return findFromClassCascade(
+    public static Method findFirstMethod(Object classOrClassName, String methodName) throws Exception {
+        return findFirstMethod(classOrClassName, methodName, null);
+    }
+
+    public static Method findFirstMethod(Object classOrClassName, String methodName, String methodSignature) throws Exception {
+        List<Method> methods = findMethods(classOrClassName, methodName, methodSignature);
+        if (methods.isEmpty())
+            return null;
+        return methods.get(0);
+    }
+
+    public static List<Method> findMethods(Object classOrClassName, String methodName, String methodSignature) throws Exception {
+        List<Method> rsMethods = findFromClassCascade(
                 convert(classOrClassName),
                 tmpClass -> {
                     Method[] methods = tmpClass.getDeclaredMethods();
+                    List<Method> rsList = Collections.emptyList();
                     if (methods != null)
-                        return Stream.of(methods)
-                                .filter(method -> method.getName().equals(methodName))
+                        rsList = Stream.of(methods)
+                                .filter(
+                                        method -> method.getName().equals(methodName) &&
+                                                (methodSignature == null ||
+                                                        MethodSignatureUtils.getSignature(method).equals(methodSignature))
+                                )
                                 .collect(Collectors.toList());
-                    return Collections.emptyList();
+                    return new Pair<>(
+                            rsList,
+                            rsList.isEmpty() ?
+                                    TraverseFlag.CONTINUE :
+                                    TraverseFlag.STOP
+                    );
                 }
         );
+        return rsMethods == null ?
+                Collections.emptyList() :
+                rsMethods;
     }
 
     private static Method getMethod(Object classOrClassName, String methodName, Object... argClassOrClassNames) throws Exception {
         Class<?> clazz = convert(classOrClassName);
         Class[] argTypes = convertArray(argClassOrClassNames);
         return findFromClassCascade(clazz,
-                tmpClass -> tmpClass.getDeclaredMethod(methodName, argTypes)
+                tmpClass -> new Pair<>(
+                        tmpClass.getDeclaredMethod(methodName, argTypes),
+                        TraverseFlag.STOP
+                )
         );
     }
 
@@ -181,7 +211,9 @@ public class ReflectionUtils {
         Exception e = null;
         while (tmpClass != null) {
             try {
-                return func.find(tmpClass);
+                Pair<T, TraverseFlag> p = func.find(tmpClass);
+                if (p.right == TraverseFlag.STOP)
+                    return p.left;
             } catch (Exception e2) {
                 if (e == null)
                     e = e2;
@@ -190,7 +222,7 @@ public class ReflectionUtils {
         }
         if (e != null)
             throw e;
-        throw new Exception("Unknown exception");
+        return null;
     }
 
     private static Class[] convertArray(Object... classOrClassNames) throws Exception {
@@ -225,7 +257,7 @@ public class ReflectionUtils {
     }
 
     private interface FindFunc<V> {
-        V find(Class<?> clazz) throws Exception;
+        Pair<V, TraverseFlag> find(Class<?> clazz) throws Exception;
     }
 
     private interface AccessibleObjectValueSupplier<V> {
@@ -238,5 +270,9 @@ public class ReflectionUtils {
 
     public interface AccessibleObjectConsumer<T extends AccessibleObject> {
         void consume(T ao) throws Exception;
+    }
+
+    enum TraverseFlag {
+        STOP, CONTINUE
     }
 }

@@ -11,7 +11,11 @@ public interface MethodRuleFilter {
         return !methodInfo.isNative;
     }
 
-    default boolean needGetImplClasses(MethodInfo methodInfo) {
+    default boolean needGetImplMethods(MethodInfo methodInfo) {
+        return !methodInfo.isNative;
+    }
+
+    default boolean needGetBytecodeMethods(MethodInfo methodInfo) {
         return !methodInfo.isNative;
     }
 

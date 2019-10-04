@@ -25,7 +25,6 @@ public class TransformCmdExecutor extends AbstractTransformCmdExecutor {
     ExecResult doExec(Command cmd) {
         int cmdType = cmd.getType();
         ConfigItem item;
-        String context = null;
         switch (cmdType) {
             case CMD_TRANSFORM_BY_FILE:
                 item = new FileConfigParser.FileConfigItem(
@@ -38,7 +37,6 @@ public class TransformCmdExecutor extends AbstractTransformCmdExecutor {
                         ruleCmd.getContext(),
                         ruleCmd.getClassName()
                 );
-                context = ((RuleConfigParser.RuleConfigItem) item).context;
                 break;
             default:
                 throw new RuntimeException("Invalid cmd type: " + cmdType);
