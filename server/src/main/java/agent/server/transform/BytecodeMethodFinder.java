@@ -7,5 +7,5 @@ import java.util.Set;
 import java.util.function.Function;
 
 public interface BytecodeMethodFinder {
-    Set<Method> findBytecodeMethods(MethodInfo targetMethodInfo, Set<Class<?>> hintClassSet, Function<MethodInfo, Method> methodGetter);
+    Set<Method> findBytecodeMethods(MethodInfo targetMethodInfo, ClassLoader classLoader, Function<MethodInfo, Method> methodGetter);
 }

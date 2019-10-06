@@ -8,7 +8,7 @@ public class SimplifiedRule extends ConfigurableTreeRule {
         super(
                 "/test",
                 "test.aop.AAA",
-                "run",
+                "testAAA",
 //                "/home/jeeapp/tree-time.txt",
                 new TreeTimeMeasureRule()
         );

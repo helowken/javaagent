@@ -30,6 +30,7 @@
                 <include>javaagent:jetty-runner-hook</include>
                 <include>javaagent:tomcat-hook</include>
                 <include>javaagent:builtin-transformers</include>
+                <include>javaagent:spring-aop</include>
             </includes>
         </dependencySet>
         <dependencySet>

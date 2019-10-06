@@ -22,12 +22,13 @@
                 <module>launchers/basic-launcher</module>
                 <module>launchers/client-launcher</module>
                 <module>launchers/server-launcher</module>
+                <module>launchers/agent-launcher</module>
                 <module>server</module>
                 <module>client</module>
-                <module>launchers/agent-launcher</module>
                 <module>plugins/jetty-runner-hook</module>
                 <module>plugins/builtin-transformers</module>
                 <module>plugins/tomcat-hook</module>
+                <module>plugins/spring-aop</module>
                 <module>packaging</module>
             </modules>
         </profile>
@@ -81,7 +82,7 @@
                 <module>plugins/jetty-runner-hook</module>
                 <module>plugins/builtin-transformers</module>
                 <module>plugins/tomcat-hook</module>
-                <module>plugins/bytecode</module>
+                <module>plugins/spring-aop</module>
                 <module>packaging</module>
             </modules>
         </profile>

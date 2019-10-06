@@ -2,12 +2,12 @@ package agent.bytecode.spring.aop;
 
 import agent.base.utils.Logger;
 import agent.base.utils.ReflectionUtils;
-import agent.base.utils.Utils;
 import agent.jvmti.JvmtiUtils;
 import agent.server.transform.BytecodeMethodFinder;
 import agent.server.transform.impl.dynamic.MethodInfo;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.function.Function;
 
@@ -15,19 +15,36 @@ public class SpringAopBytecodeMethodFinder implements BytecodeMethodFinder {
     private static final Logger logger = Logger.getLogger(SpringAopBytecodeMethodFinder.class);
 
     @Override
-    public Set<Method> findBytecodeMethods(MethodInfo targetMethodInfo, Set<Class<?>> hintClassSet, Function<MethodInfo, Method> methodGetter) {
-        if (hintClassSet.isEmpty())
+    public Set<Method> findBytecodeMethods(MethodInfo targetMethodInfo, ClassLoader classLoader, Function<MethodInfo, Method> methodGetter) {
+        if (!canBeAop(targetMethodInfo)) {
+//            logger.debug("Can not be aop: {}", targetMethodInfo);
             return Collections.emptySet();
+        }
         Method targetMethod = methodGetter.apply(targetMethodInfo);
         Set<Method> rsSet = new HashSet<>();
-        doFind(targetMethod, rsSet);
+        doFind(targetMethod, classLoader, rsSet);
+//        if (rsSet.isEmpty())
+//            logger.debug("No bytecode methods found for: {}", targetMethodInfo);
+//        else
+//            logger.debug("Found bytecode methods {} for : {}", rsSet, targetMethodInfo);
         return rsSet;
     }
 
-    private void doFind(Method targetMethod, Set<Method> bytecodeMethodSet) {
+    private boolean canBeAop(MethodInfo targetMethodInfo) {
+        return ReflectionUtils.canBeOverridden(
+                targetMethodInfo.classModifiers,
+                targetMethodInfo.methodModifiers
+        ) &&
+                !(Modifier.isAbstract(targetMethodInfo.methodModifiers) ||
+                        Modifier.isStatic(targetMethodInfo.classModifiers) ||
+                        Modifier.isAbstract(targetMethodInfo.classModifiers)
+                );
+    }
+
+    private void doFind(Method targetMethod, ClassLoader classLoader, Set<Method> bytecodeMethodSet) {
         try {
-            List<Object> proxyFactoryList = JvmtiUtils.getInstance().findObjectsByClassName(
-                    "org.springframework.aop.framework.ProxyFactory",
+            List<?> proxyFactoryList = JvmtiUtils.getInstance().findObjectsByClass(
+                    classLoader.loadClass("org.springframework.aop.framework.ProxyFactory"),
                     Integer.MAX_VALUE
             );
             proxyFactoryList.stream()

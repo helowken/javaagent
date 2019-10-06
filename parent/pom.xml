@@ -15,6 +15,8 @@
         <junit.version>4.12</junit.version>
         <mockito.version>1.9.5</mockito.version>
         <jetty-runner.version>9.4.14.v20181114</jetty-runner.version>
+        <aspectjweaver.version>1.8.10</aspectjweaver.version>
+        <spring.version>4.3.9.RELEASE</spring.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
@@ -109,6 +111,11 @@
                 <artifactId>builtin-transformers</artifactId>
                 <version>${project.version}</version>
             </dependency>
+            <dependency>
+                <groupId>javaagent</groupId>
+                <artifactId>spring-aop</artifactId>
+                <version>${project.version}</version>
+            </dependency>
 
             <!-- test -->
             <dependency>
@@ -127,6 +134,31 @@
                 <groupId>org.eclipse.jetty</groupId>
                 <artifactId>jetty-runner</artifactId>
                 <version>${jetty-runner.version}</version>
+                <scope>test</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.aspectj</groupId>
+                <artifactId>aspectjweaver</artifactId>
+                <version>${aspectjweaver.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-context</artifactId>
+                <version>${spring.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-beans</artifactId>
+                <version>${spring.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-aop</artifactId>
+                <version>${spring.version}</version>
                 <scope>test</scope>
             </dependency>
         </dependencies>

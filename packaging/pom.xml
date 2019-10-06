@@ -54,6 +54,10 @@
             <groupId>javaagent</groupId>
             <artifactId>builtin-transformers</artifactId>
         </dependency>
+        <dependency>
+            <groupId>javaagent</groupId>
+            <artifactId>spring-aop</artifactId>
+        </dependency>
     </dependencies>
 
     <build>

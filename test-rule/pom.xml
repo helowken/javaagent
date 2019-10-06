@@ -19,6 +19,10 @@
         </dependency>
         <dependency>
             <groupId>javaagent</groupId>
+            <artifactId>spring-aop</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>javaagent</groupId>
             <artifactId>client</artifactId>
         </dependency>
 

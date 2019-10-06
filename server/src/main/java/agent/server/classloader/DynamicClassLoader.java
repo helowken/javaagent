@@ -90,7 +90,7 @@ public class DynamicClassLoader extends ClassLoader {
     }
 
     private Class<?> findClassBySelf(final String name) {
-        logger.debug("Use dynamic loader to load class: {}", name);
+//        logger.debug("Use dynamic loader to load class: {}", name);
         return loaderLock.syncValue(lock -> {
             SingleURLClassLoader classLoader = classNameToClassLoader.get(name);
             if (classLoader != null)

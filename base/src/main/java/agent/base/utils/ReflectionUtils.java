@@ -1,9 +1,6 @@
 package agent.base.utils;
 
-import java.lang.reflect.AccessibleObject;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
+import java.lang.reflect.*;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -20,6 +17,14 @@ public class ReflectionUtils {
                 return true;
         }
         return false;
+    }
+
+    public static boolean canBeOverridden(int classModifiers, int methodModifiers) {
+        return !(Modifier.isStatic(methodModifiers) ||
+                Modifier.isFinal(methodModifiers) ||
+                Modifier.isPrivate(methodModifiers) ||
+                Modifier.isNative(methodModifiers) ||
+                Modifier.isFinal(classModifiers));
     }
 
     public static List<Class<?>> findSubTypes(Class<?> baseClass, Collection<Class<?>> candidateClasses) {

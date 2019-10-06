@@ -57,11 +57,13 @@ public class AAATest {
                 AAA.class.getName(),
                 methodName,
                 "()V",
+                Modifier.PUBLIC,
+                Modifier.PUBLIC,
                 1
         );
         new SpringAopBytecodeMethodFinder().findBytecodeMethods(
                 methodInfo,
-                Collections.singleton(Object.class),
+                Thread.currentThread().getContextClassLoader(),
                 targetMethodInfo -> Utils.wrapToRtError(() ->
                         ReflectionUtils.findFirstMethod(
                                 targetMethodInfo.className,

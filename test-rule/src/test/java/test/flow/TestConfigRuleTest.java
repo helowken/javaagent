@@ -1,16 +1,12 @@
 package test.flow;
 
-import agent.base.plugin.PluginFactory;
 import agent.base.utils.ReflectionUtils;
 import agent.client.command.result.handler.CommandResultHandlerMgr;
 import agent.common.message.command.Command;
 import agent.common.message.command.impl.ByRuleCommand;
 import agent.common.message.result.ExecResult;
-import agent.hook.plugin.ClassFinder;
-import agent.hook.utils.App;
 import agent.server.command.executor.TestConfigCmdExecutor;
 import agent.server.command.executor.TransformCmdExecutor;
-import agent.server.transform.TransformMgr;
 import agent.server.transform.config.rule.ClassRule;
 import agent.server.transform.config.rule.ContextRule;
 import agent.server.transform.config.rule.MethodRule;
@@ -23,13 +19,9 @@ import agent.server.transform.impl.utils.AgentClassPool;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import test.AbstractTest;
-import test.utils.TestClassFinder;
-import test.utils.TestClassLoader;
-import test.utils.TestInstrumentation;
 import test.utils.TestMap;
 
 import java.lang.reflect.Modifier;
-import java.net.URL;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
@@ -39,7 +31,6 @@ import java.util.stream.Collectors;
 import static agent.server.transform.config.rule.MethodRule.Position.*;
 
 public class TestConfigRuleTest extends AbstractTest {
-    private static final String context = "/test";
     private static final String bIntfClassName = "test.flow.TestConfigRuleTest$BIntf";
     private static final String baseAClassName = "test.flow.TestConfigRuleTest$BaseA";
     private static final String abstractBClassName = "test.flow.TestConfigRuleTest$AbstractB";
@@ -47,24 +38,10 @@ public class TestConfigRuleTest extends AbstractTest {
     private static final String b2ClassName = "test.flow.TestConfigRuleTest$B2";
     private static final String c1ClassName = "test.flow.TestConfigRuleTest$C1";
     private static final String aClassName = "test.flow.TestConfigRuleTest$A";
-    private static final TestClassLoader classloader = new TestClassLoader();
-    private static final TestInstrumentation instrumentation = new TestInstrumentation();
 
     @BeforeClass
     public static void testConfigRuleTestBeforeClass() {
-        Class<?> clazz = TestConfigRuleTest.class;
-        App.instance = clazz.getName();
-        TestClassFinder classFinder = new TestClassFinder();
-        classFinder.set(context, classloader);
-        PluginFactory.setMock(ClassFinder.class, classFinder);
-
-        URL url = clazz.getProtectionDomain().getCodeSource().getLocation();
-        TransformMgr.getInstance().addClasspath(
-                context,
-                url
-        );
-
-        TransformMgr.getInstance().init(instrumentation);
+        init(TestConfigRuleTest.class);
     }
 
     @Test
@@ -130,10 +107,7 @@ public class TestConfigRuleTest extends AbstractTest {
         new TestMap();
 
         Command cmd = new ByRuleCommand.TransformByRuleCommand(context, ruleClassName);
-        long st = System.currentTimeMillis();
         ExecResult result = new TransformCmdExecutor().exec(cmd);
-        long et = System.currentTimeMillis();
-        System.out.println("===================: " + (et - st) + "ms");
         CommandResultHandlerMgr.handleResult(cmd, result);
 
         classloader.defineClass(baseAClassName, instrumentation.getBytes(baseAClassName));

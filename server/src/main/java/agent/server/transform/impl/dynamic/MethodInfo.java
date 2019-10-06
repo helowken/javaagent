@@ -6,17 +6,20 @@ public class MethodInfo extends AbstractMethodInfo {
     public final String className;
     public final String methodName;
     public final String signature;
+    public final int classModifiers;
+    public final int methodModifiers;
     public final int level;
-    public final boolean isNative;
+    public final boolean isNativePackage;
 
-    public MethodInfo(String className, String methodName, String signature, int level) {
+    public MethodInfo(String className, String methodName, String signature, int classModifiers, int methodModifiers, int level) {
         this.className = className;
         this.methodName = methodName;
         this.signature = signature;
+        this.classModifiers = classModifiers;
+        this.methodModifiers = methodModifiers;
         this.level = level;
-        this.isNative = ClassPathRecorder.isNativePackage(className);
+        this.isNativePackage = ClassPathRecorder.isNativePackage(className);
     }
-
 
     @Override
     public String toString() {
@@ -28,6 +31,8 @@ public class MethodInfo extends AbstractMethodInfo {
                 className + "\", \"" +
                 methodName + "\", \"" +
                 signature + "\", " +
+                classModifiers + ", " +
+                methodModifiers + ", " +
                 level + ");";
 
     }
