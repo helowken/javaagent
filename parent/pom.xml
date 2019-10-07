@@ -83,6 +83,11 @@
             </dependency>
             <dependency>
                 <groupId>javaagent</groupId>
+                <artifactId>assist-launcher</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>javaagent</groupId>
                 <artifactId>client</artifactId>
                 <version>${project.version}</version>
             </dependency>

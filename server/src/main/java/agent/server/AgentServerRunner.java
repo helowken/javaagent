@@ -11,6 +11,7 @@ import agent.hook.utils.AppTypePluginFilter;
 import agent.hook.utils.AttachType;
 import agent.hook.utils.HookConstants;
 import agent.jvmti.JvmtiUtils;
+import agent.server.transform.ClassDataFinder;
 import agent.server.transform.TransformMgr;
 
 import java.lang.instrument.Instrumentation;
@@ -30,6 +31,7 @@ public class AgentServerRunner implements Runner {
             int port = SystemConfig.getInt(KEY_PORT);
             if (AgentServerMgr.startup(port)) {
                 TransformMgr.getInstance().init((Instrumentation) args[0]);
+                ClassDataFinder.getInstance().init();
                 loadNativeLibs();
                 hookApp();
                 logger.info("Startup successfully.");

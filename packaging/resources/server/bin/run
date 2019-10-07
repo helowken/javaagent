@@ -3,6 +3,7 @@
 base_dir=`pwd`/$(dirname "$0")/..
 version=1.0
 agent_launcher_jar=$base_dir/agent-launcher-$version.jar
+assist_launcher_jar=$base_dir/assist-launcher-$version.jar
 server_launcher_jar=$base_dir/server-launcher-$version.jar
 tools_jar=$JAVA_HOME/lib/tools.jar
 conf_file=$base_dir/conf/server.conf
@@ -12,5 +13,5 @@ classpath=$agent_launcher_jar:$tools_jar
 $JAVA_HOME/bin/java -cp $classpath \
 	agent.dynamic.attach.AgentLoader \
 	$jvm_display_name \
-	$server_launcher_jar \
-	$conf_file
+	$assist_launcher_jar \
+	$server_launcher_jar=$conf_file

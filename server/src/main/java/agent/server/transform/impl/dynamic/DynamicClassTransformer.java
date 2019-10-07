@@ -9,6 +9,7 @@ import agent.hook.plugin.ClassFinder;
 import agent.server.event.EventListenerMgr;
 import agent.server.event.impl.AdditionalTransformEvent;
 import agent.server.transform.BytecodeMethodFinder;
+import agent.server.transform.ClassDataFinder;
 import agent.server.transform.TransformMgr;
 import agent.server.transform.impl.AbstractConfigTransformer;
 import agent.server.transform.impl.TransformerInfo;
@@ -297,6 +298,12 @@ public class DynamicClassTransformer extends AbstractConfigTransformer {
                                                 String invalidClassName = clazz.getName();
                                                 InvalidClassNameCache.getInstance().add(item.context, invalidClassName);
                                                 subClassMap.remove(invalidClassName);
+
+                                                byte[] classData = ClassDataFinder.getInstance().getClassData(clazz);
+                                                if (classData != null)
+                                                    logger.debug("Found class data for failed class: {}", clazz.getName());
+                                                else
+                                                    logger.debug("No class data found for failed class: {}", clazz.getName());
                                             }
                                     );
                                     return subClassMap;
