@@ -5,6 +5,9 @@ import agent.server.transform.impl.dynamic.MethodInfo;
 import agent.server.tree.Node;
 import agent.server.tree.Tree;
 
+import java.util.HashSet;
+import java.util.Set;
+
 public abstract class AbstractTraverseRule<T> implements TraverseRule {
     private static final Logger logger = Logger.getLogger(AbstractTraverseRule.class);
     private ThreadLocal<TraverseItem<T>> local = new ThreadLocal<>();
@@ -14,7 +17,7 @@ public abstract class AbstractTraverseRule<T> implements TraverseRule {
         if (before)
             methodStart(args, methodInfo);
         else
-            methodEnd(returnValue);
+            methodEnd(returnValue, methodInfo);
     }
 
     @Override
@@ -26,64 +29,83 @@ public abstract class AbstractTraverseRule<T> implements TraverseRule {
     }
 
     protected void methodStart(Object[] args, MethodInfo methodInfo) {
-//        logger.debug("method start: {}", methodInfo);
-        TraverseItem<T> item = local.get();
-        if (item != null && item.tree != null)
-            item.tree.destroy();
-
         if (methodInfo != null) {
-            Tree<T> tree = new Tree<>();
-            tree.setData(newNodeData(args, methodInfo));
-            item = new TraverseItem<>(tree);
-            item.currNode = tree;
-            local.set(item);
+            Tree<T> tree = null;
+            TraverseItem<T> item = local.get();
+            if (item != null && item.tree != null) {
+                if (item.methodInfos.isEmpty())
+                    item.tree.destroy();
+                else
+                    tree = item.tree;
+            }
+            if (tree == null) {
+                tree = new Tree<>();
+                tree.setData(
+                        newNodeData(args, methodInfo)
+                );
+                item = new TraverseItem<>(tree);
+                item.currNode = tree;
+                local.set(item);
+            } else
+                addNode(item, args, methodInfo);
+            item.methodInfos.add(methodInfo);
         } else
             logger.error("No methodInfo at method start.");
     }
 
-    protected void methodEnd(Object returnValue) {
+    protected void methodEnd(Object returnValue, MethodInfo methodInfo) {
         TraverseItem<T> item = local.get();
         if (item != null) {
-            Tree<T> tree = item.tree;
-            if (tree != null) {
-//                logger.debug("method end: {}", tree.getData());
-                onTreeEnd(tree, tree.getData(), returnValue);
-                tree.destroy();
+            item.methodInfos.remove(methodInfo);
+            if (item.methodInfos.isEmpty()) {
+                Tree<T> tree = item.tree;
+                if (tree != null) {
+                    onTreeEnd(tree, tree.getData(), returnValue);
+                    tree.destroy();
+                } else {
+                    logger.warn("No tree found.");
+                }
+                local.remove();
             } else {
-                logger.warn("No tree found.");
+                handleNodeEnd(item, returnValue);
             }
-            local.remove();
         }
     }
 
+    private void addNode(TraverseItem<T> item, Object[] args, MethodInfo methodInfo) {
+        Node<T> node = new Node<>();
+        node.setData(
+                newNodeData(args, methodInfo)
+        );
+        item.currNode.appendChild(node);
+        item.currNode = node;
+    }
+
     protected void methodCallStart(Object[] args, MethodInfo methodInfo) {
-//        logger.debug("method call start: {}", methodInfo);
         if (methodInfo != null) {
             TraverseItem<T> item = local.get();
-            if (item != null) {
-                Node<T> node = new Node<>();
-                node.setData(newNodeData(args, methodInfo));
-                item.currNode.appendChild(node);
-                item.currNode = node;
-            } else {
+            if (item != null)
+                addNode(item, args, methodInfo);
+            else
                 // probably init static fields or member fields
                 handleNoneOnMethodCallStart(args, methodInfo);
-            }
         } else
             logger.error("No methodInfo at method call start.");
     }
 
     protected void methodCallEnd(Object returnValue) {
         TraverseItem<T> item = local.get();
-        if (item != null) {
-            Node<T> node = item.currNode;
-//            logger.debug("method call end: {}", node.getData());
-            onNodeEnd(node, node.getData(), returnValue);
-            item.currNode = node.getParent();
-        } else {
+        if (item != null)
+            handleNodeEnd(item, returnValue);
+        else
             // probably init static fields or member fields
             handleNoneOnMethodCallEnd(returnValue);
-        }
+    }
+
+    private void handleNodeEnd(TraverseItem<T> item, Object returnValue) {
+        Node<T> node = item.currNode;
+        onNodeEnd(node, node.getData(), returnValue);
+        item.currNode = node.getParent();
     }
 
     protected void handleNoneOnMethodCallStart(Object[] args, MethodInfo methodInfo) {
@@ -99,6 +121,7 @@ public abstract class AbstractTraverseRule<T> implements TraverseRule {
     protected abstract void onNodeEnd(Node<T> node, T data, Object returnValue);
 
     private static class TraverseItem<T> {
+        final Set<MethodInfo> methodInfos = new HashSet<>();
         final Tree<T> tree;
         Node<T> currNode;
 

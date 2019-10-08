@@ -152,7 +152,7 @@ public class TestConfigRuleTest extends AbstractTest {
             if (isBefore)
                 super.methodStart(args, methodInfo);
             else
-                super.methodEnd(returnValue);
+                super.methodEnd(returnValue, methodInfo);
         }
 
         @MethodRule(method = "runTasks", position = WRAP_MC, maxLevel = 20, filter = "test.flow.TestConfigRuleTest$TestTimeRule")

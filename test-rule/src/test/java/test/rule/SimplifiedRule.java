@@ -13,4 +13,8 @@ public class SimplifiedRule extends ConfigurableTreeRule {
                 new TreeTimeMeasureRule()
         );
     }
+
+    protected boolean doFilter(String className) {
+        return className.startsWith("test.aop.");
+    }
 }

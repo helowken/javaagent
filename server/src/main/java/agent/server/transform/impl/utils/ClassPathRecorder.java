@@ -82,8 +82,7 @@ public class ClassPathRecorder {
     private Collection<String> getRefClassNames(Class<?> clazz, BiConsumer<Class<?>, RuntimeException> errorHandler) {
         try {
             Set<String> refClassNameSet = new HashSet<>();
-            String currClassName = clazz.getName();
-            CtClass cc = cp.get(currClassName);
+            CtClass cc = cp.get(clazz);
             cc.getRefClasses().forEach(refClass -> {
                 if (refClass instanceof String) {
                     String refClassName = (String) refClass;
@@ -92,7 +91,7 @@ public class ClassPathRecorder {
                 } else
                     logger.debug("Unknown ref class: {}, type: {}", refClass, refClass == null ? null : refClass.getClass());
             });
-            refClassNameSet.remove(currClassName);
+            refClassNameSet.remove(clazz.getName());
             return refClassNameSet;
         } catch (RuntimeException e) {
             if (errorHandler != null) {

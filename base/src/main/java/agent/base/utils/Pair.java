@@ -25,4 +25,8 @@ public class Pair<L, R> {
         T exec(L left, R right);
     }
 
+    @Override
+    public String toString() {
+        return "{left: " + left + ", right: " + right + "}";
+    }
 }

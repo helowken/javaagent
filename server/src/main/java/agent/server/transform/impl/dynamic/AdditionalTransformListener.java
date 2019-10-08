@@ -1,5 +1,6 @@
 package agent.server.transform.impl.dynamic;
 
+import agent.base.utils.IOUtils;
 import agent.base.utils.Logger;
 import agent.base.utils.Pair;
 import agent.hook.plugin.ClassFinder;
@@ -8,7 +9,9 @@ import agent.server.event.AgentEventListener;
 import agent.server.event.impl.AdditionalTransformEvent;
 import agent.server.transform.TransformContext;
 import agent.server.transform.TransformMgr;
+import agent.server.transform.impl.TransformerInfo;
 
+import java.io.File;
 import java.util.*;
 
 public class AdditionalTransformListener implements AgentEventListener {
@@ -41,6 +44,22 @@ public class AdditionalTransformListener implements AgentEventListener {
                     }
             );
         }
+        logger.debug("Additional Merged: {}", contextToPair);
+
+//        // TODO
+//        contextToPair.values().forEach(pair -> {
+//            pair.right.forEach((className, loaderAndData) -> {
+//                try {
+//                    String fileName = "/tmp/javaagent/" + TransformerInfo.getClassNamePath(className) + ".class";
+//                    new File(fileName).getParentFile().mkdirs();
+//                    IOUtils.writeBytes(fileName, loaderAndData.right, true);
+//                    System.out.println("Class " + className + ": " + fileName);
+//                } catch (Exception e) {
+//                    e.printStackTrace();
+//                }
+//            });
+//        });
+
         List<TransformContext> transformContextList = new ArrayList<>();
         contextToPair.forEach((context, pair) ->
                 transformContextList.add(

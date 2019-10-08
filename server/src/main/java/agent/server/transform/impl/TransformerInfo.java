@@ -14,8 +14,11 @@ public class TransformerInfo {
     }
 
     public static String getClassNamePath(Class<?> clazz) {
-        final String targetClassName = clazz.getName();
-        return targetClassName.replaceAll("\\.", "/");
+        return getClassNamePath(clazz.getName());
+    }
+
+    public static String getClassNamePath(String className) {
+        return className.replaceAll("\\.", "/");
     }
 
     public static String getClassName(String classNamePath) {

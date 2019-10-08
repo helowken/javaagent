@@ -9,7 +9,6 @@ import agent.hook.plugin.ClassFinder;
 import agent.server.event.EventListenerMgr;
 import agent.server.event.impl.AdditionalTransformEvent;
 import agent.server.transform.BytecodeMethodFinder;
-import agent.server.transform.ClassDataFinder;
 import agent.server.transform.TransformMgr;
 import agent.server.transform.impl.AbstractConfigTransformer;
 import agent.server.transform.impl.TransformerInfo;
@@ -78,13 +77,31 @@ public class DynamicClassTransformer extends AbstractConfigTransformer {
             case WRAP_MC:
                 if (needToBeTransformed(ctMethod)) {
                     MethodInfo methodInfo = newMethodInfo(ctMethod, level);
-                    if (!Modifier.isAbstract(methodInfo.methodModifiers))
-                        ctMethod.instrument(new NestedExprEditor(level));
-                    for (CtMethod overrideMethod : findOverrideMethods(methodInfo)) {
-                        overrideMethod.instrument(new NestedExprEditor(level));
-                    }
-                    for (CtMethod bytecodeMethod : findBytecodeMethods(methodInfo)) {
-                        bytecodeMethod.instrument(new NestedExprEditor(level));
+                    Map<String, CtMethod> ctMethodMap = new HashMap<>();
+                    findOverrideMethods(methodInfo).forEach(
+                            method -> ctMethodMap.put(
+                                    method.getLongName(),
+                                    method
+                            )
+                    );
+                    findBytecodeMethods(methodInfo).forEach(
+                            method -> ctMethodMap.put(
+                                    method.getLongName(),
+                                    method
+                            )
+                    );
+                    if (!Modifier.isAbstract(methodInfo.methodModifiers) && !skipMethod(ctMethod))
+                        ctMethodMap.put(ctMethod.getLongName(), ctMethod);
+
+                    System.out.println("==================");
+                    System.out.println("Current method: " + ctMethod);
+                    System.out.println("Do methods: " + ctMethodMap.keySet());
+                    System.out.println("==================");
+                    addToTransformed(ctMethod);
+                    ExprEditor exprEditor = new NestedExprEditor(level + 1);
+                    for (CtMethod method : ctMethodMap.values()) {
+                        System.out.println("Wrap mc: " + method.getLongName());
+                        method.instrument(exprEditor);
                     }
                 }
                 break;
@@ -298,12 +315,6 @@ public class DynamicClassTransformer extends AbstractConfigTransformer {
                                                 String invalidClassName = clazz.getName();
                                                 InvalidClassNameCache.getInstance().add(item.context, invalidClassName);
                                                 subClassMap.remove(invalidClassName);
-
-                                                byte[] classData = ClassDataFinder.getInstance().getClassData(clazz);
-                                                if (classData != null)
-                                                    logger.debug("Found class data for failed class: {}", clazz.getName());
-                                                else
-                                                    logger.debug("No class data found for failed class: {}", clazz.getName());
                                             }
                                     );
                                     return subClassMap;
@@ -350,6 +361,7 @@ public class DynamicClassTransformer extends AbstractConfigTransformer {
         if (!needToBeTransformed(ctMethod) || skipMethod(ctMethod))
             return;
         addToTransformed(ctMethod);
+        System.out.println("process: " + methodInfo + ", " + stepInto + ", " + level);
         if (stepInto)
             Utils.wrapToRtError(() -> {
                         int nextLevel = level + 1;

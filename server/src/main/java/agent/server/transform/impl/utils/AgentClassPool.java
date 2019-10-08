@@ -2,9 +2,12 @@ package agent.server.transform.impl.utils;
 
 import agent.base.utils.LockObject;
 import agent.base.utils.Logger;
+import agent.base.utils.Utils;
+import agent.server.transform.ClassDataFinder;
 import javassist.ClassPath;
 import javassist.ClassPool;
 import javassist.CtClass;
+import javassist.NotFoundException;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -46,6 +49,24 @@ public class AgentClassPool {
             Collections.addAll(classSet, ctClasses);
             return ctClasses;
         });
+    }
+
+    public CtClass get(Class<?> clazz) {
+        String className = clazz.getName();
+        try {
+            return cp.get(className);
+        } catch (NotFoundException e) {
+            return Utils.wrapToRtError(() -> {
+                byte[] classData = ClassDataFinder.getInstance().getClassData(clazz);
+                if (classData != null) {
+                    insertClassPath(
+                            new InMemoryClassPath(clazz, classData)
+                    );
+                    return get(className);
+                }
+                throw e;
+            });
+        }
     }
 
     void clear() {

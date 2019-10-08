@@ -36,7 +36,7 @@ public class ClassDataFinder {
                 classDataTransformer.setTargetClass(clazz);
                 instrumentation.retransformClasses(clazz);
                 byte[] classData = classDataTransformer.getClassData();
-                System.out.println("Class data: " + classData);
+                logger.debug("Class data for {} is: {}", clazz.getName(), classData);
                 classDataTransformer.reset();
                 return classData;
             } catch (Exception e) {

@@ -37,10 +37,10 @@ public class TreeTimeMeasureRule extends AbstractTraverseRule<TreeTimeMeasureRul
     }
 
     public static class TimeData {
-        public final String className;
-        public final String methodDesc;
-        public final long startTime;
-        public long endTime;
+        final String className;
+        final String methodDesc;
+        final long startTime;
+        long endTime;
 
         TimeData(String className, String methodDesc, long startTime) {
             this.className = className;
@@ -48,9 +48,14 @@ public class TreeTimeMeasureRule extends AbstractTraverseRule<TreeTimeMeasureRul
             this.startTime = startTime;
         }
 
-        public String getString(boolean isShort) {
+        String getString(boolean isShort) {
             String s = isShort ? methodDesc : "<" + className + "> " + methodDesc;
             return s + ": " + (endTime - startTime) + "ms";
+        }
+
+        @Override
+        public String toString() {
+            return getString(false);
         }
     }
 }
