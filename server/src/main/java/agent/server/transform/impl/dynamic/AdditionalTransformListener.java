@@ -46,20 +46,6 @@ public class AdditionalTransformListener implements AgentEventListener {
         }
         logger.debug("Additional Merged: {}", contextToPair);
 
-//        // TODO
-//        contextToPair.values().forEach(pair -> {
-//            pair.right.forEach((className, loaderAndData) -> {
-//                try {
-//                    String fileName = "/tmp/javaagent/" + TransformerInfo.getClassNamePath(className) + ".class";
-//                    new File(fileName).getParentFile().mkdirs();
-//                    IOUtils.writeBytes(fileName, loaderAndData.right, true);
-//                    System.out.println("Class " + className + ": " + fileName);
-//                } catch (Exception e) {
-//                    e.printStackTrace();
-//                }
-//            });
-//        });
-
         List<TransformContext> transformContextList = new ArrayList<>();
         contextToPair.forEach((context, pair) ->
                 transformContextList.add(

@@ -77,30 +77,20 @@ public class DynamicClassTransformer extends AbstractConfigTransformer {
             case WRAP_MC:
                 if (needToBeTransformed(ctMethod)) {
                     MethodInfo methodInfo = newMethodInfo(ctMethod, level);
-                    Map<String, CtMethod> ctMethodMap = new HashMap<>();
-                    findOverrideMethods(methodInfo).forEach(
-                            method -> ctMethodMap.put(
-                                    method.getLongName(),
-                                    method
-                            )
-                    );
-                    findBytecodeMethods(methodInfo).forEach(
-                            method -> ctMethodMap.put(
-                                    method.getLongName(),
-                                    method
-                            )
-                    );
+                    List<CtMethod> ctMethodList = new LinkedList<>();
                     if (!Modifier.isAbstract(methodInfo.methodModifiers) && !skipMethod(ctMethod))
-                        ctMethodMap.put(ctMethod.getLongName(), ctMethod);
+                        ctMethodList.add(ctMethod);
 
-                    System.out.println("==================");
-                    System.out.println("Current method: " + ctMethod);
-                    System.out.println("Do methods: " + ctMethodMap.keySet());
-                    System.out.println("==================");
-                    addToTransformed(ctMethod);
+                    ctMethodList.addAll(
+                            findOverrideMethods(methodInfo)
+                    );
+                    ctMethodList.addAll(
+                            findBytecodeMethods(methodInfo)
+                    );
+
                     ExprEditor exprEditor = new NestedExprEditor(level + 1);
-                    for (CtMethod method : ctMethodMap.values()) {
-                        System.out.println("Wrap mc: " + method.getLongName());
+                    for (CtMethod method : ctMethodList) {
+                        addToTransformed(method);
                         method.instrument(exprEditor);
                     }
                 }
@@ -241,14 +231,14 @@ public class DynamicClassTransformer extends AbstractConfigTransformer {
         if (canBeOverridden && item.methodRuleFilter.needGetOverrideMethods(methodInfo))
             return Utils.wrapToRtError(() -> {
 //                        logger.debug("Find impl classes of class {}", methodInfo.className);
-                        Collection<String> implClassNames = findSubClassNames(methodInfo);
+                        Collection<String> subClassNames = findSubClassNames(methodInfo);
 //                    logger.debug("Found {} impl classes: {}", methodInfo, implClassNames);
-                        if (implClassNames == null || implClassNames.isEmpty())
+                        if (subClassNames == null || subClassNames.isEmpty())
                             return Collections.emptyList();
                         else {
                             CtClass baseClass = classPool.get(methodInfo.className);
-                            Collection<CtClass> implClasses = new LinkedList<>();
-                            for (String implClassName : implClassNames) {
+                            Collection<CtClass> subClasses = new LinkedList<>();
+                            for (String implClassName : subClassNames) {
                                 CtClass implClass = null;
                                 try {
                                     implClass = classPool.get(implClassName);
@@ -259,11 +249,11 @@ public class DynamicClassTransformer extends AbstractConfigTransformer {
                                 if (implClass != null) {
                                     if (!implClass.subtypeOf(baseClass))
                                         throw new RuntimeException("Class " + implClass.getName() + " is not sub type of " + baseClass.getName());
-                                    implClasses.add(implClass);
+                                    subClasses.add(implClass);
                                 }
                             }
                             Set<String> foundMethods = new HashSet<>();
-                            return implClasses.stream()
+                            return subClasses.stream()
                                     .map(ctClass -> findCtMethod(ctClass, methodInfo, foundMethods))
                                     .filter(Objects::nonNull)
 //                                .peek(m -> logger.debug("Find override method: {}", m.getLongName()))
@@ -361,7 +351,6 @@ public class DynamicClassTransformer extends AbstractConfigTransformer {
         if (!needToBeTransformed(ctMethod) || skipMethod(ctMethod))
             return;
         addToTransformed(ctMethod);
-        System.out.println("process: " + methodInfo + ", " + stepInto + ", " + level);
         if (stepInto)
             Utils.wrapToRtError(() -> {
                         int nextLevel = level + 1;
@@ -419,7 +408,7 @@ public class DynamicClassTransformer extends AbstractConfigTransformer {
     }
 
     private CtMethod findCtMethodHelper(CtClass ctClass, String methodName, String signature) {
-        return Stream.of(ctClass.getMethods())
+        return Stream.of(ctClass.getDeclaredMethods())
                 .filter(ctMethod -> !Modifier.isAbstract(ctMethod.getModifiers()))
                 .filter(ctMethod -> isMethodMatches(ctMethod, methodName, signature))
                 .findAny()

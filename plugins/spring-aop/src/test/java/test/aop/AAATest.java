@@ -44,10 +44,16 @@ public class AAATest {
 //        doTest3("testAAA");
 //        doTest3("testBBB");
         doTest4("testAAA");
+        System.out.println("-------------------");
         doTest4("testBBB");
+        System.out.println("-------------------");
         aaa.testAAA();
         System.out.println("-------------------");
         aaa.testBBB();
+        System.out.println("-------------------");
+        doTest4("testAAA");
+        System.out.println("-------------------");
+        doTest4("testBBB");
 
 //        Thread.sleep(1000000);
     }

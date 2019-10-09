@@ -64,25 +64,25 @@ public class SpringAopBytecodeMethodFinder implements BytecodeMethodFinder {
                     "methodCache",
                     proxyFactory
             );
-            if (methodCache.isEmpty()) {
-                Object advisorChainFactory = ReflectionUtils.invoke(
-                        "getAdvisorChainFactory",
-                        proxyFactory
+            for (Map.Entry entry : methodCache.entrySet()) {
+                Method method = ReflectionUtils.getFieldValue("method", entry.getKey());
+                if (method.equals(targetMethod)) {
+//                    logger.debug("Get from cache: {}", method);
+                    return (List<Object>) entry.getValue();
+                }
+            }
+            Object advisorChainFactory = ReflectionUtils.invoke(
+                    "getAdvisorChainFactory",
+                    proxyFactory
+            );
+            if (advisorChainFactory != null) {
+                Method method = ReflectionUtils.findFirstMethod(
+                        advisorChainFactory.getClass(),
+                        "getInterceptorsAndDynamicInterceptionAdvice"
                 );
-                if (advisorChainFactory != null) {
-                    Method method = ReflectionUtils.findFirstMethod(
-                            advisorChainFactory.getClass(),
-                            "getInterceptorsAndDynamicInterceptionAdvice"
-                    );
-                    method.setAccessible(true);
-                    return (List<Object>) method.invoke(advisorChainFactory, proxyFactory, targetMethod, null);
-                }
-            } else {
-                for (Map.Entry entry : methodCache.entrySet()) {
-                    Method method = ReflectionUtils.getFieldValue("method", entry.getKey());
-                    if (method.equals(targetMethod))
-                        return (List<Object>) entry.getValue();
-                }
+                method.setAccessible(true);
+//                logger.debug("Get from advisorChainFactory: {}", method);
+                return (List<Object>) method.invoke(advisorChainFactory, proxyFactory, targetMethod, null);
             }
         } catch (Exception e) {
             logger.error("get callback chain failed.", e);
