@@ -1,6 +1,7 @@
 package test.transformer;
 
 import agent.base.utils.IOUtils;
+import agent.base.utils.Pair;
 import agent.base.utils.Utils;
 import agent.builtin.transformer.utils.CostTimeLogger;
 import agent.common.utils.JSONUtils;
@@ -11,6 +12,7 @@ import agent.server.tree.TreeUtils;
 import java.io.*;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -26,9 +28,14 @@ public class CostTimeStatisticsAnalyzeTest {
 
     public static void main(String[] args) throws Exception {
 //        String outputPath = "/home/helowken/cost-time/cost-time-statistics.log";
+//        String outputPath = "/home/helowken/test_pt/data/result-gen-token-openid.txt";
+//        String outputPath = "/home/helowken/test_pt/tmp_data/result-gen-token-openid.txt";
+//        boolean skipAvgEq0 = true;
         String outputPath = args[0];
-        Set<Float> rates = parseRates("0.9, 0.95, 0.99");
-        printResult(outputPath, rates);
+        boolean skipAvgEq0 = args.length > 1 && args[1].equals("true");
+        Set<Float> rates = parseRates(args.length > 2 ? args[2] : null);
+        Tree<String> tree = buildTree(outputPath, rates, skipAvgEq0);
+        printTree(tree);
     }
 
     private static Set<Float> parseRates(String s) {
@@ -51,6 +58,14 @@ public class CostTimeStatisticsAnalyzeTest {
         return rates;
     }
 
+    private static void printTree(Tree<String> tree) {
+        TreeUtils.printTree(
+                tree,
+                new TreeUtils.PrintConfig(false),
+                (node, config) -> node.getData()
+        );
+    }
+
     private static Map<Integer, CostTimeItem> calculateStats(String outputPath) throws Exception {
         long st = System.currentTimeMillis();
         ForkJoinPool pool = new ForkJoinPool(Runtime.getRuntime().availableProcessors() - 1);
@@ -65,7 +80,7 @@ public class CostTimeStatisticsAnalyzeTest {
         }
     }
 
-    private static void printResult(String outputPath, Set<Float> rates) throws Exception {
+    private static Tree<String> buildTree(String outputPath, Set<Float> rates, boolean skipAvgEq0) throws Exception {
         String metadataPath = outputPath + CostTimeLogger.METADATA_FILE;
         Map<String, Map<String, Map<String, Integer>>> contextToClassToMethodToType = readMetadata(metadataPath);
         Map<Integer, CostTimeItem> typeToCostTimeItem = calculateStats(outputPath);
@@ -75,15 +90,22 @@ public class CostTimeStatisticsAnalyzeTest {
                     new Node<>("Context: " + context)
             );
             classToMethodToType.forEach((className, methodToType) -> {
-                Node<String> classNode = contextNode.appendChild(
-                        new Node<>("Class: " + className)
-                );
-                new TreeMap<>(methodToType).forEach((method, type) -> {
-                    CostTimeItem item = typeToCostTimeItem.get(type);
+                Map<String, CostTimeItem> methodToItem = new TreeMap<>();
+                for (Map.Entry<String, Integer> entry : methodToType.entrySet()) {
+                    CostTimeItem item = typeToCostTimeItem.get(entry.getValue());
                     if (item != null) {
                         item.freeze();
+                        if (item.getAvgTime() > 0 || !skipAvgEq0)
+                            methodToItem.put(entry.getKey(), item);
+                    }
+                }
+                if (!methodToItem.isEmpty()) {
+                    Node<String> classNode = contextNode.appendChild(
+                            new Node<>("Class: " + className)
+                    );
+                    methodToItem.forEach((method, item) -> {
                         Node<String> methodNode = classNode.appendChild(
-                                new Node<>("method " + method)
+                                new Node<>("method " + formatMethod(method))
                         );
                         methodNode.appendChild(
                                 new Node<>(item.getAvgTimeString())
@@ -97,15 +119,11 @@ public class CostTimeStatisticsAnalyzeTest {
                         methodNode.appendChild(
                                 new Node<>(item.getTimeDistributionString(rates))
                         );
-                    }
-                });
+                    });
+                }
             });
         });
-        TreeUtils.printTree(
-                tree,
-                new TreeUtils.PrintConfig(false),
-                (node, config) -> node.getData()
-        );
+        return tree;
     }
 
     private static String formatMethod(String method) {
@@ -219,7 +237,8 @@ public class CostTimeStatisticsAnalyzeTest {
         }
 
         synchronized void add(long time) {
-            checkFreezed();
+            if (freezed)
+                return;
             if (currTotalTime + time <= 0) {
                 updateTotalTime(currTotalTime);
                 currTotalTime = time;
@@ -261,7 +280,8 @@ public class CostTimeStatisticsAnalyzeTest {
         }
 
         synchronized void merge(CostTimeItem other) {
-            checkFreezed();
+            if (freezed)
+                return;
             updateTotalTime(other.totalTime);
             if (this.currTotalTime + other.currTotalTime < 0) {
                 updateTotalTime(this.currTotalTime);
@@ -311,13 +331,9 @@ public class CostTimeStatisticsAnalyzeTest {
             );
         }
 
-        private void checkFreezed() {
-            if (freezed)
-                throw new RuntimeException("It's freezed!");
-        }
-
         synchronized void freeze() {
-            checkFreezed();
+            if (freezed)
+                return;
             freezed = true;
             if (currTotalTime > 0) {
                 updateTotalTime(currTotalTime);
@@ -341,45 +357,44 @@ public class CostTimeStatisticsAnalyzeTest {
         Map<Float, Long> calculateTimeDistribution(Set<Float> rates) {
             if (rates.isEmpty())
                 return Collections.emptyMap();
-            List<BigInteger> boundaryList = new ArrayList<>();
-            Map<BigInteger, Float> boundaryToRate = new HashMap<>();
+            List<Pair<BigInteger, Float>> boundaryToRateList = new ArrayList<>();
             rates.forEach(
                     rate -> {
                         if (rate <= 0)
                             throw new IllegalArgumentException("Rate must be > 0");
-                        BigInteger boundary = new BigDecimal(count).multiply(
-                                BigDecimal.valueOf(rate)
-                        ).toBigInteger();
-                        boundaryList.add(boundary);
-                        boundaryToRate.put(boundary, rate);
+                        BigInteger boundary = new BigDecimal(count)
+                                .multiply(
+                                        BigDecimal.valueOf(rate)
+                                )
+                                .setScale(2, RoundingMode.CEILING)
+                                .toBigInteger();
+                        boundaryToRateList.add(
+                                new Pair<>(boundary, rate)
+                        );
                     }
             );
-            Collections.sort(boundaryList);
-            BigInteger sumCount = BigInteger.ZERO;
             Map<Float, Long> rateToCostTime = new TreeMap<>();
-            Iterator<Map.Entry<Long, BigInteger>> iter = timeToBigCount.entrySet().iterator();
-            Map.Entry<Long, BigInteger> entry = null;
-            while (!boundaryList.isEmpty()) {
-                BigInteger boundary = boundaryList.remove(0);
-                Float rate = boundaryToRate.get(boundary);
-                if (rate == null)
-                    throw new RuntimeException("No rate found for boundary: " + boundary);
-                while (sumCount.compareTo(boundary) < 0) {
-                    boolean found = false;
-                    while (iter.hasNext()) {
-                        entry = iter.next();
-                        sumCount = sumCount.add(entry.getValue());
-                        if (sumCount.compareTo(boundary) >= 0) {
-                            found = true;
+            List<Map.Entry<Long, BigInteger>> timeToBigCountList = new LinkedList<>(
+                    timeToBigCount.entrySet()
+            );
+            Long time = 0L;
+            BigInteger sumCount = BigInteger.ZERO;
+            while (!boundaryToRateList.isEmpty()) {
+                Pair<BigInteger, Float> boundaryToRate = boundaryToRateList.remove(0);
+                BigInteger boundary = boundaryToRate.left;
+                Float rate = boundaryToRate.right;
+                if (sumCount.compareTo(boundary) <= 0) {
+                    while (!timeToBigCountList.isEmpty()) {
+                        Map.Entry<Long, BigInteger> entry = timeToBigCountList.get(0);
+                        BigInteger newCount = sumCount.add(entry.getValue());
+                        if (newCount.compareTo(boundary) > 0)
                             break;
-                        }
+                        timeToBigCountList.remove(0);
+                        sumCount = newCount;
+                        time = entry.getKey();
                     }
-                    if (!found)
-                        throw new RuntimeException("No cost time found for rate: " + rate);
                 }
-                if (entry == null)
-                    throw new RuntimeException("Unknown error.");
-                rateToCostTime.put(rate, entry.getKey());
+                rateToCostTime.put(rate, time);
             }
             return rateToCostTime;
         }
