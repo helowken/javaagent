@@ -11,6 +11,7 @@ import agent.server.event.impl.LogFlushedEvent;
 import agent.server.event.impl.ResetClassEvent;
 import agent.server.utils.log.LogMgr;
 import agent.server.utils.log.binary.BinaryLogItem;
+import agent.server.utils.log.binary.BinaryLogItemPool;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -53,10 +54,12 @@ public class CostTimeLogger implements AgentEventListener {
         });
     }
 
-    public void log(int type, int costTime) {
+    public void log(String logKey, int type, int costTime) {
         Optional.ofNullable(currItemLocal.get())
                 .orElseGet(() -> {
-                    CostTimeItem item = new CostTimeItem();
+                    CostTimeItem item = new CostTimeItem(
+                            BinaryLogItemPool.get(logKey)
+                    );
                     currItemLocal.set(item);
                     return item;
                 })
@@ -134,11 +137,12 @@ public class CostTimeLogger implements AgentEventListener {
     }
 
     private static class CostTimeItem {
-        private final BinaryLogItem logItem = new BinaryLogItem();
+        private final BinaryLogItem logItem;
         private int count = 0;
 
-        private CostTimeItem() {
-            logItem.position(Integer.BYTES);
+        private CostTimeItem(BinaryLogItem logItem) {
+            this.logItem = logItem;
+            this.logItem.markAndPosition(Integer.BYTES);
         }
 
         void log(int type, int costTime) {
@@ -149,7 +153,7 @@ public class CostTimeLogger implements AgentEventListener {
         }
 
         void end() {
-            logItem.putInt(0, count);
+            logItem.putIntToMark(count);
         }
     }
 }

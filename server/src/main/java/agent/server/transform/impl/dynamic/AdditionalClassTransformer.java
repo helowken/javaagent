@@ -1,6 +1,7 @@
 package agent.server.transform.impl.dynamic;
 
 import agent.base.utils.Pair;
+import agent.server.transform.ClassDataFinder;
 import agent.server.transform.impl.AbstractTransformer;
 import agent.server.transform.impl.TransformerInfo;
 
@@ -17,11 +18,11 @@ public class AdditionalClassTransformer extends AbstractTransformer {
 
     @Override
     protected byte[] doTransform(ClassLoader loader, String className, Class<?> classBeingRedefined, ProtectionDomain protectionDomain, byte[] classfileBuffer, String targetClassName) throws Exception {
-        return Optional.ofNullable(
-                classNameToPair.get(
-                        TransformerInfo.getClassName(className)
-                ).right
+        byte[] data = Optional.ofNullable(
+                classNameToPair.get(targetClassName).right
         ).orElse(classfileBuffer);
+//        ClassDataFinder.getInstance().updateClassData(classBeingRedefined, data);
+        return data;
     }
 
     @Override

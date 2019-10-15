@@ -11,7 +11,7 @@
                             "log": {
                                 "outputPath": "/home/helowken/cost-time/cost-time-statistics.log",
                                 "autoFlush": false,
-                                "maxBufferSize": 819200,
+                                "maxBufferSize": 8192,
                                 "bufferCount": 100
                             },
                             "entryPoint": [

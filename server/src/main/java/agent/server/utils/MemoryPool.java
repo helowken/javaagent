@@ -8,7 +8,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 public class MemoryPool {
     private static final int MAX_BUFFER_COUNT = 10000;
     private static final int POOL_INIT_SIZE = 100;
-    private static final int BUFFER_SIZE = 4096 * 10;
+    private static final int BUFFER_SIZE = 4096;
     private static final Queue<ByteBuffer> pool = new LinkedBlockingQueue<>(MAX_BUFFER_COUNT);
 
     static {

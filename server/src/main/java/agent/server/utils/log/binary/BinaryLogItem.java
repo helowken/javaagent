@@ -1,5 +1,6 @@
 package agent.server.utils.log.binary;
 
+import agent.base.utils.Logger;
 import agent.server.utils.MemoryPool;
 import agent.server.utils.log.AbstractLogItem;
 
@@ -8,22 +9,23 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class BinaryLogItem extends AbstractLogItem {
+    private static final int intSize = Integer.BYTES;
     private List<ByteBuffer> bufferList = new ArrayList<>();
     private ByteBuffer currBuffer;
-    private long size = -1;
+    private long size = 0;
+    private ByteBuffer markBuffer;
+    private int markPosition = -1;
 
     long getSize() {
-        if (size == -1) {
-            size = 0;
-            for (ByteBuffer bb : bufferList) {
-                size += bb.position();
-            }
-        }
         return size;
     }
 
-    private ByteBuffer getBuffer() {
-        if (currBuffer == null || !currBuffer.hasRemaining()) {
+    private void updateSize(int v) {
+        size += v;
+    }
+
+    private ByteBuffer getBuffer(int size) {
+        if (currBuffer == null || currBuffer.remaining() < size) {
             currBuffer = MemoryPool.get();
             bufferList.add(currBuffer);
         }
@@ -31,15 +33,24 @@ public class BinaryLogItem extends AbstractLogItem {
     }
 
     public void putInt(int v) {
-        getBuffer().putInt(v);
+        getBuffer(intSize).putInt(v);
+        updateSize(intSize);
     }
 
-    public void putInt(int index, int v) {
-        getBuffer().putInt(index, v);
+    public void putIntToMark(int v) {
+        if (markBuffer == null || markPosition < 0)
+            throw new RuntimeException("No mark buffer or position found.");
+        markBuffer.putInt(markPosition, v);
+        markBuffer = null;
+        markPosition = -1;
     }
 
-    public void position(int v) {
-        getBuffer().position(v);
+    public void markAndPosition(int v) {
+        ByteBuffer buffer = getBuffer(intSize);
+        markBuffer = buffer;
+        markPosition = markBuffer.position();
+        buffer.position(markPosition + v);
+        updateSize(intSize);
     }
 
     ByteBuffer[] getBuffers() {
@@ -56,6 +67,7 @@ public class BinaryLogItem extends AbstractLogItem {
         MemoryPool.put(bufferList);
         bufferList.clear();
         currBuffer = null;
+        size = 0;
         super.postWrite();
     }
 }

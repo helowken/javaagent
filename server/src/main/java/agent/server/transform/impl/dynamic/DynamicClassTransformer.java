@@ -80,7 +80,6 @@ public class DynamicClassTransformer extends AbstractConfigTransformer {
                     List<CtMethod> ctMethodList = new LinkedList<>();
                     if (!Modifier.isAbstract(methodInfo.methodModifiers) && !skipMethod(ctMethod))
                         ctMethodList.add(ctMethod);
-
                     ctMethodList.addAll(
                             findOverrideMethods(methodInfo)
                     );
@@ -88,8 +87,16 @@ public class DynamicClassTransformer extends AbstractConfigTransformer {
                             findBytecodeMethods(methodInfo)
                     );
 
+                    System.out.println("==================");
+                    System.out.println("Current method: " + ctMethod.getLongName());
+                    System.out.println("Do methods: ");
+                    ctMethodList.stream()
+                            .map(CtMethod::getLongName)
+                            .forEach(System.out::println);
+                    System.out.println("==================");
                     ExprEditor exprEditor = new NestedExprEditor(level + 1);
                     for (CtMethod method : ctMethodList) {
+                        System.out.println("Wrap mc: " + method.getLongName());
                         addToTransformed(method);
                         method.instrument(exprEditor);
                     }
@@ -193,7 +200,10 @@ public class DynamicClassTransformer extends AbstractConfigTransformer {
         @Override
         public void edit(MethodCall mc) {
             Utils.wrapToRtError(
-                    () -> handleMethod(mc.getMethod(), level, true)
+                    () -> {
+                        System.out.println("Edit: " + mc.getMethod().getLongName() + ", " + level);
+                        handleMethod(mc.getMethod(), level, true);
+                    }
             );
         }
     }
@@ -209,14 +219,26 @@ public class DynamicClassTransformer extends AbstractConfigTransformer {
             } else
                 processMethod(ctMethod, methodInfo, level, stepInto);
 
+            Collection<CtMethod> methodList = findOverrideMethods(methodInfo);
+            System.out.println("--------- override methods for: " + methodInfo);
+            methodList.stream()
+                    .map(CtMethod::getLongName)
+                    .forEach(System.out::println);
+            System.out.println("-----------------");
             processMethods(
-                    findOverrideMethods(methodInfo),
+                    methodList,
                     level,
                     stepInto
             );
 
+            methodList = findBytecodeMethods(methodInfo);
+            System.out.println("--------- bytecode methods for: " + methodInfo);
+            methodList.stream()
+                    .map(CtMethod::getLongName)
+                    .forEach(System.out::println);
+            System.out.println("-----------------");
             processMethods(
-                    findBytecodeMethods(methodInfo),
+                    methodList,
                     level,
                     stepInto
             );
@@ -351,23 +373,28 @@ public class DynamicClassTransformer extends AbstractConfigTransformer {
         if (!needToBeTransformed(ctMethod) || skipMethod(ctMethod))
             return;
         addToTransformed(ctMethod);
+        System.out.println("process: " + methodInfo + ", " + stepInto + ", " + level);
         if (stepInto)
             Utils.wrapToRtError(() -> {
                         int nextLevel = level + 1;
                         if (nextLevel < maxLevel) {
                             if (item.methodRuleFilter.stepInto(methodInfo)) {
                                 logger.debug("stepInto: {}", methodInfo);
+                                System.out.println("stepInto: " + methodInfo + ", " + stepInto + ", " + level);
                                 ctMethod.instrument(new NestedExprEditor(nextLevel));
                             }
                         } else
                             logger.warn("Reach the max nested level: {}, methodInfo: {}", maxLevel, methodInfo);
-                        if (item.methodRuleFilter.accept(methodInfo))
+                        if (item.methodRuleFilter.accept(methodInfo)) {
+                            System.out.println("accept: " + methodInfo + ", " + stepInto + ", " + level);
                             processMethodCode(ctMethod, methodInfo);
+                        }
                     },
                     () -> "Process method failed: " + ctMethod.getLongName()
             );
         else {
 //            logger.debug("Not to step into: {}", methodInfo);
+            System.out.println("accept: " + methodInfo + ", " + stepInto + ", " + level);
             processMethodCode(ctMethod, methodInfo);
         }
     }

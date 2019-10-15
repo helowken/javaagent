@@ -16,9 +16,15 @@ public class TextLogWriter extends AbstractLogWriter<TextLogConfig, TextLogItem>
     private final LockObject writerLock = new LockObject();
     private volatile Writer writer;
 
-    TextLogWriter(TextLogConfig logConfig) {
-        super(logConfig);
+    TextLogWriter(String logKey, TextLogConfig logConfig) {
+        super(logKey, logConfig);
         expr = StringParser.compile(logConfig.getOutputFormat());
+    }
+
+    @Override
+    protected boolean checkToWrite(ItemBuffer itemBuffer, TextLogItem item, long itemSize, long bufferSize, long maxBufferSize) {
+        itemBuffer.add(item, itemSize);
+        return itemSize + bufferSize >= maxBufferSize;
     }
 
     @Override

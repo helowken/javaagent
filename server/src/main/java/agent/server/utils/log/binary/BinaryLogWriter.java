@@ -15,17 +15,39 @@ import java.nio.channels.FileChannel;
 
 public class BinaryLogWriter extends AbstractLogWriter<BinaryLogConfig, BinaryLogItem> {
     private static final Logger logger = Logger.getLogger(BinaryLogItem.class);
+    private static final int FLUSH_COUNT = 1000;
     private final LockObject writerLock = new LockObject();
     private volatile OutputStream out;
     private volatile FileChannel channel;
 
-    BinaryLogWriter(BinaryLogConfig logConfig) {
-        super(logConfig);
+    BinaryLogWriter(String logKey, BinaryLogConfig logConfig) {
+        super(logKey, logConfig);
     }
 
     @Override
     protected long computeSize(BinaryLogItem item) {
         return item.getSize();
+    }
+
+    @Override
+    protected void checkBeforeFlush(ItemBuffer itemBuffer) {
+        BinaryLogItemPool.getList(logKey, FLUSH_COUNT)
+                .forEach(
+                        item -> itemBuffer.add(
+                                item,
+                                item.getSize()
+                        )
+                );
+    }
+
+    @Override
+    protected boolean checkToWrite(ItemBuffer itemBuffer, BinaryLogItem item, long itemSize, long currBufferSize, long maxBufferSize) {
+        if (itemSize >= maxBufferSize) {
+            itemBuffer.add(item, itemSize);
+            return true;
+        }
+        BinaryLogItemPool.put(logKey, item);
+        return false;
     }
 
     @Override
@@ -37,9 +59,10 @@ public class BinaryLogWriter extends AbstractLogWriter<BinaryLogConfig, BinaryLo
                 out.write(bs, 0, bs.length);
             }
         } else {
+            long size = item.getSize();
             long bytesWritten = getChannel().write(item.getBuffers());
-            if (bytesWritten != item.getSize())
-                logger.error("Write failed, bytes written: {}, total size: {}", bytesWritten, item.getSize());
+            if (bytesWritten != size)
+                logger.error("Write failed, bytes written: {}, total size: {}", bytesWritten, size);
         }
     }
 

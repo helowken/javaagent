@@ -20,7 +20,7 @@ public abstract class AbstractLogger<T extends LogItem> implements ILogger<T>, A
     private final LockObject loggerLock = new LockObject();
     private final Map<String, LogWriter<T>> keyToLogWriter = new ConcurrentHashMap<>();
 
-    protected abstract LogWriter<T> newLogWriter(LogConfig logConfig);
+    protected abstract LogWriter<T> newLogWriter(String logKey, LogConfig logConfig);
 
     protected AbstractLogger() {
         EventListenerMgr.reg(this);
@@ -66,7 +66,7 @@ public abstract class AbstractLogger<T extends LogItem> implements ILogger<T>, A
         String outputPath = logConfig.getOutputPath();
         if (!isStdout(outputPath))
             FileUtils.mkdirsByFile(outputPath);
-        keyToLogWriter.computeIfAbsent(key, k -> newLogWriter(logConfig));
+        keyToLogWriter.computeIfAbsent(key, k -> newLogWriter(k, logConfig));
         return key;
     }
 

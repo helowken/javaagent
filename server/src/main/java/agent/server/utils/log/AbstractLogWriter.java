@@ -18,6 +18,7 @@ import static agent.server.utils.log.LogConfig.STDOUT;
 
 public abstract class AbstractLogWriter<T extends LogConfig, V extends LogItem> implements LogWriter<V> {
     private static final Logger logger = Logger.getLogger(AbstractLogWriter.class);
+    protected final String logKey;
     protected final T logConfig;
     protected boolean stdout;
     private final LinkedBlockingQueue<ItemBuffer> taskQueue = new LinkedBlockingQueue<>();
@@ -30,7 +31,8 @@ public abstract class AbstractLogWriter<T extends LogConfig, V extends LogItem> 
     private long currFileSize = 0;
     private int fileIdx = 0;
 
-    protected AbstractLogWriter(T logConfig) {
+    protected AbstractLogWriter(String logKey, T logConfig) {
+        this.logKey = logKey;
         this.logConfig = logConfig;
         int bufferCount = logConfig.getBufferCount();
         availableBuffers = new LinkedBlockingQueue<>(bufferCount);
@@ -59,12 +61,18 @@ public abstract class AbstractLogWriter<T extends LogConfig, V extends LogItem> 
     @Override
     public void write(V item) {
         try {
-            long size = logConfig.isAutoFlush() ? 0 : computeSize(item);
+            long itemSize = logConfig.isAutoFlush() ? 0 : computeSize(item);
             bufferLock.sync(lock -> {
                 if (currBuffer == null)
                     currBuffer = availableBuffers.take();
-                currBuffer.add(item, size);
-                if (logConfig.isAutoFlush() || currBuffer.bufferSize >= logConfig.getMaxBufferSize())
+                boolean toWrite = checkToWrite(
+                        currBuffer,
+                        item,
+                        itemSize,
+                        currBuffer.bufferSize,
+                        logConfig.getMaxBufferSize()
+                );
+                if (logConfig.isAutoFlush() || toWrite)
                     taskQueue.add(getDirtyBuffer());
             });
         } catch (Exception e) {
@@ -81,11 +89,15 @@ public abstract class AbstractLogWriter<T extends LogConfig, V extends LogItem> 
     @Override
     public void flush() {
         ItemBuffer dirtyBuffer = bufferLock.syncValue(lock -> getDirtyBuffer());
-        if (dirtyBuffer != null)
+        if (dirtyBuffer != null) {
             dirtyBuffer.flush = true;
-        else
+            checkBeforeFlush(dirtyBuffer);
+        } else
             dirtyBuffer = dummyBuffer;
         taskQueue.add(dirtyBuffer);
+    }
+
+    protected void checkBeforeFlush(ItemBuffer itemBuffer) {
     }
 
     @Override
@@ -142,14 +154,6 @@ public abstract class AbstractLogWriter<T extends LogConfig, V extends LogItem> 
         }
     }
 
-    private void writeItem(V item) {
-        try {
-            doWrite(item);
-        } catch (Exception e) {
-            logger.error("Write dirty buffer failed.", e);
-        }
-    }
-
     private void flushOutput() {
         try {
             doFlush();
@@ -157,6 +161,8 @@ public abstract class AbstractLogWriter<T extends LogConfig, V extends LogItem> 
             logger.error("Flush failed.", e);
         }
     }
+
+    protected abstract boolean checkToWrite(ItemBuffer itemBuffer, V item, long itemSize, long bufferSize, long maxBufferSize);
 
     protected abstract long computeSize(V item);
 
@@ -166,12 +172,12 @@ public abstract class AbstractLogWriter<T extends LogConfig, V extends LogItem> 
 
     protected abstract void doClose();
 
-    private class ItemBuffer {
+    protected class ItemBuffer {
         private final List<V> buffer = new LinkedList<>();
-        private long bufferSize = 0;
+        public long bufferSize = 0;
         boolean flush = false;
 
-        private void add(V item, long itemSize) {
+        public void add(V item, long itemSize) {
             buffer.add(item);
             bufferSize += itemSize;
         }
@@ -180,7 +186,11 @@ public abstract class AbstractLogWriter<T extends LogConfig, V extends LogItem> 
             try {
                 while (!closed.get() && !buffer.isEmpty()) {
                     V item = buffer.remove(0);
-                    writeItem(item);
+                    try {
+                        doWrite(item);
+                    } catch (Exception e) {
+                        logger.error("Write dirty buffer failed.", e);
+                    }
                     item.postWrite();
                 }
                 if (flush)

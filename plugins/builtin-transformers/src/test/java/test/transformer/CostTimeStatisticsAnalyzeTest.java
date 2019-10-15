@@ -27,11 +27,11 @@ public class CostTimeStatisticsAnalyzeTest {
     );
 
     public static void main(String[] args) throws Exception {
-//        String outputPath = "/home/helowken/cost-time/cost-time-statistics.log";
+        String outputPath = "/home/helowken/cost-time/cost-time-statistics.log";
 //        String outputPath = "/home/helowken/test_pt/data/result-gen-token-openid.txt";
 //        String outputPath = "/home/helowken/test_pt/tmp_data/result-gen-token-openid.txt";
 //        boolean skipAvgEq0 = true;
-        String outputPath = args[0];
+//        String outputPath = args[0];
         boolean skipAvgEq0 = args.length > 1 && args[1].equals("true");
         Set<Float> rates = parseRates(args.length > 2 ? args[2] : null);
         Tree<String> tree = buildTree(outputPath, rates, skipAvgEq0);

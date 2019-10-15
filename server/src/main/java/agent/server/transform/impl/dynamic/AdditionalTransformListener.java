@@ -1,6 +1,5 @@
 package agent.server.transform.impl.dynamic;
 
-import agent.base.utils.IOUtils;
 import agent.base.utils.Logger;
 import agent.base.utils.Pair;
 import agent.hook.plugin.ClassFinder;
@@ -9,9 +8,7 @@ import agent.server.event.AgentEventListener;
 import agent.server.event.impl.AdditionalTransformEvent;
 import agent.server.transform.TransformContext;
 import agent.server.transform.TransformMgr;
-import agent.server.transform.impl.TransformerInfo;
 
-import java.io.File;
 import java.util.*;
 
 public class AdditionalTransformListener implements AgentEventListener {
@@ -24,7 +21,7 @@ public class AdditionalTransformListener implements AgentEventListener {
     }
 
     public List<TransformContext> getContextList() {
-        logger.debug("Event list: {}", eventList);
+//        logger.debug("Event list: {}", eventList);
         ClassFinder classFinder = TransformMgr.getInstance().getClassFinder();
         Map<String, Pair<Set<Class<?>>, Map<String, Pair<ClassLoader, byte[]>>>> contextToPair = new HashMap<>();
         for (AdditionalTransformEvent event : eventList) {
@@ -44,7 +41,7 @@ public class AdditionalTransformListener implements AgentEventListener {
                     }
             );
         }
-        logger.debug("Additional Merged: {}", contextToPair);
+//        logger.debug("Additional Merged: {}", contextToPair);
 
         List<TransformContext> transformContextList = new ArrayList<>();
         contextToPair.forEach((context, pair) ->
@@ -59,7 +56,8 @@ public class AdditionalTransformListener implements AgentEventListener {
                         )
                 )
         );
-        logger.debug("Transform context list: {}", transformContextList);
+//        logger.debug("Transform context list: {}", transformContextList);
+
         return transformContextList;
     }
 

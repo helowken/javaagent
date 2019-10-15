@@ -4,10 +4,10 @@ import agent.server.utils.log.*;
 
 public class BinaryLogger extends AbstractLogger<BinaryLogItem> {
     @Override
-    protected LogWriter<BinaryLogItem> newLogWriter(LogConfig logConfig) {
+    protected LogWriter<BinaryLogItem> newLogWriter(String logKey, LogConfig logConfig) {
         if (!(logConfig instanceof BinaryLogConfig))
             throw new IllegalArgumentException("Invalid logConfig, it must be: " + BinaryLogConfig.class.getName());
-        return new BinaryLogWriter((BinaryLogConfig) logConfig);
+        return new BinaryLogWriter(logKey, (BinaryLogConfig) logConfig);
     }
 
     @Override

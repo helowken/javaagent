@@ -77,6 +77,8 @@ public class CostTimeStatisticsTransformer extends AbstractConfigTransformer {
         LogUtils.addCostTimeCode(ctMethod, (stVar, etVar, endBlock) -> {
             endBlock.append(loggerExpr)
                     .append(".log(")
+                    .append(ParamValueUtils.convertToString(logKey))
+                    .append(", ")
                     .append(type)
                     .append(", (int) ")
                     .append(LogUtils.newCostTimegExpr(stVar, etVar))
