@@ -1,63 +1,42 @@
 package agent.builtin.transformer.utils;
 
 import agent.base.utils.IndentUtils;
-import agent.base.utils.Logger;
-import agent.base.utils.ReflectionUtils;
-
-import java.lang.reflect.Modifier;
 
 public class DefaultMethodPrinter implements MethodPrinter {
-    private static final Logger logger = Logger.getLogger(DefaultMethodPrinter.class);
 
     @Override
-    public void printArgs(StringBuilder sb, Object[] args) {
+    public void printArgs(StringBuilder sb, Object[] args, Class<?>[] argClasses) {
+        if (args.length != argClasses.length)
+            throw new RuntimeException("Length of args != length of argClasses");
         for (int i = 0; i < args.length; ++i) {
             sb.append(IndentUtils.getIndent(1))
                     .append("Arg ").append(i).append(" ")
-                    .append(getClassName(args[i])).append(": ");
-            printObject(sb, args[i]);
+                    .append(getClassName(argClasses[i]))
+                    .append(": ");
+            printObject(sb, args[i], argClasses[i]);
             sb.append("\n");
         }
     }
 
     @Override
-    public void printReturnValue(StringBuilder sb, Object returnValue) {
+    public void printReturnValue(StringBuilder sb, Object returnValue, Class<?> returnValueClass) {
         sb.append(IndentUtils.getIndent(1))
                 .append("Return Value ")
-                .append(getClassName(returnValue)).append(": ");
-        printObject(sb, returnValue);
+                .append(getClassName(returnValueClass))
+                .append(": ");
+        printObject(sb, returnValue, returnValueClass);
         sb.append("\n");
     }
 
-    private String getClassName(Object v) {
-        return "[" + (
-                v == null ? "" : v.getClass().getName()
-        ) + "]";
+    private String getClassName(Class<?> clazz) {
+        return "[" + clazz.getName() + "]";
     }
 
-    protected void printObject(StringBuilder sb, Object obj) {
+    protected void printObject(StringBuilder sb, Object obj, Class<?> objClass) {
         if (obj == null)
             sb.append("null");
         else {
             sb.append(obj);
-//            Class<?> tmpClass = obj.getClass();
-//            try {
-//                while (tmpClass != null) {
-//                    ReflectionUtils.useDeclaredFields(tmpClass,
-//                            field -> {
-//                                if (Modifier.isStatic(field.getModifiers())) {
-//
-//                                } else {
-//
-//                                }
-//                            }
-//                    );
-//                    tmpClass = tmpClass.getSuperclass();
-//                }
-//            } catch (Exception e) {
-//                sb.append("#Get value error!#");
-//                logger.error("Get value failed.", e);
-//            }
         }
     }
 }

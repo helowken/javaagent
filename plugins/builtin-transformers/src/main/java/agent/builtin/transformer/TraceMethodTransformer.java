@@ -53,11 +53,11 @@ public class TraceMethodTransformer extends AbstractConfigTransformer {
         ctMethod.addLocalVariable(methodLoggerVar, AgentClassPool.getInstance().get(methodLoggerClassName));
 
         String block = methodLoggerVar + " = new " + methodLoggerClassName + "(\"" + printerClass + "\");"
-                + methodLoggerVar + ".printArgs($args);";
+                + methodLoggerVar + ".printArgs($args, $sig);";
 //        logger.debug("{}", block);
         ctMethod.insertBefore(block);
 
-        StringBuilder endBlock = new StringBuilder(methodLoggerVar + ".printReturnValue($_);");
+        StringBuilder endBlock = new StringBuilder(methodLoggerVar + ".printReturnValue(($w) $_, $type);");
         String pvsCode = ParamValueUtils.genCode(
                 ctClass.getName(),
                 ctMethod.getName(),

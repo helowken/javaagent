@@ -13,12 +13,12 @@ public class MethodLogger {
         this.printerClass = printerClass;
     }
 
-    public void printArgs(Object[] args) {
-        doPrint(printer -> printer.printArgs(sb, args));
+    public void printArgs(Object[] args, Class<?>[] argClasses) {
+        doPrint(printer -> printer.printArgs(sb, args, argClasses));
     }
 
-    public void printReturnValue(Object returnValue) {
-        doPrint(printer -> printer.printReturnValue(sb, returnValue));
+    public void printReturnValue(Object returnValue, Class<?> returnValueClass) {
+        doPrint(printer -> printer.printReturnValue(sb, returnValue, returnValueClass));
     }
 
     public String getContent() {

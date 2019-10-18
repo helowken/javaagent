@@ -160,7 +160,7 @@ public class TestConfigRuleTest extends AbstractTest {
             if (isBefore)
                 super.methodCallStart(args, methodInfo);
             else
-                super.methodCallEnd(returnValue);
+                super.methodCallEnd(returnValue, methodInfo);
         }
 
         @Override
