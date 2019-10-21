@@ -48,10 +48,10 @@ public class TransformMgr {
     }
 
     private DynamicClassLoader getDynamicClassLoader(String context) {
+        ClassFinder classFinder = getClassFinder();
         return loaderLock.syncValue(lock ->
                 contextToDynamicClassLoader.computeIfAbsent(context,
                         key -> {
-                            ClassFinder classFinder = getClassFinder();
                             final ClassLoader classLoader = classFinder.findClassLoader(context);
                             try {
                                 DynamicClassLoader dynamicClassLoader = new DynamicClassLoader(
@@ -94,19 +94,14 @@ public class TransformMgr {
     public void searchMethods(ConfigItem item, SearchFunc func) {
         Map<ModuleConfig, Map<TransformConfig, TransformerInfo>> rsMap = parseConfig(item);
         rsMap.forEach((moduleConfig, configToInfo) ->
-                ClassPoolUtils.exec((cp, classPathRecorder) ->
-                        configToInfo.forEach((transformConfig, transformerInfo) ->
-                                transformerInfo.getTargetClassConfigList()
-                                        .forEach(targetClassConfig -> {
-                                                    classPathRecorder.add(targetClassConfig.targetClass);
-                                                    MethodFinder.getInstance().consume(
-                                                            cp,
-                                                            targetClassConfig,
-                                                            result -> func.exec(moduleConfig.getContextPath(), result)
-                                                    );
-                                                }
+                configToInfo.forEach((transformConfig, transformerInfo) ->
+                        transformerInfo.getTargetClassConfigList()
+                                .forEach(
+                                        targetClassConfig -> func.exec(
+                                                moduleConfig.getContextPath(),
+                                                MethodFinder.getInstance().find(targetClassConfig)
                                         )
-                        )
+                                )
                 )
         );
     }
@@ -119,16 +114,13 @@ public class TransformMgr {
 
     public List<TargetClassConfig> convert(String context, List<ClassConfig> classConfigList) {
         List<TargetClassConfig> targetClassConfigList = new ArrayList<>();
+        ClassFinder classFinder = getClassFinder();
         classConfigList.forEach(classConfig -> {
-            Class<?> targetClass = getClassFinder().findClass(context, classConfig.getTargetClass());
+            Class<?> targetClass = classFinder.findClass(context, classConfig.getTargetClass());
             if (targetClass.isInterface())
-                throw new RuntimeException("Interface class can not be transformed: " + targetClass.getName());
-//            CodeSource codeSource = targetClass.getProtectionDomain().getCodeSource();
-//            logger.debug("{} source location is: {}",
-//                    targetClass,
-//                    codeSource == null ? null : codeSource.getLocation()
-//            );
-            targetClassConfigList.add(new TargetClassConfig(targetClass, classConfig));
+                logger.warn("Interface class can not be transformed: {}" + targetClass.getName());
+            else
+                targetClassConfigList.add(new TargetClassConfig(targetClass, classConfig));
         });
         return targetClassConfigList;
     }
@@ -179,14 +171,14 @@ public class TransformMgr {
                     refClassSet.addAll(transformer.getRefClassSet());
                     instrumentation.addTransformer(transformer, true);
                 });
-                Exception err = null;
+                Throwable err = null;
                 try {
                     ClassPoolUtils.exec((cp, classPathRecorder) -> {
                                 classPathRecorder.add(refClassSet);
                                 instrumentation.retransformClasses(transformContext.classSet.toArray(new Class[0]));
                             }
                     );
-                } catch (Exception e) {
+                } catch (Throwable e) {
                     err = e;
                 } finally {
                     transformContext.transformerList.forEach(instrumentation::removeTransformer);

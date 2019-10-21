@@ -4,7 +4,7 @@ import java.lang.instrument.ClassFileTransformer;
 import java.util.Set;
 
 public interface ErrorTraceTransformer extends ClassFileTransformer {
-    Exception getError();
+    Throwable getError();
 
     boolean hasError();
 

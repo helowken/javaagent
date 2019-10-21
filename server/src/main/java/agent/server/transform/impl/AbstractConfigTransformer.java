@@ -1,13 +1,17 @@
 package agent.server.transform.impl;
 
 import agent.base.utils.Logger;
+import agent.base.utils.MethodSignatureUtils;
 import agent.server.transform.ConfigTransformer;
 import agent.server.transform.exception.InvalidTransformerConfigException;
 import agent.server.transform.impl.utils.AgentClassPool;
 import agent.server.transform.impl.utils.MethodFinder;
+import agent.server.transform.impl.utils.MethodFinder.MethodSearchResult;
+import javassist.CannotCompileException;
 import javassist.CtClass;
-import javassist.CtMethod;
 
+import java.io.IOException;
+import java.lang.reflect.Method;
 import java.security.ProtectionDomain;
 import java.util.Collections;
 import java.util.Map;
@@ -51,17 +55,24 @@ public abstract class AbstractConfigTransformer extends AbstractTransformer impl
     @Override
     protected byte[] doTransform(ClassLoader loader, String className, Class<?> classBeingRedefined,
                                  ProtectionDomain protectionDomain, byte[] classfileBuffer, String targetClassName) throws Exception {
-        MethodFinder.MethodSearchResult rs = MethodFinder.getInstance().rawFind(
-                AgentClassPool.getInstance(),
+        MethodSearchResult rs = MethodFinder.getInstance().find(
                 transformerInfo.getTargetClassConfig(className)
         );
-        CtClass ctClass = rs.ctClass;
-        for (CtMethod ctMethod : rs.methodList) {
-            logger.debug("Transforming method: {}", ctMethod.getLongName());
-            transformMethod(ctClass, ctMethod);
+        for (Method method : rs.methods) {
+            logger.debug("Transforming method: {}", MethodSignatureUtils.getLongName(method));
+            transformMethod(method);
         }
-        return ctClass.toBytecode();
+        TransformSession.get().addTransformClass(
+                transformerInfo.getContext(),
+                rs.clazz,
+                getClassData(rs.clazz)
+        );
+        return classfileBuffer;
     }
 
-    protected abstract void transformMethod(CtClass ctClass, CtMethod ctMethod) throws Exception;
+    protected byte[] getClassData(Class<?> clazz) throws IOException, CannotCompileException {
+        return AgentClassPool.getInstance().get(clazz).toBytecode();
+    }
+
+    protected abstract void transformMethod(Method method) throws Exception;
 }

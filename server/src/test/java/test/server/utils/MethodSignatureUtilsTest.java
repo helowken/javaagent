@@ -19,6 +19,7 @@ public class MethodSignatureUtilsTest {
         check("f2");
         check("f3");
         check("f4");
+        check("f5");
     }
 
     private void check(String name) throws Exception {
@@ -52,4 +53,7 @@ public class MethodSignatureUtilsTest {
         return null;
     }
 
+    private String[][][][][] f5(boolean[][] a, short[][][] b, int[][][][] c) {
+        return null;
+    }
 }

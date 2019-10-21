@@ -1,5 +1,6 @@
 package agent.builtin.transformer;
 
+import agent.base.utils.MethodSignatureUtils;
 import agent.builtin.transformer.utils.CostTimeLogger;
 import agent.builtin.transformer.utils.LogUtils;
 import agent.common.utils.JSONUtils;
@@ -8,15 +9,17 @@ import agent.server.transform.config.ClassConfig;
 import agent.server.transform.impl.AbstractConfigTransformer;
 import agent.server.transform.impl.TargetClassConfig;
 import agent.server.transform.impl.TransformerInfo;
+import agent.server.transform.impl.utils.AgentClassPool;
 import agent.server.transform.impl.utils.ClassPoolUtils;
 import agent.server.transform.impl.utils.MethodFinder;
+import agent.server.transform.impl.utils.MethodFinder.MethodSearchResult;
 import agent.server.utils.ParamValueUtils;
 import agent.server.utils.log.LogConfig;
 import agent.server.utils.log.LogMgr;
 import com.fasterxml.jackson.core.type.TypeReference;
-import javassist.CtClass;
 import javassist.CtMethod;
 
+import java.lang.reflect.Method;
 import java.util.*;
 
 @SuppressWarnings("unchecked")
@@ -42,14 +45,11 @@ public class CostTimeStatisticsTransformer extends AbstractConfigTransformer {
         List<TargetClassConfig> targetClassConfigList = TransformMgr.getInstance().convert(transformerInfo.getContext(), classConfigList);
         ClassPoolUtils.exec((cp, classPathRecorder) -> {
             for (TargetClassConfig targetClassConfig : targetClassConfigList) {
+                MethodSearchResult result = MethodFinder.getInstance().find(targetClassConfig);
                 classPathRecorder.add(targetClassConfig.targetClass);
-                MethodFinder.getInstance().consume(
-                        cp,
-                        targetClassConfig,
-                        result -> result.methodList.forEach(method ->
-                                entryPoints.add(
-                                        getEntryPoint(transformerInfo.getContext(), result.ctClass, method)
-                                )
+                result.methods.forEach(method ->
+                        entryPoints.add(
+                                getEntryPoint(transformerInfo.getContext(), method)
                         )
                 );
             }
@@ -58,22 +58,27 @@ public class CostTimeStatisticsTransformer extends AbstractConfigTransformer {
         CostTimeLogger.getInstance().regOutputPath(transformerInfo.getContext(), logConfig.getOutputPath());
     }
 
-    private String getEntryPoint(String context, CtClass ctClass, CtMethod ctMethod) {
-        return context + ":" + ctClass.getName() + "." + ctMethod.getName() + ctMethod.getSignature();
+    private String getEntryPoint(String context, Method method) {
+        return context + ":" + MethodSignatureUtils.getLongName(method);
     }
 
-    private boolean isEntryPoint(String context, CtClass ctClass, CtMethod ctMethod) {
+    private boolean isEntryPoint(String context, Method method) {
         return entryPoints.contains(
-                getEntryPoint(context, ctClass, ctMethod)
+                getEntryPoint(context, method)
         );
     }
 
     @Override
-    protected void transformMethod(CtClass ctClass, CtMethod ctMethod) throws Exception {
+    protected void transformMethod(Method method) throws Exception {
         String context = getTransformerInfo().getContext();
         String loggerExpr = CostTimeLogger.class.getName() + ".getInstance()";
-        int type = CostTimeLogger.getInstance().reg(context, ctClass.getName(), ctMethod.getName() + ctMethod.getSignature());
-        final boolean isEP = isEntryPoint(context, ctClass, ctMethod);
+        int type = CostTimeLogger.getInstance().reg(
+                context,
+                method.getDeclaringClass().getName(),
+                MethodSignatureUtils.getFullSignature(method)
+        );
+        final boolean isEP = isEntryPoint(context, method);
+        CtMethod ctMethod = AgentClassPool.getInstance().getMethod(method);
         LogUtils.addCostTimeCode(ctMethod, (stVar, etVar, endBlock) -> {
             endBlock.append(loggerExpr)
                     .append(".log(")

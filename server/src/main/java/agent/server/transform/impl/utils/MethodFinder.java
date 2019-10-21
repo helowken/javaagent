@@ -1,17 +1,15 @@
 package agent.server.transform.impl.utils;
 
 import agent.base.utils.Logger;
+import agent.base.utils.MethodSignatureUtils;
 import agent.base.utils.ReflectionUtils;
 import agent.base.utils.Utils;
 import agent.server.transform.config.ClassConfig;
-import agent.server.transform.config.MethodConfig;
 import agent.server.transform.config.MethodFilterConfig;
-import agent.server.transform.exception.MultiMethodFoundException;
 import agent.server.transform.impl.TargetClassConfig;
-import javassist.CtClass;
-import javassist.CtMethod;
-import javassist.NotFoundException;
 
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
@@ -20,6 +18,15 @@ import java.util.stream.Collectors;
 public class MethodFinder {
     private static final Logger logger = Logger.getLogger(MethodFinder.class);
     private static final MethodFinder instance = new MethodFinder();
+    private static int SYNTHETIC;
+    private static int BRIDGE;
+
+    static {
+        Utils.wrapToRtError(() -> {
+            SYNTHETIC = ReflectionUtils.getStaticFieldValue(Modifier.class, "SYNTHETIC");
+            BRIDGE = ReflectionUtils.getStaticFieldValue(Modifier.class, "BRIDGE");
+        });
+    }
 
     public static MethodFinder getInstance() {
         return instance;
@@ -28,75 +35,34 @@ public class MethodFinder {
     private MethodFinder() {
     }
 
-    public MethodSearchResult rawFind(AgentClassPool cp, TargetClassConfig targetClassConfig) throws Exception {
-        Set<String> methodLongNames = new HashSet<>();
+    public MethodSearchResult find(TargetClassConfig targetClassConfig) {
         ClassConfig classConfig = targetClassConfig.classConfig;
-        CtClass ctClass = cp.get(classConfig.getTargetClass());
-        logger.debug("Start to find methods for class: {}", ctClass.getName());
-        List<CtMethod> candidateList = new ArrayList<>();
-        if (classConfig.getMethodConfigList() != null)
-            candidateList.addAll(findByMethodConfig(classConfig.getMethodConfigList(), ctClass, cp));
-        if (classConfig.getMethodFilterConfig() != null)
-            candidateList.addAll(findByMethodFilter(classConfig.getMethodFilterConfig(), ctClass));
-        List<CtMethod> rsList = collectMethodsIfNeeded(methodLongNames, candidateList);
+        Class<?> clazz = targetClassConfig.targetClass;
+        logger.debug("Start to find methods for class: {}", clazz.getName());
+        MethodFilterConfig methodFilterConfig = classConfig.getMethodFilterConfig();
+        if (methodFilterConfig == null)
+            methodFilterConfig = new MethodFilterConfig();
+        Collection<Method> rsList = findByMethodFilter(methodFilterConfig, clazz);
         logger.debug("===============");
+        logger.debug("Method filter config: {}", methodFilterConfig);
         logger.debug("Matched methods:");
-        rsList.forEach(method -> logger.debug(method.getLongName()));
+        rsList.forEach(method -> logger.debug(MethodSignatureUtils.getLongName(method)));
         logger.debug("===============");
-        return new MethodSearchResult(ctClass, rsList);
+        return new MethodSearchResult(clazz, rsList);
     }
 
-    public void consume(AgentClassPool cp, TargetClassConfig targetClassConfig, Consumer<MethodSearchResult> resultConsumer) {
+    public void consume(TargetClassConfig targetClassConfig, Consumer<MethodSearchResult> resultConsumer) {
         Utils.wrapToRtError(
                 () -> resultConsumer.accept(
-                        rawFind(cp, targetClassConfig)
+                        find(targetClassConfig)
                 ),
                 () -> "Find method list failed."
         );
     }
 
-    private List<CtMethod> findByMethodConfig(List<MethodConfig> methodConfigList, CtClass ctClass, AgentClassPool cp) throws Exception {
-        List<CtMethod> methodList = new ArrayList<>();
-        for (MethodConfig methodConfig : methodConfigList) {
-            String methodName = methodConfig.getName();
-            String[] argTypes = methodConfig.getArgTypes();
-            CtMethod method = argTypes == null ?
-                    getMethodByName(methodName, ctClass)
-                    : ctClass.getDeclaredMethod(methodName, cp.get(argTypes));
-            methodList.add(method);
-        }
-        return methodList;
-    }
-
-    private List<CtMethod> collectMethodsIfNeeded(Set<String> methodLongNames, List<CtMethod> methodList) {
-        List<CtMethod> rsList = new ArrayList<>();
-        for (CtMethod method : methodList) {
-            String longName = method.getLongName();
-            if (!methodLongNames.contains(longName)) {
-                rsList.add(method);
-                methodLongNames.add(longName);
-            }
-        }
-        return rsList;
-    }
-
-    private List<CtMethod> findByMethodFilter(MethodFilterConfig methodFilterConfig, CtClass ctClass) {
-        List<CtMethod> candidateList = new ArrayList<>();
-        filterOutNoBody(candidateList, ctClass.getDeclaredMethods());
-
-        if (!methodFilterConfig.isOnlyDeclared()) {
-            logger.debug("Search all methods.");
-            if (methodFilterConfig.isSkipJavaNative()) {
-                logger.debug("Skip java native methods.");
-                filterOutJavaNative(candidateList, ctClass.getMethods());
-            } else {
-                logger.debug("Include java native methods.");
-                candidateList.addAll(Arrays.asList(ctClass.getMethods()));
-            }
-        } else
-            logger.debug("Search methods only declared.");
-
-        logger.debug("Filter methods according to include and exclude expr set.");
+    private Collection<Method> findByMethodFilter(MethodFilterConfig methodFilterConfig, Class<?> clazz) {
+        Set<Method> candidateList = new HashSet<>();
+        filterOutMeaningless(candidateList, clazz.getDeclaredMethods());
         return filterByCondition(
                 methodFilterConfig.getIncludeExprSet(),
                 filterByCondition(
@@ -107,77 +73,82 @@ public class MethodFinder {
         );
     }
 
-    private List<CtMethod> filterByCondition(Set<String> exprSet, List<CtMethod> candidateList, final boolean match) {
+    private Collection<Method> filterByCondition(Set<String> exprSet, Collection<Method> candidateList, final boolean match) {
         Set<String> tmp = exprSet;
         if (tmp == null || tmp.isEmpty())
             tmp = null;
         return Optional.ofNullable(tmp)
                 .map(this::compileExprSet)
-                .map(patternSet ->
-                        candidateList.stream()
+                .<Collection<Method>>map(
+                        patternSet -> candidateList.stream()
                                 .filter(method -> match == isMatch(patternSet, method))
                                 .collect(Collectors.toList())
                 )
                 .orElse(candidateList);
     }
 
-    private Set<Pattern> compileExprSet(Set<String> exprSet) {
-        return exprSet.stream().map(Pattern::compile).collect(Collectors.toSet());
+    private Pattern compilePattern(String srcPattern) {
+        String pattern = srcPattern.replaceAll(" ", "");
+        if (!pattern.contains("("))
+            pattern += "\\(.*\\)";
+        else
+            pattern = pattern.replace("(", "\\(").replace(")", "\\)");
+        final String s = pattern;
+        logger.debug("Compile pattern {} to {}", srcPattern, s);
+        return Utils.wrapToRtError(
+                () -> Pattern.compile(s),
+                () -> "Invalid pattern: " + srcPattern + ", converted pattern: " + s
+        );
     }
 
-    private boolean isMatch(Set<Pattern> patternSet, CtMethod method) {
-        final String fullName = method.getName();
+    private Set<Pattern> compileExprSet(Set<String> exprSet) {
+        return exprSet.stream()
+                .map(this::compilePattern)
+                .collect(Collectors.toSet());
+    }
+
+    private boolean isMatch(Set<Pattern> patternSet, Method method) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(method.getName()).append("(");
+        Class<?>[] paramTypes = method.getParameterTypes();
+        if (paramTypes != null) {
+            int count = 0;
+            for (Class<?> paramType : paramTypes) {
+                if (count > 0)
+                    sb.append(",");
+                sb.append(paramType.getName());
+                ++count;
+            }
+        }
+        sb.append(")");
+        String fullName = sb.toString();
         return patternSet.stream().anyMatch(
                 pattern -> pattern.matcher(fullName).matches()
         );
     }
 
-    private void filterOutNoBody(List<CtMethod> candidateList, CtMethod... methods) {
-        for (CtMethod method : methods) {
-            if (!isMethodEmpty(method))
+    private void filterOutMeaningless(Collection<Method> candidateList, Method... methods) {
+        for (Method method : methods) {
+            if (isMethodMeaningful(method.getModifiers()))
                 candidateList.add(method);
             else
-                logger.debug("Method has no body, skip it: {}", method.getLongName());
+                logger.debug("Method is meaningless, skip it: {}", MethodSignatureUtils.getLongName(method));
         }
-    }
-
-    private void filterOutJavaNative(List<CtMethod> candidateList, CtMethod... methods) {
-        for (CtMethod method : methods) {
-            String packageName = method.getDeclaringClass().getPackageName();
-            boolean isNative = ReflectionUtils.isJavaNativePackage(packageName);
-            if (isNative)
-                logger.debug("Method is java native, skip it: {}", method.getLongName());
-            else
-                candidateList.add(method);
-        }
-    }
-
-    private CtMethod getMethodByName(String methodName, CtClass ctClass) throws NotFoundException {
-        CtMethod foundMethod = null;
-        for (CtMethod method : ctClass.getMethods()) {
-            if (method.getName().equals(methodName)) {
-                if (foundMethod == null)
-                    foundMethod = method;
-                else
-                    throw new MultiMethodFoundException("More than one methods have same name.");
-            }
-        }
-        if (foundMethod != null)
-            return foundMethod;
-        return ctClass.getDeclaredMethod(methodName);
     }
 
     public static class MethodSearchResult {
-        public final CtClass ctClass;
-        public final List<CtMethod> methodList;
+        public final Class<?> clazz;
+        public final Collection<Method> methods;
 
-        private MethodSearchResult(CtClass ctClass, List<CtMethod> methodList) {
-            this.ctClass = ctClass;
-            this.methodList = Collections.unmodifiableList(methodList);
+        private MethodSearchResult(Class<?> clazz, Collection<Method> methods) {
+            this.clazz = clazz;
+            this.methods = Collections.unmodifiableCollection(methods);
         }
     }
 
-    public static boolean isMethodEmpty(CtMethod method) {
-        return method.getMethodInfo().getCodeAttribute() == null;
+    public static boolean isMethodMeaningful(int methodModifiers) {
+        return (SYNTHETIC & methodModifiers) == 0 &&
+                (BRIDGE & methodModifiers) == 0 &&
+                !Modifier.isAbstract(methodModifiers);
     }
 }

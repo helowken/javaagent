@@ -89,11 +89,5 @@
             </modules>
         </profile>
 
-        <profile>
-            <id>tests</id>
-            <modules>
-                <module>test-rule</module>
-            </modules>
-        </profile>
     </profiles>
 </project>

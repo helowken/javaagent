@@ -2,13 +2,12 @@ package agent.server.transform.impl.utils;
 
 import agent.base.utils.LockObject;
 import agent.base.utils.Logger;
+import agent.base.utils.MethodSignatureUtils;
 import agent.base.utils.Utils;
 import agent.server.transform.ClassDataFinder;
-import javassist.ClassPath;
-import javassist.ClassPool;
-import javassist.CtClass;
-import javassist.NotFoundException;
+import javassist.*;
 
+import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -90,5 +89,25 @@ public class AgentClassPool {
             ctClass.detach();
         });
         classSet.clear();
+    }
+
+    public CtMethod getMethod(Method method) {
+        return getMethod(
+                method.getDeclaringClass(),
+                method.getName(),
+                MethodSignatureUtils.getSignature(method)
+        );
+    }
+
+    public CtMethod getMethod(Class<?> clazz, String methodName, String methodSignature) {
+        CtMethod[] ctMethods = get(clazz).getDeclaredMethods();
+        if (ctMethods != null) {
+            for (CtMethod ctMethod : ctMethods) {
+                if (ctMethod.getName().equals(methodName) &&
+                        methodSignature.equals(ctMethod.getSignature()))
+                    return ctMethod;
+            }
+        }
+        throw new RuntimeException("No method found by: " + clazz.getName() + "." + methodName + methodSignature);
     }
 }

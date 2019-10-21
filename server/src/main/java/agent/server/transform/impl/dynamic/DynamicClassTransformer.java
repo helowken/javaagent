@@ -6,12 +6,10 @@ import agent.base.utils.MethodSignatureUtils;
 import agent.base.utils.ReflectionUtils;
 import agent.base.utils.Utils;
 import agent.hook.plugin.ClassFinder;
-import agent.server.event.EventListenerMgr;
-import agent.server.event.impl.AdditionalTransformEvent;
 import agent.server.transform.BytecodeMethodFinder;
 import agent.server.transform.TransformMgr;
 import agent.server.transform.impl.AbstractConfigTransformer;
-import agent.server.transform.impl.TransformerInfo;
+import agent.server.transform.impl.TransformSession;
 import agent.server.transform.impl.utils.AgentClassPool;
 import agent.server.transform.impl.utils.ClassPathRecorder;
 import agent.server.transform.impl.utils.ClassPoolUtils;
@@ -44,7 +42,7 @@ public class DynamicClassTransformer extends AbstractConfigTransformer {
     private String key;
     private int maxLevel;
     private Set<String> transformedMethods = new HashSet<>();
-    private Set<String> additionalClassNames = new HashSet<>();
+    private Set<String> transformedClassNames = new HashSet<>();
     private Map<String, Map<String, Class<?>>> baseToSubClassMap = new ConcurrentHashMap<>();
     private List<BytecodeMethodFinder> bytecodeMethodFinders;
 
@@ -63,13 +61,15 @@ public class DynamicClassTransformer extends AbstractConfigTransformer {
     }
 
     @Override
-    protected void transformMethod(CtClass ctClass, CtMethod ctMethod) throws Exception {
+    protected void transformMethod(Method srcMethod) throws Exception {
+        CtMethod ctMethod = AgentClassPool.getInstance().getMethod(srcMethod);
         DynamicRuleRegistry.getInstance().regRuleInvokeIfAbsent(key, k -> new RuleInvokeItem(item));
         final int level = 0;
         switch (item.position) {
             case BEFORE:
             case AFTER:
             case WRAP:
+                ctMethod.getDeclaringClass().defrost();
                 handleMethod(ctMethod, level, false);
                 break;
             case BEFORE_MC:
@@ -95,10 +95,11 @@ public class DynamicClassTransformer extends AbstractConfigTransformer {
                             .forEach(System.out::println);
                     System.out.println("==================");
                     ExprEditor exprEditor = new NestedExprEditor(level + 1);
-                    for (CtMethod method : ctMethodList) {
-                        System.out.println("Wrap mc: " + method.getLongName());
-                        addToTransformed(method);
-                        method.instrument(exprEditor);
+                    for (CtMethod subMethod : ctMethodList) {
+                        System.out.println("Wrap mc: " + subMethod.getLongName());
+                        addToTransformed(subMethod);
+                        subMethod.getDeclaringClass().defrost();
+                        subMethod.instrument(exprEditor);
                     }
                 }
                 break;
@@ -110,19 +111,14 @@ public class DynamicClassTransformer extends AbstractConfigTransformer {
     @Override
     protected void postTransform(ClassLoader loader, String className, Class<?> classBeingRedefined,
                                  ProtectionDomain protectionDomain, byte[] classfileBuffer, byte[] newBuffer) throws Exception {
-        additionalClassNames.remove(TransformerInfo.getClassName(className));
-        if (!additionalClassNames.isEmpty()) {
-            additionalClassNames.forEach(additionalClassName -> logger.debug("Additional class: {}", additionalClassName));
-
-            Map<String, byte[]> classNameToBytes = new HashMap<>();
-            for (String additionalClassName : additionalClassNames) {
-                classNameToBytes.put(
-                        additionalClassName,
-                        classPool.get(additionalClassName).toBytecode()
-                );
-            }
-            EventListenerMgr.fireEvent(
-                    new AdditionalTransformEvent(item.context, classNameToBytes)
+        transformedClassNames.forEach(additionalClassName -> logger.debug("Additional class: {}", additionalClassName));
+        ClassFinder classFinder = getClassFinder();
+        for (String transformedClassName : transformedClassNames) {
+            Class<?> clazz = classFinder.findClass(item.context, transformedClassName);
+            TransformSession.get().addTransformClass(
+                    item.context,
+                    clazz,
+                    getClassData(clazz)
             );
         }
     }
@@ -166,7 +162,7 @@ public class DynamicClassTransformer extends AbstractConfigTransformer {
                     ctMethod.insertAfter(newCode("", "invokeWrapAfter"));
                     break;
             }
-            additionalClassNames.add(methodInfo.className);
+            transformedClassNames.add(methodInfo.className);
         });
     }
 
@@ -210,8 +206,6 @@ public class DynamicClassTransformer extends AbstractConfigTransformer {
 
     private void handleMethod(CtMethod ctMethod, int level, boolean stepInto) {
         if (needToBeTransformed(ctMethod)) {
-            ctMethod.getDeclaringClass().defrost();
-
             MethodInfo methodInfo = newMethodInfo(ctMethod, level);
             if (Modifier.isAbstract(methodInfo.methodModifiers)) {
                 logger.debug("Method is abstract: {}", ctMethod.getLongName());
@@ -461,7 +455,7 @@ public class DynamicClassTransformer extends AbstractConfigTransformer {
 
     private boolean skipMethod(CtMethod ctMethod) {
         String declaredClassName = ctMethod.getDeclaringClass().getName();
-        return MethodFinder.isMethodEmpty(ctMethod) ||
+        return !MethodFinder.isMethodMeaningful(ctMethod.getModifiers()) ||
                 ClassPathRecorder.isNativePackage(declaredClassName);
 //        if (skip)
 //            logger.debug("Skip method: {}", ctMethod.getLongName());

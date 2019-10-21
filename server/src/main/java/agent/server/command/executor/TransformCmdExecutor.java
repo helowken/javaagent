@@ -4,15 +4,18 @@ import agent.common.message.command.Command;
 import agent.common.message.command.impl.ByFileCommand.TransformByFileCommand;
 import agent.common.message.command.impl.ByRuleCommand.TransformByRuleCommand;
 import agent.common.message.result.ExecResult;
-import agent.server.event.EventListenerMgr;
+import agent.server.transform.TransformContext;
 import agent.server.transform.TransformMgr;
 import agent.server.transform.TransformResult;
 import agent.server.transform.config.parser.ConfigItem;
 import agent.server.transform.config.parser.FileConfigParser;
 import agent.server.transform.config.parser.RuleConfigParser;
-import agent.server.transform.impl.dynamic.AdditionalTransformListener;
+import agent.server.transform.impl.TransformSession;
+import agent.server.transform.impl.UpdateClassDataTransformer;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 
 import static agent.common.message.MessageType.CMD_TRANSFORM_BY_FILE;
@@ -78,24 +81,31 @@ public class TransformCmdExecutor extends AbstractTransformCmdExecutor {
     }
 
     private ExecResult doTransform(ConfigItem item, int cmdType) {
-        AdditionalTransformListener listener = new AdditionalTransformListener();
-        EventListenerMgr.reg(listener);
+        TransformSession.clear();
         try {
-            List<TransformResult> resultList = new LinkedList<>(
-                    TransformMgr.getInstance().transformByConfig(item)
-            );
-            resultList.addAll(
-                    TransformMgr.getInstance().transform(
-                            listener.getContextList()
-                    )
-            );
-            return convert(
-                    resultList,
-                    cmdType,
-                    PREFIX);
+            List<TransformResult> resultList = TransformMgr.getInstance().transformByConfig(item);
+            updateClassData();
+            return convert(resultList, cmdType, PREFIX);
         } finally {
-            EventListenerMgr.unreg(listener);
+            TransformSession.clear();
         }
+    }
+
+    private void updateClassData() {
+        List<TransformContext> transformContextList = new ArrayList<>();
+        TransformSession.get().getContextToClassSet().forEach(
+                (context, classToData) -> transformContextList.add(
+                        new TransformContext(
+                                context,
+                                new HashSet<>(classToData.keySet()),
+                                Collections.singletonList(
+                                        new UpdateClassDataTransformer(classToData)
+                                ),
+                                false
+                        )
+                )
+        );
+        TransformMgr.getInstance().transform(transformContextList);
     }
 
 }

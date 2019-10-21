@@ -14,10 +14,6 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.javassist</groupId>
-            <artifactId>javassist</artifactId>
-        </dependency>
-        <dependency>
             <groupId>com.sun</groupId>
             <artifactId>tools</artifactId>
         </dependency>

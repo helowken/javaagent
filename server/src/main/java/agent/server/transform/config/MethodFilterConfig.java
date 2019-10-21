@@ -9,9 +9,6 @@ import java.util.Set;
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
 public class MethodFilterConfig {
-    private boolean onlyDeclared = true;
-    private boolean skipJavaNative = true;
-
     @JsonProperty("include")
     @JsonInclude(NON_NULL)
     private Set<String> includeExprSet;
@@ -19,22 +16,6 @@ public class MethodFilterConfig {
     @JsonProperty("exclude")
     @JsonInclude(NON_NULL)
     private Set<String> excludeExprSet;
-
-    public boolean isOnlyDeclared() {
-        return onlyDeclared;
-    }
-
-    public void setOnlyDeclared(boolean onlyDeclared) {
-        this.onlyDeclared = onlyDeclared;
-    }
-
-    public boolean isSkipJavaNative() {
-        return skipJavaNative;
-    }
-
-    public void setSkipJavaNative(boolean skipJavaNative) {
-        this.skipJavaNative = skipJavaNative;
-    }
 
     public Set<String> getIncludeExprSet() {
         return includeExprSet;
@@ -57,24 +38,19 @@ public class MethodFilterConfig {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         MethodFilterConfig that = (MethodFilterConfig) o;
-        return onlyDeclared == that.onlyDeclared &&
-                skipJavaNative == that.skipJavaNative &&
-                Objects.equals(includeExprSet, that.includeExprSet) &&
+        return Objects.equals(includeExprSet, that.includeExprSet) &&
                 Objects.equals(excludeExprSet, that.excludeExprSet);
     }
 
     @Override
     public int hashCode() {
-
-        return Objects.hash(onlyDeclared, skipJavaNative, includeExprSet, excludeExprSet);
+        return Objects.hash(includeExprSet, excludeExprSet);
     }
 
     @Override
     public String toString() {
         return "MethodFilterConfig{" +
-                "onlyDeclared=" + onlyDeclared +
-                ", skipJavaNative=" + skipJavaNative +
-                ", includeExprSet=" + includeExprSet +
+                "includeExprSet=" + includeExprSet +
                 ", excludeExprSet=" + excludeExprSet +
                 '}';
     }

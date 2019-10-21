@@ -1,5 +1,6 @@
 package agent.server.command.executor;
 
+import agent.base.utils.MethodSignatureUtils;
 import agent.common.message.command.Command;
 import agent.common.message.command.impl.ByFileCommand.TestConfigByFileCommand;
 import agent.common.message.command.impl.ByRuleCommand.TestConfigByRuleCommand;
@@ -24,7 +25,6 @@ import static agent.common.message.result.entity.TestConfigResultEntity.ClassRes
 import static agent.common.message.result.entity.TestConfigResultEntity.MethodResultEntity;
 
 public class TestConfigCmdExecutor extends AbstractCmdExecutor {
-    private static final String SELF = "self";
 
     @Override
     ExecResult doExec(Command cmd) {
@@ -59,7 +59,7 @@ public class TestConfigCmdExecutor extends AbstractCmdExecutor {
     private Map<String, List<TestConfigResultEntity>> testConfig(ConfigItem item) {
         Map<String, List<TestConfigResultEntity>> contextToConfigResultEntityList = new HashMap<>();
         TransformMgr.getInstance().searchMethods(item, (context, result) -> {
-            if (!result.methodList.isEmpty()) {
+            if (!result.methods.isEmpty()) {
                 List<TestConfigResultEntity> configResultEntityList = contextToConfigResultEntityList.computeIfAbsent(context, key -> new ArrayList<>());
 
                 TestConfigResultEntity configResultEntity = new TestConfigResultEntity();
@@ -67,18 +67,15 @@ public class TestConfigCmdExecutor extends AbstractCmdExecutor {
                 configResultEntityList.add(configResultEntity);
 
                 ClassResultEntity classResultEntity = new ClassResultEntity();
-                String className = result.ctClass.getName();
+                String className = result.clazz.getName();
                 classResultEntity.setClassName(className);
                 configResultEntity.addClassEntity(classResultEntity);
 
-                result.methodList.forEach(method -> {
-                    String declareClass = method.getDeclaringClass().getName();
-                    if (declareClass.equals(className))
-                        declareClass = SELF;
+                result.methods.forEach(method -> {
                     MethodResultEntity methodResultEntity = new MethodResultEntity();
-                    methodResultEntity.setDeclareClass(declareClass);
+                    methodResultEntity.setDeclareClass(result.clazz.getName());
                     methodResultEntity.setMethodName(method.getName());
-                    methodResultEntity.setSignature(method.getSignature());
+                    methodResultEntity.setSignature(MethodSignatureUtils.getSignature(method));
                     classResultEntity.addMethodEntity(methodResultEntity);
                 });
             }

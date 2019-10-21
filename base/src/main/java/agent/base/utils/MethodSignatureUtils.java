@@ -21,6 +21,14 @@ public class MethodSignatureUtils {
         classToTypeSignature.put(void.class, "V");
     }
 
+    public static String getLongName(Method method) {
+        return method.getDeclaringClass().getName() + "." + getFullSignature(method);
+    }
+
+    public static String getFullSignature(Method method) {
+        return method.getName() + getSignature(method);
+    }
+
     public static String getSignature(Method method) {
         StringBuilder sb = new StringBuilder();
         sb.append("(");

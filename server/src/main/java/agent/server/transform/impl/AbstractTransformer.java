@@ -10,7 +10,7 @@ import java.util.Set;
 
 public abstract class AbstractTransformer implements ErrorTraceTransformer {
     private static final Logger logger = Logger.getLogger(AbstractTransformer.class);
-    private Exception error;
+    private Throwable error;
 
     @Override
     public byte[] transform(ClassLoader loader, String className, Class<?> classBeingRedefined,
@@ -20,10 +20,9 @@ public abstract class AbstractTransformer implements ErrorTraceTransformer {
             logger.debug("Transforming class: {}, class loader: {}", targetClassName, loader);
             try {
                 byte[] bs = doTransform(loader, className, classBeingRedefined, protectionDomain, classfileBuffer, targetClassName);
-                logger.debug("Transform successfully.");
                 postTransform(loader, className, classBeingRedefined, protectionDomain, classfileBuffer, bs);
                 return bs;
-            } catch (Exception e) {
+            } catch (Throwable e) {
                 this.error = e;
             }
         }
@@ -40,7 +39,7 @@ public abstract class AbstractTransformer implements ErrorTraceTransformer {
     }
 
     @Override
-    public Exception getError() {
+    public Throwable getError() {
         return error;
     }
 

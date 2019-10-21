@@ -12,9 +12,9 @@ import agent.server.utils.ParamValueUtils;
 import agent.server.utils.ParamValueUtils.Expr;
 import agent.server.utils.log.LogMgr;
 import agent.server.utils.log.text.TextLogConfigParser;
-import javassist.CtClass;
 import javassist.CtMethod;
 
+import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -47,7 +47,8 @@ public class TraceMethodTransformer extends AbstractConfigTransformer {
     }
 
     @Override
-    protected void transformMethod(CtClass ctClass, CtMethod ctMethod) throws Exception {
+    protected void transformMethod(Method method) throws Exception {
+        CtMethod ctMethod = AgentClassPool.getInstance().getMethod(method);
         String methodLoggerClassName = MethodLogger.class.getName();
         String methodLoggerVar = "methodInfo";
         ctMethod.addLocalVariable(methodLoggerVar, AgentClassPool.getInstance().get(methodLoggerClassName));
@@ -59,8 +60,8 @@ public class TraceMethodTransformer extends AbstractConfigTransformer {
 
         StringBuilder endBlock = new StringBuilder(methodLoggerVar + ".printReturnValue(($w) $_, $type);");
         String pvsCode = ParamValueUtils.genCode(
-                ctClass.getName(),
-                ctMethod.getName(),
+                method.getDeclaringClass().getName(),
+                method.getName(),
                 KEY_CONTENT,
                 new Expr(methodLoggerVar + ".getContent()"));
         LogUtils.addLogTextCode(endBlock, logKey, pvsCode);

@@ -8,9 +8,9 @@ import java.util.stream.Collectors;
 
 public class TransformResult {
     public final TransformContext transformContext;
-    public final Exception instrumentError;
+    public final Throwable instrumentError;
 
-    public TransformResult(TransformContext transformContext, Exception instrumentError) {
+    public TransformResult(TransformContext transformContext, Throwable instrumentError) {
         this.transformContext = transformContext;
         this.instrumentError = instrumentError;
     }
@@ -25,7 +25,7 @@ public class TransformResult {
         return !isSuccess();
     }
 
-    public Map<String, Exception> getTransformerToError() {
+    public Map<String, Throwable> getTransformerToError() {
         return transformContext.transformerList
                 .stream()
                 .filter(ErrorTraceTransformer::hasError)
@@ -41,7 +41,7 @@ public class TransformResult {
                 );
     }
 
-    public List<Exception> getTransformerErrorList() {
+    public List<Throwable> getTransformerErrorList() {
         return transformContext.transformerList
                 .stream()
                 .filter(ErrorTraceTransformer::hasError)

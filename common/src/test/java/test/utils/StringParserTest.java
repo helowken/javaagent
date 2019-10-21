@@ -1,8 +1,8 @@
 package test.utils;
 
-import org.junit.Test;
 import agent.base.exception.StringParseException;
 import agent.base.utils.StringParser;
+import org.junit.Test;
 
 import java.util.HashMap;
 import java.util.Map;
