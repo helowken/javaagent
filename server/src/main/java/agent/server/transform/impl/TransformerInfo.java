@@ -4,56 +4,36 @@ import java.util.*;
 
 public class TransformerInfo {
     private final String context;
-    private final Map<String, TargetClassConfig> namePathToConfig = new HashMap<>();
+    private final Map<String, TargetClassConfig> classNameToConfig = new HashMap<>();
 
     public TransformerInfo(String context, List<TargetClassConfig> targetClassConfigList) {
         this.context = context;
         targetClassConfigList.forEach(targetClassConfig ->
-                namePathToConfig.put(getClassNamePath(targetClassConfig.targetClass), targetClassConfig)
+                classNameToConfig.put(
+                        targetClassConfig.targetClass.getName(),
+                        targetClassConfig
+                )
         );
-    }
-
-    public static String getClassNamePath(Class<?> clazz) {
-        return getClassNamePath(clazz.getName());
-    }
-
-    public static String getClassNamePath(String className) {
-        return className.replaceAll("\\.", "/");
-    }
-
-    public static String getClassName(String classNamePath) {
-        return classNamePath.replaceAll("/", "\\.");
-    }
-
-    public boolean accept(ClassLoader loader, String namePath) {
-        if (namePath == null)
-            return false;
-        TargetClassConfig config = namePathToConfig.get(namePath);
-        return config != null && config.targetClass.getClassLoader().equals(loader);
     }
 
     public String getContext() {
         return context;
     }
 
-    public TargetClassConfig getTargetClassConfig(String namePath) {
-        TargetClassConfig config = namePathToConfig.get(namePath);
+    TargetClassConfig getTargetClassConfig(String className) {
+        TargetClassConfig config = classNameToConfig.get(className);
         if (config == null)
-            throw new RuntimeException("No target class config found by name path: " + namePath);
+            throw new RuntimeException("No target class config found by className: " + className);
         return config;
     }
 
-    public String getTargetClassName(String namePath) {
-        return getTargetClassConfig(namePath).classConfig.getTargetClass();
-    }
-
     public List<TargetClassConfig> getTargetClassConfigList() {
-        return new ArrayList<>(namePathToConfig.values());
+        return new ArrayList<>(classNameToConfig.values());
     }
 
     public Set<Class<?>> getTargetClassSet() {
         Set<Class<?>> classSet = new HashSet<>();
-        namePathToConfig.forEach((key, value) -> classSet.add(value.targetClass));
+        classNameToConfig.forEach((key, value) -> classSet.add(value.targetClass));
         return classSet;
     }
 }

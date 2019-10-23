@@ -39,7 +39,6 @@ public class TransformContext {
                                 try {
                                     transformer.transform(this, clazz);
                                 } catch (Throwable t) {
-                                    t.printStackTrace();
                                     result.addTransformError(clazz, t, transformer);
                                 }
                             }
@@ -58,7 +57,6 @@ public class TransformContext {
                             cp.getClassData(clazz.getName())
                     );
                 } catch (Throwable t) {
-                    t.printStackTrace();
                     result.addCompileError(clazz, t);
                 }
             });

@@ -2,6 +2,8 @@ package agent.builtin.transformer.utils;
 
 import agent.base.utils.IndentUtils;
 
+import static agent.base.utils.IndentUtils.INDENT_1;
+
 public class DefaultMethodPrinter implements MethodPrinter {
 
     @Override
@@ -9,7 +11,7 @@ public class DefaultMethodPrinter implements MethodPrinter {
         if (args.length != argClasses.length)
             throw new RuntimeException("Length of args != length of argClasses");
         for (int i = 0; i < args.length; ++i) {
-            sb.append(IndentUtils.getIndent(1))
+            sb.append(INDENT_1)
                     .append("Arg ").append(i).append(" ")
                     .append(getClassName(argClasses[i]))
                     .append(": ");
@@ -20,7 +22,7 @@ public class DefaultMethodPrinter implements MethodPrinter {
 
     @Override
     public void printReturnValue(StringBuilder sb, Object returnValue, Class<?> returnValueClass) {
-        sb.append(IndentUtils.getIndent(1))
+        sb.append(INDENT_1)
                 .append("Return Value ")
                 .append(getClassName(returnValueClass))
                 .append(": ");

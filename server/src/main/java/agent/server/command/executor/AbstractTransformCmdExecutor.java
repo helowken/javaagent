@@ -17,7 +17,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 abstract class AbstractTransformCmdExecutor extends AbstractCmdExecutor {
-    ExecResult convert(List<TransformResult> transformResultList, int cmdType, String msgPrefix) {
+    ExecResult convert(List<TransformResult> transformResultList, final int cmdType, String msgPrefix) {
         AtomicBoolean failed = new AtomicBoolean(false);
         List<TransformResultEntity> entityList = transformResultList.stream()
                 .map(result -> {
@@ -50,8 +50,8 @@ abstract class AbstractTransformCmdExecutor extends AbstractCmdExecutor {
                         type,
                         new ErrorEntity(
                                 errorItem.clazz.getName(),
-                                Utils.getMergedErrorMessage(errorItem.error),
-                                getTransformerKey(errorItem.transformer)
+                                getTransformerKey(errorItem.transformer),
+                                Utils.getMergedErrorMessage(errorItem.error)
                         )
                 )
         );

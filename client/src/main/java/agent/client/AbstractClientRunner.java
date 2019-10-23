@@ -3,6 +3,7 @@ package agent.client;
 import agent.base.runner.Runner;
 import agent.base.utils.Logger;
 import agent.base.utils.SystemConfig;
+import agent.base.utils.Utils;
 import agent.client.command.parser.CommandParserMgr;
 import agent.client.command.parser.exception.CommandParseException;
 import agent.client.command.result.handler.CommandResultHandlerMgr;
@@ -18,6 +19,7 @@ import java.util.Arrays;
 import java.util.Optional;
 
 abstract class AbstractClientRunner implements Runner {
+    private static final Logger logger = Logger.getLogger(AbstractClientRunner.class);
     private static final String KEY_HOST = "host";
     private static final String KEY_PORT = "port";
     private static final String CMD_QUIT = "quit";
@@ -69,16 +71,25 @@ abstract class AbstractClientRunner implements Runner {
                     } catch (Exception e) {
                         if (MessageIO.isNetworkException(e))
                             getClientLogger().error("Disconnected from Agent Server.");
-                        else
-                            getClientLogger().error("Error occurred.", e);
+                        else {
+                            logError("Error occurred.", e);
+                        }
                         return false;
                     }
                 }
             }
         } catch (Exception e) {
-            getClientLogger().error("Connect to server failed.", e);
+            logError("Connect to server failed: {}", e);
             return true;
         }
+    }
+
+    private void logError(String msg, Exception e) {
+        logger.error(msg, e);
+        getClientLogger().error(
+                msg,
+                "\n" + Utils.getMergedErrorMessage(e)
+        );
     }
 
     private void sendAndReceive(MessageIO io, Command cmd) throws Exception {

@@ -14,7 +14,7 @@ public abstract class AbstractExecResultHandler implements ExecResultHandler {
         try {
             if (result.getStatus().isSuccess())
                 handleSuccess(command, result);
-            else if (result.getType() == command.getType())
+            else if (result.getCmdType() == command.getType())
                 handleFail(command, result);
             else
                 handleFatal(command, result);

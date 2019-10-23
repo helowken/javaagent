@@ -38,4 +38,12 @@ public class TransformResultEntity {
                 key -> new ArrayList<>()
         ).add(errorEntity);
     }
+
+    @Override
+    public String toString() {
+        return "TransformResultEntity{" +
+                "context='" + context + '\'' +
+                ", typeToErrorList=" + typeToErrorList +
+                '}';
+    }
 }

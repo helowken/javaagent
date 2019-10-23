@@ -1,13 +1,16 @@
 package agent.client.command.result.handler;
 
-import agent.base.utils.IndentUtils;
+import agent.base.utils.Utils;
 import agent.common.message.result.ExecResult;
+import agent.common.message.result.entity.ErrorEntity;
 import agent.common.message.result.entity.TransformResultEntity;
 import agent.common.utils.JSONUtils;
 import com.fasterxml.jackson.core.type.TypeReference;
 
 import java.util.List;
 
+import static agent.base.utils.IndentUtils.INDENT_1;
+import static agent.base.utils.IndentUtils.INDENT_2;
 import static agent.common.message.result.entity.TransformResultEntity.*;
 
 abstract class AbstractTransformResultHandler extends AbstractContextResultHandler {
@@ -23,23 +26,24 @@ abstract class AbstractTransformResultHandler extends AbstractContextResultHandl
                 (sb, entity) -> {
                     if (entity.hasError()) {
                         entity.getTypeToErrorList().forEach(
-                                (type, errorList) -> {
-                                    sb.append(
-                                            IndentUtils.getIndent(1)
-                                    ).append(
-                                            getTypeErrorMsg(type)
-                                    ).append(":\n");
-                                    errorList.forEach(
-                                            errorMsg -> sb.append(
-                                                    IndentUtils.getIndent(2)
-                                            ).append(
-                                                    errorMsg
-                                            ).append("\n")
-                                    );
+                                (type, errorEntityList) -> {
+                                    sb.append(INDENT_1).append(getTypeErrorMsg(type)).append(":\n");
+                                    int count = 0;
+                                    for (ErrorEntity errorEntity : errorEntityList) {
+                                        if (count > 0)
+                                            sb.append(INDENT_2).append("--------------------------------\n");
+                                        sb.append(INDENT_2).append("Class: ").append(errorEntity.getClassName()).append("\n");
+                                        String transformerKey = errorEntity.getTransformerKey();
+                                        if (Utils.isNotBlank(transformerKey))
+                                            sb.append(INDENT_2).append("Transformer: ").append(transformerKey).append("\n");
+                                        sb.append(INDENT_2).append("Error: ").append(errorEntity.getErrMsg());
+                                        ++count;
+                                    }
                                 }
                         );
+                        sb.append("\n");
                     } else
-                        sb.append(IndentUtils.getIndent(1)).append("Transform successfully.\n");
+                        sb.append(INDENT_1).append("Transform successfully.\n");
                 }
         );
     }

@@ -146,17 +146,6 @@ public class Logger {
         });
     }
 
-    public static void main(String[] args) {
-        System.out.println(convertPattern("aa bb"));
-        System.out.println(convertPattern("{}"));
-        System.out.println(convertPattern(" {}"));
-        System.out.println(convertPattern("{}{}{}"));
-        System.out.println(convertPattern("aa {} bb{} cc{"));
-        System.out.println(convertPattern("aa {} bb{} cc{}"));
-        System.out.println(convertPattern("aa {} bb{} cc{} dd"));
-        System.out.println(convertPattern("aa { bb{} ee{ } ff{} cc} dd"));
-    }
-
     public enum LoggerLevel {
         DEBUG(1), WARN(2), INFO(3), ERROR(4);
 

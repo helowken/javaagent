@@ -19,6 +19,14 @@ public class ReflectionUtils {
         return false;
     }
 
+    public static String getClassNamePath(Class<?> clazz) {
+        return getClassNamePath(clazz.getName());
+    }
+
+    public static String getClassNamePath(String className) {
+        return className.replaceAll("\\.", "/");
+    }
+
     public static boolean canBeOverridden(int classModifiers, int methodModifiers) {
         return !(Modifier.isStatic(methodModifiers) ||
                 Modifier.isFinal(methodModifiers) ||

@@ -14,7 +14,6 @@ abstract class AbstractContextResultHandler extends AbstractExecResultHandler {
                 .collect(
                         Collectors.toMap(keyFunc, item -> item)
                 );
-        System.out.println(itemMap);
         write(msg, itemMap, writeFunc);
     }
 

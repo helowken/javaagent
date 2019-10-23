@@ -13,7 +13,7 @@ public class ResetClassTransformer extends AbstractTransformer {
 
     public ResetClassTransformer(ClassLoader classLoader, Set<Class<?>> classSet) {
         this.classLoader = classLoader;
-        classSet.forEach(clazz -> classNamePathToLoader.put(TransformerInfo.getClassNamePath(clazz), clazz.getClassLoader()));
+        classSet.forEach(clazz -> classNamePathToLoader.put(clazz.getName(), clazz.getClassLoader()));
     }
 
     @Override

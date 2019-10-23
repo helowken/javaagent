@@ -1,6 +1,5 @@
 package agent.client.command.result.handler;
 
-import agent.base.utils.IndentUtils;
 import agent.common.message.command.Command;
 import agent.common.message.result.ExecResult;
 import agent.common.message.result.entity.TestConfigResultEntity;
@@ -11,6 +10,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+
+import static agent.base.utils.IndentUtils.*;
 
 public class TestConfigResultHandler extends AbstractContextResultHandler {
 
@@ -25,16 +26,16 @@ public class TestConfigResultHandler extends AbstractContextResultHandler {
                 (sb, configResultEntityList) ->
                         configResultEntityList.forEach(configResultEntity ->
                                 configResultEntity.getClassEntityList().forEach(classResultEntity -> {
-                                            sb.append(IndentUtils.getIndent(1)).append("Class: ").append(classResultEntity.getClassName()).append("\n");
+                                            sb.append(INDENT_1).append("Class: ").append(classResultEntity.getClassName()).append("\n");
                                             Map<String, List<String>> declareClassToMethods = new TreeMap<>();
                                             classResultEntity.getMethodEntityList().forEach(methodResultEntity ->
                                                     declareClassToMethods.computeIfAbsent(methodResultEntity.getDeclareClass(), key -> new ArrayList<>())
                                                             .add(methodResultEntity.getMethodName() + methodResultEntity.getSignature())
                                             );
                                             declareClassToMethods.forEach((declareClass, methods) -> {
-                                                sb.append(IndentUtils.getIndent(2)).append("From ").append(declareClass).append("\n");
+                                                sb.append(INDENT_2).append("From ").append(declareClass).append("\n");
                                                 methods.forEach(method -> {
-                                                    sb.append(IndentUtils.getIndent(3)).append("Method: ").append(method).append("\n");
+                                                    sb.append(INDENT_3).append("Method: ").append(method).append("\n");
                                                 });
                                             });
                                         }

@@ -26,7 +26,11 @@ public class IOUtils {
     }
 
     public static byte[] readBytes(String filePath) throws IOException {
-        return readBytes(new FileInputStream(filePath));
+        return readBytes(new File(filePath));
+    }
+
+    public static byte[] readBytes(File file) throws IOException {
+        return readBytes(new FileInputStream(file));
     }
 
     public static void writeString(String filePath, String content, boolean append) throws IOException {
@@ -40,7 +44,11 @@ public class IOUtils {
     }
 
     public static void writeBytes(String filePath, byte[] bs, boolean append) throws IOException {
-        try (OutputStream outputStream = new FileOutputStream(filePath, append)) {
+        writeBytes(new File(filePath), bs, append);
+    }
+
+    public static void writeBytes(File file, byte[] bs, boolean append) throws IOException {
+        try (OutputStream outputStream = new FileOutputStream(file, append)) {
             writeBytes(outputStream, bs);
         }
     }

@@ -8,10 +8,6 @@ public class ErrorEntity {
     public ErrorEntity() {
     }
 
-    public ErrorEntity(String className, String errMsg) {
-        this(className, null, errMsg);
-    }
-
     public ErrorEntity(String className, String transformerKey, String errMsg) {
         this.className = className;
         this.transformerKey = transformerKey;
@@ -40,5 +36,14 @@ public class ErrorEntity {
 
     public void setErrMsg(String errMsg) {
         this.errMsg = errMsg;
+    }
+
+    @Override
+    public String toString() {
+        return "ErrorEntity{" +
+                "className='" + className + '\'' +
+                ", transformerKey='" + transformerKey + '\'' +
+                ", errMsg='" + errMsg + '\'' +
+                '}';
     }
 }

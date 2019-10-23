@@ -1,7 +1,7 @@
 package test.server.utils;
 
+import agent.base.utils.ReflectionUtils;
 import agent.base.utils.Utils;
-import agent.server.transform.impl.TransformerInfo;
 import sun.misc.Resource;
 import sun.misc.URLClassPath;
 
@@ -53,7 +53,7 @@ public class TestInstrumentation implements Instrumentation {
                             new URL[]{url}
                     );
                     Resource resource = ucp.getResource(
-                            TransformerInfo.getClassNamePath(clazz) + ".class"
+                            ReflectionUtils.getClassNamePath(clazz) + ".class"
                     );
                     if (resource != null)
                         return resource.getBytes();

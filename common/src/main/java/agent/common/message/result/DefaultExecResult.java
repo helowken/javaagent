@@ -57,6 +57,11 @@ public class DefaultExecResult extends AbstractMessage<MapStruct<String, Object>
     }
 
     @Override
+    public int getCmdType() {
+        return (int) getBody().get(FIELD_CMD_TYPE);
+    }
+
+    @Override
     public String getMessage() {
         return (String) getBody().get(FIELD_MESSAGE);
     }

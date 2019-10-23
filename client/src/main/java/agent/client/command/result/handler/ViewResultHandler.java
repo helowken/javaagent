@@ -1,6 +1,5 @@
 package agent.client.command.result.handler;
 
-import agent.base.utils.IndentUtils;
 import agent.common.message.command.Command;
 import agent.common.message.command.impl.ViewCommand;
 import agent.common.message.result.ExecResult;
@@ -8,6 +7,7 @@ import agent.common.message.result.ExecResult;
 import java.util.Map;
 import java.util.Set;
 
+import static agent.base.utils.IndentUtils.INDENT_1;
 import static agent.common.message.command.impl.ViewCommand.CATALOG_CLASS;
 import static agent.common.message.command.impl.ViewCommand.CATALOG_CLASSPATH;
 
@@ -34,7 +34,7 @@ public class ViewResultHandler extends AbstractContextResultHandler {
         }
         write(title, rsMap, (sb, classSet) ->
                 classSet.forEach(className ->
-                        sb.append(IndentUtils.getIndent(1)).append(entryDesc).append(className).append("\n")
+                        sb.append(INDENT_1).append(entryDesc).append(className).append("\n")
                 )
         );
     }

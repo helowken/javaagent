@@ -58,7 +58,6 @@ public class TransformResult {
     }
 
     void addReTransformError(Class<?> clazz, Throwable error) {
-        error.printStackTrace();
         this.reTransformErrorItemList.add(
                 new ErrorItem(clazz, error)
         );
