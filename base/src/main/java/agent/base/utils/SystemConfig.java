@@ -11,8 +11,14 @@ public class SystemConfig {
     private static Properties fileProps;
     private static Map<String, String> userDefineProps = new HashMap<>();
 
+    public static void load(Properties props) {
+        fileProps = props;
+    }
+
     public static void load(String path) throws Exception {
-        fileProps = Utils.loadProperties(path);
+        load(
+                Utils.loadProperties(path)
+        );
     }
 
     public static String get(String key) {

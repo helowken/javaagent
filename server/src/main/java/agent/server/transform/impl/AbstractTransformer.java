@@ -1,55 +1,42 @@
 package agent.server.transform.impl;
 
-import agent.base.utils.Logger;
-import agent.server.transform.ErrorTraceTransformer;
+import agent.server.transform.AgentTransformer;
+import agent.server.transform.TransformContext;
+import agent.server.transform.cp.AgentClassPool;
 
-import java.lang.instrument.IllegalClassFormatException;
-import java.security.ProtectionDomain;
-import java.util.Collections;
-import java.util.Set;
+import java.util.Collection;
+import java.util.HashSet;
 
-public abstract class AbstractTransformer implements ErrorTraceTransformer {
-    private static final Logger logger = Logger.getLogger(AbstractTransformer.class);
-    private Throwable error;
+public abstract class AbstractTransformer implements AgentTransformer {
+    private Collection<Class<?>> transformedClasses = new HashSet<>();
+    private TransformContext transformContext;
 
     @Override
-    public byte[] transform(ClassLoader loader, String className, Class<?> classBeingRedefined,
-                            ProtectionDomain protectionDomain, byte[] classfileBuffer) throws IllegalClassFormatException {
-        if (accept(loader, className)) {
-            String targetClassName = TransformerInfo.getClassName(className);
-            logger.debug("Transforming class: {}, class loader: {}", targetClassName, loader);
-            try {
-                byte[] bs = doTransform(loader, className, classBeingRedefined, protectionDomain, classfileBuffer, targetClassName);
-                postTransform(loader, className, classBeingRedefined, protectionDomain, classfileBuffer, bs);
-                return bs;
-            } catch (Throwable e) {
-                this.error = e;
-            }
-        }
-        return classfileBuffer;
+    public Collection<Class<?>> getTransformedClasses() {
+        return transformedClasses;
     }
 
-    protected void postTransform(ClassLoader loader, String className, Class<?> classBeingRedefined,
-                                 ProtectionDomain protectionDomain, byte[] classfileBuffer, byte[] newBuffer) throws Exception {
+    protected void addTransformedClass(Class<?> clazz) {
+        transformedClasses.add(clazz);
+    }
+
+    protected TransformContext getTransformContext() {
+        return transformContext;
+    }
+
+    protected AgentClassPool getClassPool() {
+        if (transformContext == null)
+            throw new RuntimeException("No transform context found.");
+        return transformContext.getClassPool();
     }
 
     @Override
-    public Set<Class<?>> getRefClassSet() {
-        return Collections.singleton(getClass());
+    public void transform(TransformContext transformContext, Class<?> clazz) throws Exception {
+        this.transformContext = transformContext;
+        doTransform(clazz);
+        addTransformedClass(clazz);
     }
 
-    @Override
-    public Throwable getError() {
-        return error;
-    }
+    protected abstract void doTransform(Class<?> clazz) throws Exception;
 
-    @Override
-    public boolean hasError() {
-        return error != null;
-    }
-
-    protected abstract byte[] doTransform(ClassLoader loader, String className, Class<?> classBeingRedefined,
-                                          ProtectionDomain protectionDomain, byte[] classfileBuffer, String targetClassName) throws Exception;
-
-    protected abstract boolean accept(ClassLoader loader, String namePath);
 }

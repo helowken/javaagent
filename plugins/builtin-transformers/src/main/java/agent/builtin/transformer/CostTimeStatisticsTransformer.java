@@ -9,10 +9,8 @@ import agent.server.transform.config.ClassConfig;
 import agent.server.transform.impl.AbstractConfigTransformer;
 import agent.server.transform.impl.TargetClassConfig;
 import agent.server.transform.impl.TransformerInfo;
-import agent.server.transform.impl.utils.AgentClassPool;
-import agent.server.transform.impl.utils.ClassPoolUtils;
-import agent.server.transform.impl.utils.MethodFinder;
-import agent.server.transform.impl.utils.MethodFinder.MethodSearchResult;
+import agent.server.transform.MethodFinder;
+import agent.server.transform.MethodFinder.MethodSearchResult;
 import agent.server.utils.ParamValueUtils;
 import agent.server.utils.log.LogConfig;
 import agent.server.utils.log.LogMgr;
@@ -37,25 +35,36 @@ public class CostTimeStatisticsTransformer extends AbstractConfigTransformer {
     }
 
     private void configEntryPoint(Map<String, Object> config) {
-        List<Map<String, Object>> entryPointConfig = (List) Optional.ofNullable(config.get(KEY_ENTRY_POINT))
-                .orElseThrow(() -> new RuntimeException("No entry point found in config."));
+        List<Map<String, Object>> entryPointConfig = (List) Optional.ofNullable(
+                config.get(KEY_ENTRY_POINT)
+        ).orElseThrow(
+                () -> new RuntimeException("No entry point found in config.")
+        );
         List<ClassConfig> classConfigList = JSONUtils.convert(entryPointConfig, new TypeReference<List<ClassConfig>>() {
         });
         TransformerInfo transformerInfo = getTransformerInfo();
-        List<TargetClassConfig> targetClassConfigList = TransformMgr.getInstance().convert(transformerInfo.getContext(), classConfigList);
-        ClassPoolUtils.exec((cp, classPathRecorder) -> {
-            for (TargetClassConfig targetClassConfig : targetClassConfigList) {
-                MethodSearchResult result = MethodFinder.getInstance().find(targetClassConfig);
-                classPathRecorder.add(targetClassConfig.targetClass);
-                result.methods.forEach(method ->
-                        entryPoints.add(
-                                getEntryPoint(transformerInfo.getContext(), method)
-                        )
-                );
-            }
-        });
+        List<TargetClassConfig> targetClassConfigList = TransformMgr.getInstance().convert(
+                transformerInfo.getContext(),
+                classConfigList
+        );
+        targetClassConfigList.forEach(
+                targetClassConfig -> {
+                    MethodSearchResult result = MethodFinder.getInstance().find(targetClassConfig);
+                    result.methods.forEach(method ->
+                            entryPoints.add(
+                                    getEntryPoint(
+                                            transformerInfo.getContext(),
+                                            method
+                                    )
+                            )
+                    );
+                }
+        );
         LogConfig logConfig = LogMgr.getBinaryLogConfig(logKey);
-        CostTimeLogger.getInstance().regOutputPath(transformerInfo.getContext(), logConfig.getOutputPath());
+        CostTimeLogger.getInstance().regOutputPath(
+                transformerInfo.getContext(),
+                logConfig.getOutputPath()
+        );
     }
 
     private String getEntryPoint(String context, Method method) {
@@ -78,7 +87,7 @@ public class CostTimeStatisticsTransformer extends AbstractConfigTransformer {
                 MethodSignatureUtils.getFullSignature(method)
         );
         final boolean isEP = isEntryPoint(context, method);
-        CtMethod ctMethod = AgentClassPool.getInstance().getMethod(method);
+        CtMethod ctMethod = getClassPool().getMethod(method);
         LogUtils.addCostTimeCode(ctMethod, (stVar, etVar, endBlock) -> {
             endBlock.append(loggerExpr)
                     .append(".log(")

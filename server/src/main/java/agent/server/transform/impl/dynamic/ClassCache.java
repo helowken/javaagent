@@ -7,7 +7,7 @@ import agent.common.utils.Registry;
 import agent.hook.plugin.ClassFinder;
 import agent.jvmti.JvmtiUtils;
 import agent.server.transform.TransformMgr;
-import agent.server.transform.impl.utils.ClassPathRecorder;
+import agent.server.transform.cp.AgentClassPool;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -46,7 +46,7 @@ public class ClassCache {
                             .findLoadedClassList()
                             .stream()
                             .filter(
-                                    clazz -> !ClassPathRecorder.isNativePackage(clazz.getName())
+                                    clazz -> !AgentClassPool.isNativePackage(clazz.getName())
                             )
                             .forEach(clazz -> {
                                 String context = loaderToContext.get(clazz.getClassLoader());

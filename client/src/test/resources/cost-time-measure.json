@@ -20,36 +20,27 @@
                 "targets": [
                     {
                         "class": "test.jetty.TestObject",
-                        "methods": [
-                            {
-                                "name": "test"
-                            },
-                            {
-                                "name": "test2"
-                            },
-                            {
-                                "name": "test3"
-                            }
-                        ]
+                        "methodFilter": {
+                            "include": [
+                                "test.*"
+                            ]
+                        }
                     },
                     {
                         "class": "test.jetty.SubTestObject",
                         "methodFilter": {
-                            "onlyDeclared": true,
-                            "skipJavaNative": true,
                             "include": [
                                 "load"
-                            ],
-                            "exclude": []
+                            ]
                         }
                     },
                     {
                         "class": "org.apache.commons.lang3.StringUtils",
-                        "methods": [
-                            {
-                                "name": "trim"
-                            }
-                        ]
+                        "methodFilter": {
+                            "include": [
+                                "trim"
+                            ]
+                        }
                     }
                 ]
             }
@@ -68,11 +59,11 @@
                 "targets": [
                     {
                         "class": "test.jetty.TestObject",
-                        "methods": [
-                            {
-                                "name": "test"
-                            }
-                        ]
+                        "methodFilter": {
+                            "include": [
+                                "test.*"
+                            ]
+                        }
                     }
                 ]
             }

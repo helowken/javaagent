@@ -1,7 +1,6 @@
 package agent.hook.plugin;
 
 import agent.base.utils.LockObject;
-import agent.base.utils.Logger;
 import agent.base.utils.ReflectionUtils;
 import agent.base.utils.Utils;
 import agent.hook.utils.App;
@@ -10,7 +9,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 public abstract class AbstractClassFinder implements ClassFinder {
-    private static final Logger logger = Logger.getLogger(AbstractClassFinder.class);
     private final Map<String, LoaderItem> contextPathToClassLoader = new HashMap<>();
     private final LockObject initLock = new LockObject();
     private volatile boolean inited = false;
@@ -58,10 +56,7 @@ public abstract class AbstractClassFinder implements ClassFinder {
     @Override
     public ClassLoader findClassLoader(String contextPath) {
         LoaderItem item = getLoaderItem(contextPath);
-        return item.loaderLock.syncValue(lock -> {
-//            logger.debug("Use class loader to find class: {}", item.loader);
-            return item.loader;
-        });
+        return item.loaderLock.syncValue(lock -> item.loader);
     }
 
     @Override
@@ -86,7 +81,7 @@ public abstract class AbstractClassFinder implements ClassFinder {
         public final LockObject loaderLock = new LockObject();
         public final ClassLoader loader;
 
-        private LoaderItem(ClassLoader classLoader) {
+        public LoaderItem(ClassLoader classLoader) {
             this.loader = classLoader;
         }
     }

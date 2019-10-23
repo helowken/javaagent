@@ -1,6 +1,6 @@
 package agent.server.transform.impl.dynamic;
 
-import agent.server.transform.impl.utils.ClassPathRecorder;
+import agent.server.transform.cp.AgentClassPool;
 
 public class MethodInfo extends AbstractMethodInfo {
     public final String className;
@@ -18,7 +18,7 @@ public class MethodInfo extends AbstractMethodInfo {
         this.classModifiers = classModifiers;
         this.methodModifiers = methodModifiers;
         this.level = level;
-        this.isNativePackage = ClassPathRecorder.isNativePackage(className);
+        this.isNativePackage = AgentClassPool.isNativePackage(className);
     }
 
     @Override

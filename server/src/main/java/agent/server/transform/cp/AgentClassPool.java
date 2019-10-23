@@ -1,36 +1,45 @@
-package agent.server.transform.impl.utils;
+package agent.server.transform.cp;
 
 import agent.base.utils.LockObject;
 import agent.base.utils.Logger;
 import agent.base.utils.MethodSignatureUtils;
-import agent.base.utils.Utils;
-import agent.server.transform.ClassDataFinder;
+import agent.base.utils.ReflectionUtils;
 import javassist.*;
 
 import java.lang.reflect.Method;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Stream;
 
-@SuppressWarnings("unchecked")
 public class AgentClassPool {
     private static final Logger logger = Logger.getLogger(AgentClassPool.class);
-    private static final AgentClassPool instance = new AgentClassPool();
-
+    private static Collection<String> skipPackages = Collections.unmodifiableList(
+            Arrays.asList(
+                    "javassist.",
+                    "agent."
+            )
+    );
     private final LockObject cpLock = new LockObject();
     private ClassPool cp = ClassPool.getDefault();
     private Set<ClassPath> classPathSet = new HashSet<>();
     private Set<CtClass> classSet = new HashSet<>();
 
-    public static AgentClassPool getInstance() {
-        return instance;
+    public static boolean isNativePackage(String namePath) {
+        return ReflectionUtils.isJavaNativePackage(namePath)
+                || skipPackages.stream().anyMatch(namePath::startsWith);
     }
 
-    private AgentClassPool() {
+    public AgentClassPool(String context) {
+        insertClassPath(
+                new InMemoryClassPath(context)
+        );
+        insertClassPath(
+                new ClassClassPath(
+                        getClass()
+                )
+        );
     }
 
-    public void insertClassPath(ClassPath classPath) {
+    private void insertClassPath(ClassPath classPath) {
         cpLock.sync(lock -> {
             classPathSet.add(classPath);
             cp.insertClassPath(classPath);
@@ -50,25 +59,11 @@ public class AgentClassPool {
         });
     }
 
-    public CtClass get(Class<?> clazz) {
-        String className = clazz.getName();
-        try {
-            return cp.get(className);
-        } catch (NotFoundException e) {
-            return Utils.wrapToRtError(() -> {
-                byte[] classData = ClassDataFinder.getInstance().getClassData(clazz);
-                if (classData != null) {
-                    insertClassPath(
-                            new InMemoryClassPath(clazz, classData)
-                    );
-                    return get(className);
-                }
-                throw e;
-            });
-        }
+    public byte[] getClassData(String className) throws Exception {
+        return get(className).toBytecode();
     }
 
-    void clear() {
+    public void clear() {
         cpLock.sync(lock -> {
             removeAllClassPaths();
             detachAllClasses();
@@ -93,14 +88,14 @@ public class AgentClassPool {
 
     public CtMethod getMethod(Method method) {
         return getMethod(
-                method.getDeclaringClass(),
+                method.getDeclaringClass().getName(),
                 method.getName(),
                 MethodSignatureUtils.getSignature(method)
         );
     }
 
-    public CtMethod getMethod(Class<?> clazz, String methodName, String methodSignature) {
-        CtMethod[] ctMethods = get(clazz).getDeclaredMethods();
+    public CtMethod getMethod(String className, String methodName, String methodSignature) {
+        CtMethod[] ctMethods = get(className).getDeclaredMethods();
         if (ctMethods != null) {
             for (CtMethod ctMethod : ctMethods) {
                 if (ctMethod.getName().equals(methodName) &&
@@ -108,6 +103,6 @@ public class AgentClassPool {
                     return ctMethod;
             }
         }
-        throw new RuntimeException("No method found by: " + clazz.getName() + "." + methodName + methodSignature);
+        throw new RuntimeException("No method found by: " + className + "." + methodName + methodSignature);
     }
 }

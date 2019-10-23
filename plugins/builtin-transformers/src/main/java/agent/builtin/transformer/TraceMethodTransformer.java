@@ -1,13 +1,11 @@
 package agent.builtin.transformer;
 
-import agent.base.utils.Logger;
 import agent.base.utils.StringParser;
 import agent.base.utils.Utils;
 import agent.builtin.transformer.utils.DefaultMethodPrinter;
 import agent.builtin.transformer.utils.LogUtils;
 import agent.builtin.transformer.utils.MethodLogger;
 import agent.server.transform.impl.AbstractConfigTransformer;
-import agent.server.transform.impl.utils.AgentClassPool;
 import agent.server.utils.ParamValueUtils;
 import agent.server.utils.ParamValueUtils.Expr;
 import agent.server.utils.log.LogMgr;
@@ -21,7 +19,6 @@ import java.util.Optional;
 
 public class TraceMethodTransformer extends AbstractConfigTransformer {
     public static final String REG_KEY = "sys_traceMethod";
-    private static final Logger logger = Logger.getLogger(TraceMethodTransformer.class);
     private static final String KEY_CONTENT = "content";
     private static final String KEY_PRINTER_CLASS = "printerClass";
     private static final String DEFAULT_OUTPUT_FORMAT =
@@ -48,14 +45,16 @@ public class TraceMethodTransformer extends AbstractConfigTransformer {
 
     @Override
     protected void transformMethod(Method method) throws Exception {
-        CtMethod ctMethod = AgentClassPool.getInstance().getMethod(method);
+        CtMethod ctMethod = getClassPool().getMethod(method);
         String methodLoggerClassName = MethodLogger.class.getName();
         String methodLoggerVar = "methodInfo";
-        ctMethod.addLocalVariable(methodLoggerVar, AgentClassPool.getInstance().get(methodLoggerClassName));
+        ctMethod.addLocalVariable(
+                methodLoggerVar,
+                getClassPool().get(methodLoggerClassName)
+        );
 
         String block = methodLoggerVar + " = new " + methodLoggerClassName + "(\"" + printerClass + "\");"
                 + methodLoggerVar + ".printArgs($args, $sig);";
-//        logger.debug("{}", block);
         ctMethod.insertBefore(block);
 
         StringBuilder endBlock = new StringBuilder(methodLoggerVar + ".printReturnValue(($w) $_, $type);");
@@ -65,7 +64,6 @@ public class TraceMethodTransformer extends AbstractConfigTransformer {
                 KEY_CONTENT,
                 new Expr(methodLoggerVar + ".getContent()"));
         LogUtils.addLogTextCode(endBlock, logKey, pvsCode);
-//        logger.debug("{}", endBlock.toString());
         ctMethod.insertAfter(endBlock.toString());
     }
 

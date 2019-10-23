@@ -1,34 +1,44 @@
 package agent.common.message.result.entity;
 
-import java.util.Collections;
-import java.util.List;
-
 public class ErrorEntity {
-    private List<String> errMsgs = Collections.emptyList();
+    private String className;
+    private String transformerKey;
+    private String errMsg;
 
     public ErrorEntity() {
     }
 
-    public ErrorEntity(List<String> errMsgs) {
-        this.errMsgs = errMsgs;
+    public ErrorEntity(String className, String errMsg) {
+        this(className, null, errMsg);
     }
 
-    public List<String> getErrMsgs() {
-        return errMsgs;
+    public ErrorEntity(String className, String transformerKey, String errMsg) {
+        this.className = className;
+        this.transformerKey = transformerKey;
+        this.errMsg = errMsg;
     }
 
-    public void setErrMsgs(List<String> errMsgs) {
-        this.errMsgs = errMsgs;
+    public String getClassName() {
+        return className;
     }
 
-    @Override
-    public String toString() {
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0, len = errMsgs.size(); i < len; ++i) {
-            if (i > 0)
-                sb.append("Caused by: ");
-            sb.append(errMsgs.get(i)).append("\n");
-        }
-        return sb.toString();
+    public void setClassName(String className) {
+        this.className = className;
+    }
+
+    public String getTransformerKey() {
+        return transformerKey;
+    }
+
+    public void setTransformerKey(String transformerKey) {
+        this.transformerKey = transformerKey;
+    }
+
+    public String getErrMsg() {
+        return errMsg;
+    }
+
+    public void setErrMsg(String errMsg) {
+        this.errMsg = errMsg;
     }
 }

@@ -1,10 +1,9 @@
 package test.flow;
 
 import agent.base.utils.IndentUtils;
-import agent.base.utils.ReflectionUtils;
 import agent.hook.plugin.ClassFinder;
 import agent.server.transform.impl.dynamic.ClassCache;
-import agent.server.transform.impl.utils.ClassPoolUtils;
+import agent.server.transform.cp.ClassPoolUtils;
 import javassist.*;
 import javassist.expr.ExprEditor;
 import javassist.expr.MethodCall;
@@ -54,24 +53,24 @@ public class SaveByteCodeTest {
 //        doTest(clazz);
     }
 
-    private void doTest(Class<?> clazz) {
-        ClassPoolUtils.exec((cp, classPathRecorder) -> {
-            ClassPath classPath = new ClassClassPath(clazz);
-            cp.insertClassPath(classPath);
-            CtClass ctClass = cp.get(clazz.getName());
-            Stream.of(ctClass.getDeclaredMethods())
-                    .map(CtMethod::getLongName)
-                    .forEach(System.out::println);
-            System.out.println("==================");
-            Stream.of(ctClass.getDeclaredFields())
-                    .map(field -> field.getDeclaringClass().getName() + ": " + field.getName())
-                    .forEach(System.out::println);
-            System.out.println("==================");
-            CtMethod ctMethod = ctClass.getDeclaredMethod("testAAA");
-            int level = 0;
-            ctMethod.instrument(new TestExprEditor(level));
-        });
-    }
+//    private void doTest(Class<?> clazz) {
+//        ClassPoolUtils.exec((cp, classPathRecorder) -> {
+//            ClassPath classPath = new ClassClassPath(clazz);
+//            cp.insertClassPath(classPath);
+//            CtClass ctClass = cp.get(clazz.getName());
+//            Stream.of(ctClass.getDeclaredMethods())
+//                    .map(CtMethod::getLongName)
+//                    .forEach(System.out::println);
+//            System.out.println("==================");
+//            Stream.of(ctClass.getDeclaredFields())
+//                    .map(field -> field.getDeclaringClass().getName() + ": " + field.getName())
+//                    .forEach(System.out::println);
+//            System.out.println("==================");
+//            CtMethod ctMethod = ctClass.getDeclaredMethod("testAAA");
+//            int level = 0;
+//            ctMethod.instrument(new TestExprEditor(level));
+//        });
+//    }
 
     private final static Set<String> traversedMethodSet = new HashSet<>();
 

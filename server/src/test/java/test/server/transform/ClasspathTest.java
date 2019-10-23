@@ -1,6 +1,7 @@
 package test.server.transform;
 
 import agent.server.transform.TransformMgr;
+import org.junit.Before;
 import org.junit.Test;
 import test.server.AbstractServerTest;
 
@@ -11,6 +12,15 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 public class ClasspathTest extends AbstractServerTest {
+    private static final String context1 = "test";
+    private static final String context2 = "test2";
+
+    @Before
+    public void before() {
+        classFinder.setContextLoader(context1);
+        classFinder.setContextLoader(context2);
+    }
+
     @Test
     public void testAddCP() throws Exception {
         doAdd();
@@ -31,11 +41,11 @@ public class ClasspathTest extends AbstractServerTest {
 
     private void doAdd() throws Exception {
         Map<String, Set<URL>> contextToClasspath = new HashMap<>();
-        contextToClasspath.put("test", new HashSet<>(Arrays.asList(
+        contextToClasspath.put(context1, new HashSet<>(Arrays.asList(
                 new URL("http://localhost:8080/lib/"),
                 new URL("file:///home/xxx/aa/")
         )));
-        contextToClasspath.put("test2", new HashSet<>(Arrays.asList(
+        contextToClasspath.put(context2, new HashSet<>(Arrays.asList(
                 new URL("http://localhost:8081/lib/"),
                 new URL("file:///home/ccc/ddd/")
         )));

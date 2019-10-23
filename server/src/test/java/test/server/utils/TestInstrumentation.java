@@ -1,4 +1,4 @@
-package test.utils;
+package test.server.utils;
 
 import agent.base.utils.Utils;
 import agent.server.transform.impl.TransformerInfo;
@@ -55,7 +55,6 @@ public class TestInstrumentation implements Instrumentation {
                     Resource resource = ucp.getResource(
                             TransformerInfo.getClassNamePath(clazz) + ".class"
                     );
-                    System.out.println(resource);
                     if (resource != null)
                         return resource.getBytes();
                     return null;

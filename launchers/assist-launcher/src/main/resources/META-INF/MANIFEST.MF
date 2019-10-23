@@ -1,4 +1,0 @@
-Premain-Class: agent.launcher.assist.AssistLauncher
-Agent-Class: agent.launcher.assist.AssistLauncher
-Can-Redefine-Classes: true
-Can-Retransform-Classes: true

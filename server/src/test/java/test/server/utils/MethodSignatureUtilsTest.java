@@ -1,8 +1,10 @@
 package test.server.utils;
 
 import agent.base.utils.ReflectionUtils;
-import agent.server.transform.impl.utils.AgentClassPool;
+import agent.server.transform.cp.AgentClassPool;
+import org.junit.BeforeClass;
 import org.junit.Test;
+import test.server.AbstractServerTest;
 
 import java.lang.reflect.Method;
 import java.util.Date;
@@ -12,7 +14,15 @@ import java.util.function.Function;
 import static agent.base.utils.MethodSignatureUtils.getSignature;
 import static org.junit.Assert.assertEquals;
 
-public class MethodSignatureUtilsTest {
+public class MethodSignatureUtilsTest extends AbstractServerTest {
+    private static AgentClassPool cp;
+
+    @BeforeClass
+    public static void beforeClassMethodSignatureUtilsTest() {
+        cp = new AgentClassPool(defaultContext);
+        classFinder.setContextLoader(defaultContext);
+    }
+
     @Test
     public void test() throws Exception {
         check("f");
@@ -23,7 +33,7 @@ public class MethodSignatureUtilsTest {
     }
 
     private void check(String name) throws Exception {
-        String signature = AgentClassPool.getInstance().get(getClass().getName()).getDeclaredMethod(name).getSignature();
+        String signature = cp.get(getClass().getName()).getDeclaredMethod(name).getSignature();
         System.out.println(signature);
         assertEquals(
                 signature,

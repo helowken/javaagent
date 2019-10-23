@@ -4,15 +4,10 @@ import agent.base.utils.Logger;
 import agent.base.utils.MethodSignatureUtils;
 import agent.server.transform.ConfigTransformer;
 import agent.server.transform.exception.InvalidTransformerConfigException;
-import agent.server.transform.impl.utils.AgentClassPool;
-import agent.server.transform.impl.utils.MethodFinder;
-import agent.server.transform.impl.utils.MethodFinder.MethodSearchResult;
-import javassist.CannotCompileException;
-import javassist.CtClass;
+import agent.server.transform.MethodFinder;
+import agent.server.transform.MethodFinder.MethodSearchResult;
 
-import java.io.IOException;
 import java.lang.reflect.Method;
-import java.security.ProtectionDomain;
 import java.util.Collections;
 import java.util.Map;
 
@@ -40,38 +35,23 @@ public abstract class AbstractConfigTransformer extends AbstractTransformer impl
     protected void doSetConfig(Map<String, Object> config) throws Exception {
     }
 
-    protected boolean accept(ClassLoader loader, String namePath) {
-        return transformerInfo.accept(loader, namePath);
-    }
-
-    protected String getTargetClassName(String namePath) {
-        return transformerInfo.getTargetClassName(namePath);
-    }
 
     protected TransformerInfo getTransformerInfo() {
         return transformerInfo;
     }
 
+
     @Override
-    protected byte[] doTransform(ClassLoader loader, String className, Class<?> classBeingRedefined,
-                                 ProtectionDomain protectionDomain, byte[] classfileBuffer, String targetClassName) throws Exception {
+    public void doTransform(Class<?> clazz) throws Exception {
         MethodSearchResult rs = MethodFinder.getInstance().find(
-                transformerInfo.getTargetClassConfig(className)
+                transformerInfo.getTargetClassConfig(
+                        TransformerInfo.getClassNamePath(clazz)
+                )
         );
         for (Method method : rs.methods) {
             logger.debug("Transforming method: {}", MethodSignatureUtils.getLongName(method));
             transformMethod(method);
         }
-        TransformSession.get().addTransformClass(
-                transformerInfo.getContext(),
-                rs.clazz,
-                getClassData(rs.clazz)
-        );
-        return classfileBuffer;
-    }
-
-    protected byte[] getClassData(Class<?> clazz) throws IOException, CannotCompileException {
-        return AgentClassPool.getInstance().get(clazz).toBytecode();
     }
 
     protected abstract void transformMethod(Method method) throws Exception;

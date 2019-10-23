@@ -1,4 +1,4 @@
-package test.server.transform.executor;
+package test.server.executor;
 
 import agent.common.message.command.CommandExecutor;
 import agent.common.message.command.impl.ClasspathCommand;
@@ -17,6 +17,7 @@ public class ClasspathCmdExecutorTest extends AbstractServerTest {
     public void test() throws Exception {
         final String context = "test";
         final String url = "http://localhost:8080/";
+        classFinder.setContextLoader(context);
         ClasspathCommand cmd = new ClasspathCommand(ClasspathCommand.ACTION_ADD, context, url);
         CommandExecutor cmdExecutor = new ClasspathCmdExecutor();
         cmdExecutor.exec(cmd);

@@ -22,7 +22,6 @@
                 <module>launchers/basic-launcher</module>
                 <module>launchers/client-launcher</module>
                 <module>launchers/server-launcher</module>
-                <module>launchers/assist-launcher</module>
                 <module>launchers/agent-launcher</module>
                 <module>server</module>
                 <module>client</module>
@@ -72,7 +71,6 @@
                 <module>launchers/basic-launcher</module>
                 <module>launchers/client-launcher</module>
                 <module>launchers/server-launcher</module>
-                <module>launchers/assist-launcher</module>
                 <module>launchers/agent-launcher</module>
                 <module>packaging</module>
             </modules>

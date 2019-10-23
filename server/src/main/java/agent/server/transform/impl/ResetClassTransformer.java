@@ -1,10 +1,7 @@
 package agent.server.transform.impl;
 
-import agent.base.utils.IOUtils;
 import agent.base.utils.Logger;
 
-import java.net.URL;
-import java.security.ProtectionDomain;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -20,19 +17,13 @@ public class ResetClassTransformer extends AbstractTransformer {
     }
 
     @Override
-    protected boolean accept(ClassLoader loader, String namePath) {
-        return loader.equals(classNamePathToLoader.get(namePath));
-    }
-
-    @Override
-    protected byte[] doTransform(ClassLoader loader, String className, Class<?> classBeingRedefined, ProtectionDomain protectionDomain, byte[] classfileBuffer, String targetClassName) throws Exception {
-        byte[] bs = classfileBuffer;
-        URL sourceUrl = classLoader.getResource(className);
-        logger.debug("{} source url: {}", className, sourceUrl);
-        if (sourceUrl != null) {
-            bs = IOUtils.readBytes(sourceUrl.openStream());
-            logger.debug("Reset {} success.", targetClassName);
-        }
-        return bs;
+    protected void doTransform(Class<?> clazz) throws Exception {
+//
+//        URL sourceUrl = classLoader.getResource(className);
+//        logger.debug("{} source url: {}", className, sourceUrl);
+//        if (sourceUrl != null) {
+//            bs = IOUtils.readBytes(sourceUrl.openStream());
+//            logger.debug("Reset {} success.", targetClassName);
+//        }
     }
 }

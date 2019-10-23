@@ -1,10 +1,10 @@
 package test.server.method;
 
+import agent.server.transform.MethodFinder;
+import agent.server.transform.MethodFinder.MethodSearchResult;
 import agent.server.transform.config.ClassConfig;
 import agent.server.transform.config.MethodFilterConfig;
 import agent.server.transform.impl.TargetClassConfig;
-import agent.server.transform.impl.utils.MethodFinder;
-import agent.server.transform.impl.utils.MethodFinder.MethodSearchResult;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;

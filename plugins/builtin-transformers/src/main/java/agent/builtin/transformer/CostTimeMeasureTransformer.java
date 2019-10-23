@@ -3,7 +3,6 @@ package agent.builtin.transformer;
 import agent.base.utils.StringParser;
 import agent.builtin.transformer.utils.LogUtils;
 import agent.server.transform.impl.AbstractConfigTransformer;
-import agent.server.transform.impl.utils.AgentClassPool;
 import agent.server.utils.ParamValueUtils;
 import agent.server.utils.log.LogMgr;
 import agent.server.utils.log.text.TextLogConfigParser;
@@ -32,7 +31,7 @@ public class CostTimeMeasureTransformer extends AbstractConfigTransformer {
     @Override
     public void transformMethod(Method method) throws Exception {
         LogUtils.addCostTimeCode(
-                AgentClassPool.getInstance().getMethod(method),
+                getClassPool().getMethod(method),
                 (stVar, etVar, endBlock) -> {
                     String pvsCode = ParamValueUtils.genCode(
                             method.getDeclaringClass().getName(),

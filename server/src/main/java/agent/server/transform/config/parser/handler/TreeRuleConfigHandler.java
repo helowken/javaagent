@@ -21,7 +21,7 @@ public class TreeRuleConfigHandler extends AbstractRuleConfigHandler {
     public List<ModuleConfig> handle(RuleConfigParser.RuleConfigItem ruleConfigItem, Object instance) {
         TreeRule treeRule = (TreeRule) instance;
         ModuleConfig moduleConfig = newModuleConfig(
-                treeRule.getContext()
+                ruleConfigItem.context
         );
         filterRuleMethods(
                 TraverseRule.class.getDeclaredMethods()

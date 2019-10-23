@@ -36,10 +36,6 @@
         </dependency>
         <dependency>
             <groupId>javaagent</groupId>
-            <artifactId>assist-launcher</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>javaagent</groupId>
             <artifactId>client-launcher</artifactId>
         </dependency>
         <dependency>

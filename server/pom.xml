@@ -32,10 +32,6 @@
             <groupId>javaagent</groupId>
             <artifactId>native</artifactId>
         </dependency>
-        <dependency>
-            <groupId>javaagent</groupId>
-            <artifactId>assist-launcher</artifactId>
-        </dependency>
 
         <!-- test -->
         <dependency>

@@ -38,7 +38,6 @@
             <outputDirectory>server</outputDirectory>
             <includes>
                 <include>javaagent:server-launcher</include>
-                <include>javaagent:assist-launcher</include>
                 <include>javaagent:agent-launcher</include>
             </includes>
         </dependencySet>

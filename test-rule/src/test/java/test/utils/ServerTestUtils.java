@@ -6,6 +6,7 @@ import agent.hook.plugin.ClassFinder;
 import agent.jvmti.JvmtiUtils;
 
 import java.io.File;
+import java.util.Properties;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
@@ -19,7 +20,8 @@ public class ServerTestUtils {
     }
 
     public static void initSystemConfig() throws Exception {
-        SystemConfig.load(new File(System.getProperty("usr.dir"), "../packaging/resources/server/conf/server.conf").getAbsolutePath());
+//        SystemConfig.load(new File(System.getProperty("usr.dir"), "../packaging/resources/server/conf/server.conf").getAbsolutePath());
+        SystemConfig.load(new Properties());
     }
 
     public static ClassFinder mockClassFinder() {

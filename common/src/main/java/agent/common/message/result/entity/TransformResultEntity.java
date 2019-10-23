@@ -1,28 +1,16 @@
 package agent.common.message.result.entity;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class TransformResultEntity {
+    public static final int TRANSFORM_ERROR = 0;
+    public static final int COMPILE_ERROR = 1;
+    public static final int RETRANSFORM_ERROR = 2;
     private String context;
-    private ErrorEntity instrumentError;
-    private Map<String, ErrorEntity> transformerToError = new HashMap<>();
-
-    public ErrorEntity getInstrumentError() {
-        return instrumentError;
-    }
-
-    public void setInstrumentError(ErrorEntity instrumentError) {
-        this.instrumentError = instrumentError;
-    }
-
-    public Map<String, ErrorEntity> getTransformerToError() {
-        return transformerToError;
-    }
-
-    public void setTransformerToError(Map<String, ErrorEntity> transformerToError) {
-        this.transformerToError = transformerToError;
-    }
+    private Map<Integer, List<ErrorEntity>> typeToErrorList = new HashMap<>();
 
     public String getContext() {
         return context;
@@ -32,7 +20,22 @@ public class TransformResultEntity {
         this.context = context;
     }
 
-    public void addTransformerError(String key, ErrorEntity error) {
-        transformerToError.put(key, error);
+    public Map<Integer, List<ErrorEntity>> getTypeToErrorList() {
+        return typeToErrorList;
+    }
+
+    public void setTypeToErrorList(Map<Integer, List<ErrorEntity>> typeToErrorList) {
+        this.typeToErrorList = typeToErrorList;
+    }
+
+    public boolean hasError() {
+        return !typeToErrorList.isEmpty();
+    }
+
+    public void addError(int type, ErrorEntity errorEntity) {
+        typeToErrorList.computeIfAbsent(
+                type,
+                key -> new ArrayList<>()
+        ).add(errorEntity);
     }
 }

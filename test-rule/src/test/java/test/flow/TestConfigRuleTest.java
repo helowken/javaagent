@@ -8,20 +8,17 @@ import agent.common.message.result.ExecResult;
 import agent.server.command.executor.TestConfigCmdExecutor;
 import agent.server.command.executor.TransformCmdExecutor;
 import agent.server.transform.config.rule.ClassRule;
-import agent.server.transform.config.rule.ContextRule;
 import agent.server.transform.config.rule.MethodRule;
 import agent.server.transform.impl.dynamic.MethodInfo;
 import agent.server.transform.impl.dynamic.MethodRuleFilter;
 import agent.server.transform.impl.dynamic.SubTypeSearcher;
 import agent.server.transform.impl.dynamic.rule.ConfigurableTreeRule;
 import agent.server.transform.impl.dynamic.rule.TreeTimeMeasureRule;
-import agent.server.transform.impl.utils.AgentClassPool;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import test.AbstractTest;
 import test.utils.TestMap;
 
-import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
@@ -66,30 +63,6 @@ public class TestConfigRuleTest extends AbstractTest {
     }
 
     @Test
-    public void test111() throws Exception {
-        ReflectionUtils.invokeMethod(BIntf.class, "task1", new Class[0], method -> {
-            System.out.println(Modifier.isAbstract(method.getModifiers()));
-            return null;
-        });
-        ReflectionUtils.invokeMethod(B1.class, "task1", new Class[0], method -> {
-            System.out.println(method.getDeclaringClass());
-            return null;
-        });
-        ReflectionUtils.invokeMethod(B2.class, "task1", new Class[0], method -> {
-            System.out.println(method.getDeclaringClass());
-            return null;
-        });
-        AgentClassPool pool = AgentClassPool.getInstance();
-        System.out.println(pool.get(b1ClassName).subclassOf(pool.get(bIntfClassName)));
-        System.out.println(pool.get(abstractBClassName).subclassOf(pool.get(bIntfClassName)));
-        System.out.println(pool.get(b1ClassName).subclassOf(pool.get(abstractBClassName)));
-
-        System.out.println(pool.get(b1ClassName).subtypeOf(pool.get(bIntfClassName)));
-        System.out.println(pool.get(abstractBClassName).subtypeOf(pool.get(bIntfClassName)));
-        System.out.println(pool.get(b1ClassName).subtypeOf(pool.get(abstractBClassName)));
-    }
-
-    @Test
     public void testTimeRule() throws Exception {
         doTestTimeRule(TestTimeRule.class.getName());
     }
@@ -111,7 +84,7 @@ public class TestConfigRuleTest extends AbstractTest {
         CommandResultHandlerMgr.handleResult(cmd, result);
 
         classloader.defineClass(baseAClassName, instrumentation.getBytes(baseAClassName));
-        classloader.defineClass(bIntfClassName, AgentClassPool.getInstance().get(bIntfClassName).toBytecode());
+//        classloader.defineClass(bIntfClassName, AgentClassPool.getInstance().get(bIntfClassName).toBytecode());
         classloader.defineClass(abstractBClassName, instrumentation.getBytes(abstractBClassName));
         classloader.defineClass(b1ClassName, instrumentation.getBytes(b1ClassName));
         classloader.defineClass(b2ClassName, instrumentation.getBytes(b2ClassName));
@@ -121,7 +94,6 @@ public class TestConfigRuleTest extends AbstractTest {
         ReflectionUtils.invoke("runTasks", a);
     }
 
-    @ContextRule(context)
     @ClassRule(aClassName)
     public static class TestRule {
         @MethodRule(method = "test.*", position = BEFORE)
@@ -144,7 +116,6 @@ public class TestConfigRuleTest extends AbstractTest {
         }
     }
 
-    @ContextRule(context)
     @ClassRule(aClassName)
     public static class TestTimeRule extends TreeTimeMeasureRule implements MethodRuleFilter {
         @MethodRule(method = "runTasks", position = WRAP)

@@ -10,9 +10,13 @@ import static org.junit.Assert.assertNotNull;
 public class DynamicClassLoaderTest {
     @Test
     public void test() throws Exception {
+        Class<?> clazz = DynamicRule.class;
         DynamicClassLoader loader = new DynamicClassLoader(null);
-        loader.addURL(new URL("file:///home/helowken/projects/javaagent/test-rule/target/test-classes/"));
-        assertNotNull(loader.loadClass("test.rule.TestRule", false));
+        URL url = clazz.getProtectionDomain().getCodeSource().getLocation();
+        loader.addURL(url);
+        assertNotNull(loader.loadClass(clazz.getName(), false));
     }
 
+    private static class DynamicRule {
+    }
 }

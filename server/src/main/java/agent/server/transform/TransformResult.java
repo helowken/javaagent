@@ -1,68 +1,116 @@
 package agent.server.transform;
 
-import agent.base.utils.Utils;
-
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class TransformResult {
-    public final TransformContext transformContext;
-    public final Throwable instrumentError;
+    private final TransformContext transformContext;
+    private final List<ErrorItem> transformErrorList = new ArrayList<>();
+    private final List<ErrorItem> compileErrorList = new ArrayList<>();
+    private final List<ErrorItem> reTransformErrorItemList = new ArrayList<>();
+    private final Map<Class<?>, byte[]> classToData = new HashMap<>();
 
-    public TransformResult(TransformContext transformContext, Throwable instrumentError) {
+    TransformResult(TransformContext transformContext) {
         this.transformContext = transformContext;
-        this.instrumentError = instrumentError;
     }
 
-    public boolean isSuccess() {
-        return instrumentError == null &&
-                transformContext.transformerList.stream()
-                        .noneMatch(ErrorTraceTransformer::hasError);
+    public TransformContext getTransformContext() {
+        return transformContext;
     }
 
-    public boolean hasError() {
-        return !isSuccess();
+    Set<Class<?>> getTransformedClassSet() {
+        return new HashSet<>(
+                classToData.keySet()
+        );
     }
 
-    public Map<String, Throwable> getTransformerToError() {
-        return transformContext.transformerList
+    private Set<Class<?>> getReTransformedClassSet() {
+        Set<Class<?>> reTransformedClassSet = getTransformedClassSet();
+        reTransformErrorItemList.forEach(
+                reTransformErrorItem -> reTransformedClassSet.remove(reTransformErrorItem.clazz)
+        );
+        return reTransformedClassSet;
+    }
+
+    void saveClassData(Class<?> clazz, byte[] data) {
+        classToData.put(clazz, data);
+    }
+
+    public byte[] getClassData(Class<?> clazz) {
+        return classToData.get(clazz);
+    }
+
+    Map<Class<?>, byte[]> getReTransformedClassData() {
+        return getReTransformedClassSet()
                 .stream()
-                .filter(ErrorTraceTransformer::hasError)
                 .collect(
                         Collectors.toMap(
-                                transformer -> {
-                                    if (transformer instanceof ConfigTransformer)
-                                        return ((ConfigTransformer) transformer).getRegKey();
-                                    return transformer.getClass().getSimpleName();
-                                },
-                                ErrorTraceTransformer::getError
+                                clazz -> clazz,
+                                this::getClassData
                         )
                 );
     }
 
-    public List<Throwable> getTransformerErrorList() {
-        return transformContext.transformerList
-                .stream()
-                .filter(ErrorTraceTransformer::hasError)
-                .map(ErrorTraceTransformer::getError)
-                .collect(Collectors.toList());
+    void addTransformError(Class<?> clazz, Throwable error, AgentTransformer transformer) {
+        this.transformErrorList.add(
+                new ErrorItem(clazz, error, transformer)
+        );
     }
 
-    @Override
-    public String toString() {
-        if (isSuccess())
-            return transformContext.context + " transformed successfully.";
-        StringBuilder sb = new StringBuilder(transformContext.context + " transformed failed.\n");
-        if (instrumentError != null)
-            sb.append("Instrument error: \n")
-                    .append(Utils.getErrorStackStrace(instrumentError))
-                    .append("\n");
-        getTransformerErrorList().forEach(error ->
-                sb.append(Utils.getErrorStackStrace(error))
-                        .append("\n")
+    void addReTransformError(Class<?> clazz, Throwable error) {
+        error.printStackTrace();
+        this.reTransformErrorItemList.add(
+                new ErrorItem(clazz, error)
         );
-        sb.append("\n");
-        return sb.toString();
+    }
+
+    void addCompileError(Class<?> clazz, Throwable error) {
+        this.compileErrorList.add(
+                new ErrorItem(clazz, error)
+        );
+    }
+
+    public boolean hasCompileError() {
+        return !compileErrorList.isEmpty();
+    }
+
+    public List<ErrorItem> getCompileErrorList() {
+        return Collections.unmodifiableList(compileErrorList);
+    }
+
+    public boolean hasReTransformError() {
+        return !reTransformErrorItemList.isEmpty();
+    }
+
+    public List<ErrorItem> getReTransformErrorItemList() {
+        return Collections.unmodifiableList(reTransformErrorItemList);
+    }
+
+    public boolean hasTransformError() {
+        return !transformErrorList.isEmpty();
+    }
+
+    public List<ErrorItem> getTransformErrorList() {
+        return Collections.unmodifiableList(transformErrorList);
+    }
+
+    public boolean hasError() {
+        return hasCompileError() || hasTransformError() || hasReTransformError();
+    }
+
+    public static class ErrorItem {
+        public final Class<?> clazz;
+        public final Throwable error;
+        public final AgentTransformer transformer;
+
+        private ErrorItem(Class<?> clazz, Throwable error) {
+            this(clazz, error, null);
+        }
+
+        private ErrorItem(Class<?> clazz, Throwable error, AgentTransformer transformer) {
+            this.clazz = clazz;
+            this.error = error;
+            this.transformer = transformer;
+        }
     }
 }

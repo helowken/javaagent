@@ -17,11 +17,11 @@
                             "entryPoint": [
                                 {
                                     "class": "test.jetty.TestFilter2",
-                                    "methods": [
-                                        {
-                                            "name": "test"
-                                        }
-                                    ]
+                                    "methodFilter": {
+                                        "include": [
+                                            "test"
+                                        ]
+                                    }
                                 }
                             ]
                         }
@@ -30,11 +30,11 @@
                 "targets": [
                     {
                         "class": "test.jetty.TestFilter2",
-                        "methods": [
-                            {
-                                "name": "test"
-                            }
-                        ]
+                        "methodFilter": {
+                            "include": [
+                                "test"
+                            ]
+                        }
                     },
                     {
                         "class": "test.jetty.StatisticsCostTimeObject",
