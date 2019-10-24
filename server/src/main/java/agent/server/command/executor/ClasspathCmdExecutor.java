@@ -3,7 +3,7 @@ package agent.server.command.executor;
 import agent.common.message.command.Command;
 import agent.common.message.command.impl.ClasspathCommand;
 import agent.common.message.result.ExecResult;
-import agent.server.transform.TransformMgr;
+import agent.server.transform.ContextClassLoaderMgr;
 
 import java.net.URL;
 
@@ -11,27 +11,27 @@ import static agent.common.message.command.impl.ClasspathCommand.*;
 
 public class ClasspathCmdExecutor extends AbstractCmdExecutor {
     @Override
-    ExecResult doExec(Command cmd) throws Exception {
+    ExecResult doExec(Command cmd) {
         ClasspathCommand classPathCommand = (ClasspathCommand) cmd;
         String context = classPathCommand.getContext();
         URL url = parseURL(classPathCommand.getURL());
-        TransformMgr transformMgr = TransformMgr.getInstance();
         final String action = classPathCommand.getAction();
+        ContextClassLoaderMgr mgr = ContextClassLoaderMgr.getInstance();
         switch (action) {
             case ACTION_ADD:
-                transformMgr.addClasspath(context, url);
+                mgr.addClasspath(context, url);
                 break;
             case ACTION_REMOVE:
                 if (url == null)
-                    transformMgr.clearClasspath(context);
+                    mgr.clearClasspath(context);
                 else
-                    transformMgr.removeClasspath(context, url);
+                    mgr.removeClasspath(context, url);
                 break;
             case ACTION_REFRESH:
                 if (url == null)
-                    transformMgr.refreshClasspath(context);
+                    mgr.refreshClasspath(context);
                 else
-                    transformMgr.refreshClasspath(context, url);
+                    mgr.refreshClasspath(context, url);
                 break;
             default:
                 throw new RuntimeException("Unknown action: " + action);

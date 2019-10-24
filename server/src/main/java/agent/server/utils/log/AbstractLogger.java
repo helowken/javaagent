@@ -23,7 +23,8 @@ public abstract class AbstractLogger<T extends LogItem> implements ILogger<T>, A
     protected abstract LogWriter<T> newLogWriter(String logKey, LogConfig logConfig);
 
     protected AbstractLogger() {
-        EventListenerMgr.reg(this);
+        EventListenerMgr.reg(FlushLogEvent.class, this);
+        EventListenerMgr.reg(ResetClassEvent.class, this);
     }
 
     private Logger getLogger() {
@@ -38,12 +39,12 @@ public abstract class AbstractLogger<T extends LogItem> implements ILogger<T>, A
 
     @Override
     public void onNotify(AgentEvent event) {
-        String eventType = event.getType();
-        if (eventType.equals(ResetClassEvent.EVENT_TYPE)) {
+        Class<?> eventType = event.getClass();
+        if (eventType.equals(ResetClassEvent.class)) {
             ResetClassEvent resetClassEvent = (ResetClassEvent) event;
-            if (resetClassEvent.isResetAll())
+            if (resetClassEvent.isAllReset())
                 clear();
-        } else if (eventType.equals(FlushLogEvent.EVENT_TYPE)) {
+        } else if (eventType.equals(FlushLogEvent.class)) {
             FlushLogEvent flushLogEvent = (FlushLogEvent) event;
             if (flushLogEvent.isFlushAll())
                 flushAll();
@@ -51,13 +52,6 @@ public abstract class AbstractLogger<T extends LogItem> implements ILogger<T>, A
                 flush(flushLogEvent.getOutputPath());
         } else
             throw new RuntimeException("Illegal event type: " + eventType);
-    }
-
-    @Override
-    public boolean accept(AgentEvent event) {
-        String eventType = event.getType();
-        return eventType.equals(ResetClassEvent.EVENT_TYPE)
-                || eventType.equals(FlushLogEvent.EVENT_TYPE);
     }
 
     public String reg(LogConfig logConfig) {

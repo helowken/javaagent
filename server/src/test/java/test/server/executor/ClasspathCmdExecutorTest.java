@@ -3,7 +3,7 @@ package test.server.executor;
 import agent.common.message.command.CommandExecutor;
 import agent.common.message.command.impl.ClasspathCommand;
 import agent.server.command.executor.ClasspathCmdExecutor;
-import agent.server.transform.TransformMgr;
+import agent.server.transform.ContextClassLoaderMgr;
 import org.junit.Test;
 import test.server.AbstractServerTest;
 
@@ -13,6 +13,8 @@ import java.util.Collections;
 import static org.junit.Assert.assertEquals;
 
 public class ClasspathCmdExecutorTest extends AbstractServerTest {
+    private static final ContextClassLoaderMgr mgr = ContextClassLoaderMgr.getInstance();
+
     @Test
     public void test() throws Exception {
         final String context = "test";
@@ -26,14 +28,14 @@ public class ClasspathCmdExecutorTest extends AbstractServerTest {
                         context,
                         Collections.singleton(new URL(url))
                 ),
-                TransformMgr.getInstance().getContextToClasspathSet()
+                mgr.getContextToClasspathSet()
         );
 
         cmd = new ClasspathCommand(ClasspathCommand.ACTION_REMOVE, context, url);
         cmdExecutor.exec(cmd);
         assertEquals(
                 Collections.emptyMap(),
-                TransformMgr.getInstance().getContextToClasspathSet()
+                mgr.getContextToClasspathSet()
         );
     }
 }

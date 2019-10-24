@@ -1,29 +1,15 @@
 package agent.server.transform.impl;
 
-import agent.base.utils.Logger;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import agent.server.transform.revision.ClassDataStore;
 
 public class ResetClassTransformer extends AbstractTransformer {
-    private static final Logger logger = Logger.getLogger(ResetClassTransformer.class);
-    private final ClassLoader classLoader;
-    private final Map<String, ClassLoader> classNamePathToLoader = new HashMap<>();
-
-    public ResetClassTransformer(ClassLoader classLoader, Set<Class<?>> classSet) {
-        this.classLoader = classLoader;
-        classSet.forEach(clazz -> classNamePathToLoader.put(clazz.getName(), clazz.getClassLoader()));
-    }
 
     @Override
     protected void doTransform(Class<?> clazz) throws Exception {
-//
-//        URL sourceUrl = classLoader.getResource(className);
-//        logger.debug("{} source url: {}", className, sourceUrl);
-//        if (sourceUrl != null) {
-//            bs = IOUtils.readBytes(sourceUrl.openStream());
-//            logger.debug("Reset {} success.", targetClassName);
-//        }
+        int revisionNum = ClassDataStore.REVISION_0;
+        byte[] data = ClassDataStore.load(clazz, revisionNum);
+        if (data == null)
+            throw new RuntimeException("No data of class " + clazz.getName() + " found at revision: " + revisionNum);
+        getClassPool().saveClassData(clazz, data);
     }
 }

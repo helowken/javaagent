@@ -7,7 +7,7 @@ import agent.common.utils.JSONUtils;
 import agent.server.event.AgentEvent;
 import agent.server.event.AgentEventListener;
 import agent.server.event.EventListenerMgr;
-import agent.server.event.impl.LogFlushedEvent;
+import agent.server.event.impl.LogFlushEvent;
 import agent.server.event.impl.ResetClassEvent;
 import agent.server.utils.log.LogMgr;
 import agent.server.utils.log.binary.BinaryLogItem;
@@ -33,7 +33,8 @@ public class CostTimeLogger implements AgentEventListener {
     }
 
     private CostTimeLogger() {
-        EventListenerMgr.reg(this);
+        EventListenerMgr.reg(LogFlushEvent.class, this);
+        EventListenerMgr.reg(ResetClassEvent.class, this);
     }
 
     public int reg(String context, String className, String methodFullName) {
@@ -85,24 +86,24 @@ public class CostTimeLogger implements AgentEventListener {
 
     @Override
     public void onNotify(AgentEvent event) {
-        String eventType = event.getType();
-        if (eventType.equals(ResetClassEvent.EVENT_TYPE)) {
+        Class<?> eventType = event.getClass();
+        if (eventType.equals(ResetClassEvent.class)) {
             handleResetEvent((ResetClassEvent) event);
-        } else if (eventType.equals(LogFlushedEvent.EVENT_TYPE)) {
-            handleLogFlushedEvent((LogFlushedEvent) event);
+        } else if (eventType.equals(LogFlushEvent.class)) {
+            handleLogFlushedEvent((LogFlushEvent) event);
         } else
             throw new RuntimeException("Unsupported event type: " + eventType);
     }
 
     private void handleResetEvent(ResetClassEvent event) {
         methodTypeLock.sync(lock -> {
-            if (event.isResetAll()) {
+            if (event.isAllReset()) {
                 outputPathToContexts.clear();
                 contextToClassToMethodToType.clear();
                 dirty = false;
                 logger.debug("Clear all.");
             } else {
-                String context = event.getTransformContext().context;
+                String context = event.getContext();
                 Set<String> delKeys = new HashSet<>();
                 outputPathToContexts.forEach((outputPath, contexts) -> {
                     contexts.remove(context);
@@ -117,7 +118,7 @@ public class CostTimeLogger implements AgentEventListener {
         });
     }
 
-    private void handleLogFlushedEvent(LogFlushedEvent event) {
+    private void handleLogFlushedEvent(LogFlushEvent event) {
         String outputPath = event.getOutputPath();
         methodTypeLock.sync(lock -> {
             if (dirty && outputPathToContexts.containsKey(outputPath)) {
@@ -127,13 +128,6 @@ public class CostTimeLogger implements AgentEventListener {
                 logger.debug("Metadata is flushed for log: {}", outputPath);
             }
         });
-    }
-
-    @Override
-    public boolean accept(AgentEvent event) {
-        String eventType = event.getType();
-        return eventType.equals(LogFlushedEvent.EVENT_TYPE)
-                || eventType.equals(ResetClassEvent.EVENT_TYPE);
     }
 
     private static class CostTimeItem {

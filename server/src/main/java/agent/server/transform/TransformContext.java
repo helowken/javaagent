@@ -8,25 +8,27 @@ import java.util.List;
 import java.util.Set;
 
 public class TransformContext {
+    public static final int ACTION_MODIFY = 0;
+    public static final int ACTION_RESET = 1;
     public final String context;
     private final Set<Class<?>> classSet;
     private final List<AgentTransformer> transformerList;
-    private final boolean skipRecordClass;
+    private final int action;
     private AgentClassPool cp;
 
-    public TransformContext(String context, Class<?> clazz, AgentTransformer transformer, boolean skipRecordClass) {
-        this(context, Collections.singleton(clazz), Collections.singletonList(transformer), skipRecordClass);
+    public TransformContext(String context, Class<?> clazz, AgentTransformer transformer, int action) {
+        this(context, Collections.singleton(clazz), Collections.singletonList(transformer), action);
     }
 
-    TransformContext(String context, Set<Class<?>> classSet, List<AgentTransformer> transformerList, boolean skipRecordClass) {
+    TransformContext(String context, Set<Class<?>> classSet, List<AgentTransformer> transformerList, int action) {
         this.context = context;
         this.classSet = Collections.unmodifiableSet(classSet);
         this.transformerList = Collections.unmodifiableList(transformerList);
-        this.skipRecordClass = skipRecordClass;
+        this.action = action;
     }
 
-    boolean isSkipRecordClass() {
-        return skipRecordClass;
+    public int getAction() {
+        return action;
     }
 
     TransformResult doTransform() {
@@ -54,7 +56,7 @@ public class TransformContext {
                 try {
                     result.saveClassData(
                             clazz,
-                            cp.getClassData(clazz.getName())
+                            cp.getClassData(clazz)
                     );
                 } catch (Throwable t) {
                     result.addCompileError(clazz, t);
@@ -77,7 +79,7 @@ public class TransformContext {
                 "context='" + context + '\'' +
                 ", classSet=" + classSet +
                 ", transformerList=" + transformerList +
-                ", skipRecordClass=" + skipRecordClass +
+                ", action=" + action +
                 '}';
     }
 }

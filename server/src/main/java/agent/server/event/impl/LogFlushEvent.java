@@ -2,19 +2,15 @@ package agent.server.event.impl;
 
 import agent.server.event.AgentEvent;
 
-public class FlushLogEvent implements AgentEvent {
+public class LogFlushEvent implements AgentEvent {
     private final String outputPath;
 
-    public FlushLogEvent(String outputPath) {
+    public LogFlushEvent(String outputPath) {
         this.outputPath = outputPath;
     }
 
     public String getOutputPath() {
         return outputPath;
-    }
-
-    public boolean isFlushAll() {
-        return outputPath == null;
     }
 
 }

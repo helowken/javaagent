@@ -11,6 +11,7 @@ import agent.hook.utils.AppTypePluginFilter;
 import agent.hook.utils.AttachType;
 import agent.hook.utils.HookConstants;
 import agent.jvmti.JvmtiUtils;
+import agent.server.transform.ResetClassMgr;
 import agent.server.transform.TransformMgr;
 
 import java.lang.instrument.Instrumentation;
@@ -29,7 +30,8 @@ public class AgentServerRunner implements Runner {
         Utils.wrapToRtError(() -> {
             int port = SystemConfig.getInt(KEY_PORT);
             if (AgentServerMgr.startup(port)) {
-                TransformMgr.getInstance().init((Instrumentation) args[0]);
+                TransformMgr.init((Instrumentation) args[0]);
+                ResetClassMgr.init();
                 loadNativeLibs();
                 hookApp();
                 logger.info("Startup successfully.");
@@ -41,7 +43,7 @@ public class AgentServerRunner implements Runner {
     public void shutdown() {
         logger.info("Start to shutdown...");
         AgentServerMgr.shutdown();
-        TransformMgr.getInstance().resetAllClasses();
+        ResetClassMgr.getInstance().resetAllClasses();
         logger.info("Shutdown successfully.");
     }
 

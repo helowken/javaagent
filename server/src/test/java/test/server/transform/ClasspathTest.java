@@ -1,6 +1,6 @@
 package test.server.transform;
 
-import agent.server.transform.TransformMgr;
+import agent.server.transform.ContextClassLoaderMgr;
 import org.junit.Before;
 import org.junit.Test;
 import test.server.AbstractServerTest;
@@ -14,6 +14,7 @@ import static org.junit.Assert.assertTrue;
 public class ClasspathTest extends AbstractServerTest {
     private static final String context1 = "test";
     private static final String context2 = "test2";
+    private static final ContextClassLoaderMgr mgr = ContextClassLoaderMgr.getInstance();
 
     @Before
     public void before() {
@@ -29,14 +30,13 @@ public class ClasspathTest extends AbstractServerTest {
     @Test
     public void testRemoveCP() throws Exception {
         doAdd();
-        TransformMgr.getInstance()
-                .getContextToClasspathSet()
+        mgr.getContextToClasspathSet()
                 .forEach((context, classpathSet) ->
                         classpathSet.forEach(classpath ->
-                                TransformMgr.getInstance().removeClasspath(context, classpath)
+                                mgr.removeClasspath(context, classpath)
                         )
                 );
-        assertTrue(TransformMgr.getInstance().getContextToClasspathSet().isEmpty());
+        assertTrue(mgr.getContextToClasspathSet().isEmpty());
     }
 
     private void doAdd() throws Exception {
@@ -51,10 +51,9 @@ public class ClasspathTest extends AbstractServerTest {
         )));
         contextToClasspath.forEach((context, classpathSet) ->
                 classpathSet.forEach(classpath ->
-                        TransformMgr.getInstance().addClasspath(context, classpath)
+                        mgr.addClasspath(context, classpath)
                 )
         );
-
-        assertEquals(contextToClasspath, TransformMgr.getInstance().getContextToClasspathSet());
+        assertEquals(contextToClasspath, mgr.getContextToClasspathSet());
     }
 }

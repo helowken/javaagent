@@ -4,7 +4,8 @@ import agent.common.message.command.Command;
 import agent.common.message.command.impl.ViewCommand;
 import agent.common.message.result.DefaultExecResult;
 import agent.common.message.result.ExecResult;
-import agent.server.transform.TransformMgr;
+import agent.server.transform.ContextClassLoaderMgr;
+import agent.server.transform.ResetClassMgr;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -38,11 +39,11 @@ class ViewCmdExecutor extends AbstractCmdExecutor {
     }
 
     private Map<String, Set<String>> getContextToClassSet() {
-        return formatInfo(() -> TransformMgr.getInstance().getContextToTransformedClassSet(), Class::getName);
+        return formatInfo(() -> ResetClassMgr.getInstance().getContextToTransformedClassSet(), Class::getName);
     }
 
     private Map<String, Set<String>> getContextToClasspathSet() {
-        return formatInfo(() -> TransformMgr.getInstance().getContextToClasspathSet(), null);
+        return formatInfo(() -> ContextClassLoaderMgr.getInstance().getContextToClasspathSet(), null);
     }
 
     private <V> Map<String, Set<String>> formatInfo(ContextInfoSupplier<V> supplier, Function<V, String> elementToStringFunc) {

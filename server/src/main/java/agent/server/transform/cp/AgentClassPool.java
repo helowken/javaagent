@@ -22,6 +22,7 @@ public class AgentClassPool {
     private ClassPool cp = ClassPool.getDefault();
     private Set<ClassPath> classPathSet = new HashSet<>();
     private Set<CtClass> classSet = new HashSet<>();
+    private Map<Class<?>, byte[]> classToData = new HashMap<>();
 
     public static boolean isNativePackage(String namePath) {
         return ReflectionUtils.isJavaNativePackage(namePath)
@@ -59,14 +60,24 @@ public class AgentClassPool {
         });
     }
 
-    public byte[] getClassData(String className) throws Exception {
-        return get(className).toBytecode();
+    public void saveClassData(Class<?> clazz, byte[] data) {
+        cpLock.sync(
+                lock -> classToData.put(clazz, data)
+        );
+    }
+
+    public byte[] getClassData(Class<?> clazz) throws Exception {
+        return classToData.getOrDefault(
+                clazz,
+                get(clazz.getName()).toBytecode()
+        );
     }
 
     public void clear() {
         cpLock.sync(lock -> {
             removeAllClassPaths();
             detachAllClasses();
+            classToData.clear();
         });
     }
 

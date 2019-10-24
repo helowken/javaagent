@@ -27,7 +27,7 @@ public class ParamValueUtils {
                 rsMap.put(String.valueOf(kvs[0]), kvs[1]);
             }
         }
-        logger.debug("Param value map: {}", rsMap);
+//        logger.debug("Param value map: {}", rsMap);
         return rsMap;
     }
 

@@ -11,6 +11,8 @@ import agent.server.transform.impl.HookAppTransformer;
 
 import java.util.Collections;
 
+import static agent.server.transform.TransformContext.ACTION_MODIFY;
+
 public abstract class AbstractAppHook implements AppHook {
 
     protected abstract String getAppClass();
@@ -30,7 +32,7 @@ public abstract class AbstractAppHook implements AppHook {
         String context = "$hookApp";
         TransformMgr.getInstance().transform(
                 Collections.singletonList(
-                        new TransformContext(context, appClass, new HookAppTransformer(), true)
+                        new TransformContext(context, appClass, new HookAppTransformer(), ACTION_MODIFY)
                 )
         );
     }

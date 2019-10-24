@@ -7,7 +7,7 @@ import agent.base.utils.Utils;
 import java.io.File;
 import java.nio.file.Files;
 
-class ClassDataStore {
+public class ClassDataStore {
     public static final int REVISION_0 = 0;
     private static final Logger logger = Logger.getLogger(ClassDataStore.class);
     private static final String TMP_DIR_PREFIX = "javaagent";
