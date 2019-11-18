@@ -14,8 +14,6 @@ import agent.jvmti.JvmtiUtils;
 import agent.server.transform.ResetClassMgr;
 import agent.server.transform.TransformMgr;
 
-import java.lang.instrument.Instrumentation;
-
 public class AgentServerRunner implements Runner {
     private static final Logger logger = Logger.getLogger(AgentServerRunner.class);
     private static final String KEY_PORT = "port";
@@ -23,14 +21,12 @@ public class AgentServerRunner implements Runner {
 
     @Override
     public void startup(Object... args) {
-        if (args == null ||
-                args.length == 0 ||
-                !(args[0] instanceof Instrumentation))
-            throw new IllegalArgumentException("Invalid arguments.");
         Utils.wrapToRtError(() -> {
             int port = SystemConfig.getInt(KEY_PORT);
             if (AgentServerMgr.startup(port)) {
-                TransformMgr.init((Instrumentation) args[0]);
+                TransformMgr.init(
+                        Utils.getArgValue(args, 0)
+                );
                 ResetClassMgr.init();
                 loadNativeLibs();
                 hookApp();

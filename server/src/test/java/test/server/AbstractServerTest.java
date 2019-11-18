@@ -8,6 +8,7 @@ import agent.server.transform.TransformMgr;
 import org.junit.After;
 import org.junit.BeforeClass;
 import test.server.utils.TestClassFinder;
+import test.server.utils.TestClassLoader;
 import test.server.utils.TestInstrumentation;
 
 import java.util.Properties;

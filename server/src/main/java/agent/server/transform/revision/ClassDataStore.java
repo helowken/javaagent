@@ -6,6 +6,7 @@ import agent.base.utils.Utils;
 
 import java.io.File;
 import java.nio.file.Files;
+import java.util.function.Function;
 
 public class ClassDataStore {
     public static final int REVISION_0 = 0;
@@ -27,16 +28,14 @@ public class ClassDataStore {
     }
 
     private static File getFile(Class<?> clazz, int revisionNum) {
-        String relativePath = clazz.getName().replaceAll("\\.", File.separator) + "_" + System.identityHashCode(clazz) + "." + revisionNum;
+        String relativePath = getFileName(clazz) + "_" + System.identityHashCode(clazz) + "." + revisionNum;
         return new File(getStoreDir(), relativePath);
     }
 
-    static void save(Class<?> clazz, byte[] data, int revisionNum) {
-        File file = getFile(clazz, revisionNum);
-        file.getParentFile().mkdirs();
-        logger.debug("Save class {} [loader={}] data to: {}", clazz.getName(), clazz.getClassLoader(), file.getAbsolutePath());
-        Utils.wrapToRtError(
-                () -> IOUtils.writeBytes(file, data, false)
+    static void save(Class<?> clazz, byte[] data, final int revisionNum) {
+        save(clazz,
+                data,
+                currClass -> getFile(currClass, revisionNum)
         );
     }
 
@@ -47,4 +46,20 @@ public class ClassDataStore {
                 () -> IOUtils.readBytes(file)
         );
     }
+
+    public static String getFileName(Class<?> clazz) {
+        return clazz.getName().replaceAll("\\.", File.separator);
+    }
+
+    public static void save(Class<?> clazz, byte[] data, Function<Class<?>, File> getClassFileFunc) {
+        File file = getClassFileFunc.apply(clazz);
+        File parentFile = file.getParentFile();
+        if (!parentFile.exists())
+            parentFile.mkdirs();
+        logger.debug("Save class {} [loader={}] data to: {}", clazz.getName(), clazz.getClassLoader(), file.getAbsolutePath());
+        Utils.wrapToRtError(
+                () -> IOUtils.writeBytes(file, data, false)
+        );
+    }
+
 }

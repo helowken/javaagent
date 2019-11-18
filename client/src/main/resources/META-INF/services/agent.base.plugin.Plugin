@@ -1,2 +1,3 @@
 agent.client.AgentClientPlugin
 agent.client.AgentShellPlugin
+agent.client.AgentScriptPlugin

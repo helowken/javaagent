@@ -12,11 +12,11 @@ import static agent.server.utils.log.LogConfig.STDOUT;
 
 @SuppressWarnings("unchecked")
 public abstract class AbstractLogConfigParser implements LogConfigParser {
-    public static final String CONF_OUTPUT_PATH = "outputPath";
-    public static final String CONF_AUTO_FLUSH = "autoFlush";
-    public static final String CONF_MAX_BUFFER_SIZE = "maxBufferSize";
-    public static final String CONF_BUFFER_COUNT = "bufferCount";
-    public static final String CONF_ROLL_FILE_SIZE = "rollFileSize";
+    private static final String CONF_OUTPUT_PATH = "outputPath";
+    private static final String CONF_AUTO_FLUSH = "autoFlush";
+    private static final String CONF_MAX_BUFFER_SIZE = "maxBufferSize";
+    private static final String CONF_BUFFER_COUNT = "bufferCount";
+    private static final String CONF_ROLL_FILE_SIZE = "rollFileSize";
 
     private static final String KEY_LOG = "log";
     private static final int MAX_BUFFER_SIZE = 1024 * 1024;
@@ -51,7 +51,7 @@ public abstract class AbstractLogConfigParser implements LogConfigParser {
         );
     }
 
-    protected long getMaxBufferSize(Map<String, Object> logConf, Map<String, Object> defaults) {
+    private long getMaxBufferSize(Map<String, Object> logConf, Map<String, Object> defaults) {
         return getAndCheckRange(
                 logConf,
                 defaults,
@@ -63,7 +63,7 @@ public abstract class AbstractLogConfigParser implements LogConfigParser {
         );
     }
 
-    protected int getBufferCount(Map<String, Object> logConf, Map<String, Object> defaults) {
+    private int getBufferCount(Map<String, Object> logConf, Map<String, Object> defaults) {
         String key = CONF_BUFFER_COUNT;
         return getAndCheckRange(
                 logConf,
@@ -76,7 +76,7 @@ public abstract class AbstractLogConfigParser implements LogConfigParser {
         );
     }
 
-    protected long getRollFileSize(Map<String, Object> logConf, Map<String, Object> defaults) {
+    private long getRollFileSize(Map<String, Object> logConf, Map<String, Object> defaults) {
         String key = CONF_ROLL_FILE_SIZE;
         return getAndCheckRange(
                 logConf,

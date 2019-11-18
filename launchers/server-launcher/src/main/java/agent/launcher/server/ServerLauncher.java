@@ -38,7 +38,7 @@ public class ServerLauncher extends AbstractLauncher {
     protected void loadLibs(String[] libPaths) throws Exception {
         if (AttachType.STATIC.equals(attachType)) {
             logger.debug("Use static loading.");
-            ClassLoaderUtils.initContextClassLoader(libPaths);
+            super.loadLibs(libPaths);
         } else if (AttachType.DYNAMIC.equals(attachType)) {
             logger.debug("Use dynamic loading.");
             ClassLoaderUtils.addLibPaths(libPaths);

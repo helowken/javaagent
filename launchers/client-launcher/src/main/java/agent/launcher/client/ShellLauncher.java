@@ -1,6 +1,5 @@
 package agent.launcher.client;
 
-import agent.base.utils.ClassLoaderUtils;
 import agent.base.utils.Utils;
 import agent.launcher.basic.AbstractLauncher;
 
@@ -9,10 +8,6 @@ import java.util.Arrays;
 public class ShellLauncher extends AbstractLauncher {
     private static final String RUNNER_TYPE = "shellRunner";
     private static final ShellLauncher instance = new ShellLauncher();
-
-    protected void loadLibs(String[] libPaths) throws Exception {
-        ClassLoaderUtils.initContextClassLoader(libPaths);
-    }
 
     public static void main(String[] args) throws Exception {
         if (args.length < 2) {

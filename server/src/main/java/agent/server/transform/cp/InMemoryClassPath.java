@@ -1,6 +1,7 @@
 package agent.server.transform.cp;
 
 import agent.base.utils.ClassLoaderUtils;
+import agent.base.utils.Logger;
 import agent.base.utils.Utils;
 import agent.server.transform.TransformMgr;
 import agent.server.transform.revision.ClassDataRepository;
@@ -11,6 +12,7 @@ import java.io.InputStream;
 import java.net.URL;
 
 public class InMemoryClassPath implements ClassPath {
+    private static final Logger logger = Logger.getLogger(InMemoryClassPath.class);
     private final String context;
 
     InMemoryClassPath(String context) {
@@ -19,11 +21,11 @@ public class InMemoryClassPath implements ClassPath {
 
     @Override
     public InputStream openClassfile(String className) {
-        return new ByteArrayInputStream(
-                ClassDataRepository.getInstance().getClassData(
-                        findClass(className)
-                )
+        byte[] data = ClassDataRepository.getInstance().getClassData(
+                findClass(className)
         );
+        logger.debug("Get context {} class {} data: {}", context, className, data);
+        return new ByteArrayInputStream(data);
     }
 
     private Class<?> findClass(String className) {

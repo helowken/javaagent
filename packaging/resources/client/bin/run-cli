@@ -1,8 +1,0 @@
-#!/bin/bash
-
-baseDir=`pwd`/$(dirname "$0")/..
-version=1.0
-client_launcher_jar=$baseDir/client-launcher-$version.jar
-config_file=$baseDir/conf/client.conf
-
-$JAVA_HOME/bin/java -cp $client_launcher_jar agent.launcher.client.ClientLauncher $config_file

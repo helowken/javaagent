@@ -4,11 +4,8 @@ package agent.launcher.basic;
 import agent.base.plugin.InfoPluginFilter;
 import agent.base.plugin.PluginFactory;
 import agent.base.runner.Runner;
-import agent.base.utils.FileUtils;
-import agent.base.utils.Logger;
+import agent.base.utils.*;
 import agent.base.utils.Logger.LoggerLevel;
-import agent.base.utils.SystemConfig;
-import agent.base.utils.Utils;
 
 import java.io.File;
 
@@ -19,7 +16,9 @@ public abstract class AbstractLauncher {
     private static final String KEY_LIB_DIR = "lib.dir";
     private static String currDir;
 
-    protected abstract void loadLibs(String[] libPaths) throws Exception;
+    protected void loadLibs(String[] libPaths) throws Exception {
+        ClassLoaderUtils.initContextClassLoader(libPaths);
+    }
 
     protected void init(String configFilePath) throws Exception {
         SystemConfig.load(configFilePath);
@@ -53,8 +52,8 @@ public abstract class AbstractLauncher {
             Logger.setOutputFile(path);
         } else
 //            logger.info("Log path: stdout.");
-        if (level != null)
-            Logger.setDefaultLevel(LoggerLevel.valueOf(level));
+            if (level != null)
+                Logger.setDefaultLevel(LoggerLevel.valueOf(level));
     }
 
     protected void startRunner(String runnerType, Object... args) {

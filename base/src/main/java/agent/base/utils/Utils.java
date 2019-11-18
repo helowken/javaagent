@@ -68,19 +68,32 @@ public class Utils {
         }
     }
 
+    public static <T> T getArgValue(Object[] args, int idx) {
+        if (args == null || args.length <= idx)
+            throw new IllegalArgumentException("Invalid argument index: " + idx);
+        return castValue(args[idx], "Invalid argument type.");
+    }
+
+    public static <T> T castValue(Object value, String errMsg) {
+        try {
+            return (T) value;
+        } catch (Exception e) {
+            throw new RuntimeException(errMsg);
+        }
+    }
+
     public static <T> T getConfigValue(Map<String, Object> config, String key) {
         return getConfigValue(config, key, null);
     }
 
     public static <T> T getConfigValue(Map<String, Object> config, String key, Map<String, Object> defaultValueMap) {
-        try {
-            Object value = config.get(key);
-            if (value == null && defaultValueMap != null)
-                value = defaultValueMap.get(key);
-            return (T) value;
-        } catch (Exception e) {
-            throw new RuntimeException("Invalid value for key: " + key);
-        }
+        Object value = config.get(key);
+        if (value == null && defaultValueMap != null)
+            value = defaultValueMap.get(key);
+        return castValue(
+                value,
+                "Invalid value type for key: " + key
+        );
     }
 
     public static String getErrorStackStrace(Throwable t) {

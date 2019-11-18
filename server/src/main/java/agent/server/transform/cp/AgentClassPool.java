@@ -30,20 +30,20 @@ public class AgentClassPool {
     }
 
     public AgentClassPool(String context) {
-        insertClassPath(
+        addClassPath(
                 new InMemoryClassPath(context)
         );
-        insertClassPath(
+        addClassPath(
                 new ClassClassPath(
                         getClass()
                 )
         );
     }
 
-    private void insertClassPath(ClassPath classPath) {
+    private void addClassPath(ClassPath classPath) {
         cpLock.sync(lock -> {
             classPathSet.add(classPath);
-            cp.insertClassPath(classPath);
+            cp.appendClassPath(classPath);
         });
     }
 
@@ -83,7 +83,7 @@ public class AgentClassPool {
 
     private void removeAllClassPaths() {
         classPathSet.forEach(classPath -> {
-            logger.debug("remove class path: {}", classPath);
+//            logger.debug("remove class path: {}", classPath);
             cp.removeClassPath(classPath);
         });
         classPathSet.clear();
@@ -91,7 +91,7 @@ public class AgentClassPool {
 
     private void detachAllClasses() {
         classSet.forEach(ctClass -> {
-            logger.debug("detach class: {}", ctClass.getName());
+//            logger.debug("detach class: {}", ctClass.getName());
             ctClass.detach();
         });
         classSet.clear();

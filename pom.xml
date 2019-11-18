@@ -87,5 +87,12 @@
             </modules>
         </profile>
 
+        <profile>
+            <id>packaging</id>
+            <modules>
+                <module>packaging</module>
+            </modules>
+        </profile>
+
     </profiles>
 </project>

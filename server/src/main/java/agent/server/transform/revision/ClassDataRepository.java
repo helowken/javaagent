@@ -21,6 +21,7 @@ public class ClassDataRepository {
     }
 
     public void saveClassData(Map<Class<?>, byte[]> classDataMap) {
+        logger.debug("Save class data: {}", classDataMap);
         classToData.putAll(classDataMap);
     }
 

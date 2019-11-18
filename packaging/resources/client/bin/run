@@ -1,0 +1,47 @@
+#!/bin/bash
+
+agent_dir=$AGENT_HOME
+
+if [ -z $agent_dir ]
+then
+    echo Env "AGENT_HOME" is not set.
+    exit 1
+fi
+
+if [ -z $JAVA_HOME ]
+then
+    echo Env "JAVA_HOME" is not set.
+    exit 1
+fi
+
+client_dir=$agent_dir/client
+version=1.0
+client_launcher_jar=$client_dir/client-launcher-$version.jar
+config_file=$client_dir/conf/client.conf
+
+if [ "$1" = "-f" ]
+then
+    if [ $# -lt 2 ]
+    then
+        echo Usage: $0 -f script_file
+        exit 1
+    else
+        main_class=ScriptLauncher
+        shift
+    fi
+elif [ "$1" = "-s" ]
+then
+    if [ $# -lt 2 ]
+    then
+        echo Usage: $0 -s command [arguments]
+        exit 1
+    else
+        main_class=ShellLauncher
+        shift
+    fi
+else
+    main_class=ClientLauncher
+fi
+
+$JAVA_HOME/bin/java -cp $client_launcher_jar agent.launcher.client.$main_class $config_file $*
+
