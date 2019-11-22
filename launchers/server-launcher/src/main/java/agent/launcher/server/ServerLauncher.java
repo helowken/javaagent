@@ -3,6 +3,7 @@ package agent.launcher.server;
 import agent.base.utils.ClassLoaderUtils;
 import agent.base.utils.Logger;
 import agent.base.utils.SystemConfig;
+import agent.base.utils.Utils;
 import agent.hook.utils.AttachType;
 import agent.hook.utils.HookConstants;
 import agent.launcher.basic.AbstractLauncher;
@@ -27,10 +28,11 @@ public class ServerLauncher extends AbstractLauncher {
     }
 
     private static void initAgent(String agentArgs, Instrumentation instrumentation) throws Exception {
-        logger.info("In agentmain method: {}", agentArgs);
+        if (Utils.isBlank(agentArgs))
+            throw new IllegalArgumentException("Agent arguments can not be empty.");
         instance.init(agentArgs);
         SystemConfig.set(HookConstants.KEY_ATTACH_TYPE, attachType.name());
-        SystemConfig.set(HookConstants.KEY_CURR_DIR, getCurrDir());
+        SystemConfig.set(HookConstants.KEY_CURR_DIR, getBaseDir());
         instance.startRunner(RUNNER_TYPE, instrumentation);
     }
 

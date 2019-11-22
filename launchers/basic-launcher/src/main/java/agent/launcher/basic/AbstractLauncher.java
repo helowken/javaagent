@@ -14,7 +14,11 @@ public abstract class AbstractLauncher {
     private static final String KEY_LOG_PATH = "log.path";
     private static final String KEY_LOG_LEVEL = "log.level";
     private static final String KEY_LIB_DIR = "lib.dir";
-    private static String currDir;
+    private static String baseDir;
+
+    private void initBaseDir(String configFilePath) {
+        baseDir = new File(configFilePath).getParentFile().getParent();
+    }
 
     protected void loadLibs(String[] libPaths) throws Exception {
         ClassLoaderUtils.initContextClassLoader(libPaths);
@@ -22,6 +26,7 @@ public abstract class AbstractLauncher {
 
     protected void init(String configFilePath) throws Exception {
         SystemConfig.load(configFilePath);
+        initBaseDir(configFilePath);
         initLog(
                 SystemConfig.get(KEY_LOG_PATH),
                 SystemConfig.get(KEY_LOG_LEVEL)
@@ -29,25 +34,20 @@ public abstract class AbstractLauncher {
         loadLibs(
                 FileUtils.splitPathStringToPathArray(
                         SystemConfig.splitToSet(KEY_LIB_DIR),
-                        getCurrDir()
+                        getBaseDir()
                 )
         );
     }
 
-    protected static synchronized String getCurrDir() {
-        if (currDir == null) {
-            currDir = new File(
-                    AbstractLauncher.class.getProtectionDomain().getCodeSource().getLocation().getFile()
-            ).getParent();
-        }
-        return currDir;
+    protected static synchronized String getBaseDir() {
+        return baseDir;
     }
 
     private void initLog(String outputPath, String level) {
         if (outputPath != null) {
             String path = outputPath.startsWith("/") ?
                     outputPath :
-                    new File(getCurrDir(), outputPath).getAbsolutePath();
+                    new File(getBaseDir(), outputPath).getAbsolutePath();
 //            logger.info("Log path: {}", path);
             Logger.setOutputFile(path);
         } else

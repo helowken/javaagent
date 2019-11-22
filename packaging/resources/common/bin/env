@@ -1,0 +1,21 @@
+#!/bin/bash
+
+if [ -z $AGENT_HOME ]
+then
+    echo Env "AGENT_HOME" is not set.
+    exit 1
+fi
+
+if [ -z $JAVA_HOME ]
+then
+    echo Env "JAVA_HOME" is not set.
+    exit 1
+fi
+
+export version=1.0
+export base_dir=$AGENT_HOME/$type
+export lib_dir=$base_dir/lib
+export launcher_dir=$lib_dir/launcher
+export conf_dir=$base_dir/conf
+export conf_file=$conf_dir/$type.conf
+

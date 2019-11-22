@@ -37,7 +37,6 @@
             <id>base</id>
             <modules>
                 <module>base</module>
-                <module>packaging</module>
             </modules>
         </profile>
 
@@ -45,7 +44,6 @@
             <id>common</id>
             <modules>
                 <module>common</module>
-                <module>packaging</module>
             </modules>
         </profile>
 
@@ -53,7 +51,6 @@
             <id>server</id>
             <modules>
                 <module>server</module>
-                <module>packaging</module>
             </modules>
         </profile>
 
@@ -61,18 +58,16 @@
             <id>client</id>
             <modules>
                 <module>client</module>
-                <module>packaging</module>
             </modules>
         </profile>
 
         <profile>
-            <id>launcher</id>
+            <id>launchers</id>
             <modules>
                 <module>launchers/basic-launcher</module>
                 <module>launchers/client-launcher</module>
                 <module>launchers/server-launcher</module>
                 <module>launchers/agent-launcher</module>
-                <module>packaging</module>
             </modules>
         </profile>
 
@@ -83,7 +78,6 @@
                 <module>plugins/builtin-transformers</module>
                 <module>plugins/tomcat-hook</module>
                 <module>plugins/spring-aop</module>
-                <module>packaging</module>
             </modules>
         </profile>
 

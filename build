@@ -1,0 +1,9 @@
+#!/bin/bash
+
+for profile in "$@"
+do
+	echo Execute profile: $profile
+    mvn clean install -DskipTests -P $profile
+done
+
+./run

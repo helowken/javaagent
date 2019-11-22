@@ -9,7 +9,7 @@
     <dependencySets>
         <dependencySet>
             <useStrictFiltering>true</useStrictFiltering>
-            <outputDirectory>common-lib</outputDirectory>
+            <outputDirectory>common/lib</outputDirectory>
             <includes>
                 <include>javaagent:common</include>
                 <include>javaagent:dependent-lib</include>
@@ -17,7 +17,7 @@
         </dependencySet>
         <dependencySet>
             <useStrictFiltering>true</useStrictFiltering>
-            <outputDirectory>server/lib</outputDirectory>
+            <outputDirectory>server/lib/core</outputDirectory>
             <includes>
                 <include>javaagent:server</include>
                 <include>javaagent:native</include>
@@ -25,7 +25,7 @@
         </dependencySet>
         <dependencySet>
             <useStrictFiltering>true</useStrictFiltering>
-            <outputDirectory>server/plugin</outputDirectory>
+            <outputDirectory>server/lib/plugin</outputDirectory>
             <includes>
                 <include>javaagent:jetty-runner-hook</include>
                 <include>javaagent:tomcat-hook</include>
@@ -35,7 +35,7 @@
         </dependencySet>
         <dependencySet>
             <useStrictFiltering>true</useStrictFiltering>
-            <outputDirectory>server</outputDirectory>
+            <outputDirectory>server/lib/launcher</outputDirectory>
             <includes>
                 <include>javaagent:server-launcher</include>
                 <include>javaagent:agent-launcher</include>
@@ -43,14 +43,14 @@
         </dependencySet>
         <dependencySet>
             <useStrictFiltering>true</useStrictFiltering>
-            <outputDirectory>client/lib</outputDirectory>
+            <outputDirectory>client/lib/core</outputDirectory>
             <includes>
                 <include>javaagent:client</include>
             </includes>
         </dependencySet>
         <dependencySet>
             <useStrictFiltering>true</useStrictFiltering>
-            <outputDirectory>client</outputDirectory>
+            <outputDirectory>client/lib/launcher</outputDirectory>
             <includes>
                 <include>javaagent:client-launcher</include>
             </includes>

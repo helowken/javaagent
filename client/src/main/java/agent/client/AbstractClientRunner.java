@@ -16,13 +16,15 @@ import agent.common.network.MessageIO;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
 
 abstract class AbstractClientRunner implements Runner {
     private static final Logger logger = Logger.getLogger(AbstractClientRunner.class);
     private static final String KEY_HOST = "host";
     private static final String KEY_PORT = "port";
-    private static final String CMD_QUIT = "quit";
+    private static final Set<String> quitCmds = new HashSet<>(Arrays.asList("quit", "exit", "byte"));
     private static final CmdItem QUIT_ITEM = new CmdItem(null, true);
 
     abstract String readCmdLine() throws Exception;
@@ -35,7 +37,7 @@ abstract class AbstractClientRunner implements Runner {
         String line = cmdLine;
         if (line != null &&
                 !(line = line.trim()).isEmpty() &&
-                !line.equals(CMD_QUIT)) {
+                !quitCmds.contains(line)) {
             String[] args = line.split("\\s+");
             String cmdName = args[0];
             args = args.length > 1 ?

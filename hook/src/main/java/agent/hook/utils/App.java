@@ -1,5 +1,5 @@
 package agent.hook.utils;
 
 public class App {
-    public static Object instance;
+    public static volatile Object instance;
 }

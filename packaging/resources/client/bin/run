@@ -1,23 +1,9 @@
 #!/bin/bash
 
-agent_dir=$AGENT_HOME
+export type=client
+source $(dirname $0)/../../common/bin/env
 
-if [ -z $agent_dir ]
-then
-    echo Env "AGENT_HOME" is not set.
-    exit 1
-fi
-
-if [ -z $JAVA_HOME ]
-then
-    echo Env "JAVA_HOME" is not set.
-    exit 1
-fi
-
-client_dir=$agent_dir/client
-version=1.0
-client_launcher_jar=$client_dir/client-launcher-$version.jar
-config_file=$client_dir/conf/client.conf
+client_launcher_jar=$launcher_dir/client-launcher-$version.jar
 
 if [ "$1" = "-f" ]
 then
@@ -43,5 +29,5 @@ else
     main_class=ClientLauncher
 fi
 
-$JAVA_HOME/bin/java -cp $client_launcher_jar agent.launcher.client.$main_class $config_file $*
+$JAVA_HOME/bin/java -cp $client_launcher_jar agent.launcher.client.$main_class $conf_file $*
 

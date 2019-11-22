@@ -1,0 +1,3 @@
+redisson=org.redisson:redisson:jar:3.11.2
+netty=*:netty*:jar:4.1.38.Final
+
