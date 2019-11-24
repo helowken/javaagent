@@ -45,6 +45,14 @@ public class TransformMgr {
             instance = new TransformMgr(instrumentation);
     }
 
+    public Class<?>[] getInitiatedClasses(ClassLoader classLoader) {
+        return instrumentation.getInitiatedClasses(classLoader);
+    }
+
+    public Class<?>[] getAllLoadedClasses() {
+        return instrumentation.getAllLoadedClasses();
+    }
+
     public List<TransformResult> transformByConfig(ConfigItem configItem) {
         List<TransformContext> transformContextList = new ArrayList<>();
         Map<ModuleConfig, Map<TransformConfig, TransformerInfo>> rsMap = parseConfig(configItem);

@@ -1,26 +1,21 @@
 package agent.server.transform.impl.dynamic;
 
 import agent.base.utils.LockObject;
-import agent.base.utils.Logger;
 import agent.base.utils.ReflectionUtils;
 import agent.common.utils.Registry;
-import agent.hook.plugin.ClassFinder;
-import agent.jvmti.JvmtiUtils;
 import agent.server.transform.TransformMgr;
 import agent.server.transform.cp.AgentClassPool;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class ClassCache {
-    private static final Logger logger = Logger.getLogger(ClassCache.class);
-    private static final String COMMON_CONTEXT = "@common@";
     private static final ClassCache instance = new ClassCache();
-    private final LockObject cacheLock = new LockObject();
-    private final Map<String, Collection<Class<?>>> contextToClasses = new HashMap<>();
-    private final Collection<Class<?>> commonClasses = new LinkedList<>();
-    private final Registry<String, ClassCacheItem> registry = new Registry<>();
-    private volatile boolean inited = false;
+    private final Registry<ClassLoader, ClassCacheItem> registry = new Registry<>();
 
     public static ClassCache getInstance() {
         return instance;
@@ -29,110 +24,56 @@ public class ClassCache {
     private ClassCache() {
     }
 
-    private ClassFinder getClassFinder() {
-        return TransformMgr.getInstance().getClassFinder();
-    }
-
-    private void init() {
-        if (!inited) {
-            cacheLock.sync(lock -> {
-                if (!inited) {
-                    Map<String, ClassLoader> contextToLoader = getClassFinder().getContextToLoader();
-                    Map<ClassLoader, String> loaderToContext = new HashMap<>();
-                    contextToLoader.forEach(
-                            (context, loader) -> loaderToContext.put(loader, context)
-                    );
-                    JvmtiUtils.getInstance()
-                            .findLoadedClassList()
-                            .stream()
-                            .filter(
-                                    clazz -> !AgentClassPool.isNativePackage(clazz.getName())
-                            )
-                            .forEach(clazz -> {
-                                String context = loaderToContext.get(clazz.getClassLoader());
-                                if (context == null)
-                                    commonClasses.add(clazz);
-                                else
-                                    contextToClasses.computeIfAbsent(
-                                            context,
-                                            key -> new LinkedList<>()
-                                    ).add(clazz);
-                            });
-                    inited = true;
-                }
-            });
-        }
-    }
-
-    public Map<String, Class<?>> getSubClassMap(String baseClassName) {
-        return getSubClassMap(COMMON_CONTEXT, baseClassName);
-    }
-
-    public Map<String, Class<?>> getSubClassMap(String contextPath, String baseClassName) {
-        String context = contextPath == null ? COMMON_CONTEXT : contextPath;
+    // TODO need to consider webAppLoader has no class, but its parent loader has, in spring boot.
+    public Map<String, Class<?>> getSubClassMap(String context, Class<?> baseClass) {
         return registry.regIfAbsent(
-                context,
-                key -> new ClassCacheItem(context)
-        ).getSubClassMap(baseClassName);
+                TransformMgr.getInstance().getClassFinder().findClassLoader(context),
+                loader -> new ClassCacheItem(
+                        Stream.of(
+                                TransformMgr.getInstance().getInitiatedClasses(loader)
+                        ).filter(
+                                clazz -> !AgentClassPool.isNativePackage(
+                                        clazz.getName()
+                                )
+                        ).collect(
+                                Collectors.toList()
+                        )
+                )
+        ).getSubClassMap(baseClass);
     }
 
     private class ClassCacheItem {
-        private final String context;
-        private Collection<Class<?>> loadedClasses;
-        private Map<String, ClassCacheNode> classToNode = new ConcurrentHashMap<>();
-        private final LockObject itemLock = new LockObject();
-        private volatile boolean itemInited = false;
+        private final Collection<Class<?>> loadedClasses;
+        private Map<Class<?>, ClassCacheNode> classToNode = new ConcurrentHashMap<>();
 
-        private ClassCacheItem(String context) {
-            this.context = context;
+        private ClassCacheItem(Collection<Class<?>> loadedClasses) {
+            this.loadedClasses = loadedClasses;
         }
 
-        private void itemInit() {
-            if (!itemInited) {
-                itemLock.sync(lock -> {
-                    if (!itemInited) {
-                        init();
-                        loadedClasses = contextToClasses.get(context);
-                        if (loadedClasses == null)
-                            loadedClasses = Collections.emptyList();
-                        itemInited = true;
-                    }
-                });
-            }
-        }
-
-        private Map<String, Class<?>> getSubClassMap(String baseClassName) {
+        private Map<String, Class<?>> getSubClassMap(Class<?> baseClass) {
             return classToNode.computeIfAbsent(
-                    baseClassName,
+                    baseClass,
                     key -> new ClassCacheNode()
-            ).getSubClassMap(context, baseClassName);
+            ).getSubClassMap(baseClass);
         }
 
         private class ClassCacheNode {
             private final LockObject nodeLock = new LockObject();
             private volatile Map<String, Class<?>> subClassMap;
 
-            private Map<String, Class<?>> getSubClassMap(String context, String baseClassName) {
+            private Map<String, Class<?>> getSubClassMap(Class<?> baseClass) {
                 if (subClassMap == null) {
                     nodeLock.sync(lock -> {
                         if (subClassMap == null) {
-                            itemInit();
-                            Class<?> baseClass = getClassFinder().findClass(context, baseClassName);
-                            Collection<Class<?>> subClasses = new LinkedList<>(
-                                    ReflectionUtils.findSubTypes(baseClass, commonClasses)
+                            Collection<Class<?>> subClasses = ReflectionUtils.findSubTypes(baseClass, loadedClasses);
+                            subClassMap = Collections.unmodifiableMap(
+                                    subClasses.stream().collect(
+                                            Collectors.toMap(
+                                                    Class::getName,
+                                                    clazz -> clazz
+                                            )
+                                    )
                             );
-                            subClasses.addAll(
-                                    ReflectionUtils.findSubTypes(baseClass, loadedClasses)
-                            );
-                            Map<String, Class<?>> tmp = new HashMap<>();
-                            for (Class<?> subClass : subClasses) {
-                                String subClassName = subClass.getName();
-                                if (tmp.containsKey(subClassName))
-                                    logger.warn("Duplicated sub class: {}, loader: {}, base class: {}",
-                                            baseClassName, subClass.getClassLoader(), baseClassName);
-                                tmp.put(subClassName, subClass);
-                            }
-                            subClassMap = Collections.unmodifiableMap(tmp);
                         }
                     });
                 }

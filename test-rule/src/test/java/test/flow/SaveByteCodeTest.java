@@ -97,7 +97,7 @@ public class SaveByteCodeTest {
                             System.out.println("==========>>> empty: " + methodLongName);
                         if (Modifier.isAbstract(childMethod.getModifiers())) {
                             String baseClassName = childMethod.getDeclaringClass().getName();
-                            ClassCache.getInstance().getSubClassMap(baseClassName).forEach((key, value) -> System.out.println("key: " + key));
+//                            ClassCache.getInstance().getSubClassMap(baseClassName).forEach((key, value) -> System.out.println("key: " + key));
                         }
 //                    }
                 }

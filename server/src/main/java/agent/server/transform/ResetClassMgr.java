@@ -19,14 +19,11 @@ import static agent.server.transform.TransformContext.ACTION_RESET;
 public class ResetClassMgr implements AgentEventListener {
     private static final Logger logger = Logger.getLogger(ResetClassMgr.class);
     private static final LockObject classLock = new LockObject();
-    private static ResetClassMgr instance;
+    private static ResetClassMgr instance = new ResetClassMgr();
     private Map<String, Set<Class<?>>> contextToTransformedClassSet = new HashMap<>();
 
-    public static synchronized void init() {
-        if (instance == null) {
-            instance = new ResetClassMgr();
-            EventListenerMgr.reg(TransformClassEvent.class, instance);
-        }
+    public static void init() {
+        EventListenerMgr.reg(TransformClassEvent.class, instance);
     }
 
     public static ResetClassMgr getInstance() {

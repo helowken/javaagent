@@ -2,11 +2,11 @@ package test.server.utils;
 
 import agent.base.utils.ReflectionUtils;
 import agent.base.utils.Utils;
-import agent.hook.plugin.AbstractClassFinder;
+import agent.hook.plugin.AbstractMultiContextClassFinder;
 
 import java.util.Map;
 
-public class TestClassFinder extends AbstractClassFinder {
+public class TestClassFinder extends AbstractMultiContextClassFinder {
     private Map<String, LoaderItem> contextToLoader;
 
     public TestClassFinder() {

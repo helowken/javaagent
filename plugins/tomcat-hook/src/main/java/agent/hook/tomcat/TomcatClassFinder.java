@@ -1,6 +1,6 @@
 package agent.hook.tomcat;
 
-import agent.hook.plugin.AbstractClassFinder;
+import agent.hook.plugin.AbstractMultiContextClassFinder;
 
 import java.util.Map;
 
@@ -8,7 +8,7 @@ import static agent.base.utils.AssertUtils.assertNotNull;
 import static agent.base.utils.ReflectionUtils.getFieldValue;
 import static agent.base.utils.ReflectionUtils.invoke;
 
-public class TomcatClassFinder extends AbstractClassFinder {
+public class TomcatClassFinder extends AbstractMultiContextClassFinder {
     @Override
     protected void doInit(Object app, Map<String, ClassLoader> contextToLoader) throws Exception {
         Object catalina = getFieldValue("catalinaDaemon", app);

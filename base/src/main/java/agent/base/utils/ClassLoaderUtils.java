@@ -9,6 +9,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class ClassLoaderUtils {
+    public static final String APP_CLASSLOADER_CLASS = "sun.misc.Launcher$AppClassLoader";
+    public static final String EXT_CLASSLOADER_CLASS = "sun.misc.Launcher$ExtClassLoader";
     private static final Logger logger = Logger.getLogger(ClassLoaderUtils.class);
     private static final FileFilter jarFilter = file -> file.getName().endsWith(".jar");
 
@@ -16,8 +18,30 @@ public class ClassLoaderUtils {
         if (classLoader == null)
             return true;
         String className = classLoader.getClass().getName();
-        return className.equals("sun.misc.Launcher$AppClassLoader") ||
-                className.equals("sun.misc.Launcher$ExtClassLoader");
+        return className.equals(APP_CLASSLOADER_CLASS) ||
+                className.equals(EXT_CLASSLOADER_CLASS);
+    }
+
+    public static ClassLoader getAppClassLoader() {
+        return findClassLoader(
+                ClassLoaderUtils.class.getClassLoader(),
+                APP_CLASSLOADER_CLASS
+        );
+    }
+
+    public static ClassLoader getExtClassLoader() {
+        return findClassLoader(
+                ClassLoaderUtils.class.getClassLoader(),
+                EXT_CLASSLOADER_CLASS
+        );
+    }
+
+    public static ClassLoader findClassLoader(ClassLoader classLoader, String destClassLoaderClassName) {
+        while (classLoader != null &&
+                !classLoader.getClass().getName().equals(destClassLoaderClassName)) {
+            classLoader = classLoader.getParent();
+        }
+        return classLoader;
     }
 
     public static ClassLoader initContextClassLoader(String... libPaths) throws Exception {

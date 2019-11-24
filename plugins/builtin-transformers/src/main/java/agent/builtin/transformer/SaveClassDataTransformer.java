@@ -67,10 +67,7 @@ public class SaveClassDataTransformer extends AbstractConfigTransformer {
         if (withSelf)
             classSet.add(clazz);
         if (withSubType || withSubClass) {
-            Map<String, Class<?>> nameToClass = ClassCache.getInstance().getSubClassMap(
-                    context,
-                    clazz.getName()
-            );
+            Map<String, Class<?>> nameToClass = ClassCache.getInstance().getSubClassMap(context, clazz);
             if (!withSubType)
                 classSet.addAll(
                         ReflectionUtils.findSubClasses(

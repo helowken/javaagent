@@ -271,7 +271,10 @@ public class DynamicClassTransformer extends AbstractConfigTransformer {
                                     Map<String, Class<?>> subClassMap = new HashMap<>(
                                             item.methodRuleFilter.getImplClasses(
                                                     methodInfo,
-                                                    () -> ClassCache.getInstance().getSubClassMap(item.context, baseClassName)
+                                                    () -> ClassCache.getInstance().getSubClassMap(
+                                                            item.context,
+                                                            getClassFinder().findClass(item.context, baseClassName)
+                                                    )
                                             )
                                     );
                                     ClassFinder classFinder = getClassFinder();

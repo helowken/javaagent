@@ -48,6 +48,13 @@
         </profile>
 
         <profile>
+            <id>dependent-lib</id>
+            <modules>
+                <module>dependent-lib</module>
+            </modules>
+        </profile>
+
+        <profile>
             <id>server</id>
             <modules>
                 <module>server</module>
@@ -74,8 +81,8 @@
         <profile>
             <id>plugins</id>
             <modules>
-                <module>plugins/jetty-runner-hook</module>
                 <module>plugins/builtin-transformers</module>
+                <module>plugins/jetty-runner-hook</module>
                 <module>plugins/tomcat-hook</module>
                 <module>plugins/spring-aop</module>
             </modules>

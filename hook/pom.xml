@@ -18,5 +18,9 @@
             <groupId>javaagent</groupId>
             <artifactId>base</artifactId>
         </dependency>
+        <dependency>
+            <groupId>javaagent</groupId>
+            <artifactId>native</artifactId>
+        </dependency>
     </dependencies>
 </project>

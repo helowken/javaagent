@@ -29,7 +29,8 @@ public class PluginFactory {
         if (serviceLoader == null) {
             loaderLock.sync(lock -> {
                 if (serviceLoader == null)
-                    serviceLoader = ServiceLoader.load(Plugin.class,
+                    serviceLoader = ServiceLoader.load(
+                            Plugin.class,
                             classLoader == null ?
                                     Thread.currentThread().getContextClassLoader() :
                                     classLoader
@@ -94,8 +95,11 @@ public class PluginFactory {
         if (clazz == null)
             throw new IllegalArgumentException("Class of instance can not be null!");
         return Optional.ofNullable(
-                mockLock.syncValue(lock ->
-                        clazz.cast(mocks.get(clazz)))
+                mockLock.syncValue(
+                        lock -> clazz.cast(
+                                mocks.get(clazz)
+                        )
+                )
         )
                 .map(Collections::singletonList)
                 .orElseGet(() -> {

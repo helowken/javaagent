@@ -128,10 +128,6 @@ public class ReflectionUtils {
         return argTypes;
     }
 
-    public static <T> T invokeStatic(Object classOrClassName, String methodName, Object... args) throws Exception {
-        return invokeStatic(classOrClassName, methodName, convertToTypes(args), args);
-    }
-
     public static <T> T invokeStatic(Object classOrClassName, String methodName, Object[] argClassOrClassNames, Object... args) throws Exception {
         return invoke(classOrClassName, methodName, argClassOrClassNames, null, args);
     }

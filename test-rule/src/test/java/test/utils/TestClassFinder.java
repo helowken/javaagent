@@ -1,11 +1,11 @@
 package test.utils;
 
-import agent.hook.plugin.AbstractClassFinder;
+import agent.hook.plugin.AbstractMultiContextClassFinder;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class TestClassFinder extends AbstractClassFinder {
+public class TestClassFinder extends AbstractMultiContextClassFinder {
     private Map<String, ClassLoader> contextToLoader = new HashMap<>();
 
     public void set(String context, ClassLoader loader) {
