@@ -1,6 +1,5 @@
 package agent.server.utils.log.binary;
 
-import agent.base.utils.Logger;
 import agent.server.utils.MemoryPool;
 import agent.server.utils.log.AbstractLogItem;
 

@@ -12,6 +12,7 @@ import java.io.OutputStream;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static agent.server.utils.log.LogConfig.STDOUT;
@@ -47,11 +48,19 @@ public abstract class AbstractLogWriter<T extends LogConfig, V extends LogItem> 
     private void startThread() {
         writerThread = new Thread(() -> {
             while (!closed.get()) {
+                ItemBuffer itemBuffer = null;
                 try {
                     tryToRollFile();
-                    taskQueue.take().write();
+                    itemBuffer = taskQueue.take();
+                    itemBuffer.write();
+                    itemBuffer.updateFileSize();
                 } catch (InterruptedException e) {
                     logger.error("Write thread is interrupted.", e);
+                } catch (Throwable e) {
+                    logger.error("Write thread meets unknown error.", e);
+                } finally {
+                    if (itemBuffer != null)
+                        itemBuffer.clear();
                 }
             }
         });
@@ -63,17 +72,24 @@ public abstract class AbstractLogWriter<T extends LogConfig, V extends LogItem> 
         try {
             long itemSize = logConfig.isAutoFlush() ? 0 : computeSize(item);
             bufferLock.sync(lock -> {
-                if (currBuffer == null)
-                    currBuffer = availableBuffers.take();
-                boolean toWrite = checkToWrite(
-                        currBuffer,
-                        item,
-                        itemSize,
-                        currBuffer.bufferSize,
-                        logConfig.getMaxBufferSize()
-                );
-                if (logConfig.isAutoFlush() || toWrite)
-                    taskQueue.add(getDirtyBuffer());
+                if (currBuffer == null) {
+                    currBuffer = availableBuffers.poll(
+                            logConfig.getWriteTimeoutMs(),
+                            TimeUnit.MILLISECONDS
+                    );
+                }
+                if (currBuffer != null) {
+                    boolean toWrite = checkToWrite(
+                            currBuffer,
+                            item,
+                            itemSize,
+                            currBuffer.bufferSize,
+                            logConfig.getMaxBufferSize()
+                    );
+                    if (logConfig.isAutoFlush() || toWrite)
+                        taskQueue.add(getDirtyBuffer());
+                } else
+                    logger.error("Get available buffer timeout, write queue size is: " + taskQueue.size());
             });
         } catch (Exception e) {
             logger.error("Write failed", e);
@@ -183,22 +199,21 @@ public abstract class AbstractLogWriter<T extends LogConfig, V extends LogItem> 
         }
 
         private void write() {
-            try {
-                while (!closed.get() && !buffer.isEmpty()) {
-                    V item = buffer.remove(0);
-                    try {
-                        doWrite(item);
-                    } catch (Exception e) {
-                        logger.error("Write dirty buffer failed.", e);
-                    }
-                    item.postWrite();
+            while (!closed.get() && !buffer.isEmpty()) {
+                V item = buffer.remove(0);
+                try {
+                    doWrite(item);
+                } catch (Exception e) {
+                    logger.error("Write dirty buffer failed.", e);
                 }
-                if (flush)
-                    tryToFlush();
-            } finally {
-                currFileSize += bufferSize;
-                clear();
+                item.postWrite();
             }
+            if (flush)
+                tryToFlush();
+        }
+
+        private void updateFileSize() {
+            currFileSize += bufferSize;
         }
 
         private void clear() {
@@ -210,7 +225,9 @@ public abstract class AbstractLogWriter<T extends LogConfig, V extends LogItem> 
         }
 
         void release() {
-            availableBuffers.add(this);
+            if (!availableBuffers.offer(this)) {
+                logger.error("Sys error for no more space to add availableBuffer.");
+            }
         }
     }
 

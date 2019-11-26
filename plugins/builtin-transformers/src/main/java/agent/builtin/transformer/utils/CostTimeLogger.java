@@ -23,7 +23,6 @@ public class CostTimeLogger implements AgentEventListener {
 
     private final LockObject methodTypeLock = new LockObject();
     private final Map<String, Map<String, Map<String, Integer>>> contextToClassToMethodToType = new HashMap<>();
-    private boolean dirty = false;
     private final AtomicInteger typeCounter = new AtomicInteger(0);
     private final Map<String, Set<String>> outputPathToContexts = new HashMap<>();
     private final ThreadLocal<CostTimeItem> currItemLocal = new ThreadLocal<>();
@@ -39,20 +38,26 @@ public class CostTimeLogger implements AgentEventListener {
 
     public int reg(String context, String className, String methodFullName) {
         return methodTypeLock.syncValue(lock ->
-                contextToClassToMethodToType.computeIfAbsent(context, contextKey -> new HashMap<>())
-                        .computeIfAbsent(className, classKey -> new HashMap<>())
-                        .computeIfAbsent(methodFullName, methodKey -> {
-                            dirty = true;
-                            return typeCounter.getAndIncrement();
-                        })
+                contextToClassToMethodToType.computeIfAbsent(
+                        context,
+                        contextKey -> new HashMap<>()
+                ).computeIfAbsent(
+                        className,
+                        classKey -> new HashMap<>()
+                ).computeIfAbsent(
+                        methodFullName,
+                        methodKey -> typeCounter.getAndIncrement()
+                )
         );
     }
 
     public void regOutputPath(String context, String outputPath) {
-        methodTypeLock.sync(lock -> {
-            if (outputPathToContexts.computeIfAbsent(outputPath, key -> new HashSet<>()).add(context))
-                dirty = true;
-        });
+        methodTypeLock.sync(
+                lock -> outputPathToContexts.computeIfAbsent(
+                        outputPath,
+                        key -> new HashSet<>()
+                ).add(context)
+        );
     }
 
     public void log(String logKey, int type, int costTime) {
@@ -100,7 +105,6 @@ public class CostTimeLogger implements AgentEventListener {
             if (event.isAllReset()) {
                 outputPathToContexts.clear();
                 contextToClassToMethodToType.clear();
-                dirty = false;
                 logger.debug("Clear all.");
             } else {
                 String context = event.getContext();
@@ -111,9 +115,7 @@ public class CostTimeLogger implements AgentEventListener {
                         delKeys.add(outputPath);
                 });
                 delKeys.forEach(outputPathToContexts::remove);
-                if (outputPathToContexts.isEmpty())
-                    dirty = false;
-                logger.debug("After remove context: {}, outputPathToContexts: {}, dirty: {}", context, outputPathToContexts, dirty);
+                logger.debug("After remove context: {}, outputPathToContexts: {}", context, outputPathToContexts);
             }
         });
     }
@@ -121,10 +123,9 @@ public class CostTimeLogger implements AgentEventListener {
     private void handleLogFlushedEvent(LogFlushEvent event) {
         String outputPath = event.getOutputPath();
         methodTypeLock.sync(lock -> {
-            if (dirty && outputPathToContexts.containsKey(outputPath)) {
+            if (outputPathToContexts.containsKey(outputPath)) {
                 String content = JSONUtils.writeAsString(contextToClassToMethodToType);
                 IOUtils.writeString(outputPath + METADATA_FILE, content, false);
-                dirty = false;
                 logger.debug("Metadata is flushed for log: {}", outputPath);
             }
         });

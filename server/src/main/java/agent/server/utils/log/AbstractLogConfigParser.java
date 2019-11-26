@@ -17,14 +17,19 @@ public abstract class AbstractLogConfigParser implements LogConfigParser {
     private static final String CONF_MAX_BUFFER_SIZE = "maxBufferSize";
     private static final String CONF_BUFFER_COUNT = "bufferCount";
     private static final String CONF_ROLL_FILE_SIZE = "rollFileSize";
+    private static final String CONF_WRITE_TIMEOUT_MS = "writeTimeoutMs";
 
     private static final String KEY_LOG = "log";
     private static final int MAX_BUFFER_SIZE = 1024 * 1024;
+    private static final int MIN_BUFFER_SIZE = 0;
     private static final int MAX_BUFFER_COUNT = 1000;
+    private static final int MIN_BUFFER_COUNT = 1;
     private static final long MAX_ROLL_FILE_SIZE = 1024 * 1024 * 100;
     private static final long MIN_ROLL_FILE_SIZE = 1024 * 1024;
+    private static final long MAX_WRITE_TIMEOUT_MS = 60 * 1000;
+    private static final long MIN_WRITE_TIMEOUT_MS = 0;
 
-    protected abstract LogConfig doParse(String outputPath, boolean autoFlush, long maxBufferSize, int bufferCount, long rollFileSize,
+    protected abstract LogConfig doParse(String outputPath, boolean autoFlush, long maxBufferSize, int bufferCount, long rollFileSize, long writeTimeoutMs,
                                          Map<String, Object> logConf, Map<String, Object> defaults);
 
     protected void populateDefaults(Map<String, Object> defaults) {
@@ -33,6 +38,7 @@ public abstract class AbstractLogConfigParser implements LogConfigParser {
         defaults.putIfAbsent(CONF_MAX_BUFFER_SIZE, 8192);
         defaults.putIfAbsent(CONF_BUFFER_COUNT, 20);
         defaults.putIfAbsent(CONF_ROLL_FILE_SIZE, 1024 * 1024 * 10);
+        defaults.putIfAbsent(CONF_WRITE_TIMEOUT_MS, 5000);
     }
 
     @Override
@@ -46,19 +52,21 @@ public abstract class AbstractLogConfigParser implements LogConfigParser {
                 getMaxBufferSize(logConf, defaults),
                 getBufferCount(logConf, defaults),
                 getRollFileSize(logConf, defaults),
+                getWriteTimeoutMs(logConf, defaults),
                 logConf,
                 defaults
         );
     }
 
     private long getMaxBufferSize(Map<String, Object> logConf, Map<String, Object> defaults) {
+        String key = CONF_MAX_BUFFER_SIZE;
         return getAndCheckRange(
                 logConf,
                 defaults,
-                CONF_MAX_BUFFER_SIZE,
-                0,
+                key,
+                MIN_BUFFER_SIZE,
                 MAX_BUFFER_SIZE,
-                v -> Integer.parseInt(v.toString()),
+                v -> Utils.parseInt(v.toString(), key),
                 (v1, v2) -> (long) v1 - v2
         );
     }
@@ -69,7 +77,7 @@ public abstract class AbstractLogConfigParser implements LogConfigParser {
                 logConf,
                 defaults,
                 key,
-                1,
+                MIN_BUFFER_COUNT,
                 MAX_BUFFER_COUNT,
                 v -> Utils.parseInt(v.toString(), key),
                 (v1, v2) -> (long) v1 - v2
@@ -89,6 +97,19 @@ public abstract class AbstractLogConfigParser implements LogConfigParser {
         );
     }
 
+    private long getWriteTimeoutMs(Map<String, Object> logConf, Map<String, Object> defaults) {
+        String key = CONF_WRITE_TIMEOUT_MS;
+        return getAndCheckRange(
+                logConf,
+                defaults,
+                key,
+                MIN_WRITE_TIMEOUT_MS,
+                MAX_WRITE_TIMEOUT_MS,
+                v -> Utils.parseLong(v.toString(), key),
+                (v1, v2) -> v1 - v2
+        );
+    }
+
     private <T> T getAndCheckRange(Map<String, Object> logConf, Map<String, Object> defaults, String key,
                                    T minValue, T maxValue, Function<Object, T> convertFunc, BiFunction<T, T, Long> compareFunc) {
         T value = convertFunc.apply(
@@ -98,4 +119,6 @@ public abstract class AbstractLogConfigParser implements LogConfigParser {
             throw new IllegalArgumentException("Invalid " + key + ": " + value + ", range is [" + minValue + ", " + maxValue + "].");
         return value;
     }
+
+
 }

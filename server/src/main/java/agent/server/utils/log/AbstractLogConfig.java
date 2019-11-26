@@ -6,13 +6,15 @@ public abstract class AbstractLogConfig implements LogConfig {
     private final long maxBufferSize;
     private final int bufferCount;
     private final long rollFileSize;
+    private final long writeTimeoutMs;
 
-    public AbstractLogConfig(String outputPath, boolean autoFlush, long maxBufferSize, int bufferCount, long rollFileSize) {
+    public AbstractLogConfig(String outputPath, boolean autoFlush, long maxBufferSize, int bufferCount, long rollFileSize, long writeTimeoutMs) {
         this.outputPath = outputPath;
         this.autoFlush = autoFlush;
         this.maxBufferSize = maxBufferSize;
         this.bufferCount = bufferCount;
         this.rollFileSize = rollFileSize;
+        this.writeTimeoutMs = writeTimeoutMs;
     }
 
     @Override
@@ -21,7 +23,8 @@ public abstract class AbstractLogConfig implements LogConfig {
                 ", autoFlush=" + autoFlush +
                 ", maxBufferSize=" + maxBufferSize +
                 ", bufferCount=" + bufferCount +
-                ", rollFileSize=" + rollFileSize;
+                ", rollFileSize=" + rollFileSize +
+                ", writeTimeoutMs=" + writeTimeoutMs;
     }
 
     @Override
@@ -47,5 +50,10 @@ public abstract class AbstractLogConfig implements LogConfig {
     @Override
     public long getRollFileSize() {
         return rollFileSize;
+    }
+
+    @Override
+    public long getWriteTimeoutMs() {
+        return writeTimeoutMs;
     }
 }

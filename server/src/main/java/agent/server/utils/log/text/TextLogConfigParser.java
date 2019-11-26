@@ -19,7 +19,7 @@ public class TextLogConfigParser extends AbstractLogConfigParser {
     }
 
     @Override
-    protected LogConfig doParse(String outputPath, boolean autoFlush, long maxBufferSize, int bufferCount, long rollFileSize,
+    protected LogConfig doParse(String outputPath, boolean autoFlush, long maxBufferSize, int bufferCount, long rollFileSize, long writeTimeoutMs,
                                 Map<String, Object> logConf, Map<String, Object> defaults) {
         return new TextLogConfig(
                 outputPath,
@@ -27,6 +27,7 @@ public class TextLogConfigParser extends AbstractLogConfigParser {
                 maxBufferSize,
                 bufferCount,
                 rollFileSize,
+                writeTimeoutMs,
                 getOutputFormat(logConf, defaults),
                 Utils.getConfigValue(logConf, CONF_TIME_FORMAT, defaults)
         );

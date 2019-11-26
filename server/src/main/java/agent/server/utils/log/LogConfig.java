@@ -12,4 +12,6 @@ public interface LogConfig {
     int getBufferCount();
 
     long getRollFileSize();
+
+    long getWriteTimeoutMs();
 }

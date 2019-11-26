@@ -29,9 +29,6 @@ public class AgentServerRunner implements Runner {
                 );
                 ResetClassMgr.init();
                 loadNativeLibs();
-
-                TestClassLoaderCascade.test();
-
                 hookApp();
                 logger.info("Startup successfully.");
             }

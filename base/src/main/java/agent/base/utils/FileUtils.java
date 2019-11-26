@@ -57,4 +57,22 @@ public class FileUtils {
                 parentFile.mkdirs();
         }
     }
+
+    public static boolean removeFileOrDir(File file) {
+        if (file.exists()) {
+            if (file.isDirectory()) {
+                File[] childFiles = file.listFiles();
+                if (childFiles != null) {
+                    for (File childFile : childFiles) {
+                        if (!removeFileOrDir(childFile))
+                            return false;
+                    }
+                }
+            }
+            if (!file.delete())
+                return false;
+            return true;
+        }
+        return false;
+    }
 }

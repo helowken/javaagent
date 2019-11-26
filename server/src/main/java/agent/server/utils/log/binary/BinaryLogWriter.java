@@ -60,9 +60,10 @@ public class BinaryLogWriter extends AbstractLogWriter<BinaryLogConfig, BinaryLo
             }
         } else {
             long size = item.getSize();
-            long bytesWritten = getChannel().write(item.getBuffers());
-            if (bytesWritten != size)
-                logger.error("Write failed, bytes written: {}, total size: {}", bytesWritten, size);
+            ByteBuffer[] buffers = item.getBuffers();
+            while (size > 0) {
+                size -= getChannel().write(buffers);
+            }
         }
     }
 
