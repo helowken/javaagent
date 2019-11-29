@@ -39,7 +39,7 @@ public class MethodFinder {
         ClassConfig classConfig = targetClassConfig.classConfig;
         Class<?> clazz = targetClassConfig.targetClass;
         logger.debug("Start to find methods for class: {}", clazz.getName());
-        MethodFilterConfig methodFilterConfig = classConfig.getMethodFilterConfig();
+        MethodFilterConfig methodFilterConfig = classConfig.getMethodFilter();
         if (methodFilterConfig == null)
             methodFilterConfig = new MethodFilterConfig();
         Collection<Method> rsList = findByMethodFilter(methodFilterConfig, clazz);
@@ -64,9 +64,9 @@ public class MethodFinder {
         Set<Method> candidateList = new HashSet<>();
         filterOutMeaningless(candidateList, clazz.getDeclaredMethods());
         return filterByCondition(
-                methodFilterConfig.getIncludeExprSet(),
+                methodFilterConfig.getIncludes(),
                 filterByCondition(
-                        methodFilterConfig.getExcludeExprSet(),
+                        methodFilterConfig.getExcludes(),
                         candidateList,
                         false),
                 true

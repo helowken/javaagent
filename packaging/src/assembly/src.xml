@@ -9,10 +9,17 @@
     <dependencySets>
         <dependencySet>
             <useStrictFiltering>true</useStrictFiltering>
-            <outputDirectory>common/lib</outputDirectory>
+            <outputDirectory>common/lib/core</outputDirectory>
             <includes>
                 <include>javaagent:common</include>
                 <include>javaagent:dependent-lib</include>
+            </includes>
+        </dependencySet>
+        <dependencySet>
+            <useStrictFiltering>true</useStrictFiltering>
+            <outputDirectory>common/lib/delegate</outputDirectory>
+            <includes>
+                <include>javaagent:json-delegate</include>
             </includes>
         </dependencySet>
         <dependencySet>

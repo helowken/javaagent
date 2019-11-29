@@ -48,6 +48,11 @@
             </dependency>
             <dependency>
                 <groupId>javaagent</groupId>
+                <artifactId>json-delegate</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>javaagent</groupId>
                 <artifactId>common</artifactId>
                 <version>${project.version}</version>
             </dependency>

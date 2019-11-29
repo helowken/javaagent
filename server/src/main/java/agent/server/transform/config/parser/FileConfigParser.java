@@ -1,10 +1,10 @@
 package agent.server.transform.config.parser;
 
 import agent.base.utils.IOUtils;
+import agent.base.utils.TypeObject;
 import agent.common.utils.JSONUtils;
 import agent.server.transform.config.ModuleConfig;
 import agent.server.transform.config.parser.exception.ConfigParseException;
-import com.fasterxml.jackson.core.type.TypeReference;
 
 import java.io.File;
 import java.util.List;
@@ -17,7 +17,7 @@ public class FileConfigParser implements ConfigParser {
                     getContent(
                             ((FileConfigItem) item).source
                     ),
-                    new TypeReference<List<ModuleConfig>>() {
+                    new TypeObject<List<ModuleConfig>>() {
                     }
             );
         } catch (Exception e) {

@@ -1,47 +1,47 @@
 [
-    {
-        "contextPath": "/test",
-        "transformConfigs": [
-            {
-                "desc": "Used to time cost analyze.",
-                "transformers": [
-                    {
-                        "ref": "sys_costTimeStatistics",
-                        "config": {
-                            "log": {
-                                "outputPath": "/home/helowken/cost-time/cost-time-statistics.log",
-                                "autoFlush": false,
-                                "maxBufferSize": 8192,
-                                "bufferCount": 100
-                            },
-                            "entryPoint": [
-                                {
-                                    "class": "test.jetty.TestFilter2",
-                                    "methodFilter": {
-                                        "include": [
-                                            "test"
-                                        ]
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                ],
-                "targets": [
-                    {
-                        "class": "test.jetty.TestFilter2",
-                        "methodFilter": {
-                            "include": [
-                                "test"
-                            ]
-                        }
-                    },
-                    {
-                        "class": "test.jetty.StatisticsCostTimeObject",
-                        "methodFilter": {}
-                    }
-                ]
+  {
+    "contextPath": "/test",
+    "transformConfigs": [
+      {
+        "desc": "Used to time cost analyze.",
+        "transformers": [
+          {
+            "ref": "sys_costTimeStatistics",
+            "config": {
+              "log": {
+                "outputPath": "/home/helowken/cost-time/cost-time-statistics.log",
+                "autoFlush": false,
+                "maxBufferSize": 8192,
+                "bufferCount": 100
+              },
+              "entryPoint": [
+                {
+                  "targetClass": "test.jetty.TestFilter2",
+                  "methodFilter": {
+                    "includes": [
+                      "test"
+                    ]
+                  }
+                }
+              ]
             }
+          }
+        ],
+        "targets": [
+          {
+            "targetClass": "test.jetty.TestFilter2",
+            "methodFilter": {
+              "includes": [
+                "test"
+              ]
+            }
+          },
+          {
+            "targetClass": "test.jetty.StatisticsCostTimeObject",
+            "methodFilter": {}
+          }
         ]
-    }
+      }
+    ]
+  }
 ]

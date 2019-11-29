@@ -1,72 +1,72 @@
 [
-    {
-        "contextPath": "/test",
-        "transformConfigs": [
-            {
-                "desc": "Used to measure time cost.",
-                "transformers": [
-                    {
-                        "ref": "sys_costTimeMeasure",
-                        "config": {
-                            "log": {
-                                "autoFlush": false,
-                                "outputFormat": "[${currTime}] - ${currTimeMillis} - ${class}#${method}: ${costTime}ms",
-                                "timeFormat": "yyyy-MM-dd HH:mm:ss.SSS",
-                                "maxBufferSize": 8192
-                            }
-                        }
-                    }
-                ],
-                "targets": [
-                    {
-                        "class": "test.jetty.TestObject",
-                        "methodFilter": {
-                            "include": [
-                                "test.*"
-                            ]
-                        }
-                    },
-                    {
-                        "class": "test.jetty.SubTestObject",
-                        "methodFilter": {
-                            "include": [
-                                "load"
-                            ]
-                        }
-                    },
-                    {
-                        "class": "org.apache.commons.lang3.StringUtils",
-                        "methodFilter": {
-                            "include": [
-                                "trim"
-                            ]
-                        }
-                    }
-                ]
+  {
+    "contextPath": "/test",
+    "transformConfigs": [
+      {
+        "desc": "Used to measure time cost.",
+        "transformers": [
+          {
+            "ref": "sys_costTimeMeasure",
+            "config": {
+              "log": {
+                "autoFlush": false,
+                "outputFormat": "[${currTime}] - ${currTimeMillis} - ${class}#${method}: ${costTime}ms",
+                "timeFormat": "yyyy-MM-dd HH:mm:ss.SSS",
+                "maxBufferSize": 8192
+              }
             }
-        ]
-    },
-    {
-        "contextPath": "/test2",
-        "transformConfigs": [
-            {
-                "desc": "Used to measure time cost.",
-                "transformers": [
-                    {
-                        "ref": "sys_costTimeMeasure"
-                    }
-                ],
-                "targets": [
-                    {
-                        "class": "test.jetty.TestObject",
-                        "methodFilter": {
-                            "include": [
-                                "test.*"
-                            ]
-                        }
-                    }
-                ]
+          }
+        ],
+        "targets": [
+          {
+            "targetClass": "test.jetty.TestObject",
+            "methodFilter": {
+              "includes": [
+                "test.*"
+              ]
             }
+          },
+          {
+            "targetClass": "test.jetty.SubTestObject",
+            "methodFilter": {
+              "includes": [
+                "load"
+              ]
+            }
+          },
+          {
+            "targetClass": "org.apache.commons.lang3.StringUtils",
+            "methodFilter": {
+              "includes": [
+                "trim"
+              ]
+            }
+          }
         ]
-    }
+      }
+    ]
+  },
+  {
+    "contextPath": "/test2",
+    "transformConfigs": [
+      {
+        "desc": "Used to measure time cost.",
+        "transformers": [
+          {
+            "ref": "sys_costTimeMeasure"
+          }
+        ],
+        "targets": [
+          {
+            "targetClass": "test.jetty.TestObject",
+            "methodFilter": {
+              "includes": [
+                "test.*"
+              ]
+            }
+          }
+        ]
+      }
+    ]
+  }
 ]

@@ -17,15 +17,15 @@
             <groupId>com.sun</groupId>
             <artifactId>tools</artifactId>
         </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-        </dependency>
 
         <!-- app -->
         <dependency>
             <groupId>javaagent</groupId>
             <artifactId>base</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>javaagent</groupId>
+            <artifactId>json-delegate</artifactId>
         </dependency>
 
         <!-- test -->

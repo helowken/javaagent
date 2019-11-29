@@ -1,11 +1,11 @@
 package agent.client.command.result.handler;
 
+import agent.base.utils.TypeObject;
 import agent.base.utils.Utils;
 import agent.common.message.result.ExecResult;
 import agent.common.message.result.entity.ErrorEntity;
 import agent.common.message.result.entity.TransformResultEntity;
 import agent.common.utils.JSONUtils;
-import com.fasterxml.jackson.core.type.TypeReference;
 
 import java.util.List;
 
@@ -16,8 +16,9 @@ import static agent.common.message.result.entity.TransformResultEntity.*;
 abstract class AbstractTransformResultHandler extends AbstractContextResultHandler {
 
     void handleFailResult(ExecResult result, String msgPrefix) {
-        List<TransformResultEntity> rsList = JSONUtils.convert(result.getContent(),
-                new TypeReference<List<TransformResultEntity>>() {
+        List<TransformResultEntity> rsList = JSONUtils.convert(
+                result.getContent(),
+                new TypeObject<List<TransformResultEntity>>() {
                 }
         );
         write(msgPrefix + " Result",

@@ -24,6 +24,10 @@
         </dependency>
         <dependency>
             <groupId>javaagent</groupId>
+            <artifactId>json-delegate</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>javaagent</groupId>
             <artifactId>server</artifactId>
         </dependency>
         <dependency>

@@ -1,19 +1,10 @@
 package agent.server.transform.config;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.util.Objects;
 
-import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
-
 public class ClassConfig {
-    @JsonProperty("class")
     private String targetClass;
-
-    @JsonProperty("methodFilter")
-    @JsonInclude(NON_NULL)
-    private MethodFilterConfig methodFilterConfig;
+    private MethodFilterConfig methodFilter;
 
     public String getTargetClass() {
         return targetClass;
@@ -23,12 +14,12 @@ public class ClassConfig {
         this.targetClass = targetClass;
     }
 
-    public MethodFilterConfig getMethodFilterConfig() {
-        return methodFilterConfig;
+    public MethodFilterConfig getMethodFilter() {
+        return methodFilter;
     }
 
-    public void setMethodFilterConfig(MethodFilterConfig methodFilterConfig) {
-        this.methodFilterConfig = methodFilterConfig;
+    public void setMethodFilter(MethodFilterConfig methodFilter) {
+        this.methodFilter = methodFilter;
     }
 
     @Override
@@ -37,20 +28,20 @@ public class ClassConfig {
         if (o == null || getClass() != o.getClass()) return false;
         ClassConfig that = (ClassConfig) o;
         return Objects.equals(targetClass, that.targetClass) &&
-                Objects.equals(methodFilterConfig, that.methodFilterConfig);
+                Objects.equals(methodFilter, that.methodFilter);
     }
 
     @Override
     public int hashCode() {
 
-        return Objects.hash(targetClass, methodFilterConfig);
+        return Objects.hash(targetClass, methodFilter);
     }
 
     @Override
     public String toString() {
         return "ClassConfig{" +
                 "targetClass='" + targetClass + '\'' +
-                ", methodFilterConfig=" + methodFilterConfig +
+                ", methodFilter=" + methodFilter +
                 '}';
     }
 }

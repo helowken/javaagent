@@ -1,5 +1,6 @@
 package agent.server.command.executor;
 
+import agent.base.utils.TypeObject;
 import agent.base.utils.Utils;
 import agent.common.message.result.DefaultExecResult;
 import agent.common.message.result.ExecResult;
@@ -9,7 +10,6 @@ import agent.common.utils.JSONUtils;
 import agent.server.transform.AgentTransformer;
 import agent.server.transform.ConfigTransformer;
 import agent.server.transform.TransformResult;
-import com.fasterxml.jackson.core.type.TypeReference;
 
 import java.util.List;
 import java.util.Map;
@@ -37,7 +37,7 @@ abstract class AbstractTransformCmdExecutor extends AbstractCmdExecutor {
         return failed.get() ?
                 DefaultExecResult.toError(cmdType, msgPrefix + " failed.",
                         JSONUtils.convert(entityList,
-                                new TypeReference<List<Map>>() {
+                                new TypeObject<List<Map>>() {
                                 }
                         )
                 ) :

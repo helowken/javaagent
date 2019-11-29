@@ -1,18 +1,11 @@
 package agent.server.transform.config;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-
 import java.util.Map;
 import java.util.Objects;
 
-import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
-
 public class TransformerConfig {
-    @JsonInclude(NON_NULL)
     private String implClass;
-    @JsonInclude(NON_NULL)
     private String ref;
-    @JsonInclude(NON_NULL)
     private Map<String, Object> config;
 
     public String getImplClass() {

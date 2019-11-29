@@ -1,10 +1,10 @@
 package agent.client.command.result.handler;
 
+import agent.base.utils.TypeObject;
 import agent.common.message.command.Command;
 import agent.common.message.result.ExecResult;
 import agent.common.message.result.entity.TestConfigResultEntity;
 import agent.common.utils.JSONUtils;
-import com.fasterxml.jackson.core.type.TypeReference;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,8 +17,9 @@ public class TestConfigResultHandler extends AbstractContextResultHandler {
 
     @Override
     public void handleSuccess(Command command, ExecResult result) {
-        Map<String, List<TestConfigResultEntity>> contextToConfigResultEntityList = JSONUtils.convert(result.getContent(),
-                new TypeReference<Map<String, List<TestConfigResultEntity>>>() {
+        Map<String, List<TestConfigResultEntity>> contextToConfigResultEntityList = JSONUtils.convert(
+                result.getContent(),
+                new TypeObject<Map<String, List<TestConfigResultEntity>>>() {
                 }
         );
         write("Test Config Result",

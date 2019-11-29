@@ -1,36 +1,26 @@
 package agent.server.transform.config;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.util.Objects;
 import java.util.Set;
 
-import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
-
 public class MethodFilterConfig {
-    @JsonProperty("include")
-    @JsonInclude(NON_NULL)
-    private Set<String> includeExprSet;
+    private Set<String> includes;
+    private Set<String> excludes;
 
-    @JsonProperty("exclude")
-    @JsonInclude(NON_NULL)
-    private Set<String> excludeExprSet;
-
-    public Set<String> getIncludeExprSet() {
-        return includeExprSet;
+    public Set<String> getIncludes() {
+        return includes;
     }
 
-    public void setIncludeExprSet(Set<String> includeExprSet) {
-        this.includeExprSet = includeExprSet;
+    public void setIncludes(Set<String> includes) {
+        this.includes = includes;
     }
 
-    public Set<String> getExcludeExprSet() {
-        return excludeExprSet;
+    public Set<String> getExcludes() {
+        return excludes;
     }
 
-    public void setExcludeExprSet(Set<String> excludeExprSet) {
-        this.excludeExprSet = excludeExprSet;
+    public void setExcludes(Set<String> excludes) {
+        this.excludes = excludes;
     }
 
     @Override
@@ -38,20 +28,20 @@ public class MethodFilterConfig {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         MethodFilterConfig that = (MethodFilterConfig) o;
-        return Objects.equals(includeExprSet, that.includeExprSet) &&
-                Objects.equals(excludeExprSet, that.excludeExprSet);
+        return Objects.equals(includes, that.includes) &&
+                Objects.equals(excludes, that.excludes);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(includeExprSet, excludeExprSet);
+        return Objects.hash(includes, excludes);
     }
 
     @Override
     public String toString() {
         return "MethodFilterConfig{" +
-                "includeExprSet=" + includeExprSet +
-                ", excludeExprSet=" + excludeExprSet +
+                "includes=" + includes +
+                ", excludes=" + excludes +
                 '}';
     }
 }

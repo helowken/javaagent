@@ -22,19 +22,19 @@ abstract class AbstractRuleConfigHandler implements RuleConfigHandler {
         RuleValidateMgr.checkMethodValid(configItem);
 
         MethodFilterConfig methodFilterConfig = new MethodFilterConfig();
-        methodFilterConfig.setIncludeExprSet(Collections.singleton(targetMethod));
+        methodFilterConfig.setIncludes(Collections.singleton(targetMethod));
 
         ClassConfig classConfig = new ClassConfig();
         classConfig.setTargetClass(targetClass);
-        classConfig.setMethodFilterConfig(methodFilterConfig);
+        classConfig.setMethodFilter(methodFilterConfig);
 
         TransformerConfig transformerConfig = new TransformerConfig();
         transformerConfig.setRef(DynamicClassTransformer.REG_KEY);
         transformerConfig.setConfig(Collections.singletonMap(DynamicClassTransformer.KEY_CONFIG, configItem));
 
         TransformConfig transformConfig = new TransformConfig();
-        transformConfig.setTargetList(Collections.singletonList(classConfig));
-        transformConfig.setTransformerConfigList(Collections.singletonList(transformerConfig));
+        transformConfig.setTargets(Collections.singletonList(classConfig));
+        transformConfig.setTransformers(Collections.singletonList(transformerConfig));
 
         return transformConfig;
     }
@@ -42,7 +42,7 @@ abstract class AbstractRuleConfigHandler implements RuleConfigHandler {
     ModuleConfig newModuleConfig(String context) {
         ModuleConfig mc = new ModuleConfig();
         mc.setContextPath(context);
-        mc.setTransformConfigList(new ArrayList<>());
+        mc.setTransformConfigs(new ArrayList<>());
         return mc;
     }
 

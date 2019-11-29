@@ -2,7 +2,6 @@ package agent.server.utils.log.binary;
 
 import agent.base.utils.IOUtils;
 import agent.base.utils.LockObject;
-import agent.base.utils.Logger;
 import agent.common.buffer.ByteUtils;
 import agent.server.utils.log.AbstractLogWriter;
 
@@ -14,7 +13,6 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 
 public class BinaryLogWriter extends AbstractLogWriter<BinaryLogConfig, BinaryLogItem> {
-    private static final Logger logger = Logger.getLogger(BinaryLogItem.class);
     private static final int FLUSH_COUNT = 1000;
     private final LockObject writerLock = new LockObject();
     private volatile OutputStream out;

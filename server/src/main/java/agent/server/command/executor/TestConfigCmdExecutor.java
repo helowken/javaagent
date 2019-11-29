@@ -1,6 +1,7 @@
 package agent.server.command.executor;
 
 import agent.base.utils.MethodSignatureUtils;
+import agent.base.utils.TypeObject;
 import agent.common.message.command.Command;
 import agent.common.message.command.impl.ByFileCommand.TestConfigByFileCommand;
 import agent.common.message.command.impl.ByRuleCommand.TestConfigByRuleCommand;
@@ -12,7 +13,6 @@ import agent.server.transform.TransformMgr;
 import agent.server.transform.config.parser.ConfigItem;
 import agent.server.transform.config.parser.FileConfigParser;
 import agent.server.transform.config.parser.RuleConfigParser;
-import com.fasterxml.jackson.core.type.TypeReference;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -46,11 +46,12 @@ public class TestConfigCmdExecutor extends AbstractCmdExecutor {
             default:
                 throw new RuntimeException("Invalid cmd type: " + cmdType);
         }
-        return DefaultExecResult.toSuccess(cmd.getType(),
+        return DefaultExecResult.toSuccess(
+                cmd.getType(),
                 "Test config successfully.",
                 JSONUtils.convert(
                         testConfig(item),
-                        new TypeReference<Map<String, List<Map>>>() {
+                        new TypeObject<Map<String, List<Map>>>() {
                         }
                 )
         );

@@ -1,27 +1,84 @@
 package agent.common.utils;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import agent.base.utils.*;
 
-import java.io.IOException;
+import java.lang.reflect.Type;
 
 public class JSONUtils {
-    private static final ObjectMapper objectMapper = new ObjectMapper();
+    private static final String KEY_DELEGATE_LIB_DIR = "delegate.lib.dir";
+    private static final String DELEGATE_CLASS_NAME = "agent.delegate.JSONDelegate";
+    private static ClassLoader loader;
+    private static Class<?> delegateClass;
 
-    public static <T> T read(String content) throws IOException {
-        return read(content, new TypeReference<T>() {
-        });
+    public static <T> T read(String content) {
+        return Utils.wrapToRtError(
+                () -> ReflectionUtils.invokeStatic(
+                        getDelegateClass(),
+                        "read",
+                        new Class[]{String.class},
+                        content
+                )
+        );
     }
 
-    public static <T> T read(String content, TypeReference<T> typeReference) throws IOException {
-        return objectMapper.readValue(content, typeReference);
+    public static <T> T read(String content, TypeObject typeObject) {
+        return Utils.wrapToRtError(
+                () -> ReflectionUtils.invokeStatic(
+                        getDelegateClass(),
+                        "read",
+                        new Class[]{
+                                String.class,
+                                Type.class
+                        },
+                        content,
+                        typeObject.type
+                )
+        );
     }
 
-    public static <T> T convert(Object content, TypeReference<T> typeReference) {
-        return objectMapper.convertValue(content, typeReference);
+    public static <T> T convert(Object content, TypeObject typeObject) {
+        return Utils.wrapToRtError(
+                () -> ReflectionUtils.invokeStatic(
+                        getDelegateClass(),
+                        "convert",
+                        new Class[]{
+                                Object.class,
+                                Type.class
+                        },
+                        content,
+                        typeObject.type
+                )
+        );
     }
 
-    public static String writeAsString(Object o) throws IOException {
-        return objectMapper.writeValueAsString(o);
+    public static String writeAsString(Object o) {
+        return Utils.wrapToRtError(
+                () -> ReflectionUtils.invokeStatic(
+                        getDelegateClass(),
+                        "writeAsString",
+                        new Class[]{
+                                Object.class
+                        },
+                        o
+                )
+        );
+    }
+
+    private static synchronized ClassLoader getLoader() throws Exception {
+        if (loader == null)
+            loader = ClassLoaderUtils.newURLClassLoader(
+                    JSONUtils.class.getClassLoader(),
+                    FileUtils.splitPathStringToPathArray(
+                            SystemConfig.splitToSet(KEY_DELEGATE_LIB_DIR),
+                            SystemConfig.getBaseDir()
+                    )
+            );
+        return loader;
+    }
+
+    private static synchronized Class<?> getDelegateClass() throws Exception {
+        if (delegateClass == null)
+            delegateClass = getLoader().loadClass(DELEGATE_CLASS_NAME);
+        return delegateClass;
     }
 }

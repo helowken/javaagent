@@ -10,6 +10,7 @@ public class SystemConfig {
 
     private static Properties fileProps;
     private static Map<String, String> userDefineProps = new HashMap<>();
+    private static String baseDir;
 
     public static void load(Properties props) {
         fileProps = props;
@@ -41,5 +42,13 @@ public class SystemConfig {
 
     public static void set(String key, String value) {
         userDefineProps.put(key, value);
+    }
+
+    public static void setBaseDir(String dir) {
+        baseDir = dir;
+    }
+
+    public static String getBaseDir() {
+        return baseDir;
     }
 }

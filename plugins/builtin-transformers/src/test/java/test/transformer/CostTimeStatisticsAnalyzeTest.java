@@ -200,8 +200,9 @@ public class CostTimeStatisticsAnalyzeTest {
     }
 
     private static Map<String, Map<String, Map<String, Integer>>> readMetadata(String metadataPath) throws IOException {
-        String content = IOUtils.readToString(metadataPath);
-        return JSONUtils.read(content);
+        return JSONUtils.read(
+                IOUtils.readToString(metadataPath)
+        );
     }
 
 

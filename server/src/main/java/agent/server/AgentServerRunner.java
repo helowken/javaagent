@@ -61,7 +61,7 @@ public class AgentServerRunner implements Runner {
                 FileUtils.collectFiles(
                         FileUtils.splitPathStringToPathArray(
                                 SystemConfig.splitToSet(KEY_NATIVE_LIB_DIR),
-                                SystemConfig.get(HookConstants.KEY_CURR_DIR)
+                                SystemConfig.getBaseDir()
                         )
                 )
         );

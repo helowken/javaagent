@@ -1,14 +1,11 @@
 package agent.server.transform.config;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.util.List;
 import java.util.Objects;
 
 public class ModuleConfig {
     private String contextPath;
-    @JsonProperty("transformConfigs")
-    private List<TransformConfig> transformConfigList;
+    private List<TransformConfig> transformConfigs;
 
     public String getContextPath() {
         return contextPath;
@@ -18,12 +15,12 @@ public class ModuleConfig {
         this.contextPath = contextPath;
     }
 
-    public List<TransformConfig> getTransformConfigList() {
-        return transformConfigList;
+    public List<TransformConfig> getTransformConfigs() {
+        return transformConfigs;
     }
 
-    public void setTransformConfigList(List<TransformConfig> transformConfigList) {
-        this.transformConfigList = transformConfigList;
+    public void setTransformConfigs(List<TransformConfig> transformConfigs) {
+        this.transformConfigs = transformConfigs;
     }
 
     @Override
@@ -32,20 +29,20 @@ public class ModuleConfig {
         if (o == null || getClass() != o.getClass()) return false;
         ModuleConfig that = (ModuleConfig) o;
         return Objects.equals(contextPath, that.contextPath) &&
-                Objects.equals(transformConfigList, that.transformConfigList);
+                Objects.equals(transformConfigs, that.transformConfigs);
     }
 
     @Override
     public int hashCode() {
 
-        return Objects.hash(contextPath, transformConfigList);
+        return Objects.hash(contextPath, transformConfigs);
     }
 
     @Override
     public String toString() {
         return "ModuleConfig{" +
                 "contextPath='" + contextPath + '\'' +
-                ", transformConfigList=" + transformConfigList +
+                ", transformConfigs=" + transformConfigs +
                 '}';
     }
 }

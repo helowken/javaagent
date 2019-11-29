@@ -46,7 +46,7 @@ public class TreeRuleConfigHandler extends AbstractRuleConfigHandler {
                 treeRule,
                 treeRule.getMaxLevel()
         );
-        moduleConfig.getTransformConfigList()
+        moduleConfig.getTransformConfigs()
                 .add(
                         newTransformConfig(
                                 treeRule.getTargetMethod(),

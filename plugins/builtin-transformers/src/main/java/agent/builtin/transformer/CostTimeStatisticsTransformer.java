@@ -1,20 +1,20 @@
 package agent.builtin.transformer;
 
 import agent.base.utils.MethodSignatureUtils;
+import agent.base.utils.TypeObject;
 import agent.builtin.transformer.utils.CostTimeLogger;
 import agent.builtin.transformer.utils.LogUtils;
 import agent.common.utils.JSONUtils;
+import agent.server.transform.MethodFinder;
+import agent.server.transform.MethodFinder.MethodSearchResult;
 import agent.server.transform.TransformMgr;
 import agent.server.transform.config.ClassConfig;
 import agent.server.transform.impl.AbstractConfigTransformer;
 import agent.server.transform.impl.TargetClassConfig;
 import agent.server.transform.impl.TransformerInfo;
-import agent.server.transform.MethodFinder;
-import agent.server.transform.MethodFinder.MethodSearchResult;
 import agent.server.utils.ParamValueUtils;
 import agent.server.utils.log.LogConfig;
 import agent.server.utils.log.LogMgr;
-import com.fasterxml.jackson.core.type.TypeReference;
 import javassist.CtMethod;
 
 import java.lang.reflect.Method;
@@ -40,8 +40,11 @@ public class CostTimeStatisticsTransformer extends AbstractConfigTransformer {
         ).orElseThrow(
                 () -> new RuntimeException("No entry point found in config.")
         );
-        List<ClassConfig> classConfigList = JSONUtils.convert(entryPointConfig, new TypeReference<List<ClassConfig>>() {
-        });
+        List<ClassConfig> classConfigList = JSONUtils.convert(
+                entryPointConfig,
+                new TypeObject<List<ClassConfig>>() {
+                }
+        );
         TransformerInfo transformerInfo = getTransformerInfo();
         List<TargetClassConfig> targetClassConfigList = TransformMgr.getInstance().convert(
                 transformerInfo.getContext(),

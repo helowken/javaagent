@@ -50,7 +50,7 @@ public class AnnotationRuleConfigHandler extends AbstractRuleConfigHandler {
                 );
 
                 contextToModuleConfig.computeIfAbsent(context, this::newModuleConfig)
-                        .getTransformConfigList()
+                        .getTransformConfigs()
                         .add(
                                 newTransformConfig(targetMethod, targetClass, configItem)
                         );

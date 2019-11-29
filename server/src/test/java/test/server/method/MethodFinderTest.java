@@ -27,7 +27,7 @@ public class MethodFinderTest {
     private MethodSearchResult search(Class<?> clazz) {
         ClassConfig cc = new ClassConfig();
         cc.setTargetClass(Impl.class.getName());
-        cc.setMethodFilterConfig(new MethodFilterConfig());
+        cc.setMethodFilter(new MethodFilterConfig());
         TargetClassConfig tcc = new TargetClassConfig(clazz, cc);
         return MethodFinder.getInstance().find(tcc);
     }

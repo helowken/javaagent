@@ -18,6 +18,7 @@ public abstract class AbstractLauncher {
 
     private void initBaseDir(String configFilePath) {
         baseDir = new File(configFilePath).getParentFile().getParent();
+        SystemConfig.setBaseDir(baseDir);
     }
 
     protected void loadLibs(String[] libPaths) throws Exception {
@@ -34,20 +35,16 @@ public abstract class AbstractLauncher {
         loadLibs(
                 FileUtils.splitPathStringToPathArray(
                         SystemConfig.splitToSet(KEY_LIB_DIR),
-                        getBaseDir()
+                        baseDir
                 )
         );
-    }
-
-    protected static synchronized String getBaseDir() {
-        return baseDir;
     }
 
     private void initLog(String outputPath, String level) {
         if (outputPath != null) {
             String path = outputPath.startsWith("/") ?
                     outputPath :
-                    new File(getBaseDir(), outputPath).getAbsolutePath();
+                    new File(baseDir, outputPath).getAbsolutePath();
 //            logger.info("Log path: {}", path);
             Logger.setOutputFile(path);
         } else

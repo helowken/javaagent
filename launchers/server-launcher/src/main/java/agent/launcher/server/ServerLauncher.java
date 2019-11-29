@@ -32,7 +32,6 @@ public class ServerLauncher extends AbstractLauncher {
             throw new IllegalArgumentException("Agent arguments can not be empty.");
         instance.init(agentArgs);
         SystemConfig.set(HookConstants.KEY_ATTACH_TYPE, attachType.name());
-        SystemConfig.set(HookConstants.KEY_CURR_DIR, getBaseDir());
         instance.startRunner(RUNNER_TYPE, instrumentation);
     }
 

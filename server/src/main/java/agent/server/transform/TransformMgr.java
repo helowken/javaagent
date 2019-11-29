@@ -61,7 +61,7 @@ public class TransformMgr {
                     List<AgentTransformer> transformerList = new ArrayList<>();
                     configToInfo.forEach((transformConfig, transformerInfo) -> {
                         classSet.addAll(transformerInfo.getTargetClassSet());
-                        for (TransformerConfig transformerConfig : transformConfig.getTransformerConfigList()) {
+                        for (TransformerConfig transformerConfig : transformConfig.getTransformers()) {
                             ConfigTransformer transformer = newTransformer(transformerConfig);
                             transformer.setTransformerInfo(transformerInfo);
                             transformer.setConfig(transformerConfig.getConfig());
@@ -119,11 +119,11 @@ public class TransformMgr {
         Map<ModuleConfig, Map<TransformConfig, TransformerInfo>> rsMap = new HashMap<>();
         for (ModuleConfig moduleConfig : ConfigParseFactory.parse(item)) {
             Map<TransformConfig, TransformerInfo> configToInfo = new HashMap<>();
-            for (TransformConfig transformConfig : moduleConfig.getTransformConfigList()) {
+            for (TransformConfig transformConfig : moduleConfig.getTransformConfigs()) {
                 String context = moduleConfig.getContextPath();
                 configToInfo.put(transformConfig,
                         new TransformerInfo(context,
-                                convert(context, transformConfig.getTargetList())
+                                convert(context, transformConfig.getTargets())
                         )
                 );
             }

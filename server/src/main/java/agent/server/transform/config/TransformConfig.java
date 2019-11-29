@@ -1,20 +1,12 @@
 package agent.server.transform.config;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.util.List;
 import java.util.Objects;
 
-import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
-
 public class TransformConfig {
-    @JsonInclude(NON_NULL)
     private String desc;
-    @JsonProperty("transformers")
-    private List<TransformerConfig> transformerConfigList;
-    @JsonProperty("targets")
-    private List<ClassConfig> targetList;
+    private List<TransformerConfig> transformers;
+    private List<ClassConfig> targets;
 
     public String getDesc() {
         return desc;
@@ -24,20 +16,20 @@ public class TransformConfig {
         this.desc = desc;
     }
 
-    public List<TransformerConfig> getTransformerConfigList() {
-        return transformerConfigList;
+    public List<TransformerConfig> getTransformers() {
+        return transformers;
     }
 
-    public void setTransformerConfigList(List<TransformerConfig> transformerConfigList) {
-        this.transformerConfigList = transformerConfigList;
+    public void setTransformers(List<TransformerConfig> transformers) {
+        this.transformers = transformers;
     }
 
-    public List<ClassConfig> getTargetList() {
-        return targetList;
+    public List<ClassConfig> getTargets() {
+        return targets;
     }
 
-    public void setTargetList(List<ClassConfig> targetList) {
-        this.targetList = targetList;
+    public void setTargets(List<ClassConfig> targets) {
+        this.targets = targets;
     }
 
     @Override
@@ -45,21 +37,21 @@ public class TransformConfig {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         TransformConfig that = (TransformConfig) o;
-        return Objects.equals(transformerConfigList, that.transformerConfigList) &&
-                Objects.equals(targetList, that.targetList);
+        return Objects.equals(transformers, that.transformers) &&
+                Objects.equals(targets, that.targets);
     }
 
     @Override
     public int hashCode() {
 
-        return Objects.hash(transformerConfigList, targetList);
+        return Objects.hash(transformers, targets);
     }
 
     @Override
     public String toString() {
         return "TransformConfig{" +
-                "transformerConfigList=" + transformerConfigList +
-                ", targetList=" + targetList +
+                "transformers=" + transformers +
+                ", targets=" + targets +
                 '}';
     }
 }

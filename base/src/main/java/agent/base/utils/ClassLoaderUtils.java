@@ -46,7 +46,7 @@ public class ClassLoaderUtils {
 
     public static ClassLoader initContextClassLoader(String... libPaths) throws Exception {
         ClassLoader parentLoader = Thread.currentThread().getContextClassLoader();
-        ClassLoader loader = newClassLoader(parentLoader, libPaths);
+        ClassLoader loader = newURLClassLoader(parentLoader, libPaths);
         Thread.currentThread().setContextClassLoader(loader);
         return loader;
     }
@@ -85,7 +85,7 @@ public class ClassLoaderUtils {
         return null;
     }
 
-    private static ClassLoader newClassLoader(ClassLoader parentLoader, String... libPaths) throws Exception {
+    public static ClassLoader newURLClassLoader(ClassLoader parentLoader, String... libPaths) throws Exception {
         logger.debug("Parent class loader: {}", parentLoader);
         return new URLClassLoader(
                 findLibUrls(libPaths).toArray(new URL[0]),

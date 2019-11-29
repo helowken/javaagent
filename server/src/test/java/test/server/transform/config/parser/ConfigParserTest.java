@@ -44,7 +44,7 @@ public class ConfigParserTest {
 
         TransformConfig transformConfig = new TransformConfig();
         transformConfig.setDesc("Used to measure time cost.");
-        moduleConfig.setTransformConfigList(Collections.singletonList(transformConfig));
+        moduleConfig.setTransformConfigs(Collections.singletonList(transformConfig));
 
         TransformerConfig transformerConfig = new TransformerConfig();
         transformerConfig.setRef("timeMeasure");
@@ -52,14 +52,14 @@ public class ConfigParserTest {
         config.put("outputFile", "/tmp/111/222");
         config.put("outputFormat", "Cost time: $costTime$");
         transformerConfig.setConfig(config);
-        transformConfig.setTransformerConfigList(Collections.singletonList(transformerConfig));
+        transformConfig.setTransformers(Collections.singletonList(transformerConfig));
 
         ClassConfig classConfig = new ClassConfig();
         classConfig.setTargetClass("test.jetty.TestObject");
         MethodFilterConfig methodConfig = new MethodFilterConfig();
-        methodConfig.setIncludeExprSet(Collections.singleton("test"));
-        classConfig.setMethodFilterConfig(methodConfig);
-        transformConfig.setTargetList(Collections.singletonList(classConfig));
+        methodConfig.setIncludes(Collections.singleton("test"));
+        classConfig.setMethodFilter(methodConfig);
+        transformConfig.setTargets(Collections.singletonList(classConfig));
 
         return moduleConfigList;
     }
