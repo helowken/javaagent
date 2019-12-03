@@ -5,10 +5,12 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Type;
 
 public class JSONDelegate {
     private static final ObjectMapper objectMapper = new ObjectMapper();
+
     static {
         objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
     }
@@ -24,6 +26,13 @@ public class JSONDelegate {
     public static <T> T read(String content, Type type) throws IOException {
         return objectMapper.readValue(
                 content,
+                newTypeReference(type)
+        );
+    }
+
+    public static <T> T read(InputStream inputStream, Type type) throws IOException {
+        return objectMapper.readValue(
+                inputStream,
                 newTypeReference(type)
         );
     }

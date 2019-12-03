@@ -2,6 +2,7 @@ package agent.server.transform;
 
 import agent.base.utils.LockObject;
 import agent.base.utils.Logger;
+import agent.server.ServerListener;
 import agent.server.event.AgentEvent;
 import agent.server.event.AgentEventListener;
 import agent.server.event.EventListenerMgr;
@@ -16,15 +17,11 @@ import java.util.stream.Collectors;
 import static agent.server.transform.TransformContext.ACTION_MODIFY;
 import static agent.server.transform.TransformContext.ACTION_RESET;
 
-public class ResetClassMgr implements AgentEventListener {
+public class ResetClassMgr implements ServerListener, AgentEventListener {
     private static final Logger logger = Logger.getLogger(ResetClassMgr.class);
     private static final LockObject classLock = new LockObject();
     private static ResetClassMgr instance = new ResetClassMgr();
     private Map<String, Set<Class<?>>> contextToTransformedClassSet = new HashMap<>();
-
-    public static void init() {
-        EventListenerMgr.reg(TransformClassEvent.class, instance);
-    }
 
     public static ResetClassMgr getInstance() {
         return instance;
@@ -141,4 +138,13 @@ public class ResetClassMgr implements AgentEventListener {
         });
     }
 
+    @Override
+    public void onStartup(Object[] args) {
+        EventListenerMgr.reg(TransformClassEvent.class, instance);
+    }
+
+    @Override
+    public void onShutdown() {
+        resetAllClasses();
+    }
 }

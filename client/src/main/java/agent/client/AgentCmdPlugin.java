@@ -5,13 +5,13 @@ import agent.base.plugin.DefaultPluginInfo;
 import agent.base.plugin.PluginInfo;
 import agent.base.runner.Runner;
 
-public class AgentShellPlugin extends AbstractPlugin {
-    public AgentShellPlugin() {
-        reg(Runner.class, new AgentShellRunner());
+public class AgentCmdPlugin extends AbstractPlugin {
+    public AgentCmdPlugin() {
+        reg(Runner.class, new AgentCmdRunner());
     }
 
     @Override
     protected PluginInfo newPluginInfo() {
-        return new DefaultPluginInfo(Runner.TYPE, "shellRunner");
+        return new DefaultPluginInfo(Runner.TYPE, "cmdRunner");
     }
 }

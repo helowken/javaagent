@@ -6,6 +6,7 @@ import agent.base.utils.ReflectionUtils;
 import agent.base.utils.Utils;
 import agent.hook.plugin.ClassFinder;
 import agent.hook.utils.AppTypePluginFilter;
+import agent.server.ServerListener;
 import agent.server.event.EventListenerMgr;
 import agent.server.event.impl.TransformClassEvent;
 import agent.server.transform.MethodFinder.MethodSearchResult;
@@ -27,22 +28,25 @@ import java.util.stream.Collectors;
 
 import static agent.server.transform.TransformContext.ACTION_MODIFY;
 
-public class TransformMgr {
+public class TransformMgr implements ServerListener {
     private static final Logger logger = Logger.getLogger(TransformMgr.class);
-    private static TransformMgr instance;
-    private final Instrumentation instrumentation;
+    private static TransformMgr instance = new TransformMgr();
+    private Instrumentation instrumentation;
 
     public static TransformMgr getInstance() {
         return instance;
     }
 
-    private TransformMgr(Instrumentation instrumentation) {
-        this.instrumentation = instrumentation;
+    private TransformMgr() {
     }
 
-    public static synchronized void init(Instrumentation instrumentation) {
-        if (instance == null)
-            instance = new TransformMgr(instrumentation);
+    @Override
+    public void onStartup(Object[] args) {
+        this.instrumentation = Utils.getArgValue(args, 0);
+    }
+
+    @Override
+    public void onShutdown() {
     }
 
     public Class<?>[] getInitiatedClasses(ClassLoader classLoader) {

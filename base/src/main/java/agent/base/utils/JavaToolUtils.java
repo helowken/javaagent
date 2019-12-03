@@ -11,7 +11,7 @@ import static agent.base.utils.ProcessUtils.ProcessExecResult;
 import static agent.base.utils.ProcessUtils.exec;
 
 public class JavaToolUtils {
-    private static final Logger logger = Logger.getLogger(ProcessUtils.class);
+    private static final Logger logger = Logger.getLogger(JavaToolUtils.class);
     private static final String JAR_SUFFIX = ".jar";
     private static final String CLASS_SUFFIX = ".class";
     private static final int CLASS_SUFFIX_LEN = CLASS_SUFFIX.length();

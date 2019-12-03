@@ -1,0 +1,21 @@
+{
+  "listeners": [
+    {
+      "factoryClass": "agent.server.transform.TransformMgr",
+      "factoryMethod": "getInstance"
+    },
+    {
+      "factoryClass": "agent.server.transform.ResetClassMgr",
+      "factoryMethod": "getInstance"
+    },
+    {
+      "listenerClass": "agent.server.listener.LoadNativeLibListener"
+    },
+    {
+      "listenerClass": "agent.server.listener.HookAppListener"
+    },
+    {
+      "listenerClass": "agent.server.listener.StartupScriptListener"
+    }
+  ]
+}

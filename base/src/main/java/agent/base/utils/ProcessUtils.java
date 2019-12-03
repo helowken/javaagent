@@ -2,6 +2,7 @@ package agent.base.utils;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -13,28 +14,34 @@ public class ProcessUtils {
     private static final Logger logger = Logger.getLogger(ProcessUtils.class);
     private static final long DEFAULT_JOIN_DURATION_MS = 5000;
 
+    public static String[] splitCmd(String cmd) {
+        return Stream.of(cmd.split(" "))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .toArray(String[]::new);
+    }
+
     public static ProcessExecResult exec(String cmd) throws Exception {
         return exec(
-                Stream.of(cmd.split(" "))
-                        .map(String::trim)
-                        .filter(s -> !s.isEmpty())
-                        .toArray(String[]::new)
+                new ProcConfig(
+                        splitCmd(cmd)
+                )
         );
     }
 
-    public static ProcessExecResult exec(String[] cmd) throws Exception {
+    public static ProcessExecResult exec(ProcConfig procConfig) throws Exception {
         BufferedInputConsumer inputConsumer = new BufferedInputConsumer();
         BufferedInputConsumer errorConsumer = new BufferedInputConsumer();
-        int exitValue = exec(cmd, inputConsumer, errorConsumer);
+        int exitValue = exec(procConfig, inputConsumer, errorConsumer);
         return new ProcessExecResult(inputConsumer.getContent(), errorConsumer.getContent(), exitValue);
     }
 
-    public static int exec(String[] cmd, InputConsumer inputConsumer, InputConsumer errorConsumer) throws Exception {
-        return exec(cmd, inputConsumer, errorConsumer, DEFAULT_JOIN_DURATION_MS, TimeUnit.MILLISECONDS);
+    public static int exec(ProcConfig procConfig, InputConsumer inputConsumer, InputConsumer errorConsumer) throws Exception {
+        return exec(procConfig, inputConsumer, errorConsumer, DEFAULT_JOIN_DURATION_MS, TimeUnit.MILLISECONDS);
     }
 
-    public static int exec(String[] cmd, InputConsumer inputConsumer, InputConsumer errorConsumer, long joinDuration, TimeUnit timeUnit) throws Exception {
-        Process proc = Runtime.getRuntime().exec(cmd);
+    public static int exec(ProcConfig procConfig, InputConsumer inputConsumer, InputConsumer errorConsumer, long joinDuration, TimeUnit timeUnit) throws Exception {
+        Process proc = Runtime.getRuntime().exec(procConfig.cmd, procConfig.envp, procConfig.dir);
         Thread inputThread = createAndStart(proc.getInputStream(), inputConsumer);
         Thread errorThread = createAndStart(proc.getErrorStream(), errorConsumer);
         int exitValue = proc.waitFor();
@@ -155,6 +162,26 @@ public class ProcessUtils {
                         errorString = new String(input);
                 });
             return errorString;
+        }
+    }
+
+    public static class ProcConfig {
+        private final String[] cmd;
+        private final String[] envp;
+        private final File dir;
+
+        public ProcConfig(String[] cmd) {
+            this(cmd, null);
+        }
+
+        public ProcConfig(String[] cmd, String[] envp) {
+            this(cmd, envp, null);
+        }
+
+        public ProcConfig(String[] cmd, String[] envp, File dir) {
+            this.cmd = cmd;
+            this.envp = envp;
+            this.dir = dir;
         }
     }
 }

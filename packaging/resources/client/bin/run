@@ -22,7 +22,7 @@ then
         echo Usage: $0 -s command [arguments]
         exit 1
     else
-        main_class=ShellLauncher
+        main_class=CmdLauncher
         shift
     fi
 else

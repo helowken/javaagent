@@ -8,7 +8,6 @@ import agent.server.transform.TransformMgr;
 import org.junit.After;
 import org.junit.BeforeClass;
 import test.server.utils.TestClassFinder;
-import test.server.utils.TestClassLoader;
 import test.server.utils.TestInstrumentation;
 
 import java.util.Properties;
@@ -34,7 +33,7 @@ public abstract class AbstractServerTest {
             App.instance = new Object();
             SystemConfig.load(new Properties());
             PluginFactory.setMock(ClassFinder.class, classFinder);
-            TransformMgr.getInstance().init(instrumentation);
+            TransformMgr.getInstance().onStartup(new Object[]{instrumentation});
             inited = true;
         }
     }

@@ -2,6 +2,7 @@ package agent.common.utils;
 
 import agent.base.utils.*;
 
+import java.io.InputStream;
 import java.lang.reflect.Type;
 
 public class JSONUtils {
@@ -17,6 +18,21 @@ public class JSONUtils {
                         "read",
                         new Class[]{String.class},
                         content
+                )
+        );
+    }
+
+    public static <T> T read(InputStream inputStream, TypeObject typeObject) {
+        return Utils.wrapToRtError(
+                () -> ReflectionUtils.invokeStatic(
+                        getDelegateClass(),
+                        "read",
+                        new Class[]{
+                                InputStream.class,
+                                Type.class
+                        },
+                        inputStream,
+                        typeObject.type
                 )
         );
     }

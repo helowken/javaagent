@@ -5,9 +5,9 @@ import agent.launcher.basic.AbstractLauncher;
 
 import java.util.Arrays;
 
-public class ShellLauncher extends AbstractLauncher {
-    private static final String RUNNER_TYPE = "shellRunner";
-    private static final ShellLauncher instance = new ShellLauncher();
+public class CmdLauncher extends AbstractLauncher {
+    private static final String RUNNER_TYPE = "cmdRunner";
+    private static final CmdLauncher instance = new CmdLauncher();
 
     public static void main(String[] args) throws Exception {
         if (args.length < 2) {

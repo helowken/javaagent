@@ -2,7 +2,7 @@ package agent.client;
 
 import agent.base.utils.Utils;
 
-public class AgentShellRunner extends AbstractClientRunner {
+public class AgentCmdRunner extends AbstractClientRunner {
     private String cmdLine;
 
     @Override
