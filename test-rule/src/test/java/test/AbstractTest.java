@@ -3,6 +3,7 @@ package test;
 import agent.base.plugin.PluginFactory;
 import agent.hook.plugin.ClassFinder;
 import agent.hook.utils.App;
+import agent.server.transform.ContextClassLoaderMgr;
 import agent.server.transform.TransformMgr;
 import org.junit.After;
 import org.junit.BeforeClass;
@@ -27,12 +28,12 @@ public class AbstractTest {
         PluginFactory.setMock(ClassFinder.class, classFinder);
 
         URL url = clazz.getProtectionDomain().getCodeSource().getLocation();
-        TransformMgr.getInstance().addClasspath(
+        ContextClassLoaderMgr.getInstance().addClasspath(
                 context,
                 url
         );
 
-        TransformMgr.getInstance().init(instrumentation);
+        TransformMgr.getInstance().onStartup(new Object[]{instrumentation});
     }
 
     @BeforeClass

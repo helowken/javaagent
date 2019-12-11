@@ -1,6 +1,7 @@
 package agent.base.utils;
 
 import java.io.*;
+import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -191,6 +192,12 @@ public class Utils {
 
     public static String firstNotBlank(String errMsg, String... vs) {
         return firstValidValue(errMsg, Utils::isNotBlank, vs);
+    }
+
+    public static Throwable getMeaningfulCause(Throwable t) {
+        if (t instanceof InvocationTargetException && t.getCause() != null)
+            return getMeaningfulCause(t.getCause());
+        return t;
     }
 
     public interface WithValueFunc<T> {

@@ -16,7 +16,7 @@ public class ServerTestUtils {
     private static final JvmtiUtils jvmtiUtils = JvmtiUtils.getInstance();
 
     static {
-        jvmtiUtils.load(System.getProperty("user.dir") + "/../packaging/resources/server/native/libagent_jvmti_JvmtiUtils.so");
+        jvmtiUtils.load(System.getProperty("user.dir") + "/../packaging/resources/server/lib/native/libagent_jvmti_JvmtiUtils.so");
     }
 
     public static void initSystemConfig() throws Exception {

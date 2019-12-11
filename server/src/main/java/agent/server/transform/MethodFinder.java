@@ -11,7 +11,6 @@ import agent.server.transform.impl.TargetClassConfig;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.*;
-import java.util.function.Consumer;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -49,15 +48,6 @@ public class MethodFinder {
         rsList.forEach(method -> logger.debug(MethodSignatureUtils.getLongName(method)));
         logger.debug("===============");
         return new MethodSearchResult(clazz, rsList);
-    }
-
-    public void consume(TargetClassConfig targetClassConfig, Consumer<MethodSearchResult> resultConsumer) {
-        Utils.wrapToRtError(
-                () -> resultConsumer.accept(
-                        find(targetClassConfig)
-                ),
-                () -> "Find method list failed."
-        );
     }
 
     private Collection<Method> findByMethodFilter(MethodFilterConfig methodFilterConfig, Class<?> clazz) {
