@@ -1,42 +1,34 @@
 package agent.server.transform.impl;
 
+import agent.base.utils.ReflectionUtils;
 import agent.server.transform.AgentTransformer;
-import agent.server.transform.TransformContext;
-import agent.server.transform.cp.AgentClassPool;
+import agent.server.transform.tools.asm.ProxyRegInfo;
 
+import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
+import java.util.List;
 
 public abstract class AbstractTransformer implements AgentTransformer {
-    private Collection<Class<?>> transformedClasses = new HashSet<>();
-    private TransformContext transformContext;
+    private Collection<ProxyRegInfo> proxyRegInfos = new ArrayList<>();
 
     @Override
-    public Collection<Class<?>> getTransformedClasses() {
-        return transformedClasses;
+    public Collection<ProxyRegInfo> getProxyRegInfos() {
+        return proxyRegInfos;
     }
 
-    protected void addTransformedClass(Class<?> clazz) {
-        transformedClasses.add(clazz);
+    protected void addRegInfo(ProxyRegInfo regInfo) {
+        proxyRegInfos.add(regInfo);
     }
 
-    protected TransformContext getTransformContext() {
-        return transformContext;
+    protected void addRegInfos(List<ProxyRegInfo> regInfos) {
+        proxyRegInfos.addAll(regInfos);
     }
 
-    protected AgentClassPool getClassPool() {
-        if (transformContext == null)
-            throw new RuntimeException("No transform context found.");
-        return transformContext.getClassPool();
+    protected Method findSelfMethod(String methodName) throws Exception {
+        return ReflectionUtils.findFirstMethod(
+                this.getClass(),
+                methodName
+        );
     }
-
-    @Override
-    public void transform(TransformContext transformContext, Class<?> clazz) throws Exception {
-        this.transformContext = transformContext;
-        doTransform(clazz);
-        addTransformedClass(clazz);
-    }
-
-    protected abstract void doTransform(Class<?> clazz) throws Exception;
-
 }

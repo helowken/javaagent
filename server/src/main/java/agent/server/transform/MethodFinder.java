@@ -1,7 +1,7 @@
 package agent.server.transform;
 
 import agent.base.utils.Logger;
-import agent.base.utils.MethodSignatureUtils;
+import agent.base.utils.MethodDescriptorUtils;
 import agent.base.utils.ReflectionUtils;
 import agent.base.utils.Utils;
 import agent.server.transform.config.ClassConfig;
@@ -45,7 +45,7 @@ public class MethodFinder {
         logger.debug("===============");
         logger.debug("Method filter config: {}", methodFilterConfig);
         logger.debug("Matched methods:");
-        rsList.forEach(method -> logger.debug(MethodSignatureUtils.getLongName(method)));
+        rsList.forEach(method -> logger.debug(MethodDescriptorUtils.getLongName(method)));
         logger.debug("===============");
         return new MethodSearchResult(clazz, rsList);
     }
@@ -122,7 +122,7 @@ public class MethodFinder {
             if (isMethodMeaningful(method.getModifiers()))
                 candidateList.add(method);
             else
-                logger.debug("Method is meaningless, skip it: {}", MethodSignatureUtils.getLongName(method));
+                logger.debug("Method is meaningless, skip it: {}", MethodDescriptorUtils.getLongName(method));
         }
     }
 

@@ -2,7 +2,7 @@ package agent.server.transform.impl.dynamic;
 
 import agent.base.plugin.PluginFactory;
 import agent.base.utils.Logger;
-import agent.base.utils.MethodSignatureUtils;
+import agent.base.utils.MethodDescriptorUtils;
 import agent.base.utils.ReflectionUtils;
 import agent.base.utils.Utils;
 import agent.hook.plugin.ClassFinder;
@@ -52,6 +52,9 @@ public class DynamicClassTransformer extends AbstractConfigTransformer {
             throw new RuntimeException("No config item found.");
         key = Utils.sUuid();
         maxLevel = Math.min(Math.max(item.maxLevel, 10), defaultMaxLevel);
+    }
+    protected AgentClassPool getClassPool() {
+        return null;
     }
 
     @Override
@@ -141,9 +144,9 @@ public class DynamicClassTransformer extends AbstractConfigTransformer {
                     ctMethod.insertAfter(newCode("", "invokeWrapAfter"));
                     break;
             }
-            addTransformedClass(
-                    getClassFinder().findClass(item.context, methodInfo.className)
-            );
+//            addTransformedClass(
+//                    getClassFinder().findClass(item.context, methodInfo.className)
+//            );
         });
     }
 
@@ -403,7 +406,7 @@ public class DynamicClassTransformer extends AbstractConfigTransformer {
                                                         method.getDeclaringClass().getName()
                                                 ),
                                                 method.getName(),
-                                                MethodSignatureUtils.getSignature(method)
+                                                MethodDescriptorUtils.getDescriptor(method)
                                         )
                                 ).orElseThrow(
                                         () -> new RuntimeException("No ct method found for method: " + method)

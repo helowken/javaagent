@@ -48,15 +48,16 @@ public class SaveClassDataTransformer extends AbstractConfigTransformer {
     }
 
     @Override
-    public void transform(TransformContext transformContext, Class<?> clazz) throws Exception {
-        Set<Class<?>> classSet = getClassSet(transformContext.context, clazz);
-        classSet.forEach(
-                savingClass -> ClassDataStore.save(
-                        savingClass,
-                        ClassDataRepository.getInstance().getClassData(savingClass),
-                        currClass -> new File(
-                                outputPath,
-                                ClassDataStore.getFileName(currClass) + FILE_SUFFIX
+    public void transform(TransformContext transformContext) throws Exception {
+        transformContext.getTargetClassSet().forEach(
+                clazz -> getClassSet(transformContext.context, clazz).forEach(
+                        savingClass -> ClassDataStore.save(
+                                savingClass,
+                                ClassDataRepository.getInstance().getClassData(savingClass),
+                                currClass -> new File(
+                                        outputPath,
+                                        ClassDataStore.getFileName(currClass) + FILE_SUFFIX
+                                )
                         )
                 )
         );

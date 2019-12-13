@@ -17,7 +17,7 @@ class AsmMethod {
     private final MethodNode methodNode;
     private final InsnList insnList;
 
-    private AsmMethod(MethodNode methodNode) {
+    AsmMethod(MethodNode methodNode) {
         this.methodNode = methodNode;
         insnList = methodNode.instructions;
     }
@@ -37,6 +37,11 @@ class AsmMethod {
     }
 
     AsmMethod add(Object... ns) {
+        addTo(insnList, ns);
+        return this;
+    }
+
+    static void addTo(InsnList insnList, Object... ns) {
         if (ns != null) {
             for (Object n : ns) {
                 if (n instanceof InsnList)
@@ -44,14 +49,13 @@ class AsmMethod {
                 else if (n instanceof AbstractInsnNode)
                     insnList.add((AbstractInsnNode) n);
                 else if (n instanceof Object[])
-                    add((Object[]) n);
+                    addTo(insnList, (Object[]) n);
                 else if (n instanceof Collection)
-                    add(((Collection) n).toArray());
+                    addTo(insnList, ((Collection) n).toArray());
                 else
                     throw new IllegalArgumentException("Invalid argument: " + n);
             }
         }
-        return this;
     }
 
     static AsmMethod copyFrom(MethodNode methodNode) {

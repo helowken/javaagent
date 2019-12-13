@@ -33,10 +33,15 @@ abstract class AbstractTransformResultHandler extends AbstractContextResultHandl
                                     for (ErrorEntity errorEntity : errorEntityList) {
                                         if (count > 0)
                                             sb.append(INDENT_2).append("--------------------------------\n");
-                                        sb.append(INDENT_2).append("Class: ").append(errorEntity.getClassName()).append("\n");
+
+                                        String targetClassName = errorEntity.getClassName();
+                                        if (Utils.isNotBlank(targetClassName))
+                                            sb.append(INDENT_2).append("Class: ").append(targetClassName).append("\n");
+
                                         String transformerKey = errorEntity.getTransformerKey();
                                         if (Utils.isNotBlank(transformerKey))
                                             sb.append(INDENT_2).append("Transformer: ").append(transformerKey).append("\n");
+
                                         sb.append(INDENT_2).append("Error: ").append(errorEntity.getErrMsg());
                                         ++count;
                                     }

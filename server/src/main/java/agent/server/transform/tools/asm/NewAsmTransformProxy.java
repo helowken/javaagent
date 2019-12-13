@@ -2,82 +2,121 @@ package agent.server.transform.tools.asm;
 
 import agent.base.utils.ReflectionUtils;
 import agent.base.utils.Utils;
-import org.objectweb.asm.Type;
-import org.objectweb.asm.tree.ClassNode;
-import org.objectweb.asm.tree.LocalVariableNode;
-import org.objectweb.asm.tree.MethodNode;
+import org.objectweb.asm.tree.*;
 
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static agent.server.transform.tools.asm.AsmMethod.*;
+import static org.objectweb.asm.Opcodes.RETURN;
 
 class NewAsmTransformProxy {
-    private static final String METHOD_NAME_SUFFIX = "_@_";
     private static final AtomicLong nameIdGenerator = new AtomicLong(0);
 
-    static byte[] transform(byte[] classData, Map<Integer, Method> idToMethod) {
+    static byte[] transform(byte[] classData, Map<Integer, DestInvoke> idToInvoke) {
         return AsmUtils.transform(
                 classData,
-                classNode -> doTransform(classNode, idToMethod)
+                classNode -> doTransform(classNode, idToInvoke)
         );
     }
 
-    private static void doTransform(ClassNode classNode, Map<Integer, Method> idToMethod) {
-        Map<String, Map<String, Integer>> methodNameToDescToId = newMethodNameToDescToId(idToMethod);
+    private static void doTransform(ClassNode classNode, Map<Integer, DestInvoke> idToInvoke) {
+        Map<String, Map<String, Integer>> nameToDescToId = getNameToDescToId(idToInvoke);
         List<MethodNode> methodNodes = new ArrayList<>(classNode.methods);
-        Set<String> methodNames = new HashSet<>();
+        Set<String> invokeNames = new HashSet<>();
         methodNodes.forEach(
-                methodNode -> methodNames.add(methodNode.name)
+                methodNode -> invokeNames.add(methodNode.name)
         );
         for (MethodNode methodNode : methodNodes) {
-            Integer id = findMethodId(methodNode, methodNameToDescToId);
-            if (id != null)
-                transformMethod(classNode, methodNode, id, methodNames);
+            Integer id = findInvokeId(methodNode, nameToDescToId);
+            if (id != null) {
+                DestInvoke destInvoke = Optional.ofNullable(
+                        idToInvoke.get(id)
+                ).orElseThrow(
+                        () -> new RuntimeException("No dest invoke found by id: " + id)
+                );
+                transformInvoke(classNode, methodNode, id, destInvoke, invokeNames);
+            }
         }
     }
 
-    private static Map<String, Map<String, Integer>> newMethodNameToDescToId(Map<Integer, Method> idToMethod) {
-        Map<String, Map<String, Integer>> methodNameToDescToId = new HashMap<>();
-        idToMethod.forEach(
-                (id, method) -> methodNameToDescToId.computeIfAbsent(
-                        method.getName(),
+    private static Map<String, Map<String, Integer>> getNameToDescToId(Map<Integer, DestInvoke> idToInvoke) {
+        Map<String, Map<String, Integer>> nameToDescToId = new HashMap<>();
+        idToInvoke.forEach(
+                (id, destInvoke) -> nameToDescToId.computeIfAbsent(
+                        destInvoke.getName(),
                         key -> new HashMap<>()
                 ).put(
-                        Type.getMethodDescriptor(method),
+                        destInvoke.getDescriptor(),
                         id
                 )
         );
-        return methodNameToDescToId;
+        return nameToDescToId;
     }
 
-    private static Integer findMethodId(MethodNode methodNode, Map<String, Map<String, Integer>> methodNameToDescToId) {
-        Map<String, Integer> descToId = methodNameToDescToId.get(methodNode.name);
+    private static Integer findInvokeId(MethodNode methodNode, Map<String, Map<String, Integer>> nameToDescToId) {
+        Map<String, Integer> descToId = nameToDescToId.get(methodNode.name);
         return descToId != null ?
                 descToId.get(methodNode.desc) :
                 null;
     }
 
-    private static String newMethodName(Set<String> methodNames, String srcMethodName) {
+    private static String newInvokeName(Set<String> invokeNames, MethodNode methodNode) {
+        String srcName = methodNode.name + "_@_";
         while (true) {
-            String destMethodName = srcMethodName + METHOD_NAME_SUFFIX + nameIdGenerator.getAndIncrement();
-            if (!methodNames.contains(destMethodName)) {
-                methodNames.add(destMethodName);
-                return destMethodName;
+            String destInvokeName = srcName + nameIdGenerator.getAndIncrement();
+            if (!invokeNames.contains(destInvokeName)) {
+                invokeNames.add(destInvokeName);
+                return destInvokeName;
             }
         }
     }
 
-    private static void transformMethod(ClassNode classNode, MethodNode methodNode, int methodId, Set<String> methodNames) {
-        String destMethodName = newMethodName(methodNames, methodNode.name);
-        classNode.methods.add(
-                createDelegateMethodNode(destMethodName, classNode, methodNode, methodId)
-        );
-        methodNode.name = destMethodName;
+    private static void transformInvoke(ClassNode classNode, MethodNode methodNode, int invokeId, DestInvoke destInvoke, Set<String> invokeNames) {
+        switch (destInvoke.getType()) {
+            case CONSTRUCTOR:
+                transformConstructorInvoke(methodNode, invokeId);
+                break;
+            case METHOD:
+                transformMethodInvoke(
+                        newInvokeName(invokeNames, methodNode),
+                        classNode,
+                        methodNode,
+                        invokeId
+                );
+                break;
+            default:
+                throw new IllegalArgumentException("Unknown dest invoke type: " + destInvoke.getType());
+        }
     }
 
-    private static MethodNode createDelegateMethodNode(String destMethodName, ClassNode classNode, MethodNode methodNode, int methodId) {
+    private static void transformConstructorInvoke(MethodNode methodNode, int invokeId) {
+        ListIterator<AbstractInsnNode> iter = methodNode.instructions.iterator();
+        InsnList il = new InsnList();
+        while (iter.hasNext()) {
+            AbstractInsnNode node = iter.next();
+            if (node.getOpcode() == RETURN) {
+                List<LocalVariableNode> args = getArguments(methodNode);
+                addTo(
+                        il,
+                        newInvokeStatic(
+                                getGetInstanceMethod()
+                        ),
+                        newLoadThis(),
+                        newLoadNull(2),
+                        collectArgs(invokeId, args),
+                        newInvokeVirtual(
+                                getOnDelegateMethod()
+                        )
+                );
+                methodNode.instructions.insertBefore(node, il);
+                return;
+            }
+        }
+    }
+
+    private static void transformMethodInvoke(String destInvokeName, ClassNode classNode, MethodNode methodNode, int invokeId) {
         AsmMethod asmMethod = copyFrom(methodNode);
         List<LocalVariableNode> args = getArguments(methodNode);
         asmMethod.add(
@@ -88,14 +127,17 @@ class NewAsmTransformProxy {
                         newLoadNull(1) :
                         newLoadThis(),
                 newLoadClass("L" + classNode.name + ";"),
-                newLoadLdc(destMethodName),
-                collectArgs(methodId, args),
+                newLoadLdc(destInvokeName),
+                collectArgs(invokeId, args),
                 newInvokeVirtual(
                         getOnDelegateMethod()
                 ),
                 createReturn(asmMethod)
         );
-        return asmMethod.getMethodNode();
+        classNode.methods.add(
+                asmMethod.getMethodNode()
+        );
+        methodNode.name = destInvokeName;
     }
 
     private static Object createReturn(AsmMethod asmMethod) {
@@ -115,10 +157,10 @@ class NewAsmTransformProxy {
                 };
     }
 
-    private static Object collectArgs(int methodId, List<LocalVariableNode> args) {
+    private static Object collectArgs(int invokeId, List<LocalVariableNode> args) {
         int size = args.size();
         return new Object[]{
-                newNumLoad(methodId),
+                newNumLoad(invokeId),
                 newArray(Object.class, size),
                 populateArray(Object.class, args, AsmMethod::newLoadWrapPrimitive)
         };

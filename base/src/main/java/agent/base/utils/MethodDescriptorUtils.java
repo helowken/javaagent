@@ -1,12 +1,13 @@
 package agent.base.utils;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-public class MethodSignatureUtils {
+public class MethodDescriptorUtils {
     private static final Map<Class<?>, String> classToTypeSignature = new HashMap<>();
 
     static {
@@ -22,35 +23,46 @@ public class MethodSignatureUtils {
     }
 
     public static String getLongName(Method method) {
-        return method.getDeclaringClass().getName() + "." + getFullSignature(method);
+        return method.getDeclaringClass().getName() + "." + getFullDescriptor(method);
     }
 
-    public static String getFullSignature(Method method) {
-        return method.getName() + getSignature(method);
+    public static String getFullDescriptor(Method method) {
+        return method.getName() + getDescriptor(method);
     }
 
-    public static String getSignature(Method method) {
+    public static String getDescriptor(Method method) {
+        return getDescriptor(
+                method.getParameterTypes(),
+                method.getReturnType()
+        );
+    }
+
+    public static String getDescriptor(Constructor constructor) {
+        return getDescriptor(
+                constructor.getParameterTypes(),
+                void.class
+        );
+    }
+
+    private static String getDescriptor(Class<?>[] paramTypes, Class<?> returnType) {
         StringBuilder sb = new StringBuilder();
         sb.append("(");
-        Class<?>[] paramTypes = method.getParameterTypes();
         if (paramTypes != null)
             Stream.of(paramTypes)
-                    .map(MethodSignatureUtils::getTypeSignature)
+                    .map(MethodDescriptorUtils::getTypeDescriptor)
                     .forEach(sb::append);
         sb.append(")").append(
-                getTypeSignature(
-                        method.getReturnType()
-                )
+                getTypeDescriptor(returnType)
         );
         return sb.toString();
     }
 
-    private static String getTypeSignature(Class<?> clazz) {
+    private static String getTypeDescriptor(Class<?> clazz) {
         return Optional.ofNullable(
                 classToTypeSignature.get(clazz)
         ).orElseGet(
                 () -> clazz.isArray() ?
-                        "[" + getTypeSignature(clazz.getComponentType()) :
+                        "[" + getTypeDescriptor(clazz.getComponentType()) :
                         "L" + getFullQualifiedClassName(clazz) + ";"
         );
     }

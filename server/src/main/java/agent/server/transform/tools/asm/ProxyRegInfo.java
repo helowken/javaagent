@@ -1,16 +1,21 @@
 package agent.server.transform.tools.asm;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.*;
 
 import static agent.server.transform.tools.asm.ProxyPosition.*;
 
 public class ProxyRegInfo {
-    private final Method destMethod;
+    private final DestInvoke destInvoke;
     private Map<ProxyPosition, List<ProxyCallInfo>> posToCallList = new HashMap<>();
 
     public ProxyRegInfo(Method method) {
-        this.destMethod = method;
+        this.destInvoke = new MethodInvoke(method);
+    }
+
+    public ProxyRegInfo(Constructor constructor) {
+        this.destInvoke = new ConstructorInvoke(constructor);
     }
 
     public ProxyRegInfo addBefore(ProxyCallInfo... proxyCallInfos) {
@@ -45,11 +50,11 @@ public class ProxyRegInfo {
         return this;
     }
 
-    public Method getDestMethod() {
-        return destMethod;
+    DestInvoke getDestInvoke() {
+        return destInvoke;
     }
 
-    public Map<ProxyPosition, List<ProxyCallInfo>> getPosToCalInfos() {
+    Map<ProxyPosition, List<ProxyCallInfo>> getPosToCalInfos() {
         return posToCallList;
     }
 }

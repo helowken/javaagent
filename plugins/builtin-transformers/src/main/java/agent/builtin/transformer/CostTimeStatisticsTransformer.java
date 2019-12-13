@@ -1,6 +1,6 @@
 package agent.builtin.transformer;
 
-import agent.base.utils.MethodSignatureUtils;
+import agent.base.utils.MethodDescriptorUtils;
 import agent.base.utils.TypeObject;
 import agent.builtin.transformer.utils.CostTimeLogger;
 import agent.builtin.transformer.utils.LogUtils;
@@ -9,6 +9,7 @@ import agent.server.transform.MethodFinder;
 import agent.server.transform.MethodFinder.MethodSearchResult;
 import agent.server.transform.TransformMgr;
 import agent.server.transform.config.ClassConfig;
+import agent.server.transform.cp.AgentClassPool;
 import agent.server.transform.impl.AbstractConfigTransformer;
 import agent.server.transform.impl.TargetClassConfig;
 import agent.server.transform.impl.TransformerInfo;
@@ -71,7 +72,7 @@ public class CostTimeStatisticsTransformer extends AbstractConfigTransformer {
     }
 
     private String getEntryPoint(String context, Method method) {
-        return context + ":" + MethodSignatureUtils.getLongName(method);
+        return context + ":" + MethodDescriptorUtils.getLongName(method);
     }
 
     private boolean isEntryPoint(String context, Method method) {
@@ -80,6 +81,9 @@ public class CostTimeStatisticsTransformer extends AbstractConfigTransformer {
         );
     }
 
+    protected AgentClassPool getClassPool() {
+        return null;
+    }
     @Override
     protected void transformMethod(Method method) throws Exception {
         String context = getTransformerInfo().getContext();
@@ -87,7 +91,7 @@ public class CostTimeStatisticsTransformer extends AbstractConfigTransformer {
         int type = CostTimeLogger.getInstance().reg(
                 context,
                 method.getDeclaringClass().getName(),
-                MethodSignatureUtils.getFullSignature(method)
+                MethodDescriptorUtils.getFullDescriptor(method)
         );
         final boolean isEP = isEntryPoint(context, method);
         CtMethod ctMethod = getClassPool().getMethod(method);

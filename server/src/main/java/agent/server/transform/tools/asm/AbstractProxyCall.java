@@ -3,6 +3,7 @@ package agent.server.transform.tools.asm;
 import agent.base.utils.Logger;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static agent.server.transform.tools.asm.ProxyArgsMask.*;
@@ -62,6 +63,15 @@ abstract class AbstractProxyCall implements ProxyCall {
         if (useInvokeTarget(mask))
             params.add(
                     callChain.getTarget()
+            );
+        if (useInvokeMethod(mask))
+            params.add(
+                    callChain.getDestInvoke().getSourceEntity()
+            );
+        if (callInfo.hasOtherArgs())
+            Collections.addAll(
+                    params,
+                    callInfo.getOtherArgs()
             );
         return params.toArray();
     }

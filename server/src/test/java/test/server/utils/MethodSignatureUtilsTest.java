@@ -11,7 +11,7 @@ import java.util.Date;
 import java.util.Optional;
 import java.util.function.Function;
 
-import static agent.base.utils.MethodSignatureUtils.getSignature;
+import static agent.base.utils.MethodDescriptorUtils.getDescriptor;
 import static org.junit.Assert.assertEquals;
 
 public class MethodSignatureUtilsTest extends AbstractServerTest {
@@ -37,7 +37,7 @@ public class MethodSignatureUtilsTest extends AbstractServerTest {
         System.out.println(signature);
         assertEquals(
                 signature,
-                getSignature(getMethod(name)));
+                getDescriptor(getMethod(name)));
     }
 
     private Method getMethod(String name) throws Exception {

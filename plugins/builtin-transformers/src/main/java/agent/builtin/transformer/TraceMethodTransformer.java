@@ -5,6 +5,7 @@ import agent.base.utils.Utils;
 import agent.builtin.transformer.utils.DefaultMethodPrinter;
 import agent.builtin.transformer.utils.LogUtils;
 import agent.builtin.transformer.utils.MethodLogger;
+import agent.server.transform.cp.AgentClassPool;
 import agent.server.transform.impl.AbstractConfigTransformer;
 import agent.server.utils.ParamValueUtils;
 import agent.server.utils.ParamValueUtils.Expr;
@@ -43,6 +44,9 @@ public class TraceMethodTransformer extends AbstractConfigTransformer {
         logKey = LogMgr.regText(config, defaultValueMap);
     }
 
+    protected AgentClassPool getClassPool() {
+        return null;
+    }
     @Override
     protected void transformMethod(Method method) throws Exception {
         CtMethod ctMethod = getClassPool().getMethod(method);

@@ -1,6 +1,6 @@
 package agent.server.command.executor;
 
-import agent.base.utils.MethodSignatureUtils;
+import agent.base.utils.MethodDescriptorUtils;
 import agent.base.utils.TypeObject;
 import agent.common.message.command.Command;
 import agent.common.message.command.impl.ByFileCommand.TestConfigByFileCommand;
@@ -76,7 +76,7 @@ public class TestConfigCmdExecutor extends AbstractCmdExecutor {
                     MethodResultEntity methodResultEntity = new MethodResultEntity();
                     methodResultEntity.setDeclareClass(result.clazz.getName());
                     methodResultEntity.setMethodName(method.getName());
-                    methodResultEntity.setSignature(MethodSignatureUtils.getSignature(method));
+                    methodResultEntity.setSignature(MethodDescriptorUtils.getDescriptor(method));
                     classResultEntity.addMethodEntity(methodResultEntity);
                 });
             }

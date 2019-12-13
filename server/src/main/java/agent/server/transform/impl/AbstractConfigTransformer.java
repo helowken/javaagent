@@ -1,9 +1,10 @@
 package agent.server.transform.impl;
 
 import agent.base.utils.Logger;
-import agent.base.utils.MethodSignatureUtils;
+import agent.base.utils.MethodDescriptorUtils;
 import agent.server.transform.ConfigTransformer;
 import agent.server.transform.MethodFinder;
+import agent.server.transform.TransformContext;
 import agent.server.transform.exception.InvalidTransformerConfigException;
 
 import java.lang.reflect.Method;
@@ -35,27 +36,23 @@ public abstract class AbstractConfigTransformer extends AbstractTransformer impl
     protected void doSetConfig(Map<String, Object> config) throws Exception {
     }
 
-
     protected TransformerInfo getTransformerInfo() {
         return transformerInfo;
     }
 
-
     @Override
-    public void doTransform(Class<?> clazz) throws Exception {
-        transformMethods(
-                MethodFinder.getInstance().find(
-                        transformerInfo.getTargetClassConfig(
-                                clazz.getName()
-                        )
-                ).methods
-        );
-    }
+    public void transform(TransformContext transformContext) throws Exception {
+        for (Class<?> clazz : transformContext.getTargetClassSet()) {
+            Collection<Method> methods = MethodFinder.getInstance().find(
+                    transformerInfo.getTargetClassConfig(
+                            clazz.getName()
+                    )
+            ).methods;
 
-    protected void transformMethods(Collection<Method> methods) throws Exception {
-        for (Method method : methods) {
-            logger.debug("Transforming method: {}", MethodSignatureUtils.getLongName(method));
-            transformMethod(method);
+            for (Method method : methods) {
+                logger.debug("Transforming method: {}", MethodDescriptorUtils.getLongName(method));
+                transformMethod(method);
+            }
         }
     }
 

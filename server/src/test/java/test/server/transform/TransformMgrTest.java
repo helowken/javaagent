@@ -84,10 +84,15 @@ public class TransformMgrTest extends AbstractServerTest {
             this.fieldName = fieldName;
         }
 
+//        @Override
+//        protected void doTransform(Class<?> clazz) throws Exception {
+//            CtClass ctClass = getClassPool().get(clazz.getName());
+//            ctClass.addField(new CtField(CtClass.intType, fieldName, ctClass));
+//        }
+
         @Override
-        protected void doTransform(Class<?> clazz) throws Exception {
-            CtClass ctClass = getClassPool().get(clazz.getName());
-            ctClass.addField(new CtField(CtClass.intType, fieldName, ctClass));
+        public void transform(TransformContext transformContext) throws Exception {
+
         }
     }
 }

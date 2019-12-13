@@ -1,22 +1,21 @@
 package agent.server.transform.tools.asm;
 
-import java.lang.reflect.Method;
 import java.util.*;
 import java.util.stream.Stream;
 
 import static agent.server.transform.tools.asm.ProxyPosition.*;
 
 class ProxyCallConfig {
-    private Method srcMethod;
+    private DestInvoke destInvoke;
     private final Map<ProxyPosition, LinkedList<ProxyCall>> posToQueue = new HashMap<>();
 
-    ProxyCallConfig(Method srcMethod) {
-        this.srcMethod = srcMethod;
+    ProxyCallConfig(DestInvoke destInvoke) {
+        this.destInvoke = destInvoke;
         this.init();
     }
 
-    Method getSrcMethod() {
-        return srcMethod;
+    DestInvoke getDestInvoke() {
+        return destInvoke;
     }
 
     private void init() {

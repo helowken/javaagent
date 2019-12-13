@@ -1,52 +1,15 @@
 package agent.server.transform.tools.asm;
 
-import agent.base.utils.LockObject;
-import agent.base.utils.ReflectionUtils;
+interface ProxyCallSite {
+    ProxyCallConfig getCallConfig();
 
-import java.lang.reflect.Method;
+    Object invokeTargetEntity(Object target, Object[] args) throws Throwable;
 
-class ProxyCallSite {
-    private final Class<?> targetClass;
-    private final String targetMethodName;
-    private volatile Method targetMethod;
-    private final LockObject methodLock = new LockObject();
+    Object invoke(Object target, Object[] args) throws Throwable;
 
-    ProxyCallSite(Class<?> targetClass, String targetMethodName) {
-        this.targetClass = targetClass;
-        this.targetMethodName = targetMethodName;
-    }
+    Class<?>[] getArgTypes();
 
-    String getTargetMethodName() {
-        return targetMethodName;
-    }
+    Class<?> getReturnType();
 
-    Method getTargetMethod() {
-        if (targetMethod == null) {
-            methodLock.sync(
-                    lock -> {
-                        if (targetMethod == null)
-                            targetMethod = ReflectionUtils.findFirstMethod(targetClass, targetMethodName);
-                    }
-            );
-        }
-        return targetMethod;
-    }
-
-    Class<?>[] getArgTypes() {
-        return getTargetMethod().getParameterTypes();
-    }
-
-    Class<?> getReturnType() {
-        return getTargetMethod().getReturnType();
-    }
-
-    Object invoke(ProxyCallConfig callConfig, Object target, Object[] args) throws Throwable {
-        ProxyCallChain chain = new ProxyCallChain(this, callConfig, target, args);
-        chain.process();
-        if (chain.hasError())
-            throw chain.getError();
-        return chain.getReturnValue();
-    }
-
-
+    void formatError(Throwable t);
 }

@@ -12,7 +12,6 @@ import static agent.server.transform.tools.asm.ProxyArgsMask.DEFAULT_AROUND;
 
 public class ProxyCallChain {
     private final ProxyCallSite callSite;
-    private final String srcMethodName;
     private final LinkedList<ProxyCall> callList = new LinkedList<>();
     private final Object target;
     private final Object[] args;
@@ -20,15 +19,15 @@ public class ProxyCallChain {
     private boolean executed = false;
     private Throwable error;
 
-    ProxyCallChain(ProxyCallSite callSite, ProxyCallConfig callConfig, Object target, Object[] args) {
+    ProxyCallChain(ProxyCallSite callSite, Object target, Object[] args) {
         this.callSite = callSite;
         this.target = target;
         this.args = args;
-        initCallList(callConfig);
-        this.srcMethodName = callConfig.getSrcMethod().getName();
+        initCallList();
     }
 
-    private void initCallList(ProxyCallConfig callConfig) {
+    private void initCallList() {
+        ProxyCallConfig callConfig = callSite.getCallConfig();
         this.callList.addAll(callConfig.getAfterQueue());
         this.callList.addAll(callConfig.getAfterThrowingQueue());
         this.callList.addAll(callConfig.getAfterReturningQueue());
@@ -60,6 +59,10 @@ public class ProxyCallChain {
 
     public Object getTarget() {
         return target;
+    }
+
+    public DestInvoke getDestInvoke() {
+        return callSite.getCallConfig().getDestInvoke();
     }
 
     public Object[] getArgs() {
@@ -97,41 +100,17 @@ public class ProxyCallChain {
 
     void execTargetMethod(ProxyCallChain callChain) {
         try {
-            returnValue = callSite.getTargetMethod().invoke(
+            returnValue = callSite.invokeTargetEntity(
                     callChain.getTarget(),
                     callChain.getArgs()
             );
         } catch (Throwable t) {
             error = Utils.getMeaningfulCause(t);
-            formatError(error);
+            callSite.formatError(error);
         } finally {
             executed = true;
             callChain.process();
         }
     }
 
-    private void formatError(Throwable t) {
-        StackTraceElement[] stackTraceElements = t.getStackTrace();
-        List<StackTraceElement> rsList = new ArrayList<>();
-        if (stackTraceElements != null) {
-            final String targetMethodName = callSite.getTargetMethodName();
-            for (StackTraceElement el : stackTraceElements) {
-                if (targetMethodName.equals(el.getMethodName())) {
-                    rsList.add(
-                            new StackTraceElement(
-                                    el.getClassName(),
-                                    srcMethodName,
-                                    el.getFileName(),
-                                    el.getLineNumber()
-                            )
-                    );
-                    break;
-                }
-                rsList.add(el);
-            }
-        }
-        t.setStackTrace(
-                rsList.toArray(new StackTraceElement[0])
-        );
-    }
 }

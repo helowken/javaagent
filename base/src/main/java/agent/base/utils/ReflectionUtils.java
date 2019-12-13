@@ -4,8 +4,11 @@ import java.lang.reflect.*;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static agent.base.utils.MethodDescriptorUtils.getDescriptor;
 
 @SuppressWarnings("unchecked")
 public class ReflectionUtils {
@@ -170,26 +173,39 @@ public class ReflectionUtils {
         return findFirstMethod(classOrClassName, methodName, null);
     }
 
-    public static Method findFirstMethod(Object classOrClassName, String methodName, String methodSignature) throws Exception {
-        List<Method> methods = findMethods(classOrClassName, methodName, methodSignature);
-        if (methods.isEmpty())
-            return null;
-        return methods.get(0);
+    public static Method findFirstMethod(Object classOrClassName, String methodName, String descriptor) throws Exception {
+        List<Method> methods = findMethods(classOrClassName, methodName, descriptor);
+        return methods.isEmpty() ? null : methods.get(0);
     }
 
-    public static List<Method> findMethods(Object classOrClassName, String methodName, String methodSignature) throws Exception {
-        List<Method> rsMethods = findFromClassCascade(
+    public static List<Method> findMethods(Object classOrClassName, String methodName, String descriptor) throws Exception {
+        return findEntities(
+                classOrClassName,
+                Class::getDeclaredMethods,
+                entity -> entity.getName().equals(methodName) &&
+                        (descriptor == null ||
+                                getDescriptor(entity).equals(descriptor))
+        );
+    }
+
+    public static Constructor findConstructor(Object classOrClassName, String descriptor) throws Exception {
+        List<Constructor> constructorList = findEntities(
+                classOrClassName,
+                Class::getDeclaredConstructors,
+                entity -> getDescriptor(entity).equals(descriptor)
+        );
+        return constructorList.isEmpty() ? null : constructorList.get(0);
+    }
+
+    private static <T> List<T> findEntities(Object classOrClassName, Function<Class<?>, T[]> entitiesFunc, Function<T, Boolean> matchFunc) throws Exception {
+        List<T> rsEntities = findFromClassCascade(
                 convert(classOrClassName),
                 tmpClass -> {
-                    Method[] methods = tmpClass.getDeclaredMethods();
-                    List<Method> rsList = Collections.emptyList();
-                    if (methods != null)
-                        rsList = Stream.of(methods)
-                                .filter(
-                                        method -> method.getName().equals(methodName) &&
-                                                (methodSignature == null ||
-                                                        MethodSignatureUtils.getSignature(method).equals(methodSignature))
-                                )
+                    T[] entities = entitiesFunc.apply(tmpClass);
+                    List<T> rsList = Collections.emptyList();
+                    if (entities != null)
+                        rsList = Stream.of(entities)
+                                .filter(matchFunc::apply)
                                 .collect(Collectors.toList());
                     return new Pair<>(
                             rsList,
@@ -199,9 +215,9 @@ public class ReflectionUtils {
                     );
                 }
         );
-        return rsMethods == null ?
+        return rsEntities == null ?
                 Collections.emptyList() :
-                rsMethods;
+                rsEntities;
     }
 
     private static Method getMethod(Object classOrClassName, String methodName, Object... argClassOrClassNames) throws Exception {
