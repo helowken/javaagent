@@ -19,15 +19,11 @@ public class AsmUtils {
         );
     }
 
-    public static void verifyAndPrintResult(byte[] bs) {
-        verifyAndPrintResult(bs, System.out);
-    }
-
-    public static String getVerifyResult(byte[] bs) {
+    public static String getVerifyResult(byte[] bs, boolean printResults) {
         StringWriter sw = new StringWriter();
         CheckClassAdapter.verify(
                 new ClassReader(bs),
-                false,
+                printResults,
                 new PrintWriter(sw)
         );
         return sw.toString();
@@ -42,10 +38,6 @@ public class AsmUtils {
                         ),
                         0
                 );
-    }
-
-    public static void print(byte[] bs) {
-        print(bs, System.out);
     }
 
     public static byte[] transform(byte[] bs, TransformFunc transformFunc) {

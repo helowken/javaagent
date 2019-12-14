@@ -50,7 +50,7 @@ public class SaveClassDataTransformer extends AbstractConfigTransformer {
     @Override
     public void transform(TransformContext transformContext) throws Exception {
         transformContext.getTargetClassSet().forEach(
-                clazz -> getClassSet(transformContext.context, clazz).forEach(
+                clazz -> getClassSet(transformContext.getContext(), clazz).forEach(
                         savingClass -> ClassDataStore.save(
                                 savingClass,
                                 ClassDataRepository.getInstance().getClassData(savingClass),

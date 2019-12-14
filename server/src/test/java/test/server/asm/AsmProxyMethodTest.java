@@ -3,13 +3,10 @@ package test.server.asm;
 import agent.base.utils.ReflectionUtils;
 import agent.base.utils.Utils;
 import agent.server.transform.tools.asm.ProxyRegInfo;
-import agent.server.transform.tools.asm.ProxyResult;
-import agent.server.transform.tools.asm.ProxyTransformMgr;
 import org.junit.Test;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import static org.junit.Assert.*;
@@ -32,6 +29,32 @@ public class AsmProxyMethodTest {
         callError(newAClass, count, logList);
     }
 
+    @Test
+    public void test2() throws Exception {
+        doTestNoArgsMethod("test2");
+    }
+
+    @Test
+    public void test3() throws Exception {
+        doTestNoArgsMethod("test3");
+    }
+
+    private void doTestNoArgsMethod(String methodName) throws Exception {
+        final int count = 3;
+        List<String> logList = new ArrayList<>();
+
+        Method destMethod = ReflectionUtils.findFirstMethod(A.class, methodName);
+        ProxyRegInfo regInfo = new ProxyRegInfo(destMethod);
+        Class<?> newAClass = AsmTestUtils.prepareClass(count, logList, regInfo);
+
+        ReflectionUtils.invoke(
+                newAClass,
+                methodName,
+                new Class[0],
+                newAClass.newInstance()
+        );
+        doCheck(count, logList, false);
+    }
 
     private void callError(Class<?> newAClass, int count, List<String> logList) {
         try {
@@ -54,10 +77,7 @@ public class AsmProxyMethodTest {
             assertTrue(t instanceof RuntimeException);
             assertEquals(errorMsg, t.getMessage());
         }
-        assertEquals(
-                newExpectedList(count, true),
-                logList
-        );
+        doCheck(count, logList, true);
     }
 
     private void callNormal(Class<?> newAClass, int count, List<String> logList) throws Exception {
@@ -74,9 +94,12 @@ public class AsmProxyMethodTest {
                 "sss",
                 (short) 111
         );
+        doCheck(count, logList, false);
+    }
 
+    private void doCheck(int count, List<String> logList, boolean throwError) {
         assertEquals(
-                newExpectedList(count, false),
+                newExpectedList(count, throwError),
                 logList
         );
     }
@@ -107,12 +130,21 @@ public class AsmProxyMethodTest {
     }
 
     public static class A {
-        public double test(int a, String b, short ccc) {
+        public Double test(int a, String b, short ccc) {
             System.out.println("a: " + a + ", b: " + b + ", ccc: " + ccc);
-            System.out.println("DDD: " + null);
+            System.out.println("Return Double wrapper");
             if (a == 1)
                 raiseError();
             return 3.3D;
+        }
+
+        public int test2() {
+            System.out.println("Return int primitive");
+            return 333;
+        }
+
+        public void test3() {
+            System.out.println("Return void");
         }
 
         private void raiseError() {

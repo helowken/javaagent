@@ -57,4 +57,12 @@ public class ProxyRegInfo {
     Map<ProxyPosition, List<ProxyCallInfo>> getPosToCalInfos() {
         return posToCallList;
     }
+
+    @Override
+    public String toString() {
+        return "ProxyRegInfo{" +
+                "destInvoke=" + destInvoke +
+                ", posToCallList=" + posToCallList +
+                '}';
+    }
 }

@@ -62,10 +62,12 @@ public class ProxyTransformMgr {
                 classDataFunc.apply(item.clazz),
                 item.idToInvoke
         );
-        AsmUtils.print(newClassData);
-        String verifyResult = AsmUtils.getVerifyResult(newClassData);
+        String verifyResult = AsmUtils.getVerifyResult(newClassData, false);
         if (!verifyResult.isEmpty()) {
-            logger.error("Verify transform failed: \n{}", verifyResult);
+            logger.error("Verify {} transform failed: \n{}",
+                    item.clazz.getName(),
+                    AsmUtils.getVerifyResult(newClassData, true)
+            );
             return new ProxyResult(
                     item.clazz,
                     new RuntimeException("Verify transform failed.")

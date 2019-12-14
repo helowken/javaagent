@@ -58,4 +58,11 @@ class ConstructorInvoke implements DestInvoke {
 
         return Objects.hash(constructor);
     }
+
+    @Override
+    public String toString() {
+        return "ConstructorInvoke{" +
+                "constructor=" + constructor +
+                '}';
+    }
 }

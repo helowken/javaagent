@@ -57,4 +57,11 @@ class MethodInvoke implements DestInvoke {
 
         return Objects.hash(method);
     }
+
+    @Override
+    public String toString() {
+        return "MethodInvoke{" +
+                "method=" + method +
+                '}';
+    }
 }

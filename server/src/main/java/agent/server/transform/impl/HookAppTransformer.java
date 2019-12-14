@@ -25,9 +25,6 @@ public class HookAppTransformer extends AbstractTransformer {
                         )
                 )
         );
-//        CtClass ctClass = new AgentClassPool().get(transformContext.getFirstTargetClass().getName());
-//        CtConstructor constructor = ctClass.getDeclaredConstructor(new CtClass[0]);
-//        constructor.insertAfter(App.class.getName() + ".instance = this;");
     }
 
     private static void doHook(Object instance) {

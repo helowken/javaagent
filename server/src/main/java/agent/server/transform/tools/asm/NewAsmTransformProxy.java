@@ -141,12 +141,15 @@ class NewAsmTransformProxy {
     }
 
     private static Object createReturn(AsmMethod asmMethod) {
-        if (asmMethod.isVoid())
-            return newPop();
-        Object rs = mayCastToReturnType(
+        Object returnNode = newReturn(
                 asmMethod.getReturnType()
         );
-        Object returnNode = newReturn(
+        if (asmMethod.isVoid())
+            return new Object[] {
+                    returnNode,
+                    newPop()
+            };
+        Object rs = mayCastToReturnType(
                 asmMethod.getReturnType()
         );
         return rs == null ?

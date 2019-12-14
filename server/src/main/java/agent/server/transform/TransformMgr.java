@@ -20,6 +20,9 @@ import agent.server.transform.impl.TargetClassConfig;
 import agent.server.transform.impl.TransformerInfo;
 import agent.server.transform.impl.UpdateClassDataTransformer;
 import agent.server.transform.revision.ClassDataRepository;
+import agent.server.transform.tools.asm.ProxyRegInfo;
+import agent.server.transform.tools.asm.ProxyResult;
+import agent.server.transform.tools.asm.ProxyTransformMgr;
 
 import java.lang.instrument.ClassFileTransformer;
 import java.lang.instrument.Instrumentation;
@@ -152,28 +155,7 @@ public class TransformMgr implements ServerListener {
 
     public List<TransformResult> transform(List<TransformContext> transformContextList) {
         return transformContextList.stream()
-                .map(transformContext -> {
-                    TransformResult result = transformContext.doTransform();
-                    this.reTransformClasses(
-                            result.getTransformedClassSet(),
-                            Collections.singleton(
-                                    new UpdateClassDataTransformer(result)
-                            ),
-                            result::addReTransformError
-                    );
-                    Map<Class<?>, byte[]> classDataMap = result.getReTransformedClassData();
-                    ClassDataRepository.getInstance().saveClassData(classDataMap);
-                    EventListenerMgr.fireEvent(
-                            new TransformClassEvent(
-                                    transformContext.context,
-                                    transformContext.getAction(),
-                                    new HashSet<>(
-                                            classDataMap.keySet()
-                                    )
-                            )
-                    );
-                    return result;
-                })
+                .map(this::doTransform)
                 .collect(Collectors.toList());
     }
 
@@ -200,4 +182,106 @@ public class TransformMgr implements ServerListener {
     public interface ReTransformClassErrorHandler {
         void handle(Class<?> clazz, Throwable e);
     }
+
+    private TransformResult doTransform(TransformContext transformContext) {
+        TransformResult transformResult = new TransformResult(
+                transformContext.getContext()
+        );
+        List<ProxyRegInfo> regInfos = prepareRegInfos(transformContext, transformResult);
+        System.out.println("============ regInfos : " + regInfos.size() + ", " + regInfos);
+        List<ProxyResult> proxyResults = compile(regInfos, transformResult);
+        System.out.println("============ proxyResults : " + proxyResults.size());
+        Map<Class<?>, byte[]> classToData = reTransform(transformResult, proxyResults);
+        System.out.println("============ classToData : " + classToData.size());
+        Set<Class<?>> validClassSet = new HashSet<>(
+                classToData.keySet()
+        );
+        regValidProxyResults(proxyResults, validClassSet);
+
+        ClassDataRepository.getInstance().saveClassData(classToData);
+        EventListenerMgr.fireEvent(
+                new TransformClassEvent(
+                        transformContext.getContext(),
+                        transformContext.getAction(),
+                        validClassSet
+                )
+        );
+        return transformResult;
+    }
+
+    private List<ProxyRegInfo> prepareRegInfos(TransformContext transformContext, TransformResult transformResult) {
+        transformContext.getTransformerList().forEach(
+                transformer -> {
+                    try {
+                        transformer.transform(transformContext);
+                    } catch (Throwable t) {
+                        transformResult.addTransformError(t, transformer);
+                    }
+                }
+        );
+        List<ProxyRegInfo> regInfos = new LinkedList<>();
+        transformContext.getTransformerList().stream()
+                .map(AgentTransformer::getProxyRegInfos)
+                .forEach(regInfos::addAll);
+        return regInfos;
+    }
+
+    private List<ProxyResult> compile(List<ProxyRegInfo> regInfos, TransformResult transformResult) {
+        List<ProxyResult> rsList = new ArrayList<>();
+        ProxyTransformMgr.getInstance().transform(
+                regInfos,
+                ClassDataRepository.getInstance()::getClassData
+        ).forEach(
+                proxyResult -> {
+                    if (proxyResult.hasError())
+                        transformResult.addCompileError(
+                                proxyResult.getTargetClass(),
+                                proxyResult.getError()
+                        );
+                    else
+                        rsList.add(proxyResult);
+                }
+        );
+        return rsList;
+    }
+
+    private Map<Class<?>, byte[]> reTransform(TransformResult transformResult, List<ProxyResult> proxyResults) {
+        Map<Class<?>, byte[]> classToData = new HashMap<>();
+        proxyResults.forEach(
+                proxyResult -> classToData.put(
+                        proxyResult.getTargetClass(),
+                        proxyResult.getClassData()
+                )
+        );
+        Set<Class<?>> failedClasses = new HashSet<>();
+        TransformMgr.getInstance().reTransformClasses(
+                new HashSet<>(
+                        classToData.keySet()
+                ),
+                Collections.singleton(
+                        new UpdateClassDataTransformer(classToData)
+                ),
+                (clazz, error) -> {
+                    failedClasses.add(clazz);
+                    transformResult.addReTransformError(clazz, error);
+                }
+        );
+        failedClasses.forEach(classToData::remove);
+        return classToData;
+    }
+
+    private void regValidProxyResults(List<ProxyResult> originalProxyResults, Set<Class<?>> validClassSet) {
+        ProxyTransformMgr.getInstance().reg(
+                originalProxyResults.stream()
+                        .filter(
+                                proxyResult -> validClassSet.contains(
+                                        proxyResult.getTargetClass()
+                                )
+                        )
+                        .collect(
+                                Collectors.toList()
+                        )
+        );
+    }
+
 }

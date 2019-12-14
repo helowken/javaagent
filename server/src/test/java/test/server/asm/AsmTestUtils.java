@@ -11,10 +11,12 @@ import java.util.List;
 
 import static agent.server.transform.tools.asm.ProxyArgsMask.*;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 
 class AsmTestUtils {
     static Class<?> prepareClass(int count, List<String> logList, ProxyRegInfo regInfo) throws Exception {
         ProxyResult item = prepareData(count, logList, regInfo);
+        assertFalse(item.hasError());
         ProxyTransformMgr.getInstance().reg(
                 Collections.singleton(item)
         );
@@ -25,10 +27,10 @@ class AsmTestUtils {
     }
 
     static Class<?> newClass(String className, byte[] classData) {
-        AsmUtils.verifyAndPrintResult(classData);
+        AsmUtils.verifyAndPrintResult(classData, System.out);
         System.out.println("=========================\n");
 
-        AsmUtils.print(classData);
+        AsmUtils.print(classData, System.out);
         System.out.println("=========================\n");
 
         return new TestClassLoader().loadClass(className, classData);
@@ -49,7 +51,7 @@ class AsmTestUtils {
 
     static ProxyResult prepareData(int count, List<String> logList, ProxyRegInfo regInfo) throws Exception {
         for (int i = 0; i < count; ++i) {
-            TestProxyB b = new TestProxyB(logList);
+            TestProxyB b = new TestProxyB(i, logList);
             regInfo.addBefore(
                     new ProxyCallInfo(
                             b,

@@ -6,13 +6,11 @@ import java.util.Arrays;
 import java.util.List;
 
 public class TestProxyB {
-    private static int idx;
-
     private final int count;
     private final List<String> logList;
 
-    TestProxyB(List<String> logList) {
-        this.count = idx++;
+    TestProxyB(int count, List<String> logList) {
+        this.count = count;
         this.logList = logList;
     }
 

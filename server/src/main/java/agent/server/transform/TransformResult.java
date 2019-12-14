@@ -1,54 +1,21 @@
 package agent.server.transform;
 
-import agent.server.transform.tools.asm.ProxyResult;
-
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public class TransformResult {
-    private final TransformContext transformContext;
+    private final String context;
     private final List<ErrorItem> transformErrorList = new ArrayList<>();
     private final List<ErrorItem> compileErrorList = new ArrayList<>();
     private final List<ErrorItem> reTransformErrorItemList = new ArrayList<>();
-    private final Map<Class<?>, ProxyResult> classToProxyResult = new HashMap<>();
 
-    TransformResult(TransformContext transformContext) {
-        this.transformContext = transformContext;
+    TransformResult(String context) {
+        this.context = context;
     }
 
-    public TransformContext getTransformContext() {
-        return transformContext;
-    }
-
-    void addProxyResult(ProxyResult proxyResult) {
-        classToProxyResult.put(
-                proxyResult.getTargetClass(),
-                proxyResult
-        );
-    }
-
-    Set<Class<?>> getTransformedClassSet() {
-        return new HashSet<>(
-                classToProxyResult.keySet()
-        );
-    }
-
-    public byte[] getClassData(Class<?> clazz) {
-        return classToProxyResult.get(clazz).getClassData();
-    }
-
-    Map<Class<?>, byte[]> getReTransformedClassData() {
-        Set<Class<?>> reTransformedClassSet = getTransformedClassSet();
-        reTransformErrorItemList.forEach(
-                reTransformErrorItem -> reTransformedClassSet.remove(reTransformErrorItem.clazz)
-        );
-        return reTransformedClassSet.stream()
-                .collect(
-                        Collectors.toMap(
-                                clazz -> clazz,
-                                this::getClassData
-                        )
-                );
+    public String getContext() {
+        return context;
     }
 
     void addTransformError(Throwable error, AgentTransformer transformer) {
