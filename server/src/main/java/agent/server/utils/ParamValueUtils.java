@@ -14,7 +14,6 @@ public class ParamValueUtils {
 
     private static final Logger logger = Logger.getLogger(ParamValueUtils.class);
 
-    // used in bytecode
     public static Map<String, Object> newParamValueMap(String className, String methodName, Object[] kvs) {
         Map<String, Object> rsMap = new HashMap<>();
         rsMap.put(KEY_CLASS, className);

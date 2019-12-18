@@ -1,4 +1,4 @@
-package test.transformer;
+package agent.builtin.tools;
 
 import agent.base.utils.IOUtils;
 import agent.base.utils.Pair;
@@ -20,7 +20,7 @@ import java.util.concurrent.ForkJoinPool;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class CostTimeStatisticsAnalyzeTest {
+public class CostTimeStatisticsAnalyzer {
     private static final String RATE_SEP = ",";
     private static final Set<Float> DEFAULT_RATES = new TreeSet<>(
             Arrays.asList(0.9F, 0.95F, 0.99F)
@@ -137,7 +137,7 @@ public class CostTimeStatisticsAnalyzeTest {
         Map<Integer, CostTimeItem> sumMap = new ConcurrentHashMap<>();
         findDataFiles(outputPath)
                 .parallelStream()
-                .map(CostTimeStatisticsAnalyzeTest::doCalculate)
+                .map(CostTimeStatisticsAnalyzer::doCalculate)
                 .forEach(
                         itemMap -> itemMap.forEach(
                                 (type, item) -> sumMap.computeIfAbsent(

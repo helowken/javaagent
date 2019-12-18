@@ -46,6 +46,10 @@ public class ProxyRegInfo {
         return this;
     }
 
+    public boolean isEmpty() {
+        return posToCallList.isEmpty();
+    }
+
     DestInvoke getDestInvoke() {
         return destInvoke;
     }

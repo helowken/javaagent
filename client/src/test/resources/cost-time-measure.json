@@ -10,7 +10,7 @@
             "config": {
               "log": {
                 "autoFlush": false,
-                "outputFormat": "[${currTime}] - ${currTimeMillis} - ${class}#${method}: ${costTime}ms",
+                "outputFormat": "[${currTime}] - ${currTimeMillis} - ${method}: ${costTime}ms",
                 "timeFormat": "yyyy-MM-dd HH:mm:ss.SSS",
                 "maxBufferSize": 8192
               }

@@ -133,6 +133,14 @@ public class Utils {
         }
     }
 
+    public static <T> boolean isEmpty(Collection<T> colls) {
+        return colls == null || colls.isEmpty();
+    }
+
+    public static <T> boolean nonEmpty(Collection<T> colls) {
+        return !isEmpty(colls);
+    }
+
     public static boolean isBlank(String s) {
         return s == null || s.trim().isEmpty();
     }
