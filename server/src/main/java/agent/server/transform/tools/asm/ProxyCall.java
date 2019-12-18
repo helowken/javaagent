@@ -1,5 +1,5 @@
 package agent.server.transform.tools.asm;
 
 interface ProxyCall {
-    void run(ProxyCallChain callChain);
+    void run(DestInvoke destInvoke, Object instanceOrNull, Object pv);
 }

@@ -8,18 +8,18 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 public class MethodDescriptorUtils {
-    private static final Map<Class<?>, String> classToTypeSignature = new HashMap<>();
+    private static final Map<Class<?>, String> classToTypeDesc = new HashMap<>();
 
     static {
-        classToTypeSignature.put(boolean.class, "Z");
-        classToTypeSignature.put(byte.class, "B");
-        classToTypeSignature.put(char.class, "C");
-        classToTypeSignature.put(short.class, "S");
-        classToTypeSignature.put(int.class, "I");
-        classToTypeSignature.put(long.class, "J");
-        classToTypeSignature.put(float.class, "F");
-        classToTypeSignature.put(double.class, "D");
-        classToTypeSignature.put(void.class, "V");
+        classToTypeDesc.put(boolean.class, "Z");
+        classToTypeDesc.put(byte.class, "B");
+        classToTypeDesc.put(char.class, "C");
+        classToTypeDesc.put(short.class, "S");
+        classToTypeDesc.put(int.class, "I");
+        classToTypeDesc.put(long.class, "J");
+        classToTypeDesc.put(float.class, "F");
+        classToTypeDesc.put(double.class, "D");
+        classToTypeDesc.put(void.class, "V");
     }
 
     public static String getLongName(Method method) {
@@ -59,7 +59,7 @@ public class MethodDescriptorUtils {
 
     private static String getTypeDescriptor(Class<?> clazz) {
         return Optional.ofNullable(
-                classToTypeSignature.get(clazz)
+                classToTypeDesc.get(clazz)
         ).orElseGet(
                 () -> clazz.isArray() ?
                         "[" + getTypeDescriptor(clazz.getComponentType()) :

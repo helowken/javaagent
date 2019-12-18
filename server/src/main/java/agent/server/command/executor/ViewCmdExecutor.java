@@ -7,10 +7,8 @@ import agent.common.message.result.ExecResult;
 import agent.server.transform.ContextClassLoaderMgr;
 import agent.server.transform.ResetClassMgr;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.nio.ByteBuffer;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -60,5 +58,14 @@ class ViewCmdExecutor extends AbstractCmdExecutor {
 
     private interface ContextInfoSupplier<V> {
         Map<String, ? extends Collection<V>> get();
+    }
+
+    public static void main(String[] args) {
+        DefaultExecResult result = DefaultExecResult.toSuccess(CMD_VIEW, null, Collections.singletonMap("xxx", Collections.emptyList()));
+        ByteBuffer bb = ByteBuffer.allocate(1024);
+        result.serialize(bb);
+        DefaultExecResult result2 = new DefaultExecResult();
+        result2.deserialize(bb);
+        System.out.println((Map) result2.getContent());
     }
 }

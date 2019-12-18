@@ -6,6 +6,7 @@ import org.objectweb.asm.tree.*;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -14,34 +15,22 @@ import java.util.Optional;
 import static org.objectweb.asm.Opcodes.*;
 
 class AsmMethod {
-    private final MethodNode methodNode;
-    private final InsnList insnList;
 
-    AsmMethod(MethodNode methodNode) {
-        this.methodNode = methodNode;
-        insnList = methodNode.instructions;
+    static Type getReturnType(Method method) {
+        return Type.getReturnType(method);
     }
 
-    Type getReturnType() {
+    static Type getReturnType(MethodNode methodNode) {
         return Type.getReturnType(
                 methodNode.desc
         );
     }
 
-    boolean isVoid() {
-        return getReturnType().getSort() == Type.VOID;
+    static boolean isVoid(MethodNode methodNode) {
+        return getReturnType(methodNode).getSort() == Type.VOID;
     }
 
-    MethodNode getMethodNode() {
-        return methodNode;
-    }
-
-    AsmMethod add(Object... ns) {
-        addTo(insnList, ns);
-        return this;
-    }
-
-    static void addTo(InsnList insnList, Object... ns) {
+    static InsnList addTo(InsnList insnList, Object... ns) {
         if (ns != null) {
             for (Object n : ns) {
                 if (n instanceof InsnList)
@@ -56,29 +45,7 @@ class AsmMethod {
                     throw new IllegalArgumentException("Invalid argument: " + n);
             }
         }
-    }
-
-    static AsmMethod copyFrom(MethodNode methodNode) {
-        return new AsmMethod(
-                new MethodNode(
-                        methodNode.access,
-                        methodNode.name,
-                        methodNode.desc,
-                        methodNode.signature,
-                        methodNode.exceptions.toArray(new String[0])
-                )
-        );
-    }
-
-    static List<LocalVariableNode> getArguments(MethodNode methodNode) {
-        List<LocalVariableNode> localVariables = new ArrayList<>(methodNode.localVariables);
-        if (!isStatic(methodNode))
-            localVariables.remove(0);
-        return localVariables;
-    }
-
-    static Object newLoad(LocalVariableNode localVariable) {
-        return newLoad(localVariable.desc, localVariable.index);
+        return insnList;
     }
 
     static Object newLoad(String desc, int index) {
@@ -102,25 +69,34 @@ class AsmMethod {
         );
     }
 
-    static Object newLoadWrapPrimitive(LocalVariableNode localVariable) {
-        Object load = AsmMethod.newLoad(localVariable);
+    static List<ParamObject> getParamObjects(Method method) {
+        Class<?>[] paramTypes = method.getParameterTypes();
+        int size = paramTypes.length;
+        List<ParamObject> paramObjects = new ArrayList<>(size);
+        int idx = isStatic(method) ? 0 : 1;
+        for (Class<?> paramType : paramTypes) {
+            paramObjects.add(
+                    new ParamObject(
+                            Type.getType(paramType),
+                            idx++
+                    )
+            );
+        }
+        return paramObjects;
+    }
+
+    static Object newLoadWrapPrimitive(ParamObject po) {
+        return newLoadWrapPrimitive(po.type, po.index);
+    }
+
+    static Object newLoadWrapPrimitive(Type type, int index) {
+        Object load = AsmMethod.newLoad(type, index);
         Object wrapCall = PrimitiveWrapper.mayCreateWrapCallNode(
-                localVariable.desc
+                type.getDescriptor()
         );
         return wrapCall != null ?
                 new Object[]{load, wrapCall} :
                 load;
-    }
-
-    static Object newLoads(List<LocalVariableNode> localVariables) {
-        return localVariables
-                .stream()
-                .map(AsmMethod::newLoad)
-                .toArray();
-    }
-
-    static Object newLoadClassName(LocalVariableNode localVariable) {
-        return newLoadClassName(localVariable.desc);
     }
 
     static Object newLoadClassName(String desc) {
@@ -161,12 +137,20 @@ class AsmMethod {
     }
 
     static TryCatchBlockNode newTryCatch() {
-        return new TryCatchBlockNode(
+        return newTryCatch(
                 new LabelNode(),
                 new LabelNode(),
                 new LabelNode(),
                 null
         );
+    }
+
+    static TryCatchBlockNode newTryCatch(LabelNode start, LabelNode end, LabelNode handler, String exceptionType) {
+        return new TryCatchBlockNode(start, end, handler, exceptionType);
+    }
+
+    static LabelNode newLabel() {
+        return new LabelNode();
     }
 
     static Object newArray(Class<?> clazz, int len) {
@@ -216,11 +200,12 @@ class AsmMethod {
         return rsList;
     }
 
-    static Object newStore(Class<?> clazz, int index) {
-        return newStore(
-                Type.getType(clazz),
-                index
-        );
+    static Object newAStore(int index) {
+        return new VarInsnNode(ASTORE, index);
+    }
+
+    static Object newALoad(int index) {
+        return new VarInsnNode(ALOAD, index);
     }
 
     static Object newStore(Type type, int index) {
@@ -355,6 +340,22 @@ class AsmMethod {
         );
     }
 
+    static boolean isStatic(Method method) {
+        return Modifier.isStatic(
+                method.getModifiers()
+        );
+    }
+
+    static Object newLoadThisOrNull(Method method) {
+        return isStatic(method) ?
+                newLoadNull(1) :
+                newLoadThis();
+    }
+
+    static Object newDup() {
+        return new InsnNode(DUP);
+    }
+
     static Object mayCastToReturnType(Type returnType) {
         if (returnType.getSort() == Type.VOID ||
                 returnType.getClassName().equals(Object.class.getName()))
@@ -381,5 +382,15 @@ class AsmMethod {
 
     interface AsmFunc {
         Object run();
+    }
+
+    static class ParamObject {
+        final Type type;
+        final int index;
+
+        private ParamObject(Type type, int index) {
+            this.type = type;
+            this.index = index;
+        }
     }
 }

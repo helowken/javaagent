@@ -188,11 +188,8 @@ public class TransformMgr implements ServerListener {
                 transformContext.getContext()
         );
         List<ProxyRegInfo> regInfos = prepareRegInfos(transformContext, transformResult);
-        System.out.println("============ regInfos : " + regInfos.size() + ", " + regInfos);
         List<ProxyResult> proxyResults = compile(regInfos, transformResult);
-        System.out.println("============ proxyResults : " + proxyResults.size());
         Map<Class<?>, byte[]> classToData = reTransform(transformResult, proxyResults);
-        System.out.println("============ classToData : " + classToData.size());
         Set<Class<?>> validClassSet = new HashSet<>(
                 classToData.keySet()
         );
@@ -215,6 +212,7 @@ public class TransformMgr implements ServerListener {
                     try {
                         transformer.transform(transformContext);
                     } catch (Throwable t) {
+                        logger.error("transform failed.", t);
                         transformResult.addTransformError(t, transformer);
                     }
                 }

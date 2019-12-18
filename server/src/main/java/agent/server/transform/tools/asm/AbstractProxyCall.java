@@ -10,11 +10,10 @@ import static agent.server.transform.tools.asm.ProxyArgsMask.*;
 
 abstract class AbstractProxyCall implements ProxyCall {
     private static final Logger logger = Logger.getLogger(AbstractProxyCall.class);
-    private static final int MASK_POS_BEFORE = MASK_ARGS | MASK_ARG_TYPES | MASK_INVOKE_TARGET;
-    private static final int MASK_POS_AFTER_RETURNING = MASK_POS_BEFORE | MASK_RETURN_VALUE | MASK_RETURN_TYPE;
-    private static final int MASK_POS_AFTER_THROWING = MASK_POS_BEFORE | MASK_ERROR;
-    private static final int MASK_POS_AFTER = MASK_POS_AFTER_RETURNING | MASK_POS_AFTER_THROWING;
-    private static final int MASK_POS_AROUND = MASK_POS_BEFORE | MASK_PROXY_CHAIN;
+    private static final int MASK_POS_BEFORE = DEFAULT_BEFORE | DEFAULT_METADATA;
+    private static final int MASK_POS_ON_RETURNING = DEFAULT_ON_RETURNING | DEFAULT_METADATA;
+    private static final int MASK_POS_ON_THROWING = DEFAULT_ON_THROWING | DEFAULT_METADATA;
+    private static final int MASK_POS_AFTER = DEFAULT_AFTER | DEFAULT_METADATA;
 
     private final ProxyPosition position;
     private final ProxyCallInfo callInfo;
@@ -24,49 +23,27 @@ abstract class AbstractProxyCall implements ProxyCall {
         this.callInfo = callInfo;
     }
 
-    protected void exec(ProxyCallChain callChain) {
+    @Override
+    public void run(DestInvoke destInvoke, Object instanceOrNull, Object pv) {
         try {
             callInfo.getProxyMethod().invoke(
                     callInfo.getProxyTarget(),
-                    getParams(callChain)
+                    getParams(destInvoke, instanceOrNull, pv)
             );
         } catch (Throwable t) {
             logger.error("Proxy call failed by: {}", t, callInfo);
         }
     }
 
-    private Object[] getParams(ProxyCallChain callChain) {
+    private Object[] getParams(DestInvoke destInvoke, Object instanceOrNull, Object pv) {
         int mask = getArgsMask();
         List<Object> params = new ArrayList<>();
-        if (useArgs(mask))
-            params.add(
-                    callChain.getArgs()
-            );
-        if (useArgTypes(mask))
-            params.add(
-                    callChain.getArgTypes()
-            );
-        if (useReturnValue(mask))
-            params.add(
-                    callChain.getReturnValue()
-            );
-        if (useReturnType(mask))
-            params.add(
-                    callChain.getReturnType()
-            );
-        if (useError(mask))
-            params.add(
-                    callChain.getError()
-            );
-        if (useProxyChain(mask))
-            params.add(callChain);
+        collectParams(params, mask, destInvoke, pv);
         if (useInvokeTarget(mask))
-            params.add(
-                    callChain.getTarget()
-            );
+            params.add(instanceOrNull);
         if (useInvokeMethod(mask))
             params.add(
-                    callChain.getDestInvoke().getSourceEntity()
+                    destInvoke.getInvokeEntity()
             );
         if (callInfo.hasOtherArgs())
             Collections.addAll(
@@ -76,19 +53,19 @@ abstract class AbstractProxyCall implements ProxyCall {
         return params.toArray();
     }
 
+    abstract void collectParams(List<Object> params, int mask, DestInvoke destInvoke, Object pv);
+
     private int getArgsMask() {
         int mask = callInfo.getArgsMask();
         switch (position) {
             case BEFORE:
                 return MASK_POS_BEFORE & mask;
+            case ON_RETURNING:
+                return MASK_POS_ON_RETURNING & mask;
+            case ON_THROWING:
+                return MASK_POS_ON_THROWING & mask;
             case AFTER:
                 return MASK_POS_AFTER & mask;
-            case AROUND:
-                return MASK_POS_AROUND & mask;
-            case AFTER_RETURNING:
-                return MASK_POS_AFTER_RETURNING & mask;
-            case AFTER_THROWING:
-                return MASK_POS_AFTER_THROWING & mask;
         }
         throw new RuntimeException("Invalid position: " + position);
     }

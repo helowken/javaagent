@@ -22,20 +22,16 @@ public class ProxyRegInfo {
         return add(BEFORE, proxyCallInfos);
     }
 
+    public ProxyRegInfo addOnReturning(ProxyCallInfo... proxyCallInfos) {
+        return add(ON_RETURNING, proxyCallInfos);
+    }
+
+    public ProxyRegInfo addOnThrowing(ProxyCallInfo... proxyCallInfos) {
+        return add(ON_THROWING, proxyCallInfos);
+    }
+
     public ProxyRegInfo addAfter(ProxyCallInfo... proxyCallInfos) {
         return add(AFTER, proxyCallInfos);
-    }
-
-    public ProxyRegInfo addAround(ProxyCallInfo... proxyCallInfos) {
-        return add(AROUND, proxyCallInfos);
-    }
-
-    public ProxyRegInfo addAfterReturning(ProxyCallInfo... proxyCallInfos) {
-        return add(AFTER_RETURNING, proxyCallInfos);
-    }
-
-    public ProxyRegInfo addAfterThrowing(ProxyCallInfo... proxyCallInfos) {
-        return add(AFTER_THROWING, proxyCallInfos);
     }
 
     private ProxyRegInfo add(ProxyPosition proxyPosition, ProxyCallInfo... proxyCallInfos) {

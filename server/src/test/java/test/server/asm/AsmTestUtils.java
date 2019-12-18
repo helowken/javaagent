@@ -6,6 +6,7 @@ import agent.base.utils.Utils;
 import agent.server.transform.tools.asm.*;
 import test.server.utils.TestClassLoader;
 
+import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.List;
 
@@ -14,6 +15,12 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
 class AsmTestUtils {
+    static Class<?> prepareClassMethod(int count, List<String> logList, Class<?> clazz, String methodName) throws Exception {
+        Method destMethod = ReflectionUtils.findFirstMethod(clazz, methodName);
+        ProxyRegInfo regInfo = new ProxyRegInfo(destMethod);
+        return prepareClass(count, logList, regInfo);
+    }
+
     static Class<?> prepareClass(int count, List<String> logList, ProxyRegInfo regInfo) throws Exception {
         ProxyResult item = prepareData(count, logList, regInfo);
         assertFalse(item.hasError());
@@ -27,7 +34,11 @@ class AsmTestUtils {
     }
 
     static Class<?> newClass(String className, byte[] classData) {
-        AsmUtils.verifyAndPrintResult(classData, System.out);
+        AsmUtils.verifyAndPrintResult(
+                AsmTestUtils.class.getClassLoader(),
+                classData,
+                System.out
+        );
         System.out.println("=========================\n");
 
         AsmUtils.print(classData, System.out);
@@ -58,29 +69,23 @@ class AsmTestUtils {
                             ReflectionUtils.findFirstMethod(TestProxyB.class, "testBefore"),
                             DEFAULT_BEFORE
                     )
+            ).addOnReturning(
+                    new ProxyCallInfo(
+                            b,
+                            ReflectionUtils.findFirstMethod(TestProxyB.class, "testOnReturning"),
+                            DEFAULT_ON_RETURNING
+                    )
+            ).addOnThrowing(
+                    new ProxyCallInfo(
+                            b,
+                            ReflectionUtils.findFirstMethod(TestProxyB.class, "testOnThrowing"),
+                            DEFAULT_ON_THROWING
+                    )
             ).addAfter(
                     new ProxyCallInfo(
                             b,
                             ReflectionUtils.findFirstMethod(TestProxyB.class, "testAfter"),
                             DEFAULT_AFTER
-                    )
-            ).addAround(
-                    new ProxyCallInfo(
-                            b,
-                            ReflectionUtils.findFirstMethod(TestProxyB.class, "testAround"),
-                            DEFAULT_AROUND
-                    )
-            ).addAfterReturning(
-                    new ProxyCallInfo(
-                            b,
-                            ReflectionUtils.findFirstMethod(TestProxyB.class, "testAfterReturning"),
-                            DEFAULT_AFTER_RETURNING
-                    )
-            ).addAfterThrowing(
-                    new ProxyCallInfo(
-                            b,
-                            ReflectionUtils.findFirstMethod(TestProxyB.class, "testAfterThrowing"),
-                            DEFAULT_AFTER_THROWING
                     )
             );
         }

@@ -9,7 +9,9 @@ interface DestInvoke {
 
     Class<?> getDeclaringClass();
 
-    Object getSourceEntity();
+    Object getInvokeEntity();
 
-    ProxyCallSite newCallSite(ProxyCallSiteConfig config);
+    Class<?>[] getParamTypes();
+
+    Class<?> getReturnType();
 }

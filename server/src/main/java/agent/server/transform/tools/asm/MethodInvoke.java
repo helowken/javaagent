@@ -35,13 +35,18 @@ class MethodInvoke implements DestInvoke {
     }
 
     @Override
-    public Object getSourceEntity() {
+    public Object getInvokeEntity() {
         return method;
     }
 
     @Override
-    public ProxyCallSite newCallSite(ProxyCallSiteConfig config) {
-        return new MethodProxyCallSite(config);
+    public Class<?>[] getParamTypes() {
+        return method.getParameterTypes();
+    }
+
+    @Override
+    public Class<?> getReturnType() {
+        return method.getReturnType();
     }
 
     @Override

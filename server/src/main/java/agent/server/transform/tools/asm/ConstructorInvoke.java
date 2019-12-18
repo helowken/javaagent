@@ -36,13 +36,18 @@ class ConstructorInvoke implements DestInvoke {
     }
 
     @Override
-    public Object getSourceEntity() {
+    public Object getInvokeEntity() {
         return constructor;
     }
 
     @Override
-    public ProxyCallSite newCallSite(ProxyCallSiteConfig config) {
-        return new ConstructorProxyCallSite(config);
+    public Class<?>[] getParamTypes() {
+        return constructor.getParameterTypes();
+    }
+
+    @Override
+    public Class<?> getReturnType() {
+        return void.class;
     }
 
     @Override

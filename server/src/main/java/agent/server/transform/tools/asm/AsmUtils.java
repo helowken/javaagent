@@ -11,31 +11,55 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 
 public class AsmUtils {
-    public static void verifyAndPrintResult(byte[] bs, OutputStream out) {
-        CheckClassAdapter.verify(
-                new ClassReader(bs),
+    public static void verifyAndPrintResult(ClassLoader loader, byte[] bs, OutputStream out) {
+        verify(
+                loader,
+                bs,
                 true,
-                new PrintWriter(out)
+                new PrintWriter(System.out)
         );
     }
 
-    public static String getVerifyResult(byte[] bs, boolean printResults) {
+    public static String getVerifyResult(ClassLoader loader, byte[] bs, boolean printResults) {
         StringWriter sw = new StringWriter();
-        CheckClassAdapter.verify(
-                new ClassReader(bs),
+        verify(
+                loader,
+                bs,
                 printResults,
                 new PrintWriter(sw)
         );
         return sw.toString();
     }
 
+    private static void verify(ClassLoader loader, byte[] bs, boolean printResults, PrintWriter pw) {
+        CheckClassAdapter.verify(
+                new ClassReader(bs),
+                loader,
+                printResults,
+                pw
+        );
+    }
+
+    public static String convertToReadableContent(byte[] bs) {
+        StringWriter sw = new StringWriter();
+        printClass(
+                bs,
+                new PrintWriter(sw)
+        );
+        return sw.toString();
+    }
+
     public static void print(byte[] bs, OutputStream out) {
+        printClass(
+                bs,
+                new PrintWriter(out)
+        );
+    }
+
+    private static void printClass(byte[] bs, PrintWriter pw) {
         new ClassReader(bs)
                 .accept(
-                        new TraceClassVisitor(
-                                null,
-                                new PrintWriter(out)
-                        ),
+                        new TraceClassVisitor(null, pw),
                         0
                 );
     }

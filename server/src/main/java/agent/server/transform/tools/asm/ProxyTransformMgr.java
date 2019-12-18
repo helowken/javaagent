@@ -10,10 +10,10 @@ import java.util.stream.Collectors;
 public class ProxyTransformMgr {
     private static final Logger logger = Logger.getLogger(ProxyTransformMgr.class);
     private static final ProxyTransformMgr instance = new ProxyTransformMgr();
+    private static final Object[] noArgs = new Object[0];
 
     private AtomicInteger idGenerator = new AtomicInteger(0);
     private Map<DestInvoke, Integer> invokeToId = new HashMap<>();
-    private Map<Integer, ProxyCallConfig> idToCallConfig = new HashMap<>();
     private Map<Integer, ProxyCallSite> idToCallSite = new HashMap<>();
 
     public static ProxyTransformMgr getInstance() {
@@ -58,15 +58,24 @@ public class ProxyTransformMgr {
     }
 
     private ProxyResult doTransform(ProxyItem item, Function<Class<?>, byte[]> classDataFunc) {
-        byte[] newClassData = NewAsmTransformProxy.transform(
+        byte[] newClassData = AsmTransformProxy.transform(
                 classDataFunc.apply(item.clazz),
                 item.idToInvoke
         );
-        String verifyResult = AsmUtils.getVerifyResult(newClassData, false);
+        String verifyResult = AsmUtils.getVerifyResult(
+                item.clazz.getClassLoader(),
+                newClassData,
+                false
+        );
         if (!verifyResult.isEmpty()) {
-            logger.error("Verify {} transform failed: \n{}",
+            logger.error("Verify {} transform failed: \n{}\n=================\n{}",
                     item.clazz.getName(),
-                    AsmUtils.getVerifyResult(newClassData, true)
+                    AsmUtils.getVerifyResult(
+                            item.clazz.getClassLoader(),
+                            newClassData,
+                            true
+                    ),
+                    AsmUtils.convertToReadableContent(newClassData)
             );
             return new ProxyResult(
                     item.clazz,
@@ -93,9 +102,9 @@ public class ProxyTransformMgr {
             ).orElseThrow(
                     () -> new RuntimeException("No id found for destInvoke: " + destInvoke)
             );
-            ProxyCallConfig callConfig = idToCallConfig.computeIfAbsent(
+            ProxyCallSite callConfig = idToCallSite.computeIfAbsent(
                     invokeId,
-                    key -> new ProxyCallConfig(destInvoke)
+                    key -> new ProxyCallSite(destInvoke)
             );
             regInfos.forEach(
                     regInfo -> regInfo.getPosToCalInfos().forEach(callConfig::reg)
@@ -103,22 +112,24 @@ public class ProxyTransformMgr {
         }
     }
 
-    public Object onDelegate(Object target, Class<?> targetClass, String targetMethodName, int invokeId, Object[] args) throws Throwable {
-        ProxyCallConfig callConfig = Optional.ofNullable(
-                idToCallConfig.get(invokeId)
+    private ProxyCallSite getCallSite(int invokeId) {
+        return Optional.ofNullable(
+                idToCallSite.get(invokeId)
         ).orElseThrow(
                 () -> new RuntimeException("No call config found by destInvoke id: " + invokeId)
         );
-        return idToCallSite.computeIfAbsent(
-                invokeId,
-                key -> callConfig.getDestInvoke().newCallSite(
-                        new ProxyCallSiteConfig(
-                                callConfig,
-                                targetClass,
-                                targetMethodName
-                        )
-                )
-        ).invoke(target, args);
+    }
+
+    public void onBefore(int invokeId, Object instanceOrNull, Object[] args) throws Throwable {
+        getCallSite(invokeId).invokeBefore(instanceOrNull, args);
+    }
+
+    public void onReturning(int invokeId, Object instanceOrNull, Object returnValue) throws Throwable {
+        getCallSite(invokeId).invokeOnReturning(instanceOrNull, returnValue);
+    }
+
+    public void onThrowing(int invokeId, Object instanceOrNull, Throwable error) throws Throwable {
+        getCallSite(invokeId).invokeOnThrowing(instanceOrNull, error);
     }
 
     private static class ProxyItem {
@@ -126,7 +137,7 @@ public class ProxyTransformMgr {
         private Map<Integer, DestInvoke> idToInvoke = new HashMap<>();
         private Map<DestInvoke, List<ProxyRegInfo>> invokeToRegInfos = new HashMap<>();
 
-        private ProxyItem(Class<?> clazz) {
+        ProxyItem(Class<?> clazz) {
             this.clazz = clazz;
         }
 

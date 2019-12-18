@@ -1,6 +1,8 @@
 package agent.server.transform.tools.asm;
 
-import static agent.server.transform.tools.asm.ProxyPosition.*;
+import java.util.List;
+
+import static agent.server.transform.tools.asm.ProxyPosition.AFTER;
 
 class ProxyCallAfter extends AbstractProxyCall {
     ProxyCallAfter(ProxyCallInfo callInfo) {
@@ -8,10 +10,6 @@ class ProxyCallAfter extends AbstractProxyCall {
     }
 
     @Override
-    public void run(ProxyCallChain callChain) {
-        callChain.process();
-        exec(callChain);
+    void collectParams(List<Object> params, int mask, DestInvoke destInvoke, Object pv) {
     }
 }
-
-

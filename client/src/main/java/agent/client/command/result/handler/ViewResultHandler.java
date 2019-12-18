@@ -32,10 +32,15 @@ public class ViewResultHandler extends AbstractContextResultHandler {
             default:
                 throw new RuntimeException("Unknown catalog: " + catalog);
         }
-        write(title, rsMap, (sb, classSet) ->
-                classSet.forEach(className ->
-                        sb.append(INDENT_1).append(entryDesc).append(className).append("\n")
-                )
+        write(
+                title,
+                rsMap,
+                (sb, classSet) -> {
+                    if (classSet != null)
+                        classSet.forEach(className ->
+                                sb.append(INDENT_1).append(entryDesc).append(className).append("\n")
+                        );
+                }
         );
     }
 }

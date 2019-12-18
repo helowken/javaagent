@@ -2,51 +2,85 @@ package test.server.asm;
 
 import agent.base.utils.ReflectionUtils;
 import agent.base.utils.Utils;
-import agent.server.transform.tools.asm.ProxyRegInfo;
 import org.junit.Test;
 
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.Assert.*;
 
 public class AsmProxyMethodTest {
+    final int count = 3;
     private static final String errorMsg = "xxxx";
 
     @Test
-    public void test() throws Exception {
-        final int count = 3;
-        List<String> logList = new ArrayList<>();
-
-        Method destMethod = ReflectionUtils.findFirstMethod(A.class, "test");
-        ProxyRegInfo regInfo = new ProxyRegInfo(destMethod);
-        Class<?> newAClass = AsmTestUtils.prepareClass(count, logList, regInfo);
-
-        callNormal(newAClass, count, logList);
-        System.out.println("========================");
-        logList.clear();
-        callError(newAClass, count, logList);
+    public void testArgsAndReturnWrapper() throws Exception {
+        String methodName = "argsAndReturnWrapper";
+        callWithArgs(methodName);
     }
 
     @Test
-    public void test2() throws Exception {
-        doTestNoArgsMethod("test2");
+    public void testStaticArgsAndReturnWrapper() throws Exception {
+        String methodName = "staticArgsAndReturnWrapper";
+        callWithArgs(methodName);
     }
 
     @Test
-    public void test3() throws Exception {
-        doTestNoArgsMethod("test3");
+    public void testThrowException() throws Exception {
+        String methodName = "throwException";
+        callError(methodName);
     }
 
-    private void doTestNoArgsMethod(String methodName) throws Exception {
-        final int count = 3;
+    @Test
+    public void testCallErrorFunc() throws Exception {
+        String methodName = "callErrorFunc";
+        callError(methodName);
+    }
+
+    @Test
+    public void testTryFinally() throws Exception {
+        String methodName = "tryFinally";
+        callError(methodName);
+    }
+
+    @Test
+    public void testTryCatch() throws Exception {
+        callWithoutArgs("tryCatch");
+    }
+
+    @Test
+    public void testTryCatchThrow() throws Exception {
+        callError("tryCatchThrow");
+    }
+
+    @Test
+    public void testTrySyncThrow() throws Exception {
+        callError("trySyncThrow");
+    }
+
+    @Test
+    public void trySyncMethodThrow() throws Exception {
+        callError("trySyncMethodThrow");
+    }
+
+    @Test
+    public void testTryNotCatch() throws Exception {
+        callError("tryNotCatch");
+    }
+
+    @Test
+    public void testReturnPrimitive() throws Exception {
+        callWithoutArgs("returnPrimitive");
+    }
+
+    @Test
+    public void testReturnVoid() throws Exception {
+        callWithoutArgs("returnVoid");
+    }
+
+    private void callWithoutArgs(String methodName) throws Exception {
         List<String> logList = new ArrayList<>();
-
-        Method destMethod = ReflectionUtils.findFirstMethod(A.class, methodName);
-        ProxyRegInfo regInfo = new ProxyRegInfo(destMethod);
-        Class<?> newAClass = AsmTestUtils.prepareClass(count, logList, regInfo);
-
+        Class<?> newAClass = AsmTestUtils.prepareClassMethod(count, logList, A.class, methodName);
         ReflectionUtils.invoke(
                 newAClass,
                 methodName,
@@ -56,38 +90,36 @@ public class AsmProxyMethodTest {
         doCheck(count, logList, false);
     }
 
-    private void callError(Class<?> newAClass, int count, List<String> logList) {
+    private void callError(String methodName) throws Exception {
+        List<String> logList = new ArrayList<>();
+        Class<?> newAClass = AsmTestUtils.prepareClassMethod(count, logList, A.class, methodName);
         try {
             ReflectionUtils.invoke(
                     newAClass,
-                    "test",
-                    new Class[]{
-                            int.class,
-                            String.class,
-                            short.class
-                    },
-                    newAClass.newInstance(),
-                    1,
-                    "sss",
-                    (short) 111
+                    methodName,
+                    new Class[0],
+                    newAClass.newInstance()
             );
             fail();
         } catch (Exception e) {
             Throwable t = Utils.getMeaningfulCause(e);
+            t.printStackTrace();
             assertTrue(t instanceof RuntimeException);
             assertEquals(errorMsg, t.getMessage());
         }
         doCheck(count, logList, true);
     }
 
-    private void callNormal(Class<?> newAClass, int count, List<String> logList) throws Exception {
+    private void callWithArgs(String methodName) throws Exception {
+        List<String> logList = new ArrayList<>();
+        Class<?> newAClass = AsmTestUtils.prepareClassMethod(count, logList, A.class, methodName);
         ReflectionUtils.invoke(
                 newAClass,
-                "test",
+                methodName,
                 new Class[]{
                         int.class,
                         String.class,
-                        short.class
+                        Short.class
                 },
                 newAClass.newInstance(),
                 333,
@@ -105,22 +137,12 @@ public class AsmProxyMethodTest {
     }
 
     private static List<String> newExpectedList(int count, boolean throwError) {
-        String[] prefixList = new String[]{
-                "before", "aroundStart"
-        };
+        List<String> prefixList = new ArrayList<>();
+        prefixList.add("before");
+        prefixList.add(throwError ? "onThrowing" : "onReturning");
+        prefixList.add("after");
+
         List<String> expectedList = new ArrayList<>();
-        for (String prefix : prefixList) {
-            for (int i = 0; i < count; ++i) {
-                expectedList.add(prefix + "-" + i);
-            }
-        }
-        for (int i = count - 1; i >= 0; --i) {
-            expectedList.add("aroundEnd-" + i);
-        }
-        prefixList = new String[]{
-                throwError ? "afterThrowing" : "afterReturning",
-                "after"
-        };
         for (String prefix : prefixList) {
             for (int i = 0; i < count; ++i) {
                 expectedList.add(prefix + "-" + i);
@@ -130,21 +152,76 @@ public class AsmProxyMethodTest {
     }
 
     public static class A {
-        public Double test(int a, String b, short ccc) {
+        private Double argsAndReturnWrapper(int a, String b, Short ccc) {
             System.out.println("a: " + a + ", b: " + b + ", ccc: " + ccc);
             System.out.println("Return Double wrapper");
-            if (a == 1)
-                raiseError();
             return 3.3D;
         }
 
-        public int test2() {
-            System.out.println("Return int primitive");
+        private static String staticArgsAndReturnWrapper(int a, String b, Short ccc) {
+            System.out.println("a: " + a + ", b: " + b + ", ccc: " + ccc);
+            System.out.println("Return Double wrapper");
+            return "return from static";
+        }
+
+        private int returnPrimitive() {
+            System.out.println("Return primitive");
             return 333;
         }
 
-        public void test3() {
+        private void returnVoid() {
             System.out.println("Return void");
+        }
+
+        private void throwException() {
+            throw new RuntimeException(errorMsg);
+        }
+
+        private void callErrorFunc() {
+            raiseError();
+        }
+
+        private void tryFinally() {
+            try {
+                throw new RuntimeException(errorMsg);
+            } finally {
+                System.out.println(111);
+            }
+        }
+
+        private void tryCatch() {
+            try {
+                throw new Exception(errorMsg);
+            } catch (Throwable e) {
+                e.printStackTrace();
+            }
+        }
+
+        private void tryCatchThrow() {
+            try {
+                throw new Exception(errorMsg);
+            } catch (Throwable e) {
+                e.printStackTrace();
+                throw new RuntimeException(e.getMessage());
+            }
+        }
+
+        private void tryNotCatch() throws Exception {
+            try {
+                throw new RuntimeException(errorMsg);
+            } catch (IllegalArgumentException e) {
+                e.printStackTrace();
+            }
+        }
+
+        private void trySyncThrow() throws Exception {
+            synchronized (this) {
+                throw new RuntimeException(errorMsg);
+            }
+        }
+
+        private synchronized void trySyncMethodThrow() throws Exception {
+            throw new RuntimeException(errorMsg);
         }
 
         private void raiseError() {

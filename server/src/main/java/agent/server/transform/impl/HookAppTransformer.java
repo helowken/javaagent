@@ -18,7 +18,7 @@ public class HookAppTransformer extends AbstractTransformer {
                                 transformContext.getTargetClass(),
                                 "()V"
                         )
-                ).addAfter(
+                ).addOnReturning(
                         new ProxyCallInfo(
                                 findSelfMethod("doHook"),
                                 MASK_INVOKE_TARGET

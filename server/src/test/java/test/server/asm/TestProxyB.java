@@ -1,7 +1,5 @@
 package test.server.asm;
 
-import agent.server.transform.tools.asm.ProxyCallChain;
-
 import java.util.Arrays;
 import java.util.List;
 
@@ -23,39 +21,25 @@ public class TestProxyB {
         );
     }
 
-    public void testAfter(Object returnValue, Class<?> returnType, Throwable error) {
-        this.logList.add("after-" + count);
+    public void testOnReturning(Object returnValue, Class<?> returnType) {
+        this.logList.add("onReturning-" + count);
         System.out.println(
-                "==== test after: " + count +
-                        (error != null ?
-                                ", Error: " + error :
-                                ", Return Value: " + returnValue + ", Return Type: " + returnType
-                        )
-        );
-    }
-
-    public void testAround(ProxyCallChain callChain) {
-        this.logList.add("aroundStart-" + count);
-        System.out.println("==== test around start: " + count);
-        callChain.process();
-        this.logList.add("aroundEnd-" + count);
-        System.out.println("==== test around end: " + count);
-    }
-
-    public void testAfterReturning(Object returnValue, Class<?> returnType) {
-        this.logList.add("afterReturning-" + count);
-        System.out.println(
-                "==== test after returning: " + count +
+                "==== test on returning: " + count +
                         ", Return Value: " + returnValue +
                         ", Return Type: " + returnType
         );
     }
 
-    public void testAfterThrowing(Throwable error) {
-        this.logList.add("afterThrowing-" + count);
+    public void testOnThrowing(Throwable error) {
+        this.logList.add("onThrowing-" + count);
         System.out.println(
-                "==== test after throwing: " + count +
+                "==== test on throwing: " + count +
                         ", Error: " + error
         );
+    }
+
+    public void testAfter() {
+        this.logList.add("after-" + count);
+        System.out.println("==== test after: " + count);
     }
 }
