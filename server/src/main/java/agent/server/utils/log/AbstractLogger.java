@@ -78,8 +78,12 @@ public abstract class AbstractLogger<T extends LogItem> implements ILogger<T>, A
         }
     }
 
+    private String formatOutputPath(String outputPath) {
+        return outputPath == null ? "console" : outputPath;
+    }
+
     private void flush(String outputPath) {
-        getLogger().debug("Flush log path: {}", outputPath);
+        getLogger().debug("Flush log path: {}", formatOutputPath(outputPath));
         doFlush(outputPath);
     }
 
@@ -96,7 +100,7 @@ public abstract class AbstractLogger<T extends LogItem> implements ILogger<T>, A
                 logWriterList.add(logWriter);
         });
         if (logWriterList.isEmpty())
-            getLogger().debug("No logs found for: {}", outputPath);
+            getLogger().debug("No logs found for: {}", formatOutputPath(outputPath));
         else
             logWriterList.forEach(LogWriter::flush);
     }

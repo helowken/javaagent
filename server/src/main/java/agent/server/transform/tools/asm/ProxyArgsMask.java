@@ -7,10 +7,10 @@ public class ProxyArgsMask {
     public static final int MASK_RETURN_VALUE = 4;
     public static final int MASK_RETURN_TYPE = 8;
     public static final int MASK_ERROR = 16;
-    public static final int MASK_INVOKE_TARGET = 32;
-    public static final int MASK_INVOKE_METHOD = 64;
+    public static final int MASK_INSTANCE = 32;
+    public static final int MASK_METHOD = 64;
 
-    public static final int DEFAULT_METADATA = MASK_INVOKE_TARGET | MASK_INVOKE_METHOD;
+    public static final int DEFAULT_METADATA = MASK_INSTANCE | MASK_METHOD;
     public static final int DEFAULT_BEFORE = MASK_ARGS | MASK_ARG_TYPES;
     public static final int DEFAULT_ON_RETURNING = MASK_RETURN_VALUE | MASK_RETURN_TYPE;
     public static final int DEFAULT_ON_THROWING = MASK_ERROR;
@@ -36,12 +36,12 @@ public class ProxyArgsMask {
         return (mask & MASK_ERROR) != 0;
     }
 
-    static boolean useInvokeTarget(int mask) {
-        return (mask & MASK_INVOKE_TARGET) != 0;
+    static boolean useInstance(int mask) {
+        return (mask & MASK_INSTANCE) != 0;
     }
 
-    static boolean useInvokeMethod(int mask) {
-        return (mask & MASK_INVOKE_METHOD) != 0;
+    static boolean useMethod(int mask) {
+        return (mask & MASK_METHOD) != 0;
     }
 
 }

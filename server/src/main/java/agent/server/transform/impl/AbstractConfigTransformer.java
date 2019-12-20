@@ -40,6 +40,10 @@ public abstract class AbstractConfigTransformer extends AbstractTransformer impl
         return transformerInfo;
     }
 
+    protected String getContext() {
+        return getTransformerInfo().getContext();
+    }
+
     @Override
     public void transform(TransformContext transformContext) throws Exception {
         for (Class<?> clazz : transformContext.getTargetClassSet()) {

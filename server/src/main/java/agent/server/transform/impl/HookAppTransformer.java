@@ -6,7 +6,7 @@ import agent.server.transform.TransformContext;
 import agent.server.transform.tools.asm.ProxyCallInfo;
 import agent.server.transform.tools.asm.ProxyRegInfo;
 
-import static agent.server.transform.tools.asm.ProxyArgsMask.MASK_INVOKE_TARGET;
+import static agent.server.transform.tools.asm.ProxyArgsMask.MASK_INSTANCE;
 
 public class HookAppTransformer extends AbstractTransformer {
 
@@ -21,7 +21,7 @@ public class HookAppTransformer extends AbstractTransformer {
                 ).addOnReturning(
                         new ProxyCallInfo(
                                 findSelfMethod("doHook"),
-                                MASK_INVOKE_TARGET
+                                MASK_INSTANCE
                         )
                 )
         );

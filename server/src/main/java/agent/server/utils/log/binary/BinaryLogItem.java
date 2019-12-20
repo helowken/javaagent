@@ -9,6 +9,8 @@ import java.util.List;
 
 public class BinaryLogItem extends AbstractLogItem {
     private static final int intSize = Integer.BYTES;
+    private static final int shortSize = Short.BYTES;
+    private static final int byteSize = Byte.BYTES;
     private List<ByteBuffer> bufferList = new ArrayList<>();
     private ByteBuffer currBuffer;
     private long size = 0;
@@ -29,6 +31,16 @@ public class BinaryLogItem extends AbstractLogItem {
             bufferList.add(currBuffer);
         }
         return currBuffer;
+    }
+
+    public void put(byte v) {
+        getBuffer(byteSize).put(v);
+        updateSize(byteSize);
+    }
+
+    public void putShort(short v) {
+        getBuffer(shortSize).putShort(v);
+        updateSize(shortSize);
     }
 
     public void putInt(int v) {

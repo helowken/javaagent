@@ -12,5 +12,5 @@ import static agent.server.transform.tools.asm.ProxyArgsMask.MASK_NONE;
 public @interface OnThrowing {
     int mask() default MASK_NONE;
 
-    String otherArgsFunc() default "";
+    int argsHint() default -1;
 }

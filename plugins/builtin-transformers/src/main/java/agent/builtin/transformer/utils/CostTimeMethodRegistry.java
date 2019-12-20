@@ -3,36 +3,36 @@ package agent.builtin.transformer.utils;
 import agent.base.utils.IOUtils;
 import agent.base.utils.LockObject;
 import agent.base.utils.Logger;
+import agent.builtin.event.StatisticsMetadataFlushedEvent;
 import agent.common.utils.JSONUtils;
 import agent.server.event.AgentEvent;
 import agent.server.event.AgentEventListener;
 import agent.server.event.EventListenerMgr;
-import agent.server.event.impl.LogFlushEvent;
+import agent.server.event.impl.LogFlushedEvent;
 import agent.server.event.impl.ResetClassEvent;
-import agent.server.utils.log.LogMgr;
-import agent.server.utils.log.binary.BinaryLogItem;
-import agent.server.utils.log.binary.BinaryLogItemPool;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class CostTimeLogger implements AgentEventListener {
+public class CostTimeMethodRegistry implements AgentEventListener {
     public static final String METADATA_FILE = ".metadata";
-    private static final Logger logger = Logger.getLogger(CostTimeLogger.class);
-    private static final CostTimeLogger instance = new CostTimeLogger();
+    private static final Logger logger = Logger.getLogger(CostTimeMethodRegistry.class);
+    private static final CostTimeMethodRegistry instance = new CostTimeMethodRegistry();
 
     private final LockObject methodTypeLock = new LockObject();
     private final Map<String, Map<String, Map<String, Integer>>> contextToClassToMethodToType = new HashMap<>();
     private final AtomicInteger typeCounter = new AtomicInteger(0);
     private final Map<String, Set<String>> outputPathToContexts = new HashMap<>();
-    private final ThreadLocal<CostTimeItem> currItemLocal = new ThreadLocal<>();
 
-    public static CostTimeLogger getInstance() {
+    public static CostTimeMethodRegistry getInstance() {
         return instance;
     }
 
-    private CostTimeLogger() {
-        EventListenerMgr.reg(LogFlushEvent.class, this);
+    private CostTimeMethodRegistry() {
+        EventListenerMgr.reg(LogFlushedEvent.class, this);
         EventListenerMgr.reg(ResetClassEvent.class, this);
     }
 
@@ -60,42 +60,13 @@ public class CostTimeLogger implements AgentEventListener {
         );
     }
 
-    public void log(String logKey, int type, int costTime) {
-        Optional.ofNullable(currItemLocal.get())
-                .orElseGet(() -> {
-                    CostTimeItem item = new CostTimeItem(
-                            BinaryLogItemPool.get(logKey)
-                    );
-                    currItemLocal.set(item);
-                    return item;
-                })
-                .log(type, costTime);
-    }
-
-    public void commit(String logKey) {
-        CostTimeItem currItem = currItemLocal.get();
-        if (currItem == null)
-            logger.warn("No cost time item found, but commit is called, log key is: {}", logKey);
-        else {
-            currItem.end();
-            LogMgr.logBinary(logKey, currItem.logItem);
-            currItemLocal.remove();
-//            logger.debug("Current item is committed.");
-        }
-    }
-
-    public void rollback() {
-//        logger.debug("rollback.");
-        currItemLocal.remove();
-    }
-
     @Override
     public void onNotify(AgentEvent event) {
         Class<?> eventType = event.getClass();
         if (eventType.equals(ResetClassEvent.class)) {
             handleResetEvent((ResetClassEvent) event);
-        } else if (eventType.equals(LogFlushEvent.class)) {
-            handleLogFlushedEvent((LogFlushEvent) event);
+        } else if (eventType.equals(LogFlushedEvent.class)) {
+            handleLogFlushedEvent((LogFlushedEvent) event);
         } else
             throw new RuntimeException("Unsupported event type: " + eventType);
     }
@@ -120,35 +91,18 @@ public class CostTimeLogger implements AgentEventListener {
         });
     }
 
-    private void handleLogFlushedEvent(LogFlushEvent event) {
+    private void handleLogFlushedEvent(LogFlushedEvent event) {
         String outputPath = event.getOutputPath();
         methodTypeLock.sync(lock -> {
             if (outputPathToContexts.containsKey(outputPath)) {
                 String content = JSONUtils.writeAsString(contextToClassToMethodToType);
                 IOUtils.writeString(outputPath + METADATA_FILE, content, false);
                 logger.debug("Metadata is flushed for log: {}", outputPath);
+                EventListenerMgr.fireEvent(
+                        new StatisticsMetadataFlushedEvent()
+                );
             }
         });
     }
 
-    private static class CostTimeItem {
-        private final BinaryLogItem logItem;
-        private int count = 0;
-
-        private CostTimeItem(BinaryLogItem logItem) {
-            this.logItem = logItem;
-            this.logItem.markAndPosition(Integer.BYTES);
-        }
-
-        void log(int type, int costTime) {
-//            logger.debug("Cost time item type: {}, cost time: {}", type, costTime);
-            logItem.putInt(type);
-            logItem.putInt(costTime);
-            ++count;
-        }
-
-        void end() {
-            logItem.putIntToMark(count);
-        }
-    }
 }

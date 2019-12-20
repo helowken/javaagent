@@ -3,6 +3,7 @@ package agent.server.transform.tools.asm;
 import agent.base.utils.Logger;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -25,13 +26,15 @@ abstract class AbstractProxyCall implements ProxyCall {
 
     @Override
     public void run(DestInvoke destInvoke, Object instanceOrNull, Object pv) {
+        Object[] params = null;
         try {
+            params = getParams(destInvoke, instanceOrNull, pv);
             callInfo.getProxyMethod().invoke(
                     callInfo.getProxyTarget(),
-                    getParams(destInvoke, instanceOrNull, pv)
+                    params
             );
         } catch (Throwable t) {
-            logger.error("Proxy call failed by: {}", t, callInfo);
+            logger.error("Proxy call failed. Call info: {}, params: {}", t, callInfo, Arrays.toString(params));
         }
     }
 
@@ -39,9 +42,9 @@ abstract class AbstractProxyCall implements ProxyCall {
         int mask = getArgsMask();
         List<Object> params = new ArrayList<>();
         collectParams(params, mask, destInvoke, pv);
-        if (useInvokeTarget(mask))
+        if (useInstance(mask))
             params.add(instanceOrNull);
-        if (useInvokeMethod(mask))
+        if (useMethod(mask))
             params.add(
                     destInvoke.getInvokeEntity()
             );

@@ -2,10 +2,10 @@ package agent.server.event.impl;
 
 import agent.server.event.AgentEvent;
 
-public class LogFlushEvent implements AgentEvent {
+public class LogFlushedEvent implements AgentEvent {
     private final String outputPath;
 
-    public LogFlushEvent(String outputPath) {
+    public LogFlushedEvent(String outputPath) {
         this.outputPath = outputPath;
     }
 

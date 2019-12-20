@@ -5,6 +5,10 @@ import agent.server.event.AgentEvent;
 public class FlushLogEvent implements AgentEvent {
     private final String outputPath;
 
+    public FlushLogEvent() {
+        this(null);
+    }
+
     public FlushLogEvent(String outputPath) {
         this.outputPath = outputPath;
     }

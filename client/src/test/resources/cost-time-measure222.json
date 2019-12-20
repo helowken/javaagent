@@ -1,0 +1,41 @@
+[
+  {
+    "contextPath": "/test",
+    "transformConfigs": [
+      {
+        "desc": "Used to measure time cost.",
+        "transformers": [
+          {
+            "ref": "sys_costTimeMeasure",
+            "config": {
+              "log": {
+                "autoFlush": false,
+                "outputFormat": "[${currTime}] - ${currTimeMillis} - ${method}: ${costTime}ms",
+                "timeFormat": "yyyy-MM-dd HH:mm:ss.SSS",
+                "maxBufferSize": 8192
+              }
+            }
+          }
+        ],
+        "targets": [
+          {
+            "targetClass": "test.jetty.TestObject",
+            "methodFilter": {
+              "includes": [
+                "test.*"
+              ]
+            }
+          },
+          {
+            "targetClass": "test.jetty.SubTestObject",
+            "methodFilter": {
+              "includes": [
+                ".*[l|L]oad"
+              ]
+            }
+          }
+        ]
+      }
+    ]
+  }
+]

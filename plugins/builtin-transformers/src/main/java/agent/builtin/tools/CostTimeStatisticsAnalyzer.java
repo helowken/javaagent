@@ -3,7 +3,7 @@ package agent.builtin.tools;
 import agent.base.utils.IOUtils;
 import agent.base.utils.Pair;
 import agent.base.utils.Utils;
-import agent.builtin.transformer.utils.CostTimeLogger;
+import agent.builtin.transformer.utils.CostTimeMethodRegistry;
 import agent.common.utils.JSONUtils;
 import agent.server.tree.Node;
 import agent.server.tree.Tree;
@@ -34,8 +34,17 @@ public class CostTimeStatisticsAnalyzer {
 //        String outputPath = args[0];
         boolean skipAvgEq0 = args.length > 1 && args[1].equals("true");
         Set<Float> rates = parseRates(args.length > 2 ? args[2] : null);
-        Tree<String> tree = buildTree(outputPath, rates, skipAvgEq0);
-        printTree(tree);
+        printResult(outputPath, skipAvgEq0, rates);
+    }
+
+    public static void printResult(String outputPath) throws Exception {
+        printResult(outputPath, false, DEFAULT_RATES);
+    }
+
+    public static void printResult(String outputPath, boolean skipAvgEq0, Set<Float> rates) throws Exception {
+        printTree(
+                buildTree(outputPath, rates, skipAvgEq0)
+        );
     }
 
     private static Set<Float> parseRates(String s) {
@@ -81,7 +90,7 @@ public class CostTimeStatisticsAnalyzer {
     }
 
     private static Tree<String> buildTree(String outputPath, Set<Float> rates, boolean skipAvgEq0) throws Exception {
-        String metadataPath = outputPath + CostTimeLogger.METADATA_FILE;
+        String metadataPath = outputPath + CostTimeMethodRegistry.METADATA_FILE;
         Map<String, Map<String, Map<String, Integer>>> contextToClassToMethodToType = readMetadata(metadataPath);
         Map<Integer, CostTimeItem> typeToCostTimeItem = calculateStats(outputPath);
         Tree<String> tree = new Tree<>();
@@ -157,14 +166,18 @@ public class CostTimeStatisticsAnalyzer {
             long length = outputFile.length();
             try (DataInputStream in = new DataInputStream(new BufferedInputStream(new FileInputStream(outputFile)))) {
                 while (length > 0) {
-                    int totalSize = in.readInt() * 2;
-                    for (int i = 0; i < totalSize; i += 2) {
-                        int methodType = in.readInt();
+                    int totalSize = 0;
+                    int count = in.readInt();
+                    for (int i = 0; i < count; ++i) {
+                        int parentMethodId = in.readInt();
+                        int methodId = in.readInt();
                         int costTime = in.readInt();
+                        byte error = in.readByte();
                         typeToCostTimeItem.computeIfAbsent(
-                                methodType,
+                                methodId,
                                 key -> new CostTimeItem()
                         ).add(costTime);
+                        totalSize += Integer.BYTES * 3 + Byte.BYTES;
                     }
                     length -= Integer.BYTES * (totalSize + 1);
                 }
@@ -191,7 +204,7 @@ public class CostTimeStatisticsAnalyzer {
                             String tmpPath = filePath;
                             if (pos > -1)
                                 tmpPath = filePath.substring(0, pos);
-                            return tmpPath.equals(dataFilePath) && !filePath.endsWith(CostTimeLogger.METADATA_FILE);
+                            return tmpPath.equals(dataFilePath) && !filePath.endsWith(CostTimeMethodRegistry.METADATA_FILE);
                         })
                         .collect(Collectors.toList());
             }

@@ -3,7 +3,7 @@ package agent.server.utils.log;
 import agent.base.utils.LockObject;
 import agent.base.utils.Logger;
 import agent.server.event.EventListenerMgr;
-import agent.server.event.impl.LogFlushEvent;
+import agent.server.event.impl.LogFlushedEvent;
 
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -158,7 +158,7 @@ public abstract class AbstractLogWriter<T extends LogConfig, V extends LogItem> 
     private void tryToFlush() {
         if (!closed.get())
             flushOutput();
-        EventListenerMgr.fireEvent(new LogFlushEvent(logConfig.getOutputPath()), true);
+        EventListenerMgr.fireEvent(new LogFlushedEvent(logConfig.getOutputPath()), true);
     }
 
     private void tryToRollFile() {

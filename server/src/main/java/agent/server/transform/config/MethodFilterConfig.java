@@ -7,6 +7,25 @@ public class MethodFilterConfig {
     private Set<String> includes;
     private Set<String> excludes;
 
+    public static MethodFilterConfig includes(Set<String> includes) {
+        MethodFilterConfig config = new MethodFilterConfig();
+        config.includes = includes;
+        return config;
+    }
+
+    public static MethodFilterConfig excludes(Set<String> excludes) {
+        MethodFilterConfig config = new MethodFilterConfig();
+        config.excludes = excludes;
+        return config;
+    }
+
+    public static MethodFilterConfig newInstance(Set<String> includes, Set<String> excludes) {
+        MethodFilterConfig config = new MethodFilterConfig();
+        config.includes = includes;
+        config.excludes = excludes;
+        return config;
+    }
+
     public Set<String> getIncludes() {
         return includes;
     }

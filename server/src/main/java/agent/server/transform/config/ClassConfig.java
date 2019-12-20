@@ -6,6 +6,13 @@ public class ClassConfig {
     private String targetClass;
     private MethodFilterConfig methodFilter;
 
+    public static ClassConfig newInstance(String targetClass, MethodFilterConfig methodFilter) {
+        ClassConfig config = new ClassConfig();
+        config.targetClass = targetClass;
+        config.methodFilter = methodFilter;
+        return config;
+    }
+
     public String getTargetClass() {
         return targetClass;
     }
