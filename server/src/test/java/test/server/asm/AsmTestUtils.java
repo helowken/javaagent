@@ -6,7 +6,9 @@ import agent.base.utils.Utils;
 import agent.server.transform.tools.asm.*;
 import test.server.utils.TestClassLoader;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -15,9 +17,38 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
 class AsmTestUtils {
+    static void doCheck(int count, List<String> logList, boolean throwError, boolean hasBefore) {
+        assertEquals(
+                newExpectedList(count, throwError, hasBefore),
+                logList
+        );
+    }
+
+    private static List<String> newExpectedList(int count, boolean throwError, boolean hasBefore) {
+        List<String> prefixList = new ArrayList<>();
+        if (hasBefore)
+            prefixList.add("before");
+        prefixList.add(throwError ? "onThrowing" : "onReturning");
+        prefixList.add("after");
+
+        List<String> expectedList = new ArrayList<>();
+        for (String prefix : prefixList) {
+            for (int i = 0; i < count; ++i) {
+                expectedList.add(prefix + "-" + i);
+            }
+        }
+        return expectedList;
+    }
+
     static Class<?> prepareClassMethod(int count, List<String> logList, Class<?> clazz, String methodName) throws Exception {
         Method destMethod = ReflectionUtils.findFirstMethod(clazz, methodName);
         ProxyRegInfo regInfo = new ProxyRegInfo(destMethod);
+        return prepareClass(count, logList, regInfo);
+    }
+
+    static Class<?> prepareClassConstructor(int count, List<String> logList, Class<?> clazz, String desc) throws Exception {
+        Constructor constructor = ReflectionUtils.findConstructor(clazz, desc);
+        ProxyRegInfo regInfo = new ProxyRegInfo(constructor);
         return prepareClass(count, logList, regInfo);
     }
 

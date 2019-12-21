@@ -8,9 +8,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.Assert.*;
+import static test.server.asm.AsmTestUtils.doCheck;
 
 public class AsmProxyMethodTest {
-    final int count = 3;
+    private final int count = 3;
     private static final String errorMsg = "xxxx";
 
     @Test
@@ -87,7 +88,7 @@ public class AsmProxyMethodTest {
                 new Class[0],
                 newAClass.newInstance()
         );
-        doCheck(count, logList, false);
+        doCheck(count, logList, false, true);
     }
 
     private void callError(String methodName) throws Exception {
@@ -107,7 +108,7 @@ public class AsmProxyMethodTest {
             assertTrue(t instanceof RuntimeException);
             assertEquals(errorMsg, t.getMessage());
         }
-        doCheck(count, logList, true);
+        doCheck(count, logList, true, true);
     }
 
     private void callWithArgs(String methodName) throws Exception {
@@ -126,29 +127,7 @@ public class AsmProxyMethodTest {
                 "sss",
                 (short) 111
         );
-        doCheck(count, logList, false);
-    }
-
-    private void doCheck(int count, List<String> logList, boolean throwError) {
-        assertEquals(
-                newExpectedList(count, throwError),
-                logList
-        );
-    }
-
-    private static List<String> newExpectedList(int count, boolean throwError) {
-        List<String> prefixList = new ArrayList<>();
-        prefixList.add("before");
-        prefixList.add(throwError ? "onThrowing" : "onReturning");
-        prefixList.add("after");
-
-        List<String> expectedList = new ArrayList<>();
-        for (String prefix : prefixList) {
-            for (int i = 0; i < count; ++i) {
-                expectedList.add(prefix + "-" + i);
-            }
-        }
-        return expectedList;
+        doCheck(count, logList, false, true);
     }
 
     public static class A {

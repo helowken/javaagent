@@ -347,7 +347,13 @@ class AsmMethod {
     }
 
     static Object newLoadThisOrNull(Method method) {
-        return isStatic(method) ?
+        return newLoadThisOrNull(
+                isStatic(method)
+        );
+    }
+
+    static Object newLoadThisOrNull(boolean isStatic) {
+        return isStatic ?
                 newLoadNull(1) :
                 newLoadThis();
     }

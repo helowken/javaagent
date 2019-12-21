@@ -5,10 +5,12 @@ import agent.base.utils.Utils;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.*;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.*;
 
 import static agent.server.transform.tools.asm.AsmMethod.*;
+import static org.objectweb.asm.Opcodes.ATHROW;
 import static org.objectweb.asm.Opcodes.IRETURN;
 import static org.objectweb.asm.Opcodes.RETURN;
 
@@ -59,7 +61,7 @@ class AsmTransformProxy {
     private static void transformInvoke(MethodNode methodNode, int invokeId, DestInvoke destInvoke) {
         switch (destInvoke.getType()) {
             case CONSTRUCTOR:
-//                transformConstructorInvoke(methodNode, invokeId);
+                transformConstructorInvoke(methodNode, invokeId, (Constructor) destInvoke.getInvokeEntity());
                 break;
             case METHOD:
                 transformMethodInvoke(methodNode, invokeId, (Method) destInvoke.getInvokeEntity());
@@ -69,12 +71,32 @@ class AsmTransformProxy {
         }
     }
 
+    private static void transformConstructorInvoke(MethodNode methodNode, int invokeId, Constructor constructor) {
+        int newLocalIdx = methodNode.maxLocals;
+        ListIterator<AbstractInsnNode> iter = methodNode.instructions.iterator();
+        while (iter.hasNext()) {
+            AbstractInsnNode node = iter.next();
+            int opcode = node.getOpcode();
+            if (opcode == RETURN) {
+                methodNode.instructions.insertBefore(
+                        node,
+                        newVoidReturnList(false, invokeId)
+                );
+            } else if (opcode == ATHROW) {
+                methodNode.instructions.insertBefore(
+                        node,
+                        newThrowList(false,invokeId, newLocalIdx)
+                );
+            }
+        }
+    }
 
     private static void transformMethodInvoke(MethodNode methodNode, int invokeId, Method method) {
+        boolean isStatic = isStatic(method);
+        int newLocalIdx = methodNode.maxLocals;
         methodNode.instructions.insert(
                 newBeforeList(invokeId, method)
         );
-        int newLocalIdx = methodNode.maxLocals;
         ListIterator<AbstractInsnNode> iter = methodNode.instructions.iterator();
         LabelNode startLabelNode = null;
         while (iter.hasNext()) {
@@ -88,7 +110,7 @@ class AsmTransformProxy {
             } else if (opcode == RETURN) {
                 methodNode.instructions.insertBefore(
                         node,
-                        newVoidReturnList(method, invokeId)
+                        newVoidReturnList(isStatic, invokeId)
                 );
             } else if (node.getType() == AbstractInsnNode.LABEL) {
                 if (startLabelNode == null)
@@ -96,10 +118,10 @@ class AsmTransformProxy {
             }
         }
         if (startLabelNode != null)
-            processTryCatch(method, methodNode, startLabelNode, invokeId, newLocalIdx);
+            processTryCatch(isStatic, methodNode, startLabelNode, invokeId, newLocalIdx);
     }
 
-    private static void processTryCatch(Method method, MethodNode methodNode, LabelNode startLabelNode, int invokeId, int newLocalIdx) {
+    private static void processTryCatch(boolean isStatic, MethodNode methodNode, LabelNode startLabelNode, int invokeId, int newLocalIdx) {
         LabelNode handlerLabelNode = newLabel();
         TryCatchBlockNode tryCatchNode = newTryCatch(
                 startLabelNode,
@@ -111,7 +133,7 @@ class AsmTransformProxy {
         addTo(
                 methodNode.instructions,
                 handlerLabelNode,
-                newThrowList(method, invokeId, newLocalIdx),
+                newThrowList(isStatic, invokeId, newLocalIdx),
                 newThrow()
         );
     }
@@ -149,14 +171,14 @@ class AsmTransformProxy {
         );
     }
 
-    private static InsnList newVoidReturnList(Method method, int invokeId) {
+    private static InsnList newVoidReturnList(boolean isStatic, int invokeId) {
         return addTo(
                 new InsnList(),
                 newInvokeStatic(
                         getGetInstanceMethod()
                 ),
                 newNumLoad(invokeId),
-                newLoadThisOrNull(method),
+                newLoadThisOrNull(isStatic),
                 newLoadNull(1),
                 newInvokeVirtual(
                         getOnReturningMethod()
@@ -164,7 +186,7 @@ class AsmTransformProxy {
         );
     }
 
-    private static InsnList newThrowList(Method method, int invokeId, int newLocalIdx) {
+    private static InsnList newThrowList(boolean isStatic, int invokeId, int newLocalIdx) {
         return addTo(
                 new InsnList(),
                 newAStore(newLocalIdx),
@@ -172,7 +194,7 @@ class AsmTransformProxy {
                         getGetInstanceMethod()
                 ),
                 newNumLoad(invokeId),
-                newLoadThisOrNull(method),
+                newLoadThisOrNull(isStatic),
                 newALoad(newLocalIdx),
                 newInvokeVirtual(
                         getOnThrowingMethod()

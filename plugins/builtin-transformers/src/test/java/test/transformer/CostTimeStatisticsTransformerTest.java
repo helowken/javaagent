@@ -3,6 +3,7 @@ package test.transformer;
 import agent.base.utils.ReflectionUtils;
 import agent.builtin.tools.CostTimeStatisticsAnalyzer;
 import agent.builtin.transformer.CostTimeStatisticsTransformer;
+import agent.builtin.transformer.utils.CostTimeMethodRegistry;
 import org.junit.Test;
 
 import java.io.File;
@@ -17,9 +18,9 @@ public class CostTimeStatisticsTransformerTest extends AbstractTest {
     @Test
     public void test() throws Exception {
         Path path = Files.createTempFile("costTime-", ".log");
+        File logFile = path.toFile();
+        String outputPath = logFile.getAbsolutePath();
         try {
-            File logFile = path.toFile();
-            String outputPath = logFile.getAbsolutePath();
             CostTimeStatisticsTransformer transformer = new CostTimeStatisticsTransformer();
             Map<String, Object> logConf = new HashMap<>();
             logConf.put("outputPath", outputPath);
@@ -39,6 +40,7 @@ public class CostTimeStatisticsTransformerTest extends AbstractTest {
             CostTimeStatisticsAnalyzer.printResult(outputPath);
         } finally {
             Files.delete(path);
+            new File(outputPath + CostTimeMethodRegistry.METADATA_FILE).delete();
         }
     }
 
