@@ -23,7 +23,7 @@ public class LogMgr {
         return typeToLogger.get(loggerType);
     }
 
-    private static String reg(LoggerType loggerType, Map<String, Object> config, Map<String, Object> defaultValueMap) {
+    public static String reg(LoggerType loggerType, Map<String, Object> config, Map<String, Object> defaultValueMap) {
         ILogger logger = getLogger(loggerType);
         return logger.reg(
                 logger.getConfigParser().parse(config, defaultValueMap)
@@ -50,7 +50,7 @@ public class LogMgr {
         log(LoggerType.BINARY, logKey, item);
     }
 
-    private static LogConfig getLogConfig(LoggerType loggerType, String logKey) {
+    public static LogConfig getLogConfig(LoggerType loggerType, String logKey) {
         return getLogger(loggerType).getLogConfig(logKey);
     }
 

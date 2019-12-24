@@ -2,8 +2,8 @@ package agent.builtin.tools;
 
 import agent.base.utils.IOUtils;
 import agent.base.utils.Utils;
-import agent.builtin.transformer.utils.CostTimeMethodRegistry;
 import agent.common.utils.JSONUtils;
+import agent.server.transform.impl.DestInvokeIdRegistry;
 import agent.server.tree.Node;
 import agent.server.tree.Tree;
 import agent.server.tree.TreeUtils;
@@ -85,47 +85,42 @@ public class CostTimeStatisticsAnalyzer {
     }
 
     private static Tree<String> buildTree(String outputPath, Set<Float> rates, boolean skipAvgEq0) throws Exception {
-        String metadataPath = outputPath + CostTimeMethodRegistry.METADATA_FILE;
-        Map<String, Map<String, Map<String, Integer>>> contextToClassToMethodToType = readMetadata(metadataPath);
+        String metadataPath = outputPath + DestInvokeIdRegistry.METADATA_FILE;
+        Map<String, Map<String, Integer>> classToInvokeToId = readMetadata(metadataPath);
         Map<Integer, CostTimeStatisticsItem> typeToCostTimeItem = calculateStats(outputPath);
         Tree<String> tree = new Tree<>();
-        contextToClassToMethodToType.forEach((context, classToMethodToType) -> {
-            Node<String> contextNode = tree.appendChild(
-                    new Node<>("Context: " + context)
-            );
-            classToMethodToType.forEach((className, methodToType) -> {
-                Map<String, CostTimeStatisticsItem> methodToItem = new TreeMap<>();
-                for (Map.Entry<String, Integer> entry : methodToType.entrySet()) {
-                    CostTimeStatisticsItem item = typeToCostTimeItem.get(entry.getValue());
-                    if (item != null) {
-                        item.freeze();
-                        if (item.getAvgTime() > 0 || !skipAvgEq0)
-                            methodToItem.put(entry.getKey(), item);
-                    }
+        classToInvokeToId.forEach((className, invokeToId) -> {
+            Map<String, CostTimeStatisticsItem> methodToItem = new TreeMap<>();
+            for (Map.Entry<String, Integer> entry : invokeToId.entrySet()) {
+                CostTimeStatisticsItem item = typeToCostTimeItem.get(entry.getValue());
+                if (item != null) {
+                    item.freeze();
+                    if (item.getAvgTime() > 0 || !skipAvgEq0)
+                        methodToItem.put(entry.getKey(), item);
                 }
-                if (!methodToItem.isEmpty()) {
-                    Node<String> classNode = contextNode.appendChild(
-                            new Node<>("Class: " + className)
+            }
+            if (!methodToItem.isEmpty()) {
+                Node<String> classNode = tree.appendChild(
+                        new Node<>("Class: " + className)
+                );
+                methodToItem.forEach((method, item) -> {
+                    Node<String> methodNode = classNode.appendChild(
+                            new Node<>("method " + formatMethod(method))
                     );
-                    methodToItem.forEach((method, item) -> {
-                        Node<String> methodNode = classNode.appendChild(
-                                new Node<>("method " + formatMethod(method))
-                        );
-                        methodNode.appendChild(
-                                new Node<>(item.getAvgTimeString())
-                        );
-                        methodNode.appendChild(
-                                new Node<>(item.getMaxTimeString())
-                        );
-                        methodNode.appendChild(
-                                new Node<>(item.getCountString())
-                        );
-                        methodNode.appendChild(
-                                new Node<>(item.getTimeDistributionString(rates))
-                        );
-                    });
-                }
-            });
+                    methodNode.appendChild(
+                            new Node<>(item.getAvgTimeString())
+                    );
+                    methodNode.appendChild(
+                            new Node<>(item.getMaxTimeString())
+                    );
+                    methodNode.appendChild(
+                            new Node<>(item.getCountString())
+                    );
+                    methodNode.appendChild(
+                            new Node<>(item.getTimeDistributionString(rates))
+                    );
+                });
+            }
         });
         return tree;
     }
@@ -202,7 +197,7 @@ public class CostTimeStatisticsAnalyzer {
                             String tmpPath = filePath;
                             if (pos > -1)
                                 tmpPath = filePath.substring(0, pos);
-                            return tmpPath.equals(dataFilePath) && !filePath.endsWith(CostTimeMethodRegistry.METADATA_FILE);
+                            return tmpPath.equals(dataFilePath) && !filePath.endsWith(DestInvokeIdRegistry.METADATA_FILE);
                         })
                         .collect(Collectors.toList());
             }
@@ -210,7 +205,7 @@ public class CostTimeStatisticsAnalyzer {
         return Collections.emptyList();
     }
 
-    private static Map<String, Map<String, Map<String, Integer>>> readMetadata(String metadataPath) throws IOException {
+    private static Map<String, Map<String, Integer>> readMetadata(String metadataPath) throws IOException {
         return JSONUtils.read(
                 IOUtils.readToString(metadataPath)
         );

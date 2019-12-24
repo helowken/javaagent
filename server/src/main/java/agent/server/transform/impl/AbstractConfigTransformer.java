@@ -6,6 +6,11 @@ import agent.server.transform.ConfigTransformer;
 import agent.server.transform.MethodFinder;
 import agent.server.transform.TransformContext;
 import agent.server.transform.exception.InvalidTransformerConfigException;
+import agent.server.transform.impl.invoke.DestInvoke;
+import agent.server.transform.impl.invoke.MethodInvoke;
+import agent.server.utils.log.LogConfig;
+import agent.server.utils.log.LogMgr;
+import agent.server.utils.log.LoggerType;
 
 import java.lang.reflect.Method;
 import java.util.Collection;
@@ -33,6 +38,24 @@ public abstract class AbstractConfigTransformer extends AbstractTransformer impl
         }
     }
 
+    protected String regLogText(Map<String, Object> config, Map<String, Object> defaultValueMap) {
+        return regLog(LoggerType.TEXT, config, defaultValueMap);
+    }
+
+    protected String regLogBinary(Map<String, Object> config, Map<String, Object> defaultValueMap) {
+        return regLog(LoggerType.BINARY, config, defaultValueMap);
+    }
+
+    private String regLog(LoggerType loggerType, Map<String, Object> config, Map<String, Object> defaultValueMap) {
+        String logKey = LogMgr.reg(loggerType, config, defaultValueMap);
+        LogConfig logConfig = LogMgr.getLogConfig(loggerType, logKey);
+        DestInvokeIdRegistry.getInstance().regOutputPath(
+                getContext(),
+                logConfig.getOutputPath()
+        );
+        return logKey;
+    }
+
     protected void doSetConfig(Map<String, Object> config) throws Exception {
     }
 
@@ -55,10 +78,12 @@ public abstract class AbstractConfigTransformer extends AbstractTransformer impl
 
             for (Method method : methods) {
                 logger.debug("Transforming method: {}", MethodDescriptorUtils.getLongName(method));
-                transformMethod(method);
+                DestInvoke destInvoke = new MethodInvoke(method);
+                DestInvokeIdRegistry.getInstance().reg(destInvoke);
+                transformDestInvoke(destInvoke);
             }
         }
     }
 
-    protected abstract void transformMethod(Method method) throws Exception;
+    protected abstract void transformDestInvoke(DestInvoke destInvoke) throws Exception;
 }

@@ -140,7 +140,7 @@ public class ResetClassMgr implements ServerListener, AgentEventListener {
 
     @Override
     public void onStartup(Object[] args) {
-        EventListenerMgr.reg(TransformClassEvent.class, instance);
+        EventListenerMgr.reg(TransformClassEvent.class, this);
     }
 
     @Override

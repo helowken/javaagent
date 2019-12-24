@@ -1,6 +1,7 @@
 package agent.server.transform.tools.asm;
 
 import agent.base.utils.Logger;
+import agent.server.transform.impl.invoke.DestInvoke;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -44,10 +45,8 @@ abstract class AbstractProxyCall implements ProxyCall {
         collectParams(params, mask, destInvoke, pv);
         if (useInstance(mask))
             params.add(instanceOrNull);
-        if (useMethod(mask))
-            params.add(
-                    destInvoke.getInvokeEntity()
-            );
+        if (useInvoke(mask))
+            params.add(destInvoke);
         if (callInfo.hasOtherArgs())
             Collections.addAll(
                     params,

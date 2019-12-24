@@ -21,7 +21,7 @@ public class ParamValueUtils {
         rsMap.put(KEY_CURR_TIME_MILLIS, System.currentTimeMillis());
         if (kvs != null) {
             if (kvs.length % 2 != 0)
-                throw new IllegalArgumentException("Invalid bytesSize of key value list: " + kvs.length);
+                throw new IllegalArgumentException("Invalid size of key value list: " + kvs.length);
             for (int i = 0; i < kvs.length; i += 2) {
                 rsMap.put(String.valueOf(kvs[0]), kvs[1]);
             }

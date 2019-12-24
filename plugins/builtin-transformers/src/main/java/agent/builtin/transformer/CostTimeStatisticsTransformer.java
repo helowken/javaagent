@@ -1,81 +1,39 @@
 package agent.builtin.transformer;
 
-import agent.base.utils.MethodDescriptorUtils;
 import agent.base.utils.Utils;
-import agent.builtin.transformer.utils.CostTimeMethodRegistry;
+import agent.server.transform.impl.DestInvokeIdRegistry;
 import agent.server.transform.impl.ProxyAnnotationConfig;
 import agent.server.transform.impl.ProxyAnnotationConfigTransformer;
-import agent.server.utils.log.LogConfig;
+import agent.server.transform.impl.invoke.DestInvoke;
 import agent.server.utils.log.LogMgr;
 import agent.server.utils.log.binary.BinaryLogItem;
 import agent.server.utils.log.binary.BinaryLogItemPool;
 
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
-import static agent.server.transform.impl.ProxyAnnotationConfig.*;
+import static agent.server.transform.impl.ProxyAnnotationConfig.ARGS_ON_AFTER;
+import static agent.server.transform.impl.ProxyAnnotationConfig.ARGS_ON_BEFORE;
 
 @SuppressWarnings("unchecked")
 public class CostTimeStatisticsTransformer extends ProxyAnnotationConfigTransformer {
     public static final String REG_KEY = "sys_costTimeStatistics";
-    private static final CostTimeStatisticsConfig statisticsConfig = new CostTimeStatisticsConfig();
 
-    private Map<Method, Integer> methodToId = new HashMap<>();
     private String logKey;
 
     @Override
     protected void doSetConfig(Map<String, Object> config) {
-        logKey = LogMgr.regBinary(config, Collections.EMPTY_MAP);
-        LogConfig logConfig = LogMgr.getBinaryLogConfig(logKey);
-        CostTimeMethodRegistry.getInstance().regOutputPath(
-                getContext(),
-                logConfig.getOutputPath()
-        );
+        logKey = regLogBinary(config, Collections.EMPTY_MAP);
     }
 
     @Override
-    protected void preTransformMethod(Method method) {
-        methodToId.computeIfAbsent(
-                method,
-                key -> CostTimeMethodRegistry.getInstance().reg(
-                        getContext(),
-                        method.getDeclaringClass().getName(),
-                        MethodDescriptorUtils.getFullDescriptor(method)
-                )
-        );
-    }
-
-    @Override
-    protected Object getInstanceForMethod(Method method) {
-        return statisticsConfig;
-    }
-
-    @Override
-    protected Set<Class<?>> getAnnotationClasses() {
-        return Collections.singleton(
-                CostTimeStatisticsConfig.class
-        );
-    }
-
-    private int getMethodId(Method method) {
-        return Optional.ofNullable(
-                methodToId.get(method)
-        ).orElseThrow(
-                () -> new RuntimeException("No id found for method: " + method)
-        );
-    }
-
-    @Override
-    protected Object[] newOtherArgs(Method srcMethod, Method anntMethod, int argsHint) {
+    protected Object[] newOtherArgs(DestInvoke destInvoke, Method anntMethod, int argsHint) {
         switch (argsHint) {
             case ARGS_ON_BEFORE:
                 return new Object[]{
-                        getMethodId(srcMethod),
-                        logKey
-                };
-            case ARGS_ON_RETURNING:
-                return new Object[]{
-                        getMethodId(srcMethod)
+                        DestInvokeIdRegistry.getInstance().get(destInvoke)
                 };
             case ARGS_ON_AFTER:
                 return new Object[]{
@@ -91,96 +49,41 @@ public class CostTimeStatisticsTransformer extends ProxyAnnotationConfigTransfor
     }
 
 
-    static class CostTimeStatisticsConfig extends ProxyAnnotationConfig<CostTimeItem> {
+    static class CostTimeStatisticsConfig extends ProxyAnnotationConfig<MethodItem, MethodItem> {
         @Override
-        protected CostTimeItem newData(Node<CostTimeItem> preNode, Object[] args, Class<?>[] argTypes, Method method, Object[] otherArgs) {
-            CostTimeItem item;
-            int parentMethodId;
-            if (preNode == null) {
-                item = new CostTimeItem();
-                parentMethodId = -1;
-            } else {
-                item = preNode.getData();
-                parentMethodId = item.peek().methodId;
-            }
+        protected MethodItem newDataOnBefore(Object[] args, Class[] argTypes, DestInvoke destInvoke, Object[] otherArgs) {
             int methodId = Utils.getArgValue(otherArgs, 0);
-            item.add(
-                    new MethodItem(
-                            parentMethodId,
-                            methodId,
-                            System.currentTimeMillis()
-                    )
-            );
-            return item;
-        }
-
-        @Override
-        protected void processOnReturning(Node<CostTimeItem> currNode, Object returnValue, Class<?> returnType, Method method, Object[] otherArgs) {
-            currNode.getData().finish(
-                    System.currentTimeMillis(),
-                    false
+            MethodItem parentItem = getAroundItem().peek();
+            int parentMethodId = parentItem == null ? -1 : parentItem.methodId;
+            return new MethodItem(
+                    parentMethodId,
+                    methodId,
+                    System.currentTimeMillis()
             );
         }
 
         @Override
-        protected void processOnThrowing(Node<CostTimeItem> currNode, Throwable error, Method method, Object[] otherArgs) {
-            currNode.getData().finish(
-                    System.currentTimeMillis(),
-                    true
-            );
+        protected MethodItem processOnReturning(MethodItem data, Object returnValue, Class<?> returnType, DestInvoke destInvoke, Object[] otherArgs) {
+            data.error = false;
+            data.endTime = System.currentTimeMillis();
+            return data;
         }
 
         @Override
-        protected void processOnAfter(Node<CostTimeItem> currNode, Method method, Object[] otherArgs) {
-            if (currNode.isRoot()) {
-                String logKey = Utils.getArgValue(otherArgs, 0);
-                BinaryLogItem logItem = BinaryLogItemPool.get(logKey);
-                currNode.getData().writeTo(logItem);
-                LogMgr.logBinary(logKey, logItem);
-            }
-        }
-    }
-
-    private static class MethodItem {
-        final int parentMethodId;
-        final int methodId;
-        final long startTime;
-        long endTime;
-        boolean error;
-
-        private MethodItem(int parentMethodId, int methodId, long startTime) {
-            this.parentMethodId = parentMethodId;
-            this.methodId = methodId;
-            this.startTime = startTime;
-        }
-    }
-
-    private static class CostTimeItem {
-        private Stack<MethodItem> undergoing = new Stack<>();
-        private List<MethodItem> completed = new ArrayList<>(100);
-
-        void add(MethodItem methodTime) {
-            undergoing.push(methodTime);
+        protected MethodItem processOnThrowing(MethodItem data, Throwable error, DestInvoke destInvoke, Object[] otherArgs) {
+            data.error = true;
+            data.endTime = System.currentTimeMillis();
+            return data;
         }
 
-        MethodItem peek() {
-            if (undergoing.isEmpty())
-                throw new RuntimeException("Undergoing is empty.");
-            return undergoing.peek();
+        @Override
+        protected void processOnAfter(DestInvoke destInvoke, Object[] otherArgs) {
         }
 
-        void finish(long et, boolean error) {
-            if (undergoing.empty())
-                throw new RuntimeException("Undergoing is empty.");
-            MethodItem item = undergoing.pop();
-            item.endTime = et;
-            item.error = error;
-            completed.add(item);
-        }
-
-        void writeTo(BinaryLogItem logItem) {
-            if (!undergoing.isEmpty())
-                throw new RuntimeException("Undergoing is not empty.");
+        @Override
+        protected void processOnCompleted(List<MethodItem> completed, DestInvoke destInvoke, Object[] otherArgs) {
+            final String logKey = Utils.getArgValue(otherArgs, 0);
+            BinaryLogItem logItem = BinaryLogItemPool.get(logKey);
             logItem.putInt(
                     completed.size()
             );
@@ -192,6 +95,22 @@ public class CostTimeStatisticsTransformer extends ProxyAnnotationConfigTransfor
                         logItem.put((byte) (item.error ? 1 : 0));
                     }
             );
+            LogMgr.logBinary(logKey, logItem);
         }
     }
+
+    private static class MethodItem {
+        private final int parentMethodId;
+        private final int methodId;
+        private final long startTime;
+        private long endTime;
+        private boolean error;
+
+        private MethodItem(int parentMethodId, int methodId, long startTime) {
+            this.parentMethodId = parentMethodId;
+            this.methodId = methodId;
+            this.startTime = startTime;
+        }
+    }
+
 }

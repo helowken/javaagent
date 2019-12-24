@@ -1,19 +1,17 @@
 package agent.server.transform.tools.asm;
 
 import agent.base.utils.Logger;
+import agent.server.transform.impl.DestInvokeIdRegistry;
+import agent.server.transform.impl.invoke.DestInvoke;
 
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class ProxyTransformMgr {
     private static final Logger logger = Logger.getLogger(ProxyTransformMgr.class);
     private static final ProxyTransformMgr instance = new ProxyTransformMgr();
-    private static final Object[] noArgs = new Object[0];
 
-    private AtomicInteger idGenerator = new AtomicInteger(0);
-    private Map<DestInvoke, Integer> invokeToId = new HashMap<>();
     private Map<Integer, ProxyCallSite> idToCallSite = new HashMap<>();
 
     public static ProxyTransformMgr getInstance() {
@@ -28,20 +26,17 @@ public class ProxyTransformMgr {
         regInfos.forEach(
                 regInfo -> {
                     DestInvoke destInvoke = regInfo.getDestInvoke();
-                    Integer invokeId = invokeToId.get(destInvoke);
-                    if (invokeId == null) {
-                        final Integer newId = idGenerator.incrementAndGet();
-                        invokeToId.put(destInvoke, newId);
-                        classToItem.computeIfAbsent(
-                                destInvoke.getDeclaringClass(),
-                                ProxyItem::new
-                        ).reg(newId, destInvoke, regInfo);
-                    } else {
+                    Integer invokeId = DestInvokeIdRegistry.getInstance().get(destInvoke);
+                    if (idToCallSite.containsKey(invokeId))
                         reg(
                                 destInvoke,
                                 Collections.singleton(regInfo)
                         );
-                    }
+                    else
+                        classToItem.computeIfAbsent(
+                                destInvoke.getDeclaringClass(),
+                                ProxyItem::new
+                        ).reg(invokeId, destInvoke, regInfo);
                 }
         );
 
@@ -97,13 +92,8 @@ public class ProxyTransformMgr {
 
     private void reg(DestInvoke destInvoke, Collection<ProxyRegInfo> regInfos) {
         if (!regInfos.isEmpty()) {
-            int invokeId = Optional.ofNullable(
-                    invokeToId.get(destInvoke)
-            ).orElseThrow(
-                    () -> new RuntimeException("No id found for destInvoke: " + destInvoke)
-            );
             ProxyCallSite callConfig = idToCallSite.computeIfAbsent(
-                    invokeId,
+                    DestInvokeIdRegistry.getInstance().get(destInvoke),
                     key -> new ProxyCallSite(destInvoke)
             );
             regInfos.forEach(

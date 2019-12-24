@@ -9,6 +9,10 @@
       "factoryMethod": "getInstance"
     },
     {
+      "factoryClass": "agent.server.transform.impl.InvokeEntityIdRegistry",
+      "factoryMethod": "getInstance"
+    },
+    {
       "listenerClass": "agent.server.listener.LoadNativeLibListener"
     },
     {

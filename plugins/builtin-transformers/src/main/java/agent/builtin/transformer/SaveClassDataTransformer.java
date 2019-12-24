@@ -5,11 +5,11 @@ import agent.base.utils.Utils;
 import agent.server.transform.TransformContext;
 import agent.server.transform.impl.AbstractConfigTransformer;
 import agent.server.transform.impl.dynamic.ClassCache;
+import agent.server.transform.impl.invoke.DestInvoke;
 import agent.server.transform.revision.ClassDataRepository;
 import agent.server.transform.revision.ClassDataStore;
 
 import java.io.File;
-import java.lang.reflect.Method;
 import java.util.*;
 
 public class SaveClassDataTransformer extends AbstractConfigTransformer {
@@ -44,7 +44,7 @@ public class SaveClassDataTransformer extends AbstractConfigTransformer {
     }
 
     @Override
-    protected void transformMethod(Method method) throws Exception {
+    protected void transformDestInvoke(DestInvoke destInvoke) throws Exception {
     }
 
     @Override

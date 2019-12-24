@@ -1,14 +1,14 @@
-package agent.server.transform.tools.asm;
+package agent.server.transform.impl.invoke;
 
 import org.objectweb.asm.Type;
 
 import java.lang.reflect.Method;
 import java.util.Objects;
 
-class MethodInvoke implements DestInvoke {
+public class MethodInvoke implements DestInvoke {
     private final Method method;
 
-    MethodInvoke(Method method) {
+    public MethodInvoke(Method method) {
         if (method == null)
             throw new IllegalArgumentException("Method is null!");
         this.method = method;
@@ -65,8 +65,6 @@ class MethodInvoke implements DestInvoke {
 
     @Override
     public String toString() {
-        return "MethodInvoke{" +
-                "method=" + method +
-                '}';
+        return method.toString();
     }
 }

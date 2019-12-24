@@ -5,7 +5,6 @@ import agent.base.utils.IOUtils;
 import agent.base.utils.ReflectionUtils;
 import agent.base.utils.SystemConfig;
 import agent.base.utils.Utils;
-import agent.builtin.event.StatisticsMetadataFlushedEvent;
 import agent.common.utils.JSONUtils;
 import agent.delegate.JSONDelegate;
 import agent.hook.plugin.ClassFinder;
@@ -13,6 +12,7 @@ import agent.hook.utils.App;
 import agent.server.event.AgentEvent;
 import agent.server.event.AgentEventListener;
 import agent.server.event.EventListenerMgr;
+import agent.server.event.impl.DestInvokeMetadataFlushedEvent;
 import agent.server.event.impl.FlushLogEvent;
 import agent.server.transform.AgentTransformer;
 import agent.server.transform.TransformContext;
@@ -20,6 +20,7 @@ import agent.server.transform.TransformMgr;
 import agent.server.transform.config.ClassConfig;
 import agent.server.transform.config.MethodFilterConfig;
 import agent.server.transform.impl.AbstractConfigTransformer;
+import agent.server.transform.impl.DestInvokeIdRegistry;
 import agent.server.transform.impl.TransformerInfo;
 import agent.server.transform.tools.asm.ProxyRegInfo;
 import agent.server.transform.tools.asm.ProxyResult;
@@ -36,10 +37,10 @@ public abstract class AbstractTest {
     private static final TestClassLoader loader = new TestClassLoader();
     private static final TestClassFinder classFinder = new TestClassFinder();
     private static boolean inited = false;
-    private static final StatisticsMetadataFlushedListener statisticsMetadataFlushedListener = new StatisticsMetadataFlushedListener();
+    private static final DestInvokeMetadataFlushedListener destInvokeMetadataFlushedListener = new DestInvokeMetadataFlushedListener();
 
     static {
-        EventListenerMgr.reg(StatisticsMetadataFlushedEvent.class, statisticsMetadataFlushedListener);
+        EventListenerMgr.reg(DestInvokeMetadataFlushedEvent.class, destInvokeMetadataFlushedListener);
     }
 
     @BeforeClass
@@ -60,6 +61,7 @@ public abstract class AbstractTest {
                         return null;
                     }
             );
+            DestInvokeIdRegistry.getInstance().onStartup(new Object[0]);
             inited = true;
         }
     }
@@ -87,11 +89,11 @@ public abstract class AbstractTest {
     }
 
     void flush() throws Exception {
-        statisticsMetadataFlushedListener.clear();
+        destInvokeMetadataFlushedListener.clear();
         EventListenerMgr.fireEvent(
                 new FlushLogEvent()
         );
-        statisticsMetadataFlushedListener.waitForLogFlushing();
+        destInvokeMetadataFlushedListener.waitForLogFlushing();
     }
 
     Map<Class<?>, byte[]> getClassToData(AgentTransformer transformer) {
@@ -146,13 +148,13 @@ public abstract class AbstractTest {
         );
     }
 
-    private static class StatisticsMetadataFlushedListener implements AgentEventListener {
+    private static class DestInvokeMetadataFlushedListener implements AgentEventListener {
         private final Object lock = new Object();
         private volatile boolean finished = false;
 
         @Override
         public void onNotify(AgentEvent event) {
-            if (event.getClass().equals(StatisticsMetadataFlushedEvent.class)) {
+            if (event.getClass().equals(DestInvokeMetadataFlushedEvent.class)) {
                 finished = true;
                 Utils.wrapToRtError(
                         () -> {

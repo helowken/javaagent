@@ -1,4 +1,4 @@
-package agent.server.transform.tools.asm;
+package agent.server.transform.impl.invoke;
 
 
 import org.objectweb.asm.Type;
@@ -6,10 +6,10 @@ import org.objectweb.asm.Type;
 import java.lang.reflect.Constructor;
 import java.util.Objects;
 
-class ConstructorInvoke implements DestInvoke {
+public class ConstructorInvoke implements DestInvoke {
     private final Constructor constructor;
 
-    ConstructorInvoke(Constructor<?> constructor) {
+    public ConstructorInvoke(Constructor<?> constructor) {
         if (constructor == null)
             throw new IllegalArgumentException("Constructor is null!");
         this.constructor = constructor;
@@ -66,8 +66,6 @@ class ConstructorInvoke implements DestInvoke {
 
     @Override
     public String toString() {
-        return "ConstructorInvoke{" +
-                "constructor=" + constructor +
-                '}';
+        return constructor.toString();
     }
 }

@@ -3,7 +3,7 @@ package test.transformer;
 import agent.base.utils.ReflectionUtils;
 import agent.builtin.tools.CostTimeStatisticsAnalyzer;
 import agent.builtin.transformer.CostTimeStatisticsTransformer;
-import agent.builtin.transformer.utils.CostTimeMethodRegistry;
+import agent.server.transform.impl.DestInvokeIdRegistry;
 import org.junit.Test;
 
 import java.io.File;
@@ -40,7 +40,7 @@ public class CostTimeStatisticsTransformerTest extends AbstractTest {
             CostTimeStatisticsAnalyzer.printResult(outputPath);
         } finally {
             Files.delete(path);
-            new File(outputPath + CostTimeMethodRegistry.METADATA_FILE).delete();
+            new File(outputPath + DestInvokeIdRegistry.METADATA_FILE).delete();
         }
     }
 

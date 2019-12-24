@@ -3,6 +3,7 @@ package test.server.asm;
 import agent.base.utils.IOUtils;
 import agent.base.utils.ReflectionUtils;
 import agent.base.utils.Utils;
+import agent.server.transform.impl.DestInvokeIdRegistry;
 import agent.server.transform.tools.asm.*;
 import test.server.utils.TestClassLoader;
 
@@ -53,6 +54,9 @@ class AsmTestUtils {
     }
 
     static Class<?> prepareClass(int count, List<String> logList, ProxyRegInfo regInfo) throws Exception {
+        DestInvokeIdRegistry.getInstance().reg(
+                regInfo.getDestInvoke()
+        );
         ProxyResult item = prepareData(count, logList, regInfo);
         assertFalse(item.hasError());
         ProxyTransformMgr.getInstance().reg(

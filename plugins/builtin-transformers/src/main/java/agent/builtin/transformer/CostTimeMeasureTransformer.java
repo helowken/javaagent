@@ -1,27 +1,25 @@
 package agent.builtin.transformer;
 
+import agent.base.utils.IndentUtils;
 import agent.base.utils.StringParser;
 import agent.base.utils.Utils;
 import agent.server.transform.impl.ProxyAnnotationConfig;
 import agent.server.transform.impl.ProxyAnnotationConfigTransformer;
+import agent.server.transform.impl.invoke.DestInvoke;
 import agent.server.utils.ParamValueUtils;
 import agent.server.utils.log.LogMgr;
 import agent.server.utils.log.text.TextLogConfigParser;
 
 import java.lang.reflect.Method;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
-import static agent.server.transform.impl.ProxyAnnotationConfig.ARGS_ON_RETURNING;
+import static agent.server.transform.impl.ProxyAnnotationConfig.ARGS_ON_AFTER;
 
 public class CostTimeMeasureTransformer extends ProxyAnnotationConfigTransformer {
     public static final String REG_KEY = "sys_costTimeMeasure";
     private static final String KEY_COST_TIME = "costTime";
     private static final String DEFAULT_OUTPUT_FORMAT = StringParser.getKey(ParamValueUtils.KEY_METHOD) +
             " cost time is: " + StringParser.getKey(KEY_COST_TIME) + "ms";
-    private static final CostTimeMeasureConfig measureConfig = new CostTimeMeasureConfig();
 
     private String logKey;
 
@@ -29,17 +27,12 @@ public class CostTimeMeasureTransformer extends ProxyAnnotationConfigTransformer
     protected void doSetConfig(Map<String, Object> config) {
         Map<String, Object> defaultValueMap = new HashMap<>();
         defaultValueMap.put(TextLogConfigParser.CONF_OUTPUT_FORMAT, DEFAULT_OUTPUT_FORMAT);
-        logKey = LogMgr.regText(config, defaultValueMap);
+        logKey = regLogText(config, defaultValueMap);
     }
 
     @Override
-    protected Set<Class<?>> getAnnotationClasses() {
-        return Collections.singleton(CostTimeMeasureConfig.class);
-    }
-
-    @Override
-    protected Object[] newOtherArgs(Method srcMethod, Method anntMethod, int argsHint) {
-        if (ARGS_ON_RETURNING == argsHint)
+    protected Object[] newOtherArgs(DestInvoke destInvoke, Method anntMethod, int argsHint) {
+        if (ARGS_ON_AFTER == argsHint)
             return new Object[]{
                     logKey
             };
@@ -47,39 +40,51 @@ public class CostTimeMeasureTransformer extends ProxyAnnotationConfigTransformer
     }
 
     @Override
-    protected Object getInstanceForMethod(Method method) {
-        return measureConfig;
-    }
-
-    @Override
     public String getRegKey() {
         return REG_KEY;
     }
 
-    static class CostTimeMeasureConfig extends ProxyAnnotationConfig<Long> {
+    static class CostTimeMeasureConfig extends ProxyAnnotationConfig<Long, Map<String, Object>> {
 
         @Override
-        protected Long newData(Node<Long> preNode, Object[] args, Class<?>[] argTypes, Method method, Object[] otherArgs) {
+        protected Long newDataOnBefore(Object[] args, Class<?>[] argTypes, DestInvoke destInvoke, Object[] otherArgs) {
             return System.currentTimeMillis();
         }
 
         @Override
-        protected void processOnReturning(Node<Long> currNode, Object returnValue, Class<?> returnType, Method method, Object[] otherArgs) {
+        protected Map<String, Object> processOnReturning(Long data, Object returnValue, Class<?> returnType, DestInvoke destInvoke, Object[] otherArgs) {
             long et = System.currentTimeMillis();
-            long st = currNode.getData();
-            String logKey = Utils.getArgValue(otherArgs, 0);
-            LogMgr.logText(
-                    logKey,
-                    ParamValueUtils.newParamValueMap(
-                            method.getDeclaringClass().getName(),
-//                            IndentUtils.getIndent(currNode.size() - 1) + method.toString(),
-                            method.toString(),
-                            new Object[]{
-                                    KEY_COST_TIME,
-                                    et - st
-                            }
-                    )
+            return ParamValueUtils.newParamValueMap(
+                    destInvoke.getDeclaringClass().getName(),
+                    IndentUtils.getIndent(
+                            getAroundItem().size()
+                    ) + destInvoke.toString(),
+                    new Object[]{
+                            KEY_COST_TIME,
+                            et - data
+                    }
             );
         }
+
+        @Override
+        protected Map<String, Object> processOnThrowing(Long data, Throwable error, DestInvoke destInvoke, Object[] otherArgs) {
+            return null;
+        }
+
+        @Override
+        protected void processOnAfter(DestInvoke destInvoke, Object[] otherArgs) {
+
+        }
+
+        @Override
+        protected void processOnCompleted(List<Map<String, Object>> completed, DestInvoke destInvoke, Object[] otherArgs) {
+            LinkedList<Map<String, Object>> rsList = new LinkedList<>();
+            completed.forEach(rsList::addFirst);
+            final String logKey = Utils.getArgValue(otherArgs, 0);
+            rsList.forEach(
+                    params -> LogMgr.logText(logKey, params)
+            );
+        }
+
     }
 }

@@ -32,7 +32,7 @@ class BakAsmTransformProxy {
 //        for (MethodNode methodNode : methodNodes) {
 //            Integer id = findMethodId(methodNode, methodNameToDescToId);
 //            if (id != null)
-//                transformMethod(classNode, methodNode, id, methodNames);
+//                transformDestInvoke(classNode, methodNode, id, methodNames);
 //        }
 //    }
 //
@@ -67,7 +67,7 @@ class BakAsmTransformProxy {
 //        }
 //    }
 //
-//    private static void transformMethod(ClassNode classNode, MethodNode methodNode, int methodId, Set<String> methodNames) {
+//    private static void transformDestInvoke(ClassNode classNode, MethodNode methodNode, int methodId, Set<String> methodNames) {
 //        String destMethodName = newMethodName(methodNames, methodNode.name);
 //        classNode.methods.add(
 //                createDelegateMethodNode(destMethodName, classNode, methodNode, methodId)

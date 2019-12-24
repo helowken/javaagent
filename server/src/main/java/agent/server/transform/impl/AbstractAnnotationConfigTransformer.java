@@ -1,6 +1,7 @@
 package agent.server.transform.impl;
 
 import agent.base.utils.ReflectionUtils;
+import agent.server.transform.impl.invoke.DestInvoke;
 import agent.server.transform.tools.asm.ProxyCallInfo;
 import agent.server.transform.tools.asm.ProxyRegInfo;
 import agent.server.transform.tools.asm.annotation.OnAfter;
@@ -17,16 +18,15 @@ import java.util.Set;
 public abstract class AbstractAnnotationConfigTransformer extends AbstractConfigTransformer {
 
     @Override
-    protected void transformMethod(Method method) throws Exception {
-        preTransformMethod(method);
+    protected void transformDestInvoke(DestInvoke destInvoke) throws Exception {
         Set<Method> rsMethods = new HashSet<>();
         getAnnotationClasses().forEach(
                 clazz -> collectAllMethods(rsMethods, clazz)
         );
 
-        ProxyRegInfo regInfo = new ProxyRegInfo(method);
+        ProxyRegInfo regInfo = new ProxyRegInfo(destInvoke);
         rsMethods.forEach(
-                candidateMethod -> maybeReg(method, regInfo, candidateMethod)
+                candidateMethod -> maybeReg(destInvoke, regInfo, candidateMethod)
         );
         if (!regInfo.isEmpty())
             addRegInfo(regInfo);
@@ -60,10 +60,7 @@ public abstract class AbstractAnnotationConfigTransformer extends AbstractConfig
         );
     }
 
-    protected void preTransformMethod(Method method) {
-    }
-
-    private void maybeReg(Method srcMethod, ProxyRegInfo regInfo, Method anntMethod) {
+    private void maybeReg(DestInvoke destInvoke, ProxyRegInfo regInfo, Method anntMethod) {
         Class<?> anntClass;
         Annotation[] annotations = anntMethod.getAnnotations();
         if (annotations != null) {
@@ -71,82 +68,82 @@ public abstract class AbstractAnnotationConfigTransformer extends AbstractConfig
                 anntClass = annt.annotationType();
                 if (OnBefore.class.equals(anntClass))
                     regInfo.addBefore(
-                            newCallInfo(srcMethod, anntMethod, (OnBefore) annt)
+                            newCallInfo(destInvoke, anntMethod, (OnBefore) annt)
                     );
                 else if (OnAfter.class.equals(anntClass))
                     regInfo.addAfter(
-                            newCallInfo(srcMethod, anntMethod, (OnAfter) annt)
+                            newCallInfo(destInvoke, anntMethod, (OnAfter) annt)
                     );
                 else if (OnReturning.class.equals(anntClass))
                     regInfo.addOnReturning(
-                            newCallInfo(srcMethod, anntMethod, (OnReturning) annt)
+                            newCallInfo(destInvoke, anntMethod, (OnReturning) annt)
                     );
                 else if (OnThrowing.class.equals(anntClass))
                     regInfo.addOnThrowing(
-                            newCallInfo(srcMethod, anntMethod, (OnThrowing) annt)
+                            newCallInfo(destInvoke, anntMethod, (OnThrowing) annt)
                     );
             }
         }
     }
 
-    private ProxyCallInfo newCallInfo(Method srcMethod, Method anntMethod, OnBefore annt) {
+    private ProxyCallInfo newCallInfo(DestInvoke destInvoke, Method anntMethod, OnBefore annt) {
         return newCallInfo(
-                srcMethod,
+                destInvoke,
                 anntMethod,
                 annt.mask(),
                 annt.argsHint()
         );
     }
 
-    private ProxyCallInfo newCallInfo(Method srcMethod, Method anntMethod, OnAfter annt) {
+    private ProxyCallInfo newCallInfo(DestInvoke destInvoke, Method anntMethod, OnAfter annt) {
         return newCallInfo(
-                srcMethod,
+                destInvoke,
                 anntMethod,
                 annt.mask(),
                 annt.argsHint()
         );
     }
 
-    private ProxyCallInfo newCallInfo(Method srcMethod, Method anntMethod, OnReturning annt) {
+    private ProxyCallInfo newCallInfo(DestInvoke destInvoke, Method anntMethod, OnReturning annt) {
         return newCallInfo(
-                srcMethod,
+                destInvoke,
                 anntMethod,
                 annt.mask(),
                 annt.argsHint()
         );
     }
 
-    private ProxyCallInfo newCallInfo(Method srcMethod, Method anntMethod, OnThrowing annt) {
+    private ProxyCallInfo newCallInfo(DestInvoke destInvoke, Method anntMethod, OnThrowing annt) {
         return newCallInfo(
-                srcMethod,
+                destInvoke,
                 anntMethod,
                 annt.mask(),
                 annt.argsHint()
         );
     }
 
-    private ProxyCallInfo newCallInfo(Method srcMethod, Method anntMethod, int mask, int argsHint) {
+    private ProxyCallInfo newCallInfo(DestInvoke destInvoke, Method anntMethod, int mask, int argsHint) {
         return new ProxyCallInfo(
                 getInstanceOrNull(anntMethod),
                 anntMethod,
                 mask,
-                getOtherArgs(srcMethod, anntMethod, argsHint)
+                getOtherArgs(destInvoke, anntMethod, argsHint)
         );
     }
 
-    private Object getInstanceOrNull(Method method) {
-        if (Modifier.isStatic(method.getModifiers()))
+    private Object getInstanceOrNull(Method anntMethod) {
+        if (Modifier.isStatic(anntMethod.getModifiers()))
             return null;
-        Object instance = getInstanceForMethod(method);
+        Object instance = getInstanceForMethod(anntMethod);
         if (instance == null)
-            throw new RuntimeException("No instance found for method: " + method);
-        if (!method.getDeclaringClass().isInstance(instance))
+            throw new RuntimeException("No instance found for method: " + anntMethod);
+        if (!anntMethod.getDeclaringClass().isInstance(instance))
             throw new RuntimeException("Instance type " + instance.getClass().getName() +
-                    " is invlid for method declaring class " + method.getDeclaringClass().getName());
+                    " is invlid for method declaring class " + anntMethod.getDeclaringClass().getName());
         return instance;
     }
 
-    protected abstract Object[] getOtherArgs(Method srcMethod, Method anntMethod, int argsHint);
+    protected abstract Object[] getOtherArgs(DestInvoke destInvoke, Method anntMethod, int argsHint);
 
     protected abstract Object getInstanceForMethod(Method method);
 

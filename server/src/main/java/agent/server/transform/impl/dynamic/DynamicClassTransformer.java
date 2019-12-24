@@ -11,6 +11,7 @@ import agent.server.transform.TransformMgr;
 import agent.server.transform.impl.AbstractConfigTransformer;
 import agent.server.transform.cp.AgentClassPool;
 import agent.server.transform.MethodFinder;
+import agent.server.transform.impl.invoke.DestInvoke;
 import javassist.CtClass;
 import javassist.CtMethod;
 import javassist.expr.ExprEditor;
@@ -53,11 +54,16 @@ public class DynamicClassTransformer extends AbstractConfigTransformer {
         key = Utils.sUuid();
         maxLevel = Math.min(Math.max(item.maxLevel, 10), defaultMaxLevel);
     }
+
+    @Override
+    protected void transformDestInvoke(DestInvoke destInvoke) throws Exception {
+
+    }
+
     protected AgentClassPool getClassPool() {
         return null;
     }
 
-    @Override
     protected void transformMethod(Method srcMethod) throws Exception {
         CtMethod ctMethod = getClassPool().getMethod(srcMethod);
         DynamicRuleRegistry.getInstance().regRuleInvokeIfAbsent(key, k -> new RuleInvokeItem(item));

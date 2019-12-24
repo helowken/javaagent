@@ -1,6 +1,6 @@
-package agent.server.transform.tools.asm;
+package agent.server.transform.impl.invoke;
 
-interface DestInvoke {
+public interface DestInvoke {
     DestInvokeType getType();
 
     String getName();
