@@ -1,13 +1,13 @@
 package agent.server.transform.impl;
 
-import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Stack;
 
 public class AroundItem<T, R> {
     private Stack<T> undergoing = new Stack<>();
-    private List<R> completed = new ArrayList<>(100);
+    private LinkedList<R> completed = new LinkedList<>();
 
     void add(T data) {
         undergoing.push(data);
@@ -23,12 +23,16 @@ public class AroundItem<T, R> {
         return undergoing.size();
     }
 
-    void complete(ProcessDataFunc<T, R> func) {
+    void complete(ProcessDataFunc<T, R> func, boolean addToLast) {
         if (!undergoing.isEmpty() && func != null) {
             T data = undergoing.pop();
             R result = func.process(data);
-            if (result != null)
-                completed.add(result);
+            if (result != null) {
+                if (addToLast)
+                    completed.addLast(result);
+                else
+                    completed.addFirst(result);
+            }
         }
     }
 

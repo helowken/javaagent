@@ -116,7 +116,7 @@ public class DestInvokeIdRegistry implements ServerListener, AgentEventListener 
                         invoke.getDeclaringClass().getName(),
                         key -> new HashMap<>()
                 ).put(
-                        invoke.getInvokeEntity().toString(),
+                        invoke.getName() + invoke.getDescriptor(),
                         id
                 )
         );

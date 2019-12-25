@@ -38,7 +38,8 @@ public abstract class ProxyAnnotationConfig<T, R> {
         AroundItem<T, R> currAroundItem = getAroundItem("returning", destInvoke);
         if (currAroundItem != null)
             currAroundItem.complete(
-                    data -> processOnReturning(data, returnValue, returnType, destInvoke, otherArgs)
+                    data -> processOnReturning(data, returnValue, returnType, destInvoke, otherArgs),
+                    isAddResultToLast(false)
             );
     }
 
@@ -47,7 +48,8 @@ public abstract class ProxyAnnotationConfig<T, R> {
         AroundItem<T, R> currAroundItem = getAroundItem("throwing", destInvoke);
         if (currAroundItem != null)
             currAroundItem.complete(
-                    data -> processOnThrowing(data, error, destInvoke, otherArgs)
+                    data -> processOnThrowing(data, error, destInvoke, otherArgs),
+                    isAddResultToLast(true)
             );
     }
 
@@ -61,6 +63,10 @@ public abstract class ProxyAnnotationConfig<T, R> {
                 processOnCompleted(currAroundItem.getCompleted(), destInvoke, args);
             }
         }
+    }
+
+    protected boolean isAddResultToLast(boolean error) {
+        return false;
     }
 
     private AroundItem<T, R> getAroundItem(String stage, DestInvoke destInvoke) {

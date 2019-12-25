@@ -1,11 +1,16 @@
 package agent.server.tree;
 
 import java.util.List;
+import java.util.function.Predicate;
 
 public interface INode<T, N extends INode> {
     N getParent();
 
     List<N> getChildren();
+
+    List<N> findChildren(Predicate<T> predicate);
+
+    N findFirstChild(Predicate<T> predicate);
 
     boolean isLeaf();
 

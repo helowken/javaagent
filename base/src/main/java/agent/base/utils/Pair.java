@@ -9,6 +9,14 @@ public class Pair<L, R> {
         this.right = right;
     }
 
+    public L getLeft() {
+        return left;
+    }
+
+    public R getRight() {
+        return right;
+    }
+
     public void exec(ExecFunc<L, R> func) {
         func.exec(this.left, this.right);
     }

@@ -1,7 +1,8 @@
 package test.transformer;
 
 import agent.base.utils.ReflectionUtils;
-import agent.builtin.tools.CostTimeStatisticsAnalyzer;
+import agent.builtin.tools.CostTimeByCallChain;
+import agent.builtin.tools.CostTimeByMethod;
 import agent.builtin.transformer.CostTimeStatisticsTransformer;
 import agent.server.transform.impl.DestInvokeIdRegistry;
 import org.junit.Test;
@@ -37,7 +38,11 @@ public class CostTimeStatisticsTransformerTest extends AbstractTest {
 
             flush();
 
-            CostTimeStatisticsAnalyzer.printResult(outputPath);
+            CostTimeByCallChain.main(
+                    new String[]{
+                            outputPath
+                    }
+            );
         } finally {
             Files.delete(path);
             new File(outputPath + DestInvokeIdRegistry.METADATA_FILE).delete();

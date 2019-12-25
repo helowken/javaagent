@@ -2,6 +2,8 @@ package agent.server.tree;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 public class Node<T> implements INode<T, Node<T>> {
     private Node<T> parent;
@@ -44,6 +46,8 @@ public class Node<T> implements INode<T, Node<T>> {
 
     @Override
     public Node<T> appendChild(Node<T> child) {
+        if (child.parent != null)
+            child.parent.removeChild(child);
         children.add(child);
         child.parent = this;
         return child;
@@ -77,6 +81,27 @@ public class Node<T> implements INode<T, Node<T>> {
     @Override
     public Node<T> firstChild() {
         return children.isEmpty() ? null : children.getFirst();
+    }
+
+    @Override
+    public List<Node<T>> findChildren(Predicate<T> predicate) {
+        return children.stream()
+                .filter(
+                        child -> predicate.test(child.data)
+                )
+                .collect(
+                        Collectors.toList()
+                );
+    }
+
+    @Override
+    public Node<T> findFirstChild(Predicate<T> predicate) {
+        return children.stream()
+                .filter(
+                        child -> predicate.test(child.data)
+                )
+                .findFirst()
+                .orElse(null);
     }
 
     @Override

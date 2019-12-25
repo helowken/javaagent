@@ -49,10 +49,11 @@ public abstract class AbstractConfigTransformer extends AbstractTransformer impl
     private String regLog(LoggerType loggerType, Map<String, Object> config, Map<String, Object> defaultValueMap) {
         String logKey = LogMgr.reg(loggerType, config, defaultValueMap);
         LogConfig logConfig = LogMgr.getLogConfig(loggerType, logKey);
-        DestInvokeIdRegistry.getInstance().regOutputPath(
-                getContext(),
-                logConfig.getOutputPath()
-        );
+        if (!logConfig.isStdout())
+            DestInvokeIdRegistry.getInstance().regOutputPath(
+                    getContext(),
+                    logConfig.getOutputPath()
+            );
         return logKey;
     }
 

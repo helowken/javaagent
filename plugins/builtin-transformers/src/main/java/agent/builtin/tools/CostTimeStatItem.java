@@ -8,7 +8,7 @@ import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.util.*;
 
-class CostTimeStatisticsItem {
+public class CostTimeStatItem {
     private static final DecimalFormat df = new DecimalFormat("#");
     private BigInteger totalTime = BigInteger.ZERO;
     private BigInteger count = BigInteger.ZERO;
@@ -39,7 +39,7 @@ class CostTimeStatisticsItem {
         count = count.add(v);
     }
 
-    synchronized void add(long time) {
+    public synchronized void add(long time) {
         if (freezed)
             return;
         if (currTotalTime + time <= 0) {
@@ -82,7 +82,7 @@ class CostTimeStatisticsItem {
         );
     }
 
-    synchronized void merge(CostTimeStatisticsItem other) {
+    public synchronized void merge(CostTimeStatItem other) {
         if (freezed)
             return;
         updateTotalTime(other.totalTime);
@@ -134,7 +134,7 @@ class CostTimeStatisticsItem {
         );
     }
 
-    synchronized void freeze() {
+    public synchronized void freeze() {
         if (freezed)
             return;
         freezed = true;
@@ -206,34 +206,34 @@ class CostTimeStatisticsItem {
         return df.format(rate * 100) + "%";
     }
 
-    long getAvgTime() {
+    public long getAvgTime() {
         long avgTime = 0;
         if (count.compareTo(BigInteger.ZERO) > 0)
             avgTime = totalTime.divide(count).longValue();
         return avgTime;
     }
 
-    String getAvgTimeString() {
+    public String getAvgTimeString() {
         return "Avg: " + getAvgTime() + "ms";
     }
 
-    long getMaxTime() {
+    public long getMaxTime() {
         return maxTime;
     }
 
-    String getMaxTimeString() {
+    public String getMaxTimeString() {
         return "Max: " + getMaxTime() + "ms";
     }
 
-    BigInteger getCount() {
+    public BigInteger getCount() {
         return count;
     }
 
-    String getCountString() {
+    public String getCountString() {
         return "Count: " + getCount();
     }
 
-    String getTimeDistributionString(Set<Float> rates) {
+    public String getTimeDistributionString(Set<Float> rates) {
         StringBuilder sb = new StringBuilder();
         sb.append("Time Distribution: [");
         Map<Float, Long> rateToCostTime = calculateTimeDistribution(rates);

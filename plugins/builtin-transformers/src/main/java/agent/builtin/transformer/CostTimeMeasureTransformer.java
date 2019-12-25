@@ -11,7 +11,9 @@ import agent.server.utils.log.LogMgr;
 import agent.server.utils.log.text.TextLogConfigParser;
 
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static agent.server.transform.impl.ProxyAnnotationConfig.ARGS_ON_AFTER;
 
@@ -45,7 +47,6 @@ public class CostTimeMeasureTransformer extends ProxyAnnotationConfigTransformer
     }
 
     static class CostTimeMeasureConfig extends ProxyAnnotationConfig<Long, Map<String, Object>> {
-
         @Override
         protected Long newDataOnBefore(Object[] args, Class<?>[] argTypes, DestInvoke destInvoke, Object[] otherArgs) {
             return System.currentTimeMillis();
@@ -78,10 +79,8 @@ public class CostTimeMeasureTransformer extends ProxyAnnotationConfigTransformer
 
         @Override
         protected void processOnCompleted(List<Map<String, Object>> completed, DestInvoke destInvoke, Object[] otherArgs) {
-            LinkedList<Map<String, Object>> rsList = new LinkedList<>();
-            completed.forEach(rsList::addFirst);
             final String logKey = Utils.getArgValue(otherArgs, 0);
-            rsList.forEach(
+            completed.forEach(
                     params -> LogMgr.logText(logKey, params)
             );
         }

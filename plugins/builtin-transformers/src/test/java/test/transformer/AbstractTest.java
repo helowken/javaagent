@@ -88,11 +88,15 @@ public abstract class AbstractTest {
         return ReflectionUtils.newInstance(newClass);
     }
 
-    void flush() throws Exception {
-        destInvokeMetadataFlushedListener.clear();
+    void flushNoWait() {
         EventListenerMgr.fireEvent(
                 new FlushLogEvent()
         );
+    }
+
+    void flush() throws Exception {
+        destInvokeMetadataFlushedListener.clear();
+        flushNoWait();
         destInvokeMetadataFlushedListener.waitForLogFlushing();
     }
 

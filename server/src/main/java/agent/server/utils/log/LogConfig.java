@@ -5,6 +5,10 @@ public interface LogConfig {
 
     String getOutputPath();
 
+    default boolean isStdout() {
+        return STDOUT.equals(getOutputPath());
+    }
+
     boolean isAutoFlush();
 
     long getMaxBufferSize();
