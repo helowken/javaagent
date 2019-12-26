@@ -3,7 +3,7 @@ package agent.builtin;
 import agent.builtin.transformer.CostTimeMeasureTransformer;
 import agent.builtin.transformer.CostTimeStatisticsTransformer;
 import agent.builtin.transformer.SaveClassDataTransformer;
-import agent.builtin.transformer.TraceMethodTransformer;
+import agent.builtin.transformer.TraceInvokeTransformer;
 import agent.server.transform.ConfigTransformer;
 import agent.server.transform.TransformerClassFactory;
 
@@ -16,7 +16,7 @@ public class BuiltinTransformerClassFactory implements TransformerClassFactory {
     static {
         keyToTransformerClass.put(CostTimeMeasureTransformer.REG_KEY, CostTimeMeasureTransformer.class);
         keyToTransformerClass.put(CostTimeStatisticsTransformer.REG_KEY, CostTimeStatisticsTransformer.class);
-        keyToTransformerClass.put(TraceMethodTransformer.REG_KEY, TraceMethodTransformer.class);
+        keyToTransformerClass.put(TraceInvokeTransformer.REG_KEY, TraceInvokeTransformer.class);
         keyToTransformerClass.put(SaveClassDataTransformer.REG_KEY, SaveClassDataTransformer.class);
     }
 

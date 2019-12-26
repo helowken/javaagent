@@ -31,7 +31,7 @@ public class CostTimeMeasureTransformerTest extends AbstractTest {
         ReflectionUtils.invoke("load", new Class[]{int.class}, b, 33);
         ReflectionUtils.invoke("recursiveLoad", new Class[]{long.class}, b, (long) 4);
 
-        flushNoWait();
+        flushAndWaitMetadata();
     }
 
     static class A {

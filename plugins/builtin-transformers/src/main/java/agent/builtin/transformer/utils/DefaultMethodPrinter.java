@@ -1,44 +1,39 @@
 package agent.builtin.transformer.utils;
 
-import agent.base.utils.IndentUtils;
+import java.util.HashMap;
+import java.util.Map;
 
-import static agent.base.utils.IndentUtils.INDENT_1;
-
-public class DefaultMethodPrinter implements MethodPrinter {
+public class DefaultMethodPrinter implements ValueConverter {
+    private static final String KEY_INDEX = "index";
+    private static final String KEY_CLASS = "class";
+    private static final String KEY_VALUE = "value";
 
     @Override
-    public void printArgs(StringBuilder sb, Object[] args, Class<?>[] argClasses) {
-        if (args.length != argClasses.length)
-            throw new RuntimeException("Length of args != length of argClasses");
-        for (int i = 0; i < args.length; ++i) {
-            sb.append(INDENT_1)
-                    .append("Arg ").append(i).append(" ")
-                    .append(getClassName(argClasses[i]))
-                    .append(": ");
-            printObject(sb, args[i], argClasses[i]);
-            sb.append("\n");
-        }
+    public Map<String, Object> convertArg(int index, Class<?> clazz, Object value) {
+        Map<String, Object> rsMap = convert(clazz, value);
+        rsMap.put(KEY_INDEX, index);
+        return rsMap;
     }
 
     @Override
-    public void printReturnValue(StringBuilder sb, Object returnValue, Class<?> returnValueClass) {
-        sb.append(INDENT_1)
-                .append("Return Value ")
-                .append(getClassName(returnValueClass))
-                .append(": ");
-        printObject(sb, returnValue, returnValueClass);
-        sb.append("\n");
+    public Map<String, Object> convertReturnValue(Class<?> clazz, Object value) {
+        return convert(clazz, value);
     }
 
-    private String getClassName(Class<?> clazz) {
-        return "[" + clazz.getName() + "]";
+    @Override
+    public Map<String, Object> convertError(Throwable error) {
+        return convert(
+                error.getClass(),
+                error.getMessage()
+        );
     }
 
-    protected void printObject(StringBuilder sb, Object obj, Class<?> objClass) {
-        if (obj == null)
-            sb.append("null");
-        else {
-            sb.append(obj);
-        }
+    private Map<String, Object> convert(Class<?> clazz, Object value) {
+        Map<String, Object> rsMap = new HashMap<>();
+        rsMap.put(KEY_CLASS, clazz.getName());
+        if (value != null)
+            rsMap.put(KEY_VALUE, value.toString());
+        return rsMap;
     }
+
 }

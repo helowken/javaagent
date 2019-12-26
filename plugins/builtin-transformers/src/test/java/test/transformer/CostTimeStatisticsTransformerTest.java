@@ -35,7 +35,7 @@ public class CostTimeStatisticsTransformerTest extends AbstractTest {
             Object a = newInstance(classToData, A.class);
             ReflectionUtils.invoke("service", a);
 
-            flush();
+            flushAndWaitMetadata();
 
             CostTimeByCallChain.main(
                     new String[]{

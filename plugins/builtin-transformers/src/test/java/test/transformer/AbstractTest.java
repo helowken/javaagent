@@ -14,6 +14,7 @@ import agent.server.event.AgentEventListener;
 import agent.server.event.EventListenerMgr;
 import agent.server.event.impl.DestInvokeMetadataFlushedEvent;
 import agent.server.event.impl.FlushLogEvent;
+import agent.server.event.impl.LogFlushedEvent;
 import agent.server.transform.AgentTransformer;
 import agent.server.transform.TransformContext;
 import agent.server.transform.TransformMgr;
@@ -37,10 +38,12 @@ public abstract class AbstractTest {
     private static final TestClassLoader loader = new TestClassLoader();
     private static final TestClassFinder classFinder = new TestClassFinder();
     private static boolean inited = false;
-    private static final DestInvokeMetadataFlushedListener destInvokeMetadataFlushedListener = new DestInvokeMetadataFlushedListener();
+    private static final WaitFlushingListener waitMetadataListener = new WaitFlushingListener(DestInvokeMetadataFlushedEvent.class);
+    private static final WaitFlushingListener waitDataListener = new WaitFlushingListener(LogFlushedEvent.class);
 
     static {
-        EventListenerMgr.reg(DestInvokeMetadataFlushedEvent.class, destInvokeMetadataFlushedListener);
+        EventListenerMgr.reg(LogFlushedEvent.class, waitDataListener);
+        EventListenerMgr.reg(DestInvokeMetadataFlushedEvent.class, waitMetadataListener);
     }
 
     @BeforeClass
@@ -88,16 +91,20 @@ public abstract class AbstractTest {
         return ReflectionUtils.newInstance(newClass);
     }
 
-    void flushNoWait() {
+    void flushAndWaitData() throws Exception {
+        waitDataListener.clear();
         EventListenerMgr.fireEvent(
                 new FlushLogEvent()
         );
+        waitDataListener.await();
     }
 
-    void flush() throws Exception {
-        destInvokeMetadataFlushedListener.clear();
-        flushNoWait();
-        destInvokeMetadataFlushedListener.waitForLogFlushing();
+    void flushAndWaitMetadata() throws Exception {
+        waitMetadataListener.clear();
+        EventListenerMgr.fireEvent(
+                new FlushLogEvent()
+        );
+        waitMetadataListener.await();
     }
 
     Map<Class<?>, byte[]> getClassToData(AgentTransformer transformer) {
@@ -152,13 +159,18 @@ public abstract class AbstractTest {
         );
     }
 
-    private static class DestInvokeMetadataFlushedListener implements AgentEventListener {
+    private static class WaitFlushingListener implements AgentEventListener {
         private final Object lock = new Object();
+        private final Class<? extends AgentEvent> eventClass;
         private volatile boolean finished = false;
+
+        private WaitFlushingListener(Class<? extends AgentEvent> eventClass) {
+            this.eventClass = eventClass;
+        }
 
         @Override
         public void onNotify(AgentEvent event) {
-            if (event.getClass().equals(DestInvokeMetadataFlushedEvent.class)) {
+            if (event.getClass().equals(this.eventClass)) {
                 finished = true;
                 Utils.wrapToRtError(
                         () -> {
@@ -170,7 +182,7 @@ public abstract class AbstractTest {
             }
         }
 
-        void waitForLogFlushing() throws Exception {
+        void await() throws Exception {
             synchronized (lock) {
                 if (!finished)
                     lock.wait();

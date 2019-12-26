@@ -14,10 +14,16 @@ public class ParamValueUtils {
 
     private static final Logger logger = Logger.getLogger(ParamValueUtils.class);
 
-    public static Map<String, Object> newParamValueMap(String className, String methodName, Object[] kvs) {
+    public static Map<String, Object> newParamValueMap(Object... kvs) {
+        return newParamValueMap(null, null, kvs);
+    }
+
+    public static Map<String, Object> newParamValueMap(String className, String invoke, Object[] kvs) {
         Map<String, Object> rsMap = new HashMap<>();
-        rsMap.put(KEY_CLASS, className);
-        rsMap.put(KEY_METHOD, methodName);
+        if (className != null)
+            rsMap.put(KEY_CLASS, className);
+        if (invoke != null)
+            rsMap.put(KEY_METHOD, invoke);
         rsMap.put(KEY_CURR_TIME_MILLIS, System.currentTimeMillis());
         if (kvs != null) {
             if (kvs.length % 2 != 0)

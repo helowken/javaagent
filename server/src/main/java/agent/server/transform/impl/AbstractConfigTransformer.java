@@ -5,6 +5,7 @@ import agent.base.utils.MethodDescriptorUtils;
 import agent.server.transform.ConfigTransformer;
 import agent.server.transform.MethodFinder;
 import agent.server.transform.TransformContext;
+import agent.server.transform.TransformMgr;
 import agent.server.transform.exception.InvalidTransformerConfigException;
 import agent.server.transform.impl.invoke.DestInvoke;
 import agent.server.transform.impl.invoke.MethodInvoke;
@@ -66,6 +67,13 @@ public abstract class AbstractConfigTransformer extends AbstractTransformer impl
 
     protected String getContext() {
         return getTransformerInfo().getContext();
+    }
+
+    protected <T> Class<T> findClass(String className) {
+        return (Class<T>) TransformMgr.getInstance().getClassFinder().findClass(
+                getContext(),
+                className
+        );
     }
 
     @Override

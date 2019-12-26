@@ -17,6 +17,8 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static agent.server.utils.log.LogConfig.STDOUT;
+
 public class DestInvokeIdRegistry implements ServerListener, AgentEventListener {
     public static final String METADATA_FILE = ".metadata";
     private static final Logger logger = Logger.getLogger(DestInvokeIdRegistry.class);
@@ -94,12 +96,16 @@ public class DestInvokeIdRegistry implements ServerListener, AgentEventListener 
         String outputPath = event.getOutputPath();
         lo.sync(
                 lock -> {
-                    if (outputPathToContext.containsKey(outputPath)) {
+                    boolean isStd = STDOUT.equals(outputPath);
+                    if (isStd || outputPathToContext.containsKey(outputPath)) {
+                        String path = outputPath + METADATA_FILE;
                         String content = JSONUtils.writeAsString(
                                 convertMetadata()
                         );
-                        String path = outputPath + METADATA_FILE;
-                        IOUtils.writeString(path, content, false);
+                        if (isStd)
+                            System.out.println(content);
+                        else
+                            IOUtils.writeString(path, content, false);
                         logger.debug("Metadata is flushed for log: {}", outputPath);
                         EventListenerMgr.fireEvent(
                                 new DestInvokeMetadataFlushedEvent(path)
