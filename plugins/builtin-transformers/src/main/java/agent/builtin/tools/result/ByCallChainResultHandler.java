@@ -5,30 +5,69 @@ import agent.server.tree.Node;
 import agent.server.tree.Tree;
 import agent.server.tree.TreeUtils;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static agent.builtin.tools.result.ByCallChainResultHandler.NodeData;
 
 public class ByCallChainResultHandler extends AbstractResultHandler<Tree<NodeData>> {
     @Override
     void printTree(Map<String, Map<String, Integer>> classToInvokeToId, Tree<NodeData> tree, boolean skipAvgEq0, Set<Float> rates) {
-        Map<Integer, String> idToInvoke = newIdToInvoke(classToInvokeToId);
+        Map<Integer, InvokeMetadata> idToInvoke = newMetadata(classToInvokeToId);
         TreeUtils.printTree(
-                tree,
+                convertTree(tree, idToInvoke, rates),
                 new TreeUtils.PrintConfig(false),
-                (node, config) -> idToInvoke.get(node.getData().invokeId)
+                (node, config) -> node.getData()
         );
     }
 
-    private Map<Integer, String> newIdToInvoke(Map<String, Map<String, Integer>> classToInvokeToId) {
-        Map<Integer, String> rsMap = new HashMap<>();
+    private Tree<String> convertTree(Tree<NodeData> tree, final Map<Integer, InvokeMetadata> idToInvoke, final Set<Float> rates) {
+        Tree<String> rsTree = new Tree<>();
+        tree.getChildren().forEach(
+                child -> rsTree.appendChild(
+                        convertNode(null, child, idToInvoke, rates)
+                )
+        );
+        return rsTree;
+    }
+
+    private Node<String> convertNode(NodeData parentData, Node<NodeData> node, final Map<Integer, InvokeMetadata> idToInvoke, final Set<Float> rates) {
+        final NodeData data = node.getData();
+        InvokeMetadata metadata = getMetadata(idToInvoke, data.invokeId);
+        data.item.freeze();
+
+        String invoke = formatInvoke(metadata.invoke);
+        if (parentData == null)
+            invoke = metadata.clazz + "# " + invoke;
+        else {
+            InvokeMetadata parentMetadata = getMetadata(idToInvoke, parentData.invokeId);
+            if (!parentMetadata.clazz.equals(metadata.clazz))
+                invoke = metadata.clazz + "# " + invoke;
+        }
+        Node<String> rsNode = newInvokeNode(invoke, data.item, rates);
+
+        node.getChildren().forEach(
+                child -> rsNode.appendChild(
+                        convertNode(data, child, idToInvoke, rates)
+                )
+        );
+        return rsNode;
+    }
+
+    private InvokeMetadata getMetadata(Map<Integer, InvokeMetadata> idToInvoke, Integer invokeId) {
+        return Optional.ofNullable(
+                idToInvoke.get(invokeId)
+        ).orElseThrow(
+                () -> new RuntimeException("No metadata found for invoke id: " + invokeId)
+        );
+    }
+
+    private Map<Integer, InvokeMetadata> newMetadata(Map<String, Map<String, Integer>> classToInvokeToId) {
+        Map<Integer, InvokeMetadata> rsMap = new HashMap<>();
         classToInvokeToId.forEach(
                 (clazz, invokeToId) -> invokeToId.forEach(
                         (invoke, id) -> rsMap.put(
-                                id, clazz + "." + invoke
+                                id,
+                                new InvokeMetadata(clazz, invoke)
                         )
                 )
         );
@@ -45,12 +84,15 @@ public class ByCallChainResultHandler extends AbstractResultHandler<Tree<NodeDat
                             Tree<NodeData> sumTree = local.get();
                             if (sumTree == null)
                                 local.set(tree);
-                            else {
+                            else
                                 mergeTrees(sumTree, tree);
-                            }
                         }
                 );
-        return local.get();
+        return Optional.ofNullable(
+                local.get()
+        ).orElseThrow(
+                () -> new RuntimeException("No tree found in local.")
+        );
     }
 
     private void mergeTrees(Tree<NodeData> sumTree, Tree<NodeData> tree) {
@@ -127,7 +169,8 @@ public class ByCallChainResultHandler extends AbstractResultHandler<Tree<NodeDat
     }
 
     private Node<NodeData> addChild(Node<NodeData> pn, int invokeId, int costTime) {
-        Node<NodeData> node = pn.appendChild(
+        Node<NodeData> node = pn.addChildAt(
+                0,
                 new Node<>(
                         new NodeData(
                                 invokeId,
@@ -148,4 +191,15 @@ public class ByCallChainResultHandler extends AbstractResultHandler<Tree<NodeDat
             this.item = item;
         }
     }
+
+    private static class InvokeMetadata {
+        final String clazz;
+        final String invoke;
+
+        InvokeMetadata(String clazz, String invoke) {
+            this.clazz = clazz;
+            this.invoke = invoke;
+        }
+    }
+
 }

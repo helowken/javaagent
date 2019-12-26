@@ -2,7 +2,6 @@ package test.transformer;
 
 import agent.base.utils.ReflectionUtils;
 import agent.builtin.tools.CostTimeByCallChain;
-import agent.builtin.tools.CostTimeByMethod;
 import agent.builtin.transformer.CostTimeStatisticsTransformer;
 import agent.server.transform.impl.DestInvokeIdRegistry;
 import org.junit.Test;
@@ -70,34 +69,51 @@ public class CostTimeStatisticsTransformerTest extends AbstractTest {
         private void runApi1() throws InterruptedException {
             System.out.println("Running in api1");
             Thread.sleep(10);
+            commonCalls(1);
         }
 
         private void runApi2() throws InterruptedException {
             System.out.println("Running in api2");
             Thread.sleep(15);
             runApi2_1();
+            commonCalls(2);
         }
 
         private void runApi2_1() throws InterruptedException {
             System.out.println("Running in api2_1");
             Thread.sleep(20);
+            commonCall();
         }
 
         private void runApi3() throws InterruptedException {
             System.out.println("Running in api3");
             Thread.sleep(25);
             runApi3_1();
+            commonCalls(3);
         }
 
         private void runApi3_1() throws InterruptedException {
             System.out.println("Running in api3_1");
             Thread.sleep(30);
             runApi3_1_1();
+            commonCall();
         }
 
         private void runApi3_1_1() throws InterruptedException {
             System.out.println("Running in api3_1_1");
             Thread.sleep(35);
+            commonCall();
+        }
+
+        private void commonCalls(Integer count) throws InterruptedException {
+            for (int i = 0; i < count; ++i) {
+                commonCall();
+            }
+        }
+
+        private void commonCall() throws InterruptedException {
+            System.out.println("Running in commonCall");
+            Thread.sleep(5);
         }
     }
 }

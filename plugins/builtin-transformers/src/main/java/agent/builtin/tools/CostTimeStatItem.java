@@ -188,13 +188,19 @@ public class CostTimeStatItem {
             Float rate = boundaryToRate.right;
             if (sumCount.compareTo(boundary) <= 0) {
                 while (!timeToBigCountList.isEmpty()) {
-                    Map.Entry<Long, BigInteger> entry = timeToBigCountList.get(0);
-                    BigInteger newCount = sumCount.add(entry.getValue());
-                    if (newCount.compareTo(boundary) > 0)
-                        break;
-                    timeToBigCountList.remove(0);
-                    sumCount = newCount;
+//                    Map.Entry<Long, BigInteger> entry = timeToBigCountList.get(0);
+//                    BigInteger newCount = sumCount.add(entry.getValue());
+//                    if (newCount.compareTo(boundary) > 0)
+//                        break;
+//                    timeToBigCountList.remove(0);
+//                    sumCount = newCount;
+//                    time = entry.getKey();
+
+                    Map.Entry<Long, BigInteger> entry = timeToBigCountList.remove(0);
+                    sumCount = sumCount.add(entry.getValue());
                     time = entry.getKey();
+                    if (sumCount.compareTo(boundary) >= 0)
+                        break;
                 }
             }
             rateToCostTime.put(rate, time);

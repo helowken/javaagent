@@ -11,10 +11,11 @@ import java.util.Date;
 import java.util.Optional;
 import java.util.function.Function;
 
+import static agent.base.utils.MethodDescriptorUtils.descToText;
 import static agent.base.utils.MethodDescriptorUtils.getDescriptor;
 import static org.junit.Assert.assertEquals;
 
-public class MethodSignatureUtilsTest extends AbstractServerTest {
+public class MethodDescriptorUtilsTest extends AbstractServerTest {
     private static AgentClassPool cp;
 
     @BeforeClass
@@ -24,15 +25,33 @@ public class MethodSignatureUtilsTest extends AbstractServerTest {
     }
 
     @Test
-    public void test() throws Exception {
-        check("f");
-        check("f2");
-        check("f3");
-        check("f4");
-        check("f5");
+    public void testGetDesc() throws Exception {
+        checkDesc("f");
+        checkDesc("f2");
+        checkDesc("f3");
+        checkDesc("f4");
+        checkDesc("f5");
     }
 
-    private void check(String name) throws Exception {
+    @Test
+    public void testDescToText() throws Exception {
+        checkText("f");
+        checkText("f2");
+        checkText("f3");
+        checkText("f4");
+        checkText("f5");
+    }
+
+    private void checkText(String name) throws Exception {
+        String signature = cp.get(getClass().getName()).getDeclaredMethod(name).getSignature();
+        String text = descToText(name + signature);
+        assertEquals(
+                getMethod(name).toString().replace("test.server.utils.MethodDescriptorUtilsTest.", "").replaceAll(",", ", "),
+                "private " + text
+        );
+    }
+
+    private void checkDesc(String name) throws Exception {
         String signature = cp.get(getClass().getName()).getDeclaredMethod(name).getSignature();
         System.out.println(signature);
         assertEquals(

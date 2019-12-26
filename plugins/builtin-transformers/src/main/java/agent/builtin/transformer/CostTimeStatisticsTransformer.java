@@ -52,12 +52,12 @@ public class CostTimeStatisticsTransformer extends ProxyAnnotationConfigTransfor
     static class CostTimeStatisticsConfig extends ProxyAnnotationConfig<MethodItem, MethodItem> {
         @Override
         protected MethodItem newDataOnBefore(Object[] args, Class[] argTypes, DestInvoke destInvoke, Object[] otherArgs) {
-            int methodId = Utils.getArgValue(otherArgs, 0);
+            int invokeId = Utils.getArgValue(otherArgs, 0);
             MethodItem parentItem = getAroundItem().peek();
-            int parentMethodId = parentItem == null ? -1 : parentItem.methodId;
+            int parentMethodId = parentItem == null ? -1 : parentItem.invokeId;
             return new MethodItem(
                     parentMethodId,
-                    methodId,
+                    invokeId,
                     System.currentTimeMillis()
             );
         }
@@ -90,7 +90,7 @@ public class CostTimeStatisticsTransformer extends ProxyAnnotationConfigTransfor
             completed.forEach(
                     item -> {
                         logItem.putInt(item.parentMethodId);
-                        logItem.putInt(item.methodId);
+                        logItem.putInt(item.invokeId);
                         logItem.putInt((int) (item.endTime - item.startTime));
                         logItem.put((byte) (item.error ? 1 : 0));
                     }
@@ -101,14 +101,14 @@ public class CostTimeStatisticsTransformer extends ProxyAnnotationConfigTransfor
 
     private static class MethodItem {
         private final int parentMethodId;
-        private final int methodId;
+        private final int invokeId;
         private final long startTime;
         private long endTime;
         private boolean error;
 
-        private MethodItem(int parentMethodId, int methodId, long startTime) {
+        private MethodItem(int parentMethodId, int invokeId, long startTime) {
             this.parentMethodId = parentMethodId;
-            this.methodId = methodId;
+            this.invokeId = invokeId;
             this.startTime = startTime;
         }
     }

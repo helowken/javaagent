@@ -2,7 +2,10 @@ package agent.server.tree;
 
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.function.BiFunction;
 
 public class TreeUtils {
@@ -40,11 +43,20 @@ public class TreeUtils {
                 tree,
                 config,
                 (out, node, printConfig) -> {
-                    if (!node.isRoot() || printConfig.rootVisible)
-                        out.println(
-                                createPrefix(node, printConfig) +
-                                        nodeToStringFunc.apply(node, printConfig)
+                    if (!node.isRoot() || printConfig.rootVisible) {
+                        List<String> rows = splitContent(
+                                nodeToStringFunc.apply(node, printConfig)
                         );
+                        out.println(
+                                createPrefix(node, printConfig, false) + rows.remove(0)
+                        );
+                        if (!rows.isEmpty()) {
+                            String multiLinePrefix = createPrefix(node, printConfig, true);
+                            rows.forEach(
+                                    t -> out.println(multiLinePrefix + t)
+                            );
+                        }
+                    }
                 }
         );
     }
@@ -53,7 +65,18 @@ public class TreeUtils {
         printTree(System.out, tree, config, nodeToStringFunc);
     }
 
-    private static <T> String createPrefix(Node<T> node, PrintConfig config) {
+    private static List<String> splitContent(String content) {
+        List<String> ts = new ArrayList<>(
+                Arrays.asList(
+                        content.split("\n")
+                )
+        );
+        if (content.endsWith("\n"))
+            ts.add("");
+        return ts;
+    }
+
+    private static <T> String createPrefix(Node<T> node, PrintConfig config, boolean newLine) {
         Node<T> parent = node.getParent();
         if (parent == null)
             return "";
@@ -72,10 +95,17 @@ public class TreeUtils {
             tmpNode = tmpNode.getParent();
         }
         if (!parent.isRoot() || config.rootVisible) {
-            if (parent.isLastChild(node))
-                sb.append(end);
-            else
-                sb.append(branch);
+            if (parent.isLastChild(node)) {
+                if (newLine)
+                    sb.append(indent);
+                else
+                    sb.append(end);
+            } else {
+                if (newLine)
+                    sb.append(branch2);
+                else
+                    sb.append(branch);
+            }
         }
         return sb.toString();
     }

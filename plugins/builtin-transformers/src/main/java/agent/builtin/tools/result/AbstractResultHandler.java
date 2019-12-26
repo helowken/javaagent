@@ -1,6 +1,7 @@
 package agent.builtin.tools.result;
 
 import agent.base.utils.IOUtils;
+import agent.base.utils.MethodDescriptorUtils;
 import agent.base.utils.Utils;
 import agent.builtin.tools.CostTimeStatItem;
 import agent.common.utils.JSONUtils;
@@ -101,35 +102,25 @@ abstract class AbstractResultHandler<T> implements ResultHandler {
         }
     }
 
-    Node<String> newMethodNode(String destInvoke, CostTimeStatItem item, Set<Float> rates) {
-        Node<String> invokeNode = new Node<>(
-                formatInvoke(destInvoke)
-        );
-        invokeNode.appendChild(
-                new Node<>(
-                        item.getAvgTimeString()
-                )
-        );
-        invokeNode.appendChild(
-                new Node<>(
-                        item.getMaxTimeString()
-                )
-        );
-        invokeNode.appendChild(
-                new Node<>(
-                        item.getCountString()
-                )
-        );
-        invokeNode.appendChild(
-                new Node<>(
-                        item.getTimeDistributionString(rates)
-                )
-        );
-        return invokeNode;
+    String formatInvoke(String method) {
+        return MethodDescriptorUtils.descToText(method, true);
     }
 
-    private String formatInvoke(String method) {
-        return method;
+    Node<String> newInvokeNode(String invoke, CostTimeStatItem item, Set<Float> rates) {
+        Node<String> rsNode = new Node<>(invoke);
+        rsNode.appendChild(
+                new Node<>(
+                        newDetails(item, rates)
+                )
+        );
+        return rsNode;
+    }
+
+    private String newDetails(CostTimeStatItem item, Set<Float> rates) {
+        return item.getAvgTimeString() + "\n" +
+                item.getMaxTimeString() + "\n" +
+                item.getCountString() + "\n" +
+                item.getTimeDistributionString(rates) + "\n";
     }
 
     abstract T calculate(Collection<String> dataFiles);

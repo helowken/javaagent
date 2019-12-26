@@ -20,7 +20,11 @@ public class ByMethodResultHandler extends AbstractResultHandler<Map<Integer, Co
                 );
                 invokeToItem.forEach(
                         (destInvoke, item) -> classNode.appendChild(
-                                newMethodNode(destInvoke, item, rates)
+                                newInvokeNode(
+                                        formatInvoke(destInvoke),
+                                        item,
+                                        rates
+                                )
                         )
                 );
             }
