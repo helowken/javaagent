@@ -3,7 +3,6 @@ package agent.server.tree;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.function.BiFunction;
@@ -66,11 +65,21 @@ public class TreeUtils {
     }
 
     private static List<String> splitContent(String content) {
-        List<String> ts = new ArrayList<>(
-                Arrays.asList(
-                        content.split("\n")
-                )
-        );
+        int pos = 0;
+        List<String> ts = new ArrayList<>();
+        int i = 0;
+        for (int len = content.length(); i < len; ++i) {
+            if (content.charAt(i) == '\n') {
+                ts.add(
+                        content.substring(pos, i)
+                );
+                pos = i + 1;
+            }
+        }
+        if (pos < i)
+            ts.add(
+                    content.substring(pos)
+            );
         if (content.endsWith("\n"))
             ts.add("");
         return ts;
@@ -106,6 +115,12 @@ public class TreeUtils {
                 else
                     sb.append(branch);
             }
+        }
+        if (newLine) {
+            if (node.hasChild())
+                sb.append(branch2);
+            else
+                sb.append(indent);
         }
         return sb.toString();
     }

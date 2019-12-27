@@ -28,6 +28,9 @@ import agent.server.transform.tools.asm.ProxyResult;
 import agent.server.transform.tools.asm.ProxyTransformMgr;
 import org.junit.BeforeClass;
 
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -157,6 +160,25 @@ public abstract class AbstractTest {
                 context,
                 TransformMgr.getInstance().convert(context, classConfigs)
         );
+    }
+
+    protected void runWithFile(RunFileFunc runFileFunc) throws Exception {
+        Path path = Files.createTempFile("test-", ".log");
+        File logFile = path.toFile();
+        String outputPath = logFile.getAbsolutePath();
+        try {
+            Map<String, Object> logConf = new HashMap<>();
+            logConf.put("outputPath", outputPath);
+            Map<String, Object> config = Collections.singletonMap("log", logConf);
+            runFileFunc.run(outputPath, config);
+        } finally {
+            Files.delete(path);
+            new File(outputPath + DestInvokeIdRegistry.METADATA_FILE).delete();
+        }
+    }
+
+    interface RunFileFunc {
+        void run(String outputPath, Map<String, Object> config) throws Exception;
     }
 
     private static class WaitFlushingListener implements AgentEventListener {

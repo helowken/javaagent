@@ -1,34 +1,29 @@
 package agent.builtin.tools;
 
-import agent.builtin.tools.result.ResultHandler;
+import agent.builtin.tools.result.CostTimeResultHandler;
 
 import java.util.Arrays;
 import java.util.Set;
 import java.util.TreeSet;
 
-public class CostTimeStatAnalyzer {
+public class CostTimeUtils {
     private static final String RATE_SEP = ",";
     private static final Set<Float> DEFAULT_RATES = new TreeSet<>(
             Arrays.asList(0.9F, 0.95F, 0.99F)
     );
-    private final ResultHandler resultBuilder;
 
-    CostTimeStatAnalyzer(ResultHandler resultBuilder) {
-        this.resultBuilder = resultBuilder;
-    }
-
-    void run(String[] args) throws Exception {
+    static void run(String[] args, CostTimeResultHandler resultBuilder) throws Exception {
         if (args.length < 1) {
-            System.err.println("Usage: outputPath [skipAvgEq0] [rates]");
+            System.err.println("Usage: inputPath [skipAvgEq0] [rates]");
             System.exit(-1);
         }
-        String outputPath = args[0];
+        String inputPath = args[0];
         boolean skipAvgEq0 = args.length > 1 && args[1].equals("true");
         Set<Float> rates = parseRates(args.length > 2 ? args[2] : null);
-        resultBuilder.printResult(outputPath, skipAvgEq0, rates);
+        resultBuilder.printResult(inputPath, skipAvgEq0, rates);
     }
 
-    private Set<Float> parseRates(String s) {
+    private static Set<Float> parseRates(String s) {
         if (s == null)
             return DEFAULT_RATES;
         s = s.trim();
@@ -47,6 +42,4 @@ public class CostTimeStatAnalyzer {
         }
         return rates;
     }
-
-
 }

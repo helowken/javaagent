@@ -3,12 +3,8 @@ package test.transformer;
 import agent.base.utils.ReflectionUtils;
 import agent.builtin.tools.CostTimeByCallChain;
 import agent.builtin.transformer.CostTimeStatisticsTransformer;
-import agent.server.transform.impl.DestInvokeIdRegistry;
 import org.junit.Test;
 
-import java.io.File;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -17,35 +13,29 @@ public class CostTimeStatisticsTransformerTest extends AbstractTest {
 
     @Test
     public void test() throws Exception {
-        Path path = Files.createTempFile("costTime-", ".log");
-        File logFile = path.toFile();
-        String outputPath = logFile.getAbsolutePath();
-        try {
-            CostTimeStatisticsTransformer transformer = new CostTimeStatisticsTransformer();
-            Map<String, Object> logConf = new HashMap<>();
-            logConf.put("outputPath", outputPath);
+        runWithFile(
+                (outputPath, config) -> {
+                    CostTimeStatisticsTransformer transformer = new CostTimeStatisticsTransformer();
 
-            String context = "test";
-            Map<Class<?>, String> classToMethodFilter = new HashMap<>();
-            classToMethodFilter.put(A.class, ".*");
-            doTransform(transformer, context, Collections.singletonMap("log", logConf), classToMethodFilter);
+                    String context = "test";
+                    Map<Class<?>, String> classToMethodFilter = new HashMap<>();
+                    classToMethodFilter.put(A.class, ".*");
+                    doTransform(transformer, context, config, classToMethodFilter);
 
-            Map<Class<?>, byte[]> classToData = getClassToData(transformer);
+                    Map<Class<?>, byte[]> classToData = getClassToData(transformer);
 
-            Object a = newInstance(classToData, A.class);
-            ReflectionUtils.invoke("service", a);
+                    Object a = newInstance(classToData, A.class);
+                    ReflectionUtils.invoke("service", a);
 
-            flushAndWaitMetadata();
+                    flushAndWaitMetadata();
 
-            CostTimeByCallChain.main(
-                    new String[]{
-                            outputPath
-                    }
-            );
-        } finally {
-            Files.delete(path);
-            new File(outputPath + DestInvokeIdRegistry.METADATA_FILE).delete();
-        }
+                    CostTimeByCallChain.main(
+                            new String[]{
+                                    outputPath
+                            }
+                    );
+                }
+        );
     }
 
     static class A {

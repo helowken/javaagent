@@ -8,8 +8,8 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 public class MethodDescriptorUtils {
-    private static final String JAVA_LANG_PACKAGE = "java.lang.";
-    private static final int JAVA_LANG_PACKAGE_LENGTH = JAVA_LANG_PACKAGE.length();
+    public static final String JAVA_LANG_PACKAGE = "java.lang.";
+    public static final int JAVA_LANG_PACKAGE_LENGTH = JAVA_LANG_PACKAGE.length();
     private static final Map<Class<?>, String> classToTypeDesc = new HashMap<>();
     private static final Map<String, String> descToPrimitiveName = new HashMap<>();
 

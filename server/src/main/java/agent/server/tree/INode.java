@@ -42,6 +42,10 @@ public interface INode<T, N extends INode> {
 
     int countChildren();
 
+    default boolean hasChild() {
+        return countChildren() > 0;
+    }
+
     int getLevel();
 
     T getData();

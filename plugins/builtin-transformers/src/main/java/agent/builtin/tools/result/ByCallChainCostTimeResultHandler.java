@@ -5,14 +5,17 @@ import agent.server.tree.Node;
 import agent.server.tree.Tree;
 import agent.server.tree.TreeUtils;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 
-import static agent.builtin.tools.result.ByCallChainResultHandler.NodeData;
+import static agent.builtin.tools.result.ByCallChainCostTimeResultHandler.NodeData;
 
-public class ByCallChainResultHandler extends AbstractResultHandler<Tree<NodeData>> {
+public class ByCallChainCostTimeResultHandler extends AbstractCostTimeResultHandler<Tree<NodeData>> {
     @Override
     void printTree(Map<String, Map<String, Integer>> classToInvokeToId, Tree<NodeData> tree, boolean skipAvgEq0, Set<Float> rates) {
-        Map<Integer, InvokeMetadata> idToInvoke = newMetadata(classToInvokeToId);
+        Map<Integer, InvokeMetadata> idToInvoke = convertMetadata(classToInvokeToId);
         TreeUtils.printTree(
                 convertTree(tree, idToInvoke, rates),
                 new TreeUtils.PrintConfig(false),
@@ -30,48 +33,23 @@ public class ByCallChainResultHandler extends AbstractResultHandler<Tree<NodeDat
         return rsTree;
     }
 
-    private Node<String> convertNode(NodeData parentData, Node<NodeData> node, final Map<Integer, InvokeMetadata> idToInvoke, final Set<Float> rates) {
+    private Node<String> convertNode(Integer parentInvokeId, Node<NodeData> node, final Map<Integer, InvokeMetadata> idToInvoke, final Set<Float> rates) {
         final NodeData data = node.getData();
         InvokeMetadata metadata = getMetadata(idToInvoke, data.invokeId);
         data.item.freeze();
 
-        String invoke = formatInvoke(metadata.invoke);
-        if (parentData == null)
-            invoke = metadata.clazz + "# " + invoke;
-        else {
-            InvokeMetadata parentMetadata = getMetadata(idToInvoke, parentData.invokeId);
-            if (!parentMetadata.clazz.equals(metadata.clazz))
-                invoke = metadata.clazz + "# " + invoke;
-        }
-        Node<String> rsNode = newInvokeNode(invoke, data.item, rates);
+        Node<String> rsNode = newInvokeNode(
+                convertInvoke(parentInvokeId, idToInvoke, metadata),
+                data.item,
+                rates
+        );
 
         node.getChildren().forEach(
                 child -> rsNode.appendChild(
-                        convertNode(data, child, idToInvoke, rates)
+                        convertNode(data.invokeId, child, idToInvoke, rates)
                 )
         );
         return rsNode;
-    }
-
-    private InvokeMetadata getMetadata(Map<Integer, InvokeMetadata> idToInvoke, Integer invokeId) {
-        return Optional.ofNullable(
-                idToInvoke.get(invokeId)
-        ).orElseThrow(
-                () -> new RuntimeException("No metadata found for invoke id: " + invokeId)
-        );
-    }
-
-    private Map<Integer, InvokeMetadata> newMetadata(Map<String, Map<String, Integer>> classToInvokeToId) {
-        Map<Integer, InvokeMetadata> rsMap = new HashMap<>();
-        classToInvokeToId.forEach(
-                (clazz, invokeToId) -> invokeToId.forEach(
-                        (invoke, id) -> rsMap.put(
-                                id,
-                                new InvokeMetadata(clazz, invoke)
-                        )
-                )
-        );
-        return rsMap;
     }
 
     @Override
@@ -120,7 +98,7 @@ public class ByCallChainResultHandler extends AbstractResultHandler<Tree<NodeDat
     private Tree<NodeData> doCalculate(String dataFilePath) {
         Tree<NodeData> tree = new Tree<>();
         ThreadLocal<Node<NodeData>> local = new ThreadLocal<>();
-        calculateFile(
+        doCalculateFile(
                 dataFilePath,
                 (parentInvokeId, invokeId, costTime, error) -> {
                     Node<NodeData> node;
@@ -189,16 +167,6 @@ public class ByCallChainResultHandler extends AbstractResultHandler<Tree<NodeDat
         private NodeData(int invokeId, CostTimeStatItem item) {
             this.invokeId = invokeId;
             this.item = item;
-        }
-    }
-
-    private static class InvokeMetadata {
-        final String clazz;
-        final String invoke;
-
-        InvokeMetadata(String clazz, String invoke) {
-            this.clazz = clazz;
-            this.invoke = invoke;
         }
     }
 

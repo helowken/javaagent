@@ -3,7 +3,7 @@ package agent.builtin.transformer.utils;
 import java.util.HashMap;
 import java.util.Map;
 
-public class DefaultMethodPrinter implements ValueConverter {
+public class DefaultValueConverter implements ValueConverter {
     private static final String KEY_INDEX = "index";
     private static final String KEY_CLASS = "class";
     private static final String KEY_VALUE = "value";

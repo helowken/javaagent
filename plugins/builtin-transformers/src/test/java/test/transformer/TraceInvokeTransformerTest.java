@@ -1,10 +1,10 @@
 package test.transformer;
 
 import agent.base.utils.ReflectionUtils;
+import agent.builtin.tools.InvokeResultTracer;
 import agent.builtin.transformer.TraceInvokeTransformer;
 import org.junit.Test;
 
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -12,17 +12,27 @@ import java.util.Map;
 public class TraceInvokeTransformerTest extends AbstractTest {
     @Test
     public void test() throws Exception {
-        TraceInvokeTransformer transformer = new TraceInvokeTransformer();
-        String context = "test";
-        Map<Class<?>, String> classToMethodFilter = new HashMap<>();
-        classToMethodFilter.put(A.class, ".*");
-        doTransform(transformer, context, Collections.emptyMap(), classToMethodFilter);
+        runWithFile(
+                (outputPath, config) -> {
+                    TraceInvokeTransformer transformer = new TraceInvokeTransformer();
+                    String context = "test";
+                    Map<Class<?>, String> classToMethodFilter = new HashMap<>();
+                    classToMethodFilter.put(A.class, ".*");
+                    doTransform(transformer, context, config, classToMethodFilter);
 
-        Map<Class<?>, byte[]> classToData = getClassToData(transformer);
-        Object a = newInstance(classToData, A.class);
-        ReflectionUtils.invoke("service", a);
+                    Map<Class<?>, byte[]> classToData = getClassToData(transformer);
+                    Object a = newInstance(classToData, A.class);
+                    ReflectionUtils.invoke("service", a);
 
-        flushAndWaitMetadata();
+                    flushAndWaitMetadata();
+
+                    InvokeResultTracer.main(
+                            new String[]{
+                                    outputPath
+                            }
+                    );
+                }
+        );
     }
 
     static class A {

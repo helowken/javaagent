@@ -8,7 +8,7 @@ import agent.server.tree.TreeUtils;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class ByMethodResultHandler extends AbstractResultHandler<Map<Integer, CostTimeStatItem>> {
+public class ByMethodCostTimeResultHandler extends AbstractCostTimeResultHandler<Map<Integer, CostTimeStatItem>> {
     @Override
     void printTree(Map<String, Map<String, Integer>> classToInvokeToId, Map<Integer, CostTimeStatItem> result, boolean skipAvgEq0, Set<Float> rates) {
         Tree<String> tree = new Tree<>();
@@ -55,7 +55,7 @@ public class ByMethodResultHandler extends AbstractResultHandler<Map<Integer, Co
 
     private Map<Integer, CostTimeStatItem> doCalculate(String dataFilePath) {
         Map<Integer, CostTimeStatItem> idToItem = new HashMap<>();
-        calculateFile(
+        doCalculateFile(
                 dataFilePath,
                 (parentInvokeId, invokeId, costTime, error) -> idToItem.computeIfAbsent(
                         invokeId,

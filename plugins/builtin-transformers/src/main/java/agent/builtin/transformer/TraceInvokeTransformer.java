@@ -2,15 +2,21 @@ package agent.builtin.transformer;
 
 import agent.base.utils.StringParser;
 import agent.base.utils.Utils;
-import agent.builtin.transformer.utils.DefaultMethodPrinter;
+import agent.builtin.transformer.utils.DefaultValueConverter;
+import agent.builtin.transformer.utils.TraceItem;
 import agent.builtin.transformer.utils.ValueConverter;
+import agent.common.utils.JSONUtils;
 import agent.server.transform.impl.CallChainTransformer;
 import agent.server.transform.impl.invoke.DestInvoke;
 import agent.server.utils.ParamValueUtils;
 import agent.server.utils.log.LogMgr;
 
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import static agent.server.transform.impl.ProxyAnnotationConfig.ARGS_ON_AFTER;
 
@@ -38,7 +44,7 @@ public class TraceInvokeTransformer extends CallChainTransformer {
     protected void doSetConfig(Map<String, Object> config) throws Exception {
         String className = Utils.getConfigValue(config, KEY_CONVERTER_CLASS);
         Class<? extends ValueConverter> clazz = Utils.isBlank(className) ?
-                DefaultMethodPrinter.class :
+                DefaultValueConverter.class :
                 findClass(className);
         valueConverter = clazz.newInstance();
         super.doSetConfig(config);
@@ -61,11 +67,6 @@ public class TraceInvokeTransformer extends CallChainTransformer {
 
 
     private static class Config extends CallChainTimeConfig<SelfInvokeInfo> {
-        private static final String KEY_ID = "id";
-        private static final String KEY_PARENT = "parent";
-        private static final String KEY_ARGS = "args";
-        private static final String KEY_RETURN_VALUE = "returnValue";
-        private static final String KEY_ERROR = "error";
 
         @Override
         protected SelfInvokeInfo newData(Object[] args, Class<?>[] argTypes, DestInvoke destInvoke, Object[] otherArgs) {
@@ -83,47 +84,51 @@ public class TraceInvokeTransformer extends CallChainTransformer {
         protected void processOnCompleted(List<SelfInvokeInfo> completed, DestInvoke destInvoke, Object[] otherArgs) {
             final String logKey = Utils.getArgValue(otherArgs, 0);
             ValueConverter valueConverter = Utils.getArgValue(otherArgs, 1);
-            completed.forEach(
-                    item -> LogMgr.logText(
-                            logKey,
-                            ParamValueUtils.newParamValueMap(
-                                    KEY_CONTENT,
-                                    convert(item, valueConverter)
+            String content = JSONUtils.writeAsString(
+                    completed.stream()
+                            .map(
+                                    item -> convert(item, valueConverter)
                             )
-                    )
+                            .collect(
+                                    Collectors.toList()
+                            )
+            );
+            LogMgr.logText(
+                    logKey,
+                    ParamValueUtils.newParamValueMap(KEY_CONTENT, content)
             );
         }
 
-        private Map<String, Object> convert(SelfInvokeInfo item, ValueConverter valueConverter) {
-            Map<String, Object> rsMap = new HashMap<>();
+        private TraceItem convert(SelfInvokeInfo item, ValueConverter valueConverter) {
+            TraceItem traceItem = new TraceItem();
+            traceItem.setId(item.invokeId);
+            traceItem.setParentId(item.parentInvokeId);
+            traceItem.setStartTime(item.startTime);
+            traceItem.setEndTime(item.endTime);
+
             List<Map<String, Object>> argMaps = new ArrayList<>();
-            Object[] argValues = item.argValues;
-            if (argValues == null)
-                argValues = new Object[0];
-
-            for (int i = 0, len = argValues.length; i < len; ++i) {
-                argMaps.add(
-                        valueConverter.convertArg(i, item.argTypes[i], item.argValues[i])
-                );
+            if (item.argValues != null) {
+                for (int i = 0, len = item.argValues.length; i < len; ++i) {
+                    argMaps.add(
+                            valueConverter.convertArg(i, item.argTypes[i], item.argValues[i])
+                    );
+                }
             }
+            traceItem.setArgs(argMaps);
 
-            rsMap.put(KEY_ID, item.invokeId);
-            rsMap.put(KEY_PARENT, item.parentInvokeId);
-            rsMap.put(KEY_ARGS, argMaps);
             if (item.error != null)
-                rsMap.put(
-                        KEY_ERROR,
+                traceItem.setError(
                         valueConverter.convertError(item.error)
                 );
             else
-                rsMap.put(
-                        KEY_RETURN_VALUE,
+                traceItem.setReturnValue(
                         valueConverter.convertReturnValue(
                                 item.returnType,
                                 item.returnValue
                         )
                 );
-            return rsMap;
+
+            return traceItem;
         }
     }
 

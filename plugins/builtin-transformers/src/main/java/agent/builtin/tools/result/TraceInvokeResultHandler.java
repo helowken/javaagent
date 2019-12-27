@@ -1,0 +1,201 @@
+package agent.builtin.tools.result;
+
+import agent.base.utils.IndentUtils;
+import agent.base.utils.TypeObject;
+import agent.builtin.transformer.utils.TraceItem;
+import agent.common.utils.JSONUtils;
+import agent.server.tree.Node;
+import agent.server.tree.Tree;
+import agent.server.tree.TreeUtils;
+
+import java.util.*;
+import java.util.concurrent.ConcurrentLinkedQueue;
+
+import static agent.base.utils.MethodDescriptorUtils.JAVA_LANG_PACKAGE;
+import static agent.base.utils.MethodDescriptorUtils.JAVA_LANG_PACKAGE_LENGTH;
+
+
+public class TraceInvokeResultHandler extends AbstractResultHandler<Collection<Tree<TraceItem>>> implements TraceResultHandler {
+    private static final String indent = IndentUtils.getIndent(1);
+    private static final String KEY_CLASS = "class";
+    private static final String KEY_INDEX = "index";
+    private static final String KEY_VALUE = "value";
+
+    @Override
+    public void printResult(String inputPath) throws Exception {
+        Map<Integer, InvokeMetadata> idToInvoke = convertMetadata(
+                readMetadata(inputPath)
+        );
+        calculateStats(inputPath).forEach(
+                tree -> {
+                    TreeUtils.printTree(
+                            tree,
+                            new TreeUtils.PrintConfig(false),
+                            (node, config) -> convert(
+                                    idToInvoke,
+                                    node.getData()
+                            )
+                    );
+                    System.out.println("\n");
+                }
+        );
+    }
+
+    private String convert(Map<Integer, InvokeMetadata> idToInvoke, TraceItem item) {
+        Integer pid = item.getParentId();
+        InvokeMetadata metadata = getMetadata(
+                idToInvoke,
+                item.getId()
+        );
+        StringBuilder sb = new StringBuilder();
+        sb.append(
+                convertInvoke(
+                        pid == -1 ? null : pid,
+                        idToInvoke,
+                        metadata
+                )
+        ).append("\n");
+        sb.append("Cost Time: ").append(item.costTime()).append("ms").append("\n");
+        if (item.hasArgs()) {
+            sb.append("Args: \n");
+            item.getArgs().forEach(
+                    arg -> appendArg(
+                            sb.append(indent),
+                            new TreeMap<>(arg)
+                    )
+            );
+        }
+        if (item.hasReturnValue())
+            append(
+                    sb.append("Return: \n").append(indent),
+                    new TreeMap<>(
+                            item.getReturnValue()
+                    )
+            );
+        if (item.hasError())
+            append(
+                    sb.append("Error: \n").append(indent),
+                    new TreeMap<>(
+                            item.getError()
+                    )
+            );
+        return sb.toString();
+    }
+
+    private StringBuilder appendArg(StringBuilder sb, Map<String, Object> map) {
+        if (map.containsKey(KEY_INDEX)) {
+            sb.append('[').append(
+                    map.remove(KEY_INDEX)
+            ).append("] ");
+        }
+        return append(sb, map);
+    }
+
+    private String formatClassName(String className) {
+        return className.startsWith(JAVA_LANG_PACKAGE) ?
+                className.substring(JAVA_LANG_PACKAGE_LENGTH) :
+                className;
+    }
+
+    private void appendClassName(StringBuilder sb, Map<String, Object> rsMap) {
+        if (rsMap.containsKey(KEY_CLASS)) {
+            sb.append('<').append(
+                    formatClassName(
+                            String.valueOf(
+                                    rsMap.remove(KEY_CLASS)
+                            )
+                    )
+            ).append(">:  ");
+        }
+    }
+
+    private void appendValue(StringBuilder sb, Map<String, Object> rsMap) {
+        if (rsMap.containsKey(KEY_VALUE)) {
+            sb.append(
+                    rsMap.remove(KEY_VALUE)
+            );
+        }
+    }
+
+    private StringBuilder append(StringBuilder sb, Map<String, Object> rsMap) {
+        appendClassName(sb, rsMap);
+        appendValue(sb, rsMap);
+        int i = 0;
+        for (Map.Entry<String, Object> entry : rsMap.entrySet()) {
+            if (i > 0)
+                sb.append(", ");
+            sb.append(
+                    entry.getKey()
+            ).append("=").append(
+                    entry.getValue()
+            );
+            ++i;
+        }
+        sb.append("\n");
+        return sb;
+    }
+
+    @Override
+    Collection<Tree<TraceItem>> calculate(Collection<String> dataFiles) {
+        Collection<Tree<TraceItem>> rsList = new ConcurrentLinkedQueue<>();
+        dataFiles.parallelStream()
+                .map(this::doCalculate)
+                .forEach(rsList::addAll);
+        return rsList;
+    }
+
+    private List<Tree<TraceItem>> doCalculate(String dataFilePath) {
+        List<Tree<TraceItem>> trees = new ArrayList<>();
+        calculateTextFile(
+                dataFilePath,
+                reader -> {
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        trees.add(
+                                processRow(line)
+                        );
+                    }
+                }
+        );
+        return trees;
+    }
+
+    private Tree<TraceItem> processRow(String row) {
+        Map<Integer, Node<TraceItem>> idToNode = new HashMap<>();
+        List<TraceItem> traceItemList = JSONUtils.read(
+                row,
+                new TypeObject<List<TraceItem>>() {
+                }
+        );
+        Tree<TraceItem> tree = new Tree<>();
+        idToNode.put(-1, tree);
+        traceItemList.forEach(
+                item -> {
+                    int id = item.getId();
+                    if (idToNode.containsKey(id))
+                        throw new RuntimeException("Duplicated node id: " + id);
+                    idToNode.put(
+                            id,
+                            new Node<>(item)
+                    );
+                }
+        );
+        traceItemList.forEach(
+                item -> {
+                    Node<TraceItem> pn = idToNode.get(
+                            item.getParentId()
+                    );
+                    if (pn == null)
+                        throw new RuntimeException("No parent node found by: " + item.getParentId());
+                    Node<TraceItem> node = idToNode.get(
+                            item.getId()
+                    );
+                    if (node == null)
+                        throw new RuntimeException("No node found by : " + item.getId());
+                    pn.appendChild(node);
+                }
+        );
+        return tree;
+    }
+
+}
