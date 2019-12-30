@@ -24,6 +24,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static agent.hook.utils.App.getClassFinder;
+
 public class DynamicClassTransformer extends AbstractConfigTransformer {
     public static final String REG_KEY = "$sys_dynamic";
     public static final String KEY_CONFIG = "config";
@@ -469,10 +471,6 @@ public class DynamicClassTransformer extends AbstractConfigTransformer {
     private boolean isMethodMatches(CtMethod ctMethod, String methodName, String signature) {
         return ctMethod.getName().equals(methodName) &&
                 ctMethod.getSignature().equals(signature);
-    }
-
-    private ClassFinder getClassFinder() {
-        return TransformMgr.getInstance().getClassFinder();
     }
 
 }

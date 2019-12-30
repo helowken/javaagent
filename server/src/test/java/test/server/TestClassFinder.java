@@ -1,4 +1,4 @@
-package test.transformer;
+package test.server;
 
 import agent.base.utils.Utils;
 import agent.hook.plugin.ClassFinder;
@@ -19,4 +19,5 @@ public class TestClassFinder implements ClassFinder {
                 () -> findClassLoader(contextPath).loadClass(className)
         );
     }
+
 }

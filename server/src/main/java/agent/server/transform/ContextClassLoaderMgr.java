@@ -12,6 +12,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import static agent.hook.utils.App.getClassFinder;
+
 public class ContextClassLoaderMgr {
     private static final Logger logger = Logger.getLogger(ContextClassLoaderMgr.class);
     private static final ContextClassLoaderMgr instance = new ContextClassLoaderMgr();
@@ -26,7 +28,7 @@ public class ContextClassLoaderMgr {
     }
 
     private DynamicClassLoader getDynamicClassLoader(String context) {
-        ClassFinder classFinder = TransformMgr.getInstance().getClassFinder();
+        ClassFinder classFinder = getClassFinder();
         return loaderLock.syncValue(lock ->
                 contextToDynamicClassLoader.computeIfAbsent(context,
                         key -> {

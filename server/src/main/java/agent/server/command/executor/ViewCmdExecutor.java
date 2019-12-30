@@ -1,21 +1,25 @@
 package agent.server.command.executor;
 
+import agent.base.utils.MethodDescriptorUtils;
 import agent.common.message.command.Command;
 import agent.common.message.command.impl.ViewCommand;
 import agent.common.message.result.DefaultExecResult;
 import agent.common.message.result.ExecResult;
 import agent.server.transform.ContextClassLoaderMgr;
-import agent.server.transform.ResetClassMgr;
+import agent.server.transform.impl.DestInvokeIdRegistry;
+import agent.server.transform.impl.invoke.DestInvoke;
 
-import java.nio.ByteBuffer;
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static agent.common.message.MessageType.CMD_VIEW;
-import static agent.common.message.command.impl.ViewCommand.CATALOG_CLASS;
-import static agent.common.message.command.impl.ViewCommand.CATALOG_CLASSPATH;
+import static agent.common.message.command.impl.ViewCommand.*;
 
+@SuppressWarnings("unchecked")
 class ViewCmdExecutor extends AbstractCmdExecutor {
     @Override
     ExecResult doExec(Command cmd) throws Exception {
@@ -24,6 +28,9 @@ class ViewCmdExecutor extends AbstractCmdExecutor {
         switch (catalog) {
             case CATALOG_CLASS:
                 value = getContextToClassSet();
+                break;
+            case CATALOG_INVOKE:
+                value = getContextToClassToInvokes();
                 break;
             case CATALOG_CLASSPATH:
                 value = getContextToClasspathSet();
@@ -36,36 +43,69 @@ class ViewCmdExecutor extends AbstractCmdExecutor {
         return DefaultExecResult.toSuccess(CMD_VIEW, null, value);
     }
 
-    private Map<String, Set<String>> getContextToClassSet() {
-        return formatInfo(() -> ResetClassMgr.getInstance().getContextToTransformedClassSet(), Class::getName);
+    private Map getContextToClassToInvokes() {
+        return formatResult(
+                DestInvokeIdRegistry.getInstance().getDestInvokesOfClass(null, null),
+                value -> {
+                    if (value instanceof Class)
+                        return ((Class<?>) value).getName();
+                    else if (value instanceof DestInvoke) {
+                        DestInvoke invoke = (DestInvoke) value;
+                        return MethodDescriptorUtils.descToText(
+                                invoke.getName() + invoke.getDescriptor(),
+                                true
+                        );
+                    }
+                    return Objects.toString(value);
+                }
+        );
     }
 
-    private Map<String, Set<String>> getContextToClasspathSet() {
-        return formatInfo(() -> ContextClassLoaderMgr.getInstance().getContextToClasspathSet(), null);
+    private Map getContextToClassSet() {
+        return formatResult(
+                DestInvokeIdRegistry.getInstance().getClassesOfContext(null),
+                value -> {
+                    if (value instanceof Class)
+                        return ((Class<?>) value).getName();
+                    return String.valueOf(value);
+                }
+        );
     }
 
-    private <V> Map<String, Set<String>> formatInfo(ContextInfoSupplier<V> supplier, Function<V, String> elementToStringFunc) {
-        Map<String, Set<String>> rsMap = new HashMap<>();
-        supplier.get().forEach((context, elements) ->
-                rsMap.put(context,
-                        elements.stream()
-                                .map(elementToStringFunc == null ? Object::toString : elementToStringFunc)
-                                .collect(Collectors.toSet())
-                )
+    private Map getContextToClasspathSet() {
+        return formatResult(
+                ContextClassLoaderMgr.getInstance().getContextToClasspathSet(),
+                Objects::toString
+        );
+    }
+
+    private Map formatResult(Map map, Function<Object, Object> elementToStringFunc) {
+        Map rsMap = new HashMap<>();
+        map.forEach(
+                (key, value) -> {
+                    Object result;
+                    if (value instanceof Map)
+                        result = formatResult(
+                                (Map) value,
+                                elementToStringFunc
+                        );
+                    else if (value instanceof Collection) {
+                        result = ((Collection) value).stream()
+                                .map(elementToStringFunc)
+                                .collect(
+                                        Collectors.toList()
+                                );
+                    } else
+                        result = elementToStringFunc.apply(value);
+                    rsMap.put(
+                            String.valueOf(
+                                    elementToStringFunc.apply(key)
+                            ),
+                            result
+                    );
+                }
         );
         return rsMap;
     }
 
-    private interface ContextInfoSupplier<V> {
-        Map<String, ? extends Collection<V>> get();
-    }
-
-    public static void main(String[] args) {
-        DefaultExecResult result = DefaultExecResult.toSuccess(CMD_VIEW, null, Collections.singletonMap("xxx", Collections.emptyList()));
-        ByteBuffer bb = ByteBuffer.allocate(1024);
-        result.serialize(bb);
-        DefaultExecResult result2 = new DefaultExecResult();
-        result2.deserialize(bb);
-        System.out.println((Map) result2.getContent());
-    }
 }

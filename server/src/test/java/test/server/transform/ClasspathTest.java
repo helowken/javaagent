@@ -3,7 +3,7 @@ package test.server.transform;
 import agent.server.transform.ContextClassLoaderMgr;
 import org.junit.Before;
 import org.junit.Test;
-import test.server.AbstractServerTest;
+import test.server.AbstractTest;
 
 import java.net.URL;
 import java.util.*;
@@ -11,15 +11,15 @@ import java.util.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-public class ClasspathTest extends AbstractServerTest {
+public class ClasspathTest extends AbstractTest {
     private static final String context1 = "test";
     private static final String context2 = "test2";
     private static final ContextClassLoaderMgr mgr = ContextClassLoaderMgr.getInstance();
 
     @Before
     public void before() {
-        classFinder.setContextLoader(context1);
-        classFinder.setContextLoader(context2);
+//        classFinder.setContextLoader(context1);
+//        classFinder.setContextLoader(context2);
     }
 
     @Test

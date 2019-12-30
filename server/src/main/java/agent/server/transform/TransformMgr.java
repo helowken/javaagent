@@ -1,11 +1,9 @@
 package agent.server.transform;
 
-import agent.base.plugin.PluginFactory;
 import agent.base.utils.Logger;
 import agent.base.utils.ReflectionUtils;
 import agent.base.utils.Utils;
 import agent.hook.plugin.ClassFinder;
-import agent.hook.utils.AppTypePluginFilter;
 import agent.server.ServerListener;
 import agent.server.event.EventListenerMgr;
 import agent.server.event.impl.TransformClassEvent;
@@ -29,6 +27,7 @@ import java.lang.instrument.Instrumentation;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static agent.hook.utils.App.getClassFinder;
 import static agent.server.transform.TransformContext.ACTION_MODIFY;
 
 public class TransformMgr implements ServerListener {
@@ -100,12 +99,6 @@ public class TransformMgr implements ServerListener {
                                         )
                                 )
                 )
-        );
-    }
-
-    public ClassFinder getClassFinder() {
-        return PluginFactory.getInstance().find(ClassFinder.class,
-                AppTypePluginFilter.getInstance()
         );
     }
 

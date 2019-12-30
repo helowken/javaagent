@@ -11,6 +11,8 @@ import agent.server.transform.config.parser.handler.TreeRuleConfigHandler;
 import java.util.ArrayList;
 import java.util.List;
 
+import static agent.hook.utils.App.getClassFinder;
+
 public class RuleConfigParser implements ConfigParser {
     public static final RuleConfigParser instance = new RuleConfigParser();
     private static final List<RuleConfigHandler> handlerList = new ArrayList<>();
@@ -44,7 +46,7 @@ public class RuleConfigParser implements ConfigParser {
     }
 
     private Class<?> findClass(String context, String className) {
-        return TransformMgr.getInstance().getClassFinder().findClass(context, className);
+        return getClassFinder().findClass(context, className);
     }
 
     @Override

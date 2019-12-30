@@ -145,6 +145,12 @@
 
             <!-- test -->
             <dependency>
+                <groupId>javaagent</groupId>
+                <artifactId>server</artifactId>
+                <type>test-jar</type>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>junit</groupId>
                 <artifactId>junit</artifactId>
                 <version>${junit.version}</version>

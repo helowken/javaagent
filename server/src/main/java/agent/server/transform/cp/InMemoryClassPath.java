@@ -11,6 +11,8 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.net.URL;
 
+import static agent.hook.utils.App.getClassFinder;
+
 public class InMemoryClassPath implements ClassPath {
     private static final Logger logger = Logger.getLogger(InMemoryClassPath.class);
     private final String context;
@@ -29,7 +31,7 @@ public class InMemoryClassPath implements ClassPath {
     }
 
     private Class<?> findClass(String className) {
-        return TransformMgr.getInstance().getClassFinder().findClass(context, className);
+        return getClassFinder().findClass(context, className);
     }
 
     @Override

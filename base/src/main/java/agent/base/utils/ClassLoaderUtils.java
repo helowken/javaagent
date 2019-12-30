@@ -126,4 +126,14 @@ public class ClassLoaderUtils {
         }
         logger.debug("classLoader cascade: \n{}", sb);
     }
+
+    public static boolean isDescendant(ClassLoader parentLoader, ClassLoader childLoader) {
+        ClassLoader tmp = childLoader;
+        while (tmp != null) {
+            if (tmp == parentLoader)
+                return true;
+            tmp = tmp.getParent();
+        }
+        return false;
+    }
 }

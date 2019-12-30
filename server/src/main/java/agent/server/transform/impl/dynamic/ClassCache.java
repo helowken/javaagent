@@ -13,6 +13,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static agent.hook.utils.App.getClassFinder;
+
 public class ClassCache {
     private static final ClassCache instance = new ClassCache();
     private final Registry<ClassLoader, ClassCacheItem> registry = new Registry<>();
@@ -27,7 +29,7 @@ public class ClassCache {
     // TODO need to consider webAppLoader has no class, but its parent loader has, in spring boot.
     public Map<String, Class<?>> getSubClassMap(String context, Class<?> baseClass) {
         return registry.regIfAbsent(
-                TransformMgr.getInstance().getClassFinder().findClassLoader(context),
+                getClassFinder().findClassLoader(context),
                 loader -> new ClassCacheItem(
                         Stream.of(
                                 TransformMgr.getInstance().getInitiatedClasses(loader)

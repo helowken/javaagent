@@ -5,7 +5,7 @@ import agent.base.utils.ReflectionUtils;
 import agent.base.utils.Utils;
 import agent.server.transform.impl.DestInvokeIdRegistry;
 import agent.server.transform.tools.asm.*;
-import test.server.utils.TestClassLoader;
+import test.server.TestClassLoader;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
@@ -18,6 +18,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
 class AsmTestUtils {
+    private static final String DEFAULT_CONTEXT = "defaultContext";
+
     static void doCheck(int count, List<String> logList, boolean throwError, boolean hasBefore) {
         assertEquals(
                 newExpectedList(count, throwError, hasBefore),
@@ -55,6 +57,7 @@ class AsmTestUtils {
 
     static Class<?> prepareClass(int count, List<String> logList, ProxyRegInfo regInfo) throws Exception {
         DestInvokeIdRegistry.getInstance().reg(
+                DEFAULT_CONTEXT,
                 regInfo.getDestInvoke()
         );
         ProxyResult item = prepareData(count, logList, regInfo);

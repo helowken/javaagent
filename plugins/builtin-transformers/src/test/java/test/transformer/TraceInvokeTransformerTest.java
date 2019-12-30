@@ -4,6 +4,7 @@ import agent.base.utils.ReflectionUtils;
 import agent.builtin.tools.InvokeResultTracer;
 import agent.builtin.transformer.TraceInvokeTransformer;
 import org.junit.Test;
+import test.server.AbstractTest;
 
 import java.util.Date;
 import java.util.HashMap;

@@ -4,7 +4,7 @@ import agent.base.utils.LockObject;
 import agent.base.utils.ReflectionUtils;
 import agent.base.utils.Utils;
 
-abstract class AbstractClassFinder implements ClassFinder {
+public abstract class AbstractClassFinder implements ClassFinder {
     private final LockObject initLock = new LockObject();
     private volatile boolean inited = false;
 

@@ -1,4 +1,4 @@
-package test.transformer;
+package test.server;
 
 public class TestClassLoader extends ClassLoader {
     public Class<?> loadClass(String className, byte[] data) {

@@ -13,9 +13,11 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import static agent.hook.utils.App.getClassFinder;
+
 abstract class AbstractRuleConfigHandler implements RuleConfigHandler {
     Class<?> findClass(String context, String className) {
-        return TransformMgr.getInstance().getClassFinder().findClass(context, className);
+        return getClassFinder().findClass(context, className);
     }
 
     TransformConfig newTransformConfig(String targetMethod, String targetClass, DynamicConfigItem configItem) {

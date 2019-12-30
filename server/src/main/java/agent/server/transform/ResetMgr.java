@@ -17,17 +17,17 @@ import java.util.stream.Collectors;
 import static agent.server.transform.TransformContext.ACTION_MODIFY;
 import static agent.server.transform.TransformContext.ACTION_RESET;
 
-public class ResetClassMgr implements ServerListener, AgentEventListener {
-    private static final Logger logger = Logger.getLogger(ResetClassMgr.class);
+public class ResetMgr implements ServerListener, AgentEventListener {
+    private static final Logger logger = Logger.getLogger(ResetMgr.class);
     private static final LockObject classLock = new LockObject();
-    private static ResetClassMgr instance = new ResetClassMgr();
+    private static ResetMgr instance = new ResetMgr();
     private Map<String, Set<Class<?>>> contextToTransformedClassSet = new HashMap<>();
 
-    public static ResetClassMgr getInstance() {
+    public static ResetMgr getInstance() {
         return instance;
     }
 
-    private ResetClassMgr() {
+    private ResetMgr() {
     }
 
     @Override

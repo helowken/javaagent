@@ -1,11 +1,11 @@
 package agent.server.transform.impl;
 
+import agent.base.utils.ClassLoaderUtils;
 import agent.base.utils.Logger;
 import agent.base.utils.MethodDescriptorUtils;
 import agent.server.transform.ConfigTransformer;
 import agent.server.transform.MethodFinder;
 import agent.server.transform.TransformContext;
-import agent.server.transform.TransformMgr;
 import agent.server.transform.exception.InvalidTransformerConfigException;
 import agent.server.transform.impl.invoke.DestInvoke;
 import agent.server.transform.impl.invoke.MethodInvoke;
@@ -17,6 +17,8 @@ import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
+
+import static agent.hook.utils.App.getClassFinder;
 
 @SuppressWarnings("unchecked")
 public abstract class AbstractConfigTransformer extends AbstractTransformer implements ConfigTransformer {
@@ -50,11 +52,10 @@ public abstract class AbstractConfigTransformer extends AbstractTransformer impl
     private String regLog(LoggerType loggerType, Map<String, Object> config, Map<String, Object> defaultValueMap) {
         String logKey = LogMgr.reg(loggerType, config, defaultValueMap);
         LogConfig logConfig = LogMgr.getLogConfig(loggerType, logKey);
-        if (!logConfig.isStdout())
-            DestInvokeIdRegistry.getInstance().regOutputPath(
-                    getContext(),
-                    logConfig.getOutputPath()
-            );
+        DestInvokeIdRegistry.getInstance().regOutputPath(
+                getContext(),
+                logConfig.getOutputPath()
+        );
         return logKey;
     }
 
@@ -70,7 +71,7 @@ public abstract class AbstractConfigTransformer extends AbstractTransformer impl
     }
 
     protected <T> Class<T> findClass(String className) {
-        return (Class<T>) TransformMgr.getInstance().getClassFinder().findClass(
+        return (Class<T>) getClassFinder().findClass(
                 getContext(),
                 className
         );
@@ -88,10 +89,24 @@ public abstract class AbstractConfigTransformer extends AbstractTransformer impl
             for (Method method : methods) {
                 logger.debug("Transforming method: {}", MethodDescriptorUtils.getLongName(method));
                 DestInvoke destInvoke = new MethodInvoke(method);
-                DestInvokeIdRegistry.getInstance().reg(destInvoke);
+                DestInvokeIdRegistry.getInstance().reg(
+                        findContextOfDestInvoke(destInvoke),
+                        destInvoke
+                );
                 transformDestInvoke(destInvoke);
             }
         }
+    }
+
+    private String findContextOfDestInvoke(DestInvoke destInvoke) {
+        String context = getContext();
+        ClassLoader contextLoader = getClassFinder().findClassLoader(context);
+        return ClassLoaderUtils.isDescendant(
+                contextLoader,
+                destInvoke.getDeclaringClass().getClassLoader()
+        ) ?
+                context :
+                null;
     }
 
     protected abstract void transformDestInvoke(DestInvoke destInvoke) throws Exception;

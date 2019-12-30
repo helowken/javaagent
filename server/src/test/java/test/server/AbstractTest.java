@@ -1,4 +1,4 @@
-package test.transformer;
+package test.server;
 
 import agent.base.plugin.PluginFactory;
 import agent.base.utils.IOUtils;
@@ -23,18 +23,19 @@ import agent.server.transform.config.MethodFilterConfig;
 import agent.server.transform.impl.AbstractConfigTransformer;
 import agent.server.transform.impl.DestInvokeIdRegistry;
 import agent.server.transform.impl.TransformerInfo;
+import agent.server.transform.impl.invoke.MethodInvoke;
 import agent.server.transform.tools.asm.ProxyRegInfo;
 import agent.server.transform.tools.asm.ProxyResult;
 import agent.server.transform.tools.asm.ProxyTransformMgr;
 import org.junit.BeforeClass;
 
 import java.io.File;
+import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static agent.server.transform.TransformContext.ACTION_MODIFY;
 import static org.junit.Assert.assertNotNull;
 
 public abstract class AbstractTest {
@@ -72,7 +73,7 @@ public abstract class AbstractTest {
         }
     }
 
-    void doTransform(AbstractConfigTransformer transformer, String context, Map<String, Object> config, Map<Class<?>, String> classToMethodFilter) throws Exception {
+    protected void doTransform(AbstractConfigTransformer transformer, String context, Map<String, Object> config, Map<Class<?>, String> classToMethodFilter) throws Exception {
         transformer.setTransformerInfo(
                 newTransformerInfo(context, classToMethodFilter)
         );
@@ -86,7 +87,7 @@ public abstract class AbstractTest {
         );
     }
 
-    Object newInstance(Map<Class<?>, byte[]> classToData, Class<?> clazz) throws Exception {
+    protected Object newInstance(Map<Class<?>, byte[]> classToData, Class<?> clazz) throws Exception {
         Class<?> newClass = loader.loadClass(
                 clazz.getName(),
                 classToData.get(clazz)
@@ -94,7 +95,7 @@ public abstract class AbstractTest {
         return ReflectionUtils.newInstance(newClass);
     }
 
-    void flushAndWaitData() throws Exception {
+    protected void flushAndWaitData() throws Exception {
         waitDataListener.clear();
         EventListenerMgr.fireEvent(
                 new FlushLogEvent()
@@ -102,7 +103,7 @@ public abstract class AbstractTest {
         waitDataListener.await();
     }
 
-    void flushAndWaitMetadata() throws Exception {
+    protected void flushAndWaitMetadata() throws Exception {
         waitMetadataListener.clear();
         EventListenerMgr.fireEvent(
                 new FlushLogEvent()
@@ -110,7 +111,7 @@ public abstract class AbstractTest {
         waitMetadataListener.await();
     }
 
-    Map<Class<?>, byte[]> getClassToData(AgentTransformer transformer) {
+    protected Map<Class<?>, byte[]> getClassToData(AgentTransformer transformer) {
         Collection<ProxyRegInfo> regInfos = transformer.getProxyRegInfos();
         List<ProxyResult> results = ProxyTransformMgr.getInstance().transform(
                 regInfos,
@@ -140,7 +141,7 @@ public abstract class AbstractTest {
                 context,
                 classSet,
                 Collections.singletonList(transformer),
-                ACTION_MODIFY
+                TransformContext.ACTION_MODIFY
         );
     }
 
@@ -177,7 +178,21 @@ public abstract class AbstractTest {
         }
     }
 
-    interface RunFileFunc {
+    protected Method getMethod(Class<?> clazz, String name) throws Exception {
+        return Optional.ofNullable(
+                ReflectionUtils.findFirstMethod(clazz, name)
+        ).orElseThrow(
+                () -> new RuntimeException("No method found by name: " + name)
+        );
+    }
+
+    protected MethodInvoke newMethodInvoke(Class<?> clazz, String name) throws Exception {
+        return new MethodInvoke(
+                getMethod(clazz, name)
+        );
+    }
+
+    protected interface RunFileFunc {
         void run(String outputPath, Map<String, Object> config) throws Exception;
     }
 
