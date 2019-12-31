@@ -29,9 +29,9 @@ public class TestConfigResultHandler extends AbstractContextResultHandler {
                                 configResultEntity.getClassEntityList().forEach(classResultEntity -> {
                                             sb.append(INDENT_1).append("Class: ").append(classResultEntity.getClassName()).append("\n");
                                             Map<String, List<String>> declareClassToMethods = new TreeMap<>();
-                                            classResultEntity.getMethodEntityList().forEach(methodResultEntity ->
+                                            classResultEntity.getInvokeList().forEach(methodResultEntity ->
                                                     declareClassToMethods.computeIfAbsent(methodResultEntity.getDeclareClass(), key -> new ArrayList<>())
-                                                            .add(methodResultEntity.getMethodName() + methodResultEntity.getSignature())
+                                                            .add(methodResultEntity.getName() + methodResultEntity.getDesc())
                                             );
                                             declareClassToMethods.forEach((declareClass, methods) -> {
                                                 sb.append(INDENT_2).append("From ").append(declareClass).append("\n");

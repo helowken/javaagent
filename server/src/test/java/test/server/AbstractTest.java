@@ -18,8 +18,9 @@ import agent.server.event.impl.LogFlushedEvent;
 import agent.server.transform.AgentTransformer;
 import agent.server.transform.TransformContext;
 import agent.server.transform.TransformMgr;
+import agent.server.transform.TransformResult;
 import agent.server.transform.config.ClassConfig;
-import agent.server.transform.config.MethodFilterConfig;
+import agent.server.transform.config.InvokeFilterConfig;
 import agent.server.transform.impl.AbstractConfigTransformer;
 import agent.server.transform.impl.DestInvokeIdRegistry;
 import agent.server.transform.impl.TransformerInfo;
@@ -30,18 +31,22 @@ import agent.server.transform.tools.asm.ProxyTransformMgr;
 import org.junit.BeforeClass;
 
 import java.io.File;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static agent.server.transform.TransformContext.ACTION_MODIFY;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 
 public abstract class AbstractTest {
     private static final TestClassLoader loader = new TestClassLoader();
     private static final TestClassFinder classFinder = new TestClassFinder();
     private static boolean inited = false;
+    private static final TestInstrumentation instrumentation = new TestInstrumentation();
     private static final WaitFlushingListener waitMetadataListener = new WaitFlushingListener(DestInvokeMetadataFlushedEvent.class);
     private static final WaitFlushingListener waitDataListener = new WaitFlushingListener(LogFlushedEvent.class);
 
@@ -68,6 +73,7 @@ public abstract class AbstractTest {
                         return null;
                     }
             );
+            TransformMgr.getInstance().onStartup(new Object[]{instrumentation});
             DestInvokeIdRegistry.getInstance().onStartup(new Object[0]);
             inited = true;
         }
@@ -85,6 +91,21 @@ public abstract class AbstractTest {
                         classToMethodFilter.keySet().toArray(new Class[0])
                 )
         );
+    }
+
+    protected void transformByAnnt(String context, Map<Class<?>, String> classToMethodFilter, Object instance) {
+        TestAnnotationConfigTransformer transformer = new TestAnnotationConfigTransformer(instance);
+        transformer.setTransformerInfo(
+                newTransformerInfo(context, classToMethodFilter)
+        );
+        TransformContext transformContext = new TransformContext(
+                context,
+                classToMethodFilter.keySet(),
+                Collections.singletonList(transformer),
+                ACTION_MODIFY
+        );
+        TransformResult transformResult = TransformMgr.getInstance().transform(transformContext);
+        assertFalse(transformResult.hasError());
     }
 
     protected Object newInstance(Map<Class<?>, byte[]> classToData, Class<?> clazz) throws Exception {
@@ -141,7 +162,7 @@ public abstract class AbstractTest {
                 context,
                 classSet,
                 Collections.singletonList(transformer),
-                TransformContext.ACTION_MODIFY
+                ACTION_MODIFY
         );
     }
 
@@ -151,7 +172,7 @@ public abstract class AbstractTest {
                 (clazz, methodFilter) -> classConfigs.add(
                         ClassConfig.newInstance(
                                 clazz.getName(),
-                                MethodFilterConfig.includes(
+                                InvokeFilterConfig.includes(
                                         Collections.singleton(methodFilter)
                                 )
                         )
@@ -182,7 +203,15 @@ public abstract class AbstractTest {
         return Optional.ofNullable(
                 ReflectionUtils.findFirstMethod(clazz, name)
         ).orElseThrow(
-                () -> new RuntimeException("No method found by name: " + name)
+                () -> new RuntimeException("No method found by name: " + clazz + "." + name)
+        );
+    }
+
+    protected Constructor getConstructor(Class<?> clazz) throws Exception {
+        return Optional.ofNullable(
+                ReflectionUtils.findConstructor(clazz, null)
+        ).orElseThrow(
+                () -> new RuntimeException("No constructor found: " + clazz)
         );
     }
 

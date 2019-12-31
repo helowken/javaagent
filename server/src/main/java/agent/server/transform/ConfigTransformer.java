@@ -8,6 +8,4 @@ public interface ConfigTransformer extends AgentTransformer {
     void setTransformerInfo(TransformerInfo transformerInfo);
 
     void setConfig(Map<String, Object> config);
-
-    String getRegKey();
 }

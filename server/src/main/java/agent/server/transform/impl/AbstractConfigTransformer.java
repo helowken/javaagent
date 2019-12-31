@@ -2,18 +2,15 @@ package agent.server.transform.impl;
 
 import agent.base.utils.ClassLoaderUtils;
 import agent.base.utils.Logger;
-import agent.base.utils.MethodDescriptorUtils;
 import agent.server.transform.ConfigTransformer;
-import agent.server.transform.MethodFinder;
+import agent.server.transform.InvokeFinder;
 import agent.server.transform.TransformContext;
 import agent.server.transform.exception.InvalidTransformerConfigException;
 import agent.server.transform.impl.invoke.DestInvoke;
-import agent.server.transform.impl.invoke.MethodInvoke;
 import agent.server.utils.log.LogConfig;
 import agent.server.utils.log.LogMgr;
 import agent.server.utils.log.LoggerType;
 
-import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
@@ -80,20 +77,19 @@ public abstract class AbstractConfigTransformer extends AbstractTransformer impl
     @Override
     public void transform(TransformContext transformContext) throws Exception {
         for (Class<?> clazz : transformContext.getTargetClassSet()) {
-            Collection<Method> methods = MethodFinder.getInstance().find(
+            Collection<DestInvoke> invokes = InvokeFinder.getInstance().find(
                     transformerInfo.getTargetClassConfig(
                             clazz.getName()
                     )
-            ).methods;
+            ).invokes;
 
-            for (Method method : methods) {
-                logger.debug("Transforming method: {}", MethodDescriptorUtils.getLongName(method));
-                DestInvoke destInvoke = new MethodInvoke(method);
+            for (DestInvoke invoke : invokes) {
+                logger.debug("Transforming invoke: {}", invoke);
                 DestInvokeIdRegistry.getInstance().reg(
-                        findContextOfDestInvoke(destInvoke),
-                        destInvoke
+                        findContextOfDestInvoke(invoke),
+                        invoke
                 );
-                transformDestInvoke(destInvoke);
+                transformDestInvoke(invoke);
             }
         }
     }

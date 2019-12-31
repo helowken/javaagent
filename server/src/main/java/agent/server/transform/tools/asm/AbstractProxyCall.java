@@ -60,15 +60,20 @@ abstract class AbstractProxyCall implements ProxyCall {
     private int getArgsMask() {
         int mask = callInfo.getArgsMask();
         switch (position) {
-            case BEFORE:
+            case ON_BEFORE:
                 return MASK_POS_BEFORE & mask;
             case ON_RETURNING:
                 return MASK_POS_ON_RETURNING & mask;
             case ON_THROWING:
                 return MASK_POS_ON_THROWING & mask;
-            case AFTER:
+            case ON_AFTER:
                 return MASK_POS_AFTER & mask;
         }
         throw new RuntimeException("Invalid position: " + position);
+    }
+
+    @Override
+    public String getDisplayString() {
+        return callInfo.getDisplayString();
     }
 }

@@ -23,7 +23,7 @@ class BakNewAsmTransformProxy {
 //
 //    private static void doTransform(ClassNode classNode, Map<Integer, DestInvoke> idToInvoke) {
 //        Map<String, Map<String, Integer>> nameToDescToId = getNameToDescToId(idToInvoke);
-//        List<MethodNode> methodNodes = new ArrayList<>(classNode.methods);
+//        List<MethodNode> methodNodes = new ArrayList<>(classNode.invokes);
 //        Set<String> invokeNames = new HashSet<>();
 //        methodNodes.forEach(
 //                methodNode -> invokeNames.add(methodNode.name)
@@ -134,7 +134,7 @@ class BakNewAsmTransformProxy {
 //                ),
 //                createReturn(asmMethod)
 //        );
-//        classNode.methods.add(
+//        classNode.invokes.add(
 //                asmMethod.getMethodNode()
 //        );
 //        methodNode.name = destInvokeName;

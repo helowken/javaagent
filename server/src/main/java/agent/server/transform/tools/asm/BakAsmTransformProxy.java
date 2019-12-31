@@ -24,7 +24,7 @@ class BakAsmTransformProxy {
 //
 //    private static void doTransform(ClassNode classNode, Map<Integer, Method> idToMethod) {
 //        Map<String, Map<String, Integer>> methodNameToDescToId = newMethodNameToDescToId(idToMethod);
-//        List<MethodNode> methodNodes = new ArrayList<>(classNode.methods);
+//        List<MethodNode> methodNodes = new ArrayList<>(classNode.invokes);
 //        Set<String> methodNames = new HashSet<>();
 //        methodNodes.forEach(
 //                methodNode -> methodNames.add(methodNode.name)
@@ -69,7 +69,7 @@ class BakAsmTransformProxy {
 //
 //    private static void transformDestInvoke(ClassNode classNode, MethodNode methodNode, int methodId, Set<String> methodNames) {
 //        String destMethodName = newMethodName(methodNames, methodNode.name);
-//        classNode.methods.add(
+//        classNode.invokes.add(
 //                createDelegateMethodNode(destMethodName, classNode, methodNode, methodId)
 //        );
 //        methodNode.name = destMethodName;

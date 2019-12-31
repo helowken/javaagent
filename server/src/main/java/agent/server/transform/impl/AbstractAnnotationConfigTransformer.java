@@ -123,12 +123,17 @@ public abstract class AbstractAnnotationConfigTransformer extends AbstractConfig
     }
 
     private ProxyCallInfo newCallInfo(DestInvoke destInvoke, Method anntMethod, int mask, int argsHint) {
-        return new ProxyCallInfo(
+        ProxyCallInfo proxyCallInfo = new ProxyCallInfo(
                 getInstanceOrNull(anntMethod),
                 anntMethod,
                 mask,
                 getOtherArgs(destInvoke, anntMethod, argsHint)
         );
+        final String regKey = getRegKey();
+        proxyCallInfo.setDisplayFunc(
+                callInfo -> regKey
+        );
+        return proxyCallInfo;
     }
 
     private Object getInstanceOrNull(Method anntMethod) {

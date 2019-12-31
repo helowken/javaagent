@@ -30,7 +30,7 @@ public class TestConfigResultEntity {
 
     public static class ClassResultEntity {
         private String className;
-        private List<MethodResultEntity> methodEntityList = new ArrayList<>();
+        private List<InvokeResultEntity> invokeList = new ArrayList<>();
 
         public String getClassName() {
             return className;
@@ -40,24 +40,24 @@ public class TestConfigResultEntity {
             this.className = className;
         }
 
-        public List<MethodResultEntity> getMethodEntityList() {
-            return methodEntityList;
+        public List<InvokeResultEntity> getInvokeList() {
+            return invokeList;
         }
 
-        public void setMethodEntityList(List<MethodResultEntity> methodEntityList) {
-            this.methodEntityList = methodEntityList;
+        public void setInvokeList(List<InvokeResultEntity> invokeList) {
+            this.invokeList = invokeList;
         }
 
-        public void addMethodEntity(MethodResultEntity methodEntity) {
-            this.methodEntityList.add(methodEntity);
+        public void addInvokeEntity(InvokeResultEntity invokeEntity) {
+            this.invokeList.add(invokeEntity);
         }
     }
 
 
-    public static class MethodResultEntity {
+    public static class InvokeResultEntity {
         private String declareClass;
-        private String methodName;
-        private String signature;
+        private String name;
+        private String desc;
 
         public String getDeclareClass() {
             return declareClass;
@@ -67,20 +67,20 @@ public class TestConfigResultEntity {
             this.declareClass = declareClass;
         }
 
-        public String getMethodName() {
-            return methodName;
+        public String getName() {
+            return name;
         }
 
-        public void setMethodName(String methodName) {
-            this.methodName = methodName;
+        public void setName(String name) {
+            this.name = name;
         }
 
-        public String getSignature() {
-            return signature;
+        public String getDesc() {
+            return desc;
         }
 
-        public void setSignature(String signature) {
-            this.signature = signature;
+        public void setDesc(String desc) {
+            this.desc = desc;
         }
 
     }

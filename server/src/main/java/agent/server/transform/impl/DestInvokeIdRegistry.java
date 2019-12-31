@@ -178,55 +178,9 @@ public class DestInvokeIdRegistry implements ServerListener, AgentEventListener 
         return rsMap;
     }
 
-    private Collection<String> getContexts(Collection<String> sContexts) {
-        return sContexts == null ?
-                contextToClassToInvokeToId.keySet() :
-                sContexts;
-    }
-
-    public Map<String, Collection<Class<?>>> getClassesOfContext(Collection<String> sContexts) {
+    public Object run(OpFunc func) {
         return lo.syncValue(
-                lock -> {
-                    Map<String, Collection<Class<?>>> rsMap = new HashMap<>();
-                    getContexts(sContexts).forEach(
-                            sContext -> {
-                                String context = convertNullToUnknown(sContext);
-                                rsMap.put(
-                                        context,
-                                        new ArrayList<>(
-                                                getClassToInvokeToId(context).keySet()
-                                        )
-                                );
-                            }
-                    );
-                    return rsMap;
-                }
-        );
-    }
-
-    public Map<Class<?>, Collection<DestInvoke>> getDestInvokesOfClass(Collection<String> sContexts, Collection<Class<?>> classes) {
-        Set<Class<?>> includeClasses = classes == null ?
-                null :
-                new HashSet<>(classes);
-        return lo.syncValue(
-                lock -> {
-                    Map<Class<?>, Collection<DestInvoke>> rsMap = new HashMap<>();
-                    getContexts(sContexts).forEach(
-                            context -> getClassToInvokeToId(context).forEach(
-                                    (clazz, invokeToId) -> {
-                                        if (includeClasses == null || includeClasses.contains(clazz)) {
-                                            rsMap.put(
-                                                    clazz,
-                                                    new ArrayList<>(
-                                                            invokeToId.keySet()
-                                                    )
-                                            );
-                                        }
-                                    }
-                            )
-                    );
-                    return rsMap;
-                }
+                lock -> func.run(contextToClassToInvokeToId)
         );
     }
 
@@ -239,5 +193,9 @@ public class DestInvokeIdRegistry implements ServerListener, AgentEventListener 
     @Override
     public void onShutdown() {
 
+    }
+
+    public interface OpFunc {
+        Object run(Map<String, Map<Class<?>, Map<DestInvoke, Integer>>> contextToClassToInvokeToId);
     }
 }

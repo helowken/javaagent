@@ -4,12 +4,12 @@ import java.util.Objects;
 
 public class ClassConfig {
     private String targetClass;
-    private MethodFilterConfig methodFilter;
+    private InvokeFilterConfig invokeFilter;
 
-    public static ClassConfig newInstance(String targetClass, MethodFilterConfig methodFilter) {
+    public static ClassConfig newInstance(String targetClass, InvokeFilterConfig methodFilter) {
         ClassConfig config = new ClassConfig();
         config.targetClass = targetClass;
-        config.methodFilter = methodFilter;
+        config.invokeFilter = methodFilter;
         return config;
     }
 
@@ -21,12 +21,12 @@ public class ClassConfig {
         this.targetClass = targetClass;
     }
 
-    public MethodFilterConfig getMethodFilter() {
-        return methodFilter;
+    public InvokeFilterConfig getInvokeFilter() {
+        return invokeFilter;
     }
 
-    public void setMethodFilter(MethodFilterConfig methodFilter) {
-        this.methodFilter = methodFilter;
+    public void setInvokeFilter(InvokeFilterConfig invokeFilter) {
+        this.invokeFilter = invokeFilter;
     }
 
     @Override
@@ -35,20 +35,20 @@ public class ClassConfig {
         if (o == null || getClass() != o.getClass()) return false;
         ClassConfig that = (ClassConfig) o;
         return Objects.equals(targetClass, that.targetClass) &&
-                Objects.equals(methodFilter, that.methodFilter);
+                Objects.equals(invokeFilter, that.invokeFilter);
     }
 
     @Override
     public int hashCode() {
 
-        return Objects.hash(targetClass, methodFilter);
+        return Objects.hash(targetClass, invokeFilter);
     }
 
     @Override
     public String toString() {
         return "ClassConfig{" +
                 "targetClass='" + targetClass + '\'' +
-                ", methodFilter=" + methodFilter +
+                ", invokeFilter=" + invokeFilter +
                 '}';
     }
 }

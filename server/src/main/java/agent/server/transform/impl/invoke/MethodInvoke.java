@@ -15,6 +15,11 @@ public class MethodInvoke implements DestInvoke {
     }
 
     @Override
+    public int getModifiers() {
+        return method.getModifiers();
+    }
+
+    @Override
     public DestInvokeType getType() {
         return DestInvokeType.METHOD;
     }

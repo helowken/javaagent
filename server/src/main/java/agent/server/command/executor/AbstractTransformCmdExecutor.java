@@ -7,8 +7,6 @@ import agent.common.message.result.ExecResult;
 import agent.common.message.result.entity.ErrorEntity;
 import agent.common.message.result.entity.TransformResultEntity;
 import agent.common.utils.JSONUtils;
-import agent.server.transform.AgentTransformer;
-import agent.server.transform.ConfigTransformer;
 import agent.server.transform.TransformResult;
 
 import java.util.List;
@@ -62,20 +60,12 @@ abstract class AbstractTransformCmdExecutor extends AbstractCmdExecutor {
                         type,
                         new ErrorEntity(
                                 errorItem.getTargetClassName(),
-                                getTransformerKey(
-                                        errorItem.getTransformer()
-                                ),
+                                errorItem.getTransformer().getRegKey(),
                                 Utils.getMergedErrorMessage(
                                         errorItem.getError()
                                 )
                         )
                 )
         );
-    }
-
-    private String getTransformerKey(AgentTransformer transformer) {
-        if (transformer instanceof ConfigTransformer)
-            return ((ConfigTransformer) transformer).getRegKey();
-        return null;
     }
 }

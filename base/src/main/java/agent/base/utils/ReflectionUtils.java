@@ -8,7 +8,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static agent.base.utils.MethodDescriptorUtils.getDescriptor;
+import static agent.base.utils.InvokeDescriptorUtils.getDescriptor;
 
 @SuppressWarnings("unchecked")
 public class ReflectionUtils {
@@ -192,7 +192,7 @@ public class ReflectionUtils {
         List<Constructor> constructorList = findEntities(
                 classOrClassName,
                 Class::getDeclaredConstructors,
-                entity -> getDescriptor(entity).equals(descriptor)
+                entity -> descriptor == null || getDescriptor(entity).equals(descriptor)
         );
         return constructorList.isEmpty() ? null : constructorList.get(0);
     }

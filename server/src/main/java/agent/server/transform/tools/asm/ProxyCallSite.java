@@ -6,6 +6,7 @@ import agent.server.transform.impl.invoke.DestInvoke;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static agent.server.transform.tools.asm.ProxyPosition.*;
@@ -14,10 +15,10 @@ class ProxyCallSite {
     private static final Map<ProxyPosition, Class<? extends ProxyCall>> posToProxyClass = new HashMap<>();
 
     static {
-        posToProxyClass.put(BEFORE, ProxyCallBefore.class);
+        posToProxyClass.put(ON_BEFORE, ProxyCallBefore.class);
         posToProxyClass.put(ON_RETURNING, ProxyCallOnReturning.class);
         posToProxyClass.put(ON_THROWING, ProxyCallOnThrowing.class);
-        posToProxyClass.put(AFTER, ProxyCallAfter.class);
+        posToProxyClass.put(ON_AFTER, ProxyCallAfter.class);
     }
 
     private DestInvoke destInvoke;
@@ -26,6 +27,21 @@ class ProxyCallSite {
     ProxyCallSite(DestInvoke destInvoke) {
         this.destInvoke = destInvoke;
         this.init();
+    }
+
+    Map<ProxyPosition, List<String>> getPosToDisplayStrings() {
+        Map<ProxyPosition, List<String>> rsMap = new TreeMap<>();
+        posToQueue.forEach(
+                (pos, queue) -> rsMap.put(
+                        pos,
+                        queue.stream()
+                                .map(ProxyCall::getDisplayString)
+                                .collect(
+                                        Collectors.toList()
+                                )
+                )
+        );
+        return rsMap;
     }
 
     DestInvoke getDestInvoke() {
@@ -84,16 +100,16 @@ class ProxyCallSite {
     }
 
     void invokeBefore(Object instanceOrNull, Object pv) {
-        invoke(BEFORE, instanceOrNull, pv);
+        invoke(ON_BEFORE, instanceOrNull, pv);
     }
 
     void invokeOnReturning(Object instanceOrNull, Object pv) {
         invoke(ON_RETURNING, instanceOrNull, pv);
-        invoke(AFTER, instanceOrNull, null);
+        invoke(ON_AFTER, instanceOrNull, null);
     }
 
     void invokeOnThrowing(Object instanceOrNull, Object pv) {
         invoke(ON_THROWING, instanceOrNull, pv);
-        invoke(AFTER, instanceOrNull, null);
+        invoke(ON_AFTER, instanceOrNull, null);
     }
 }

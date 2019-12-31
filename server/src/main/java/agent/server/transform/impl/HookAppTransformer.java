@@ -9,6 +9,7 @@ import agent.server.transform.tools.asm.ProxyRegInfo;
 import static agent.server.transform.tools.asm.ProxyArgsMask.MASK_INSTANCE;
 
 public class HookAppTransformer extends AbstractTransformer {
+    private static final String REG_KEY = "sys_hookApp";
 
     @Override
     public void transform(TransformContext transformContext) throws Exception {
@@ -25,6 +26,11 @@ public class HookAppTransformer extends AbstractTransformer {
                         )
                 )
         );
+    }
+
+    @Override
+    public String getRegKey() {
+        return REG_KEY;
     }
 
     private static void doHook(Object instance) {

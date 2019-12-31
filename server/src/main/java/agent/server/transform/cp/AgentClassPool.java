@@ -2,7 +2,7 @@ package agent.server.transform.cp;
 
 import agent.base.utils.LockObject;
 import agent.base.utils.Logger;
-import agent.base.utils.MethodDescriptorUtils;
+import agent.base.utils.InvokeDescriptorUtils;
 import agent.base.utils.ReflectionUtils;
 import javassist.*;
 
@@ -101,7 +101,7 @@ public class AgentClassPool {
         return getMethod(
                 method.getDeclaringClass().getName(),
                 method.getName(),
-                MethodDescriptorUtils.getDescriptor(method)
+                InvokeDescriptorUtils.getDescriptor(method)
         );
     }
 

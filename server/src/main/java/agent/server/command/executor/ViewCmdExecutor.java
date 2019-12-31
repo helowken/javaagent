@@ -1,6 +1,6 @@
 package agent.server.command.executor;
 
-import agent.base.utils.MethodDescriptorUtils;
+import agent.base.utils.InvokeDescriptorUtils;
 import agent.common.message.command.Command;
 import agent.common.message.command.impl.ViewCommand;
 import agent.common.message.result.DefaultExecResult;
@@ -32,6 +32,10 @@ class ViewCmdExecutor extends AbstractCmdExecutor {
             case CATALOG_INVOKE:
                 value = getContextToClassToInvokes();
                 break;
+            case CATALOG_PROXY:
+//                value = getContextToClassToInvokesToProxy();
+                value = null;
+                break;
             case CATALOG_CLASSPATH:
                 value = getContextToClasspathSet();
                 break;
@@ -44,32 +48,34 @@ class ViewCmdExecutor extends AbstractCmdExecutor {
     }
 
     private Map getContextToClassToInvokes() {
-        return formatResult(
-                DestInvokeIdRegistry.getInstance().getDestInvokesOfClass(null, null),
-                value -> {
-                    if (value instanceof Class)
-                        return ((Class<?>) value).getName();
-                    else if (value instanceof DestInvoke) {
-                        DestInvoke invoke = (DestInvoke) value;
-                        return MethodDescriptorUtils.descToText(
-                                invoke.getName() + invoke.getDescriptor(),
-                                true
-                        );
-                    }
-                    return Objects.toString(value);
-                }
-        );
+//        return formatResult(
+//                DestInvokeIdRegistry.getInstance().getDestInvokesOfClass(null, null),
+//                value -> {
+//                    if (value instanceof Class)
+//                        return ((Class<?>) value).getName();
+//                    else if (value instanceof DestInvoke) {
+//                        DestInvoke invoke = (DestInvoke) value;
+//                        return InvokeDescriptorUtils.descToText(
+//                                invoke.getName() + invoke.getDescriptor(),
+//                                true
+//                        );
+//                    }
+//                    return Objects.toString(value);
+//                }
+//        );
+        return null;
     }
 
     private Map getContextToClassSet() {
-        return formatResult(
-                DestInvokeIdRegistry.getInstance().getClassesOfContext(null),
-                value -> {
-                    if (value instanceof Class)
-                        return ((Class<?>) value).getName();
-                    return String.valueOf(value);
-                }
-        );
+//        return formatResult(
+//                DestInvokeIdRegistry.getInstance().getClassesOfContext(null),
+//                value -> {
+//                    if (value instanceof Class)
+//                        return ((Class<?>) value).getName();
+//                    return String.valueOf(value);
+//                }
+//        );
+        return null;
     }
 
     private Map getContextToClasspathSet() {

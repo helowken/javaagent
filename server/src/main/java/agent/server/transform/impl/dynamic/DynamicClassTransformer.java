@@ -2,15 +2,14 @@ package agent.server.transform.impl.dynamic;
 
 import agent.base.plugin.PluginFactory;
 import agent.base.utils.Logger;
-import agent.base.utils.MethodDescriptorUtils;
+import agent.base.utils.InvokeDescriptorUtils;
 import agent.base.utils.ReflectionUtils;
 import agent.base.utils.Utils;
 import agent.hook.plugin.ClassFinder;
 import agent.server.transform.BytecodeMethodFinder;
-import agent.server.transform.TransformMgr;
 import agent.server.transform.impl.AbstractConfigTransformer;
 import agent.server.transform.cp.AgentClassPool;
-import agent.server.transform.MethodFinder;
+import agent.server.transform.InvokeFinder;
 import agent.server.transform.impl.invoke.DestInvoke;
 import javassist.CtClass;
 import javassist.CtMethod;
@@ -94,7 +93,7 @@ public class DynamicClassTransformer extends AbstractConfigTransformer {
 
                     System.out.println("==================");
                     System.out.println("Current method: " + ctMethod.getLongName());
-                    System.out.println("Do methods: ");
+                    System.out.println("Do invokes: ");
                     ctMethodList.stream()
                             .map(CtMethod::getLongName)
                             .forEach(System.out::println);
@@ -206,7 +205,7 @@ public class DynamicClassTransformer extends AbstractConfigTransformer {
                 processMethod(ctMethod, methodInfo, level, stepInto);
 
             Collection<CtMethod> methodList = findOverrideMethods(methodInfo);
-            System.out.println("--------- override methods for: " + methodInfo);
+            System.out.println("--------- override invokes for: " + methodInfo);
             methodList.stream()
                     .map(CtMethod::getLongName)
                     .forEach(System.out::println);
@@ -218,7 +217,7 @@ public class DynamicClassTransformer extends AbstractConfigTransformer {
             );
 
             methodList = findBytecodeMethods(methodInfo);
-            System.out.println("--------- bytecode methods for: " + methodInfo);
+            System.out.println("--------- bytecode invokes for: " + methodInfo);
             methodList.stream()
                     .map(CtMethod::getLongName)
                     .forEach(System.out::println);
@@ -268,7 +267,7 @@ public class DynamicClassTransformer extends AbstractConfigTransformer {
                                     .collect(Collectors.toList());
                         }
                     },
-                    () -> "Find impl methods failed: " + methodInfo.toString()
+                    () -> "Find impl invokes failed: " + methodInfo.toString()
             );
         return Collections.emptyList();
     }
@@ -414,7 +413,7 @@ public class DynamicClassTransformer extends AbstractConfigTransformer {
                                                         method.getDeclaringClass().getName()
                                                 ),
                                                 method.getName(),
-                                                MethodDescriptorUtils.getDescriptor(method)
+                                                InvokeDescriptorUtils.getDescriptor(method)
                                         )
                                 ).orElseThrow(
                                         () -> new RuntimeException("No ct method found for method: " + method)
@@ -450,7 +449,7 @@ public class DynamicClassTransformer extends AbstractConfigTransformer {
 
     private boolean skipMethod(CtMethod ctMethod) {
         String declaredClassName = ctMethod.getDeclaringClass().getName();
-        return !MethodFinder.isMethodMeaningful(ctMethod.getModifiers()) ||
+        return !InvokeFinder.isInvokeMeaningful(ctMethod.getModifiers()) ||
                 AgentClassPool.isNativePackage(declaredClassName);
 //        if (skip)
 //            logger.debug("Skip method: {}", ctMethod.getLongName());

@@ -16,6 +16,11 @@ public class ConstructorInvoke implements DestInvoke {
     }
 
     @Override
+    public int getModifiers() {
+        return constructor.getModifiers();
+    }
+
+    @Override
     public DestInvokeType getType() {
         return DestInvokeType.CONSTRUCTOR;
     }

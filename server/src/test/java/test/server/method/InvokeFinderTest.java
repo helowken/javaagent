@@ -1,15 +1,15 @@
 package test.server.method;
 
-import agent.server.transform.MethodFinder;
-import agent.server.transform.MethodFinder.MethodSearchResult;
+import agent.server.transform.InvokeFinder;
+import agent.server.transform.InvokeFinder.InvokeSearchResult;
 import agent.server.transform.config.ClassConfig;
-import agent.server.transform.config.MethodFilterConfig;
+import agent.server.transform.config.InvokeFilterConfig;
 import agent.server.transform.impl.TargetClassConfig;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 
-public class MethodFinderTest {
+public class InvokeFinderTest {
     @Test
     public void test() {
         check(Intf.class, 1, 0);
@@ -19,17 +19,17 @@ public class MethodFinderTest {
     }
 
     private void check(Class<?> clazz, int methodsCount, int meaningfulCount) {
-        MethodSearchResult result = search(clazz);
+        InvokeSearchResult result = search(clazz);
         assertEquals(methodsCount, clazz.getDeclaredMethods().length);
-        assertEquals(meaningfulCount, result.methods.size());
+        assertEquals(meaningfulCount, result.invokes.size());
     }
 
-    private MethodSearchResult search(Class<?> clazz) {
+    private InvokeSearchResult search(Class<?> clazz) {
         ClassConfig cc = new ClassConfig();
         cc.setTargetClass(Impl.class.getName());
-        cc.setMethodFilter(new MethodFilterConfig());
+        cc.setInvokeFilter(new InvokeFilterConfig());
         TargetClassConfig tcc = new TargetClassConfig(clazz, cc);
-        return MethodFinder.getInstance().find(tcc);
+        return InvokeFinder.getInstance().find(tcc);
     }
 
     interface Intf<T> {

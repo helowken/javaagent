@@ -11,8 +11,8 @@ import agent.server.tree.TreeUtils;
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-import static agent.base.utils.MethodDescriptorUtils.JAVA_LANG_PACKAGE;
-import static agent.base.utils.MethodDescriptorUtils.JAVA_LANG_PACKAGE_LENGTH;
+import static agent.base.utils.InvokeDescriptorUtils.JAVA_LANG_PACKAGE;
+import static agent.base.utils.InvokeDescriptorUtils.JAVA_LANG_PACKAGE_LENGTH;
 
 
 public class TraceInvokeResultHandler extends AbstractResultHandler<Collection<Tree<TraceItem>>> implements TraceResultHandler {

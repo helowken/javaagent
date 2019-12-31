@@ -5,6 +5,7 @@ import agent.server.transform.impl.DestInvokeIdRegistry;
 import agent.server.transform.impl.invoke.DestInvoke;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -12,7 +13,7 @@ public class ProxyTransformMgr {
     private static final Logger logger = Logger.getLogger(ProxyTransformMgr.class);
     private static final ProxyTransformMgr instance = new ProxyTransformMgr();
 
-    private Map<Integer, ProxyCallSite> idToCallSite = new HashMap<>();
+    private Map<Integer, ProxyCallSite> idToCallSite = new ConcurrentHashMap<>();
 
     public static ProxyTransformMgr getInstance() {
         return instance;
@@ -21,22 +22,34 @@ public class ProxyTransformMgr {
     private ProxyTransformMgr() {
     }
 
-    public synchronized List<ProxyResult> transform(Collection<ProxyRegInfo> regInfos, Function<Class<?>, byte[]> classDataFunc) {
+    public Map<ProxyPosition, List<String>> getCallSiteDisplay(Integer invokeId) {
+        return getCallSite(invokeId).getPosToDisplayStrings();
+    }
+
+    public List<ProxyResult> transform(Collection<ProxyRegInfo> regInfos, Function<Class<?>, byte[]> classDataFunc) {
         Map<Class<?>, ProxyItem> classToItem = new HashMap<>();
         regInfos.forEach(
                 regInfo -> {
                     DestInvoke destInvoke = regInfo.getDestInvoke();
                     Integer invokeId = DestInvokeIdRegistry.getInstance().get(destInvoke);
-                    if (idToCallSite.containsKey(invokeId))
-                        reg(
-                                destInvoke,
-                                Collections.singleton(regInfo)
-                        );
-                    else
-                        classToItem.computeIfAbsent(
-                                destInvoke.getDeclaringClass(),
-                                ProxyItem::new
-                        ).reg(invokeId, destInvoke, regInfo);
+                    idToCallSite.compute(
+                            invokeId,
+                            (key, oldValue) -> {
+                                if (oldValue == null) {
+                                    classToItem.computeIfAbsent(
+                                            destInvoke.getDeclaringClass(),
+                                            ProxyItem::new
+                                    ).reg(invokeId, destInvoke, regInfo);
+                                    return new ProxyCallSite(destInvoke);
+                                } else {
+                                    reg(
+                                            invokeId,
+                                            Collections.singleton(regInfo)
+                                    );
+                                    return oldValue;
+                                }
+                            }
+                    );
                 }
         );
 
@@ -53,51 +66,48 @@ public class ProxyTransformMgr {
     }
 
     private ProxyResult doTransform(ProxyItem item, Function<Class<?>, byte[]> classDataFunc) {
+        Class<?> targetClass = item.getTargetClass();
         byte[] newClassData = AsmTransformProxy.transform(
-                classDataFunc.apply(item.clazz),
-                item.idToInvoke
+                classDataFunc.apply(targetClass),
+                item.getIdToInvoke()
         );
         String verifyResult = AsmUtils.getVerifyResult(
-                item.clazz.getClassLoader(),
+                targetClass.getClassLoader(),
                 newClassData,
                 false
         );
         if (!verifyResult.isEmpty()) {
             logger.error("Verify {} transform failed: \n{}\n=================\n{}",
-                    item.clazz.getName(),
+                    targetClass.getName(),
                     AsmUtils.getVerifyResult(
-                            item.clazz.getClassLoader(),
+                            targetClass.getClassLoader(),
                             newClassData,
                             true
                     ),
                     AsmUtils.convertToReadableContent(newClassData)
             );
             return new ProxyResult(
-                    item.clazz,
+                    item,
                     new RuntimeException("Verify transform failed.")
             );
         }
         return new ProxyResult(
-                item.clazz,
-                newClassData,
-                item.invokeToRegInfos
+                item,
+                newClassData
         );
     }
 
-    public synchronized void reg(Collection<ProxyResult> results) {
+    public void reg(Collection<ProxyResult> results) {
         results.forEach(
-                result -> result.getInvokeToRegInfos().forEach(this::reg)
+                result -> result.getIdToRegInfos().forEach(this::reg)
         );
     }
 
-    private void reg(DestInvoke destInvoke, Collection<ProxyRegInfo> regInfos) {
+    private void reg(Integer invokeId, Collection<ProxyRegInfo> regInfos) {
         if (!regInfos.isEmpty()) {
-            ProxyCallSite callConfig = idToCallSite.computeIfAbsent(
-                    DestInvokeIdRegistry.getInstance().get(destInvoke),
-                    key -> new ProxyCallSite(destInvoke)
-            );
+            ProxyCallSite callSite = getCallSite(invokeId);
             regInfos.forEach(
-                    regInfo -> regInfo.getPosToCalInfos().forEach(callConfig::reg)
+                    regInfo -> regInfo.getPosToCalInfos().forEach(callSite::reg)
             );
         }
     }
@@ -122,21 +132,4 @@ public class ProxyTransformMgr {
         getCallSite(invokeId).invokeOnThrowing(instanceOrNull, error);
     }
 
-    private static class ProxyItem {
-        private final Class<?> clazz;
-        private Map<Integer, DestInvoke> idToInvoke = new HashMap<>();
-        private Map<DestInvoke, List<ProxyRegInfo>> invokeToRegInfos = new HashMap<>();
-
-        ProxyItem(Class<?> clazz) {
-            this.clazz = clazz;
-        }
-
-        void reg(Integer invokeId, DestInvoke destInvoke, ProxyRegInfo regInfo) {
-            idToInvoke.put(invokeId, destInvoke);
-            invokeToRegInfos.computeIfAbsent(
-                    destInvoke,
-                    key -> new ArrayList<>()
-            ).add(regInfo);
-        }
-    }
 }

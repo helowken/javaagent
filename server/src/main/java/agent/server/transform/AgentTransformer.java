@@ -8,4 +8,6 @@ public interface AgentTransformer {
     void transform(TransformContext transformContext) throws Exception;
 
     Collection<ProxyRegInfo> getProxyRegInfos();
+
+    String getRegKey();
 }

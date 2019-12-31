@@ -1,40 +1,43 @@
 package agent.server.transform.tools.asm;
 
-import agent.server.transform.impl.invoke.DestInvoke;
-
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class ProxyResult {
-    private final Class<?> targetClass;
     private final byte[] classData;
     private final Exception error;
-    private final Map<DestInvoke, List<ProxyRegInfo>> invokeToRegInfos;
+    private final ProxyItem proxyItem;
 
-    ProxyResult(Class<?> targetClass, Exception error) {
-        this.targetClass = targetClass;
+    ProxyResult(ProxyItem proxyItem, Exception error) {
+        this.proxyItem = proxyItem;
         this.classData = null;
-        this.invokeToRegInfos = null;
         this.error = error;
     }
 
-    ProxyResult(Class<?> targetClass, byte[] classData, Map<DestInvoke, List<ProxyRegInfo>> methodToRegInfos) {
-        this.targetClass = targetClass;
+    ProxyResult(ProxyItem proxyItem, byte[] classData) {
+        this.proxyItem = proxyItem;
         this.classData = classData;
-        this.invokeToRegInfos = methodToRegInfos;
         this.error = null;
     }
 
     public Class<?> getTargetClass() {
-        return targetClass;
+        return proxyItem.getTargetClass();
     }
 
     public byte[] getClassData() {
         return classData;
     }
 
-    Map<DestInvoke, List<ProxyRegInfo>> getInvokeToRegInfos() {
-        return invokeToRegInfos;
+    Map<Integer, List<ProxyRegInfo>> getIdToRegInfos() {
+        Map<Integer, List<ProxyRegInfo>> rsMap = new HashMap<>();
+        proxyItem.getIdToInvoke().forEach(
+                (id, invoke) -> rsMap.put(
+                        id,
+                        proxyItem.getRegInfos(invoke)
+                )
+        );
+        return rsMap;
     }
 
     public Exception getError() {

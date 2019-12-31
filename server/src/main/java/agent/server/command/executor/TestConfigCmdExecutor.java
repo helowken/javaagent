@@ -1,6 +1,5 @@
 package agent.server.command.executor;
 
-import agent.base.utils.MethodDescriptorUtils;
 import agent.base.utils.TypeObject;
 import agent.common.message.command.Command;
 import agent.common.message.command.impl.ByFileCommand.TestConfigByFileCommand;
@@ -22,7 +21,7 @@ import java.util.Map;
 import static agent.common.message.MessageType.CMD_TEST_CONFIG_BY_FILE;
 import static agent.common.message.MessageType.CMD_TEST_CONFIG_BY_RULE;
 import static agent.common.message.result.entity.TestConfigResultEntity.ClassResultEntity;
-import static agent.common.message.result.entity.TestConfigResultEntity.MethodResultEntity;
+import static agent.common.message.result.entity.TestConfigResultEntity.InvokeResultEntity;
 
 public class TestConfigCmdExecutor extends AbstractCmdExecutor {
 
@@ -59,8 +58,8 @@ public class TestConfigCmdExecutor extends AbstractCmdExecutor {
 
     private Map<String, List<TestConfigResultEntity>> testConfig(ConfigItem item) {
         Map<String, List<TestConfigResultEntity>> contextToConfigResultEntityList = new HashMap<>();
-        TransformMgr.getInstance().searchMethods(item, (context, result) -> {
-            if (!result.methods.isEmpty()) {
+        TransformMgr.getInstance().searchInvokes(item, (context, result) -> {
+            if (!result.invokes.isEmpty()) {
                 List<TestConfigResultEntity> configResultEntityList = contextToConfigResultEntityList.computeIfAbsent(context, key -> new ArrayList<>());
 
                 TestConfigResultEntity configResultEntity = new TestConfigResultEntity();
@@ -72,12 +71,12 @@ public class TestConfigCmdExecutor extends AbstractCmdExecutor {
                 classResultEntity.setClassName(className);
                 configResultEntity.addClassEntity(classResultEntity);
 
-                result.methods.forEach(method -> {
-                    MethodResultEntity methodResultEntity = new MethodResultEntity();
-                    methodResultEntity.setDeclareClass(result.clazz.getName());
-                    methodResultEntity.setMethodName(method.getName());
-                    methodResultEntity.setSignature(MethodDescriptorUtils.getDescriptor(method));
-                    classResultEntity.addMethodEntity(methodResultEntity);
+                result.invokes.forEach(invoke -> {
+                    InvokeResultEntity invokeResultEntity = new InvokeResultEntity();
+                    invokeResultEntity.setDeclareClass(result.clazz.getName());
+                    invokeResultEntity.setName(invoke.getName());
+                    invokeResultEntity.setDesc(invoke.getDescriptor());
+                    classResultEntity.addInvokeEntity(invokeResultEntity);
                 });
             }
         });

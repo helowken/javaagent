@@ -1,8 +1,6 @@
 package agent.server.transform;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class TransformContext {
     public static final int ACTION_MODIFY = 0;
@@ -16,9 +14,9 @@ public class TransformContext {
         this(context, Collections.singleton(clazz), Collections.singletonList(transformer), action);
     }
 
-    public TransformContext(String context, Set<Class<?>> classSet, List<AgentTransformer> transformerList, int action) {
+    public TransformContext(String context, Collection<Class<?>> classSet, List<AgentTransformer> transformerList, int action) {
         this.context = context;
-        this.classSet = Collections.unmodifiableSet(classSet);
+        this.classSet = new HashSet<>(classSet);
         this.transformerList = Collections.unmodifiableList(transformerList);
         this.action = action;
     }

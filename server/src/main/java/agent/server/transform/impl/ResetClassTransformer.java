@@ -4,6 +4,7 @@ import agent.server.transform.TransformContext;
 import agent.server.transform.revision.ClassDataStore;
 
 public class ResetClassTransformer extends AbstractTransformer {
+    private static final String REG_KEY = "sys_reset";
 
 //    @Override
 //    protected void doTransform(Class<?> clazz) throws Exception {
@@ -17,5 +18,10 @@ public class ResetClassTransformer extends AbstractTransformer {
     @Override
     public void transform(TransformContext transformContext) throws Exception {
 
+    }
+
+    @Override
+    public String getRegKey() {
+        return REG_KEY;
     }
 }

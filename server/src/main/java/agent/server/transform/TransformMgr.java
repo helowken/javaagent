@@ -7,7 +7,7 @@ import agent.hook.plugin.ClassFinder;
 import agent.server.ServerListener;
 import agent.server.event.EventListenerMgr;
 import agent.server.event.impl.TransformClassEvent;
-import agent.server.transform.MethodFinder.MethodSearchResult;
+import agent.server.transform.InvokeFinder.InvokeSearchResult;
 import agent.server.transform.config.ClassConfig;
 import agent.server.transform.config.ModuleConfig;
 import agent.server.transform.config.TransformConfig;
@@ -87,7 +87,7 @@ public class TransformMgr implements ServerListener {
         return transform(transformContextList);
     }
 
-    public void searchMethods(ConfigItem item, SearchFunc func) {
+    public void searchInvokes(ConfigItem item, SearchFunc func) {
         Map<ModuleConfig, Map<TransformConfig, TransformerInfo>> rsMap = parseConfig(item);
         rsMap.forEach((moduleConfig, configToInfo) ->
                 configToInfo.forEach((transformConfig, transformerInfo) ->
@@ -95,7 +95,7 @@ public class TransformMgr implements ServerListener {
                                 .forEach(
                                         targetClassConfig -> func.exec(
                                                 moduleConfig.getContextPath(),
-                                                MethodFinder.getInstance().find(targetClassConfig)
+                                                InvokeFinder.getInstance().find(targetClassConfig)
                                         )
                                 )
                 )
@@ -148,7 +148,7 @@ public class TransformMgr implements ServerListener {
 
     public List<TransformResult> transform(List<TransformContext> transformContextList) {
         return transformContextList.stream()
-                .map(this::doTransform)
+                .map(this::transform)
                 .collect(Collectors.toList());
     }
 
@@ -169,14 +169,14 @@ public class TransformMgr implements ServerListener {
     }
 
     public interface SearchFunc {
-        void exec(String context, MethodSearchResult result);
+        void exec(String context, InvokeSearchResult result);
     }
 
     public interface ReTransformClassErrorHandler {
         void handle(Class<?> clazz, Throwable e);
     }
 
-    private TransformResult doTransform(TransformContext transformContext) {
+    public TransformResult transform(TransformContext transformContext) {
         TransformResult transformResult = new TransformResult(
                 transformContext.getContext()
         );
@@ -245,7 +245,7 @@ public class TransformMgr implements ServerListener {
                 )
         );
         Set<Class<?>> failedClasses = new HashSet<>();
-        TransformMgr.getInstance().reTransformClasses(
+        reTransformClasses(
                 new HashSet<>(
                         classToData.keySet()
                 ),

@@ -1,6 +1,5 @@
 package agent.server.transform.config.parser.handler;
 
-import agent.server.transform.TransformMgr;
 import agent.server.transform.config.*;
 import agent.server.transform.config.rule.MethodRule;
 import agent.server.transform.impl.dynamic.DynamicClassTransformer;
@@ -23,12 +22,12 @@ abstract class AbstractRuleConfigHandler implements RuleConfigHandler {
     TransformConfig newTransformConfig(String targetMethod, String targetClass, DynamicConfigItem configItem) {
         RuleValidateMgr.checkMethodValid(configItem);
 
-        MethodFilterConfig methodFilterConfig = new MethodFilterConfig();
+        InvokeFilterConfig methodFilterConfig = new InvokeFilterConfig();
         methodFilterConfig.setIncludes(Collections.singleton(targetMethod));
 
         ClassConfig classConfig = new ClassConfig();
         classConfig.setTargetClass(targetClass);
-        classConfig.setMethodFilter(methodFilterConfig);
+        classConfig.setInvokeFilter(methodFilterConfig);
 
         TransformerConfig transformerConfig = new TransformerConfig();
         transformerConfig.setRef(DynamicClassTransformer.REG_KEY);

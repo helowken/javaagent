@@ -3,24 +3,24 @@ package agent.server.transform.config;
 import java.util.Objects;
 import java.util.Set;
 
-public class MethodFilterConfig {
+public class InvokeFilterConfig {
     private Set<String> includes;
     private Set<String> excludes;
 
-    public static MethodFilterConfig includes(Set<String> includes) {
-        MethodFilterConfig config = new MethodFilterConfig();
+    public static InvokeFilterConfig includes(Set<String> includes) {
+        InvokeFilterConfig config = new InvokeFilterConfig();
         config.includes = includes;
         return config;
     }
 
-    public static MethodFilterConfig excludes(Set<String> excludes) {
-        MethodFilterConfig config = new MethodFilterConfig();
+    public static InvokeFilterConfig excludes(Set<String> excludes) {
+        InvokeFilterConfig config = new InvokeFilterConfig();
         config.excludes = excludes;
         return config;
     }
 
-    public static MethodFilterConfig newInstance(Set<String> includes, Set<String> excludes) {
-        MethodFilterConfig config = new MethodFilterConfig();
+    public static InvokeFilterConfig newInstance(Set<String> includes, Set<String> excludes) {
+        InvokeFilterConfig config = new InvokeFilterConfig();
         config.includes = includes;
         config.excludes = excludes;
         return config;
@@ -46,7 +46,7 @@ public class MethodFilterConfig {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        MethodFilterConfig that = (MethodFilterConfig) o;
+        InvokeFilterConfig that = (InvokeFilterConfig) o;
         return Objects.equals(includes, that.includes) &&
                 Objects.equals(excludes, that.excludes);
     }

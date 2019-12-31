@@ -1,7 +1,7 @@
 package agent.builtin.tools.result;
 
 import agent.base.utils.IOUtils;
-import agent.base.utils.MethodDescriptorUtils;
+import agent.base.utils.InvokeDescriptorUtils;
 import agent.base.utils.Utils;
 import agent.common.utils.JSONUtils;
 import agent.server.transform.impl.DestInvokeIdRegistry;
@@ -73,7 +73,7 @@ abstract class AbstractResultHandler<T> {
     }
 
     String formatInvoke(String method) {
-        return MethodDescriptorUtils.descToText(method, true);
+        return InvokeDescriptorUtils.descToText(method, true);
     }
 
     void calculateBytesFile(String dataFilePath, CalculateBytesFunc calculateFunc) {

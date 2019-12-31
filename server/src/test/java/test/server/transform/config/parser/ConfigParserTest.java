@@ -56,9 +56,9 @@ public class ConfigParserTest {
 
         ClassConfig classConfig = new ClassConfig();
         classConfig.setTargetClass("test.jetty.TestObject");
-        MethodFilterConfig methodConfig = new MethodFilterConfig();
+        InvokeFilterConfig methodConfig = new InvokeFilterConfig();
         methodConfig.setIncludes(Collections.singleton("test"));
-        classConfig.setMethodFilter(methodConfig);
+        classConfig.setInvokeFilter(methodConfig);
         transformConfig.setTargets(Collections.singletonList(classConfig));
 
         return moduleConfigList;

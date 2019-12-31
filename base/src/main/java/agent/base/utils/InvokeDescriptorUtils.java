@@ -7,7 +7,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-public class MethodDescriptorUtils {
+public class InvokeDescriptorUtils {
     public static final String JAVA_LANG_PACKAGE = "java.lang.";
     public static final int JAVA_LANG_PACKAGE_LENGTH = JAVA_LANG_PACKAGE.length();
     private static final Map<Class<?>, String> classToTypeDesc = new HashMap<>();
@@ -35,8 +35,16 @@ public class MethodDescriptorUtils {
         return method.getDeclaringClass().getName() + "." + getFullDescriptor(method);
     }
 
+    public static String getLongName(Constructor constructor) {
+        return constructor.getDeclaringClass().getName() + "." + getFullDescriptor(constructor);
+    }
+
     public static String getFullDescriptor(Method method) {
         return method.getName() + getDescriptor(method);
+    }
+
+    public static String getFullDescriptor(Constructor constructor) {
+        return "<init>" + getDescriptor(constructor);
     }
 
     public static String getDescriptor(Method method) {
@@ -58,7 +66,7 @@ public class MethodDescriptorUtils {
         sb.append("(");
         if (paramTypes != null)
             Stream.of(paramTypes)
-                    .map(MethodDescriptorUtils::getTypeDescriptor)
+                    .map(InvokeDescriptorUtils::getTypeDescriptor)
                     .forEach(sb::append);
         sb.append(")").append(
                 getTypeDescriptor(returnType)
@@ -67,6 +75,8 @@ public class MethodDescriptorUtils {
     }
 
     private static String getTypeDescriptor(Class<?> clazz) {
+        if (clazz == null)
+            return "";
         return Optional.ofNullable(
                 classToTypeDesc.get(clazz)
         ).orElseGet(

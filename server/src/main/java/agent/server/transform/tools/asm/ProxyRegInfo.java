@@ -31,7 +31,7 @@ public class ProxyRegInfo {
     }
 
     public ProxyRegInfo addBefore(ProxyCallInfo... proxyCallInfos) {
-        return add(BEFORE, proxyCallInfos);
+        return add(ON_BEFORE, proxyCallInfos);
     }
 
     public ProxyRegInfo addOnReturning(ProxyCallInfo... proxyCallInfos) {
@@ -43,7 +43,7 @@ public class ProxyRegInfo {
     }
 
     public ProxyRegInfo addAfter(ProxyCallInfo... proxyCallInfos) {
-        return add(AFTER, proxyCallInfos);
+        return add(ON_AFTER, proxyCallInfos);
     }
 
     private ProxyRegInfo add(ProxyPosition proxyPosition, ProxyCallInfo... proxyCallInfos) {

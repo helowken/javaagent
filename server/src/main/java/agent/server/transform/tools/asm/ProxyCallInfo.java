@@ -8,6 +8,7 @@ public class ProxyCallInfo {
     private final Method proxyMethod;
     private final int argsMask;
     private final Object[] otherArgs;
+    private DisplayFunc displayFunc;
 
     public ProxyCallInfo(Method proxyMethod, int argsMask) {
         this(proxyMethod, argsMask, null);
@@ -29,6 +30,16 @@ public class ProxyCallInfo {
         this.proxyMethod.setAccessible(true);
         this.argsMask = argsMask;
         this.otherArgs = otherArgs;
+    }
+
+    public void setDisplayFunc(DisplayFunc displayFunc) {
+        this.displayFunc = displayFunc;
+    }
+
+    public String getDisplayString() {
+        return displayFunc == null ?
+                proxyMethod.toString() :
+                displayFunc.run(this);
     }
 
     Object getProxyTarget() {
@@ -55,5 +66,9 @@ public class ProxyCallInfo {
     public String toString() {
         return "Proxy method: " + proxyMethod +
                 ", Proxy target: " + proxyTarget;
+    }
+
+    public interface DisplayFunc {
+        String run(ProxyCallInfo callInfo);
     }
 }
