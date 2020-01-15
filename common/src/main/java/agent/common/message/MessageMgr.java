@@ -28,7 +28,6 @@ public class MessageMgr {
         reg(MessageType.CMD_TEST_CONFIG_BY_FILE, ByFileCommand.TestConfigByFileCommand.class);
         reg(MessageType.CMD_TEST_CONFIG_BY_RULE, ByRuleCommand.TestConfigByRuleCommand.class);
         reg(MessageType.CMD_VIEW, ViewCommand.class);
-        reg(MessageType.CMD_CLASSPATH, ClasspathCommand.class);
     }
 
     private static void reg(int type, Class<? extends Message> msgClass) {

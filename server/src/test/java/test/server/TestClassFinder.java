@@ -10,10 +10,6 @@ public class TestClassFinder implements ClassFinder {
     }
 
     @Override
-    public void setParentClassLoader(String contextPath, ClassLoader parentLoader) {
-    }
-
-    @Override
     public Class<?> findClass(String contextPath, String className) {
         return Utils.wrapToRtError(
                 () -> findClassLoader(contextPath).loadClass(className)

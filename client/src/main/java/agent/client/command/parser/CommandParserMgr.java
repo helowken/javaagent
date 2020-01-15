@@ -15,7 +15,6 @@ public class CommandParserMgr {
         reg(new EchoCmdParser());
         reg(new TestConfigCmdParser());
         reg(new ViewCmdParser());
-        reg(new ClasspathCmdParser());
     }
 
     private static void reg(CommandParser cmdParser) {

@@ -36,7 +36,7 @@ public class ProxyCallInfo {
         this.displayFunc = displayFunc;
     }
 
-    public String getDisplayString() {
+    String getDisplayString() {
         return displayFunc == null ?
                 proxyMethod.toString() :
                 displayFunc.run(this);

@@ -29,17 +29,20 @@ class ProxyCallSite {
         this.init();
     }
 
-    Map<ProxyPosition, List<String>> getPosToDisplayStrings() {
-        Map<ProxyPosition, List<String>> rsMap = new TreeMap<>();
+    Map<String, List<String>> getPosToDisplayStrings() {
+        Map<String, List<String>> rsMap = new TreeMap<>();
         posToQueue.forEach(
-                (pos, queue) -> rsMap.put(
-                        pos,
-                        queue.stream()
-                                .map(ProxyCall::getDisplayString)
-                                .collect(
-                                        Collectors.toList()
-                                )
-                )
+                (pos, queue) -> {
+                    if (!queue.isEmpty())
+                        rsMap.put(
+                                pos.toString(),
+                                queue.stream()
+                                        .map(ProxyCall::getDisplayString)
+                                        .collect(
+                                                Collectors.toList()
+                                        )
+                        );
+                }
         );
         return rsMap;
     }

@@ -1,7 +1,6 @@
 package agent.hook.jetty;
 
 import agent.base.utils.Logger;
-import agent.base.utils.ReflectionUtils;
 import agent.hook.plugin.AbstractMultiContextClassFinder;
 
 import java.util.Map;
@@ -37,10 +36,5 @@ class JettyRunnerClassFinder extends AbstractMultiContextClassFinder {
         } else {
             logger.debug("No handler found.");
         }
-    }
-
-    @Override
-    protected void postSetParentClassLoader(String contextPath, ClassLoader loader, ClassLoader parentLoader) throws Exception {
-        ReflectionUtils.setFieldValue("_parent", loader, parentLoader);
     }
 }

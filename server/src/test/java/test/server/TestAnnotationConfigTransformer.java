@@ -2,6 +2,7 @@ package test.server;
 
 import agent.server.transform.impl.AbstractAnnotationConfigTransformer;
 import agent.server.transform.impl.invoke.DestInvoke;
+import agent.server.transform.tools.asm.ProxyCallInfo;
 
 import java.lang.reflect.Method;
 import java.util.Collections;
@@ -31,6 +32,11 @@ public class TestAnnotationConfigTransformer extends AbstractAnnotationConfigTra
     @Override
     protected Set<Class<?>> getAnnotationClasses() {
         return anntClasses;
+    }
+
+    @Override
+    protected ProxyCallInfo.DisplayFunc getDisplayFunc() {
+        return null;
     }
 
     @Override

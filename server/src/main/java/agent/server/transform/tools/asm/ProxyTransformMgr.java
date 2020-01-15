@@ -22,7 +22,7 @@ public class ProxyTransformMgr {
     private ProxyTransformMgr() {
     }
 
-    public Map<ProxyPosition, List<String>> getCallSiteDisplay(Integer invokeId) {
+    public Map<String, List<String>> getCallSiteDisplay(Integer invokeId) {
         return getCallSite(invokeId).getPosToDisplayStrings();
     }
 

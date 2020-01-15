@@ -93,7 +93,7 @@ public abstract class AbstractTest {
         );
     }
 
-    protected void transformByAnnt(String context, Map<Class<?>, String> classToMethodFilter, Object instance) {
+    protected static void transformByAnnt(String context, Map<Class<?>, String> classToMethodFilter, Object instance) {
         TestAnnotationConfigTransformer transformer = new TestAnnotationConfigTransformer(instance);
         transformer.setTransformerInfo(
                 newTransformerInfo(context, classToMethodFilter)
@@ -166,7 +166,7 @@ public abstract class AbstractTest {
         );
     }
 
-    private TransformerInfo newTransformerInfo(String context, Map<Class<?>, String> classToMethodFilter) {
+    private static TransformerInfo newTransformerInfo(String context, Map<Class<?>, String> classToMethodFilter) {
         List<ClassConfig> classConfigs = new ArrayList<>();
         classToMethodFilter.forEach(
                 (clazz, methodFilter) -> classConfigs.add(

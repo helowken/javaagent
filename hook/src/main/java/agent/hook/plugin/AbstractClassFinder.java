@@ -1,7 +1,6 @@
 package agent.hook.plugin;
 
 import agent.base.utils.LockObject;
-import agent.base.utils.ReflectionUtils;
 import agent.base.utils.Utils;
 
 public abstract class AbstractClassFinder implements ClassFinder {
@@ -42,25 +41,11 @@ public abstract class AbstractClassFinder implements ClassFinder {
         return item;
     }
 
-    @Override
-    public void setParentClassLoader(String contextPath, ClassLoader parentLoader) {
-        LoaderItem item = getLoaderItem(contextPath);
-        item.loaderLock.sync(
-                lock -> {
-                    ReflectionUtils.setFieldValue("parent", item.loader, parentLoader);
-                    postSetParentClassLoader(contextPath, item.loader, parentLoader);
-                }
-        );
-    }
-
-    protected void postSetParentClassLoader(String contextPath, ClassLoader loader, ClassLoader parentLoader) throws Exception {
-    }
-
     public static class LoaderItem {
         private final LockObject loaderLock = new LockObject();
         public final ClassLoader loader;
 
-        public LoaderItem(ClassLoader classLoader) {
+        LoaderItem(ClassLoader classLoader) {
             this.loader = classLoader;
         }
     }

@@ -129,11 +129,14 @@ public abstract class AbstractAnnotationConfigTransformer extends AbstractConfig
                 mask,
                 getOtherArgs(destInvoke, anntMethod, argsHint)
         );
-        final String regKey = getRegKey();
         proxyCallInfo.setDisplayFunc(
-                callInfo -> regKey
+                this.getDisplayFunc()
         );
         return proxyCallInfo;
+    }
+
+    protected ProxyCallInfo.DisplayFunc getDisplayFunc() {
+        return callInfo -> getRegKey();
     }
 
     private Object getInstanceOrNull(Method anntMethod) {

@@ -22,7 +22,6 @@ public class CmdExecutorMgr {
         registry.reg(CMD_TEST_CONFIG_BY_FILE, testConfigCmdExecutor);
         registry.reg(CMD_TEST_CONFIG_BY_RULE, testConfigCmdExecutor);
         registry.reg(CMD_VIEW, new ViewCmdExecutor());
-        registry.reg(CMD_CLASSPATH, new ClasspathCmdExecutor());
     }
 
     public static ExecResult exec(Command cmd) {

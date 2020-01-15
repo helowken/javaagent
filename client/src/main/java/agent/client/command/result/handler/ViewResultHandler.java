@@ -1,46 +1,40 @@
 package agent.client.command.result.handler;
 
+import agent.base.utils.IndentUtils;
+import agent.client.utils.ClientLogger;
 import agent.common.message.command.Command;
 import agent.common.message.command.impl.ViewCommand;
 import agent.common.message.result.ExecResult;
 
+import java.util.Collection;
 import java.util.Map;
-import java.util.Set;
 
-import static agent.base.utils.IndentUtils.INDENT_1;
-import static agent.common.message.command.impl.ViewCommand.CATALOG_CLASS;
-import static agent.common.message.command.impl.ViewCommand.CATALOG_CLASSPATH;
-
+@SuppressWarnings("unchecked")
 public class ViewResultHandler extends AbstractContextResultHandler {
 
     @Override
     public void handleSuccess(Command command, ExecResult result) {
-        Map<String, Set<String>> rsMap = result.getContent();
-        ViewCommand viewCommand = (ViewCommand) command;
-        String title;
-        String entryDesc;
-        final String catalog = viewCommand.getCatalog();
-        switch (catalog) {
-            case CATALOG_CLASS:
-                title = "View Transformed Class Result";
-                entryDesc = "class: ";
-                break;
-            case CATALOG_CLASSPATH:
-                title = "View Classpath Result";
-                entryDesc = "classpath: ";
-                break;
-            default:
-                throw new RuntimeException("Unknown catalog: " + catalog);
-        }
-        write(
-                title,
-                rsMap,
-                (sb, classSet) -> {
-                    if (classSet != null)
-                        classSet.forEach(className ->
-                                sb.append(INDENT_1).append(entryDesc).append(className).append("\n")
-                        );
-                }
-        );
+        Object content = result.getContent();
+        StringBuilder sb = new StringBuilder();
+        printContent(sb, 0, content);
+        String msg = "Result of " + ((ViewCommand) command).getCatalog();
+        ClientLogger.logger.info("{}: \n{}", msg, sb.toString());
+    }
+
+    private void printContent(StringBuilder sb, int level, Object content) {
+        String indent = IndentUtils.getIndent(level);
+        if (content instanceof Collection) {
+            ((Collection) content).forEach(
+                    el -> printContent(sb, level, el)
+            );
+        } else if (content instanceof Map) {
+            ((Map) content).forEach(
+                    (key, value) -> {
+                        sb.append(indent).append(key).append(":\n");
+                        printContent(sb, level + 1, value);
+                    }
+            );
+        } else
+            sb.append(indent).append(content).append("\n");
     }
 }

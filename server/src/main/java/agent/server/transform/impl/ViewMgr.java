@@ -1,5 +1,6 @@
 package agent.server.transform.impl;
 
+import agent.base.utils.InvokeDescriptorUtils;
 import agent.server.transform.InvokeFinder;
 import agent.server.transform.impl.invoke.DestInvoke;
 import agent.server.transform.tools.asm.ProxyTransformMgr;
@@ -59,12 +60,12 @@ public class ViewMgr {
                                     return ((Class<?>) value).getName();
                                 case VIEW_INVOKE:
                                     DestInvoke destInvoke = (DestInvoke) value;
-                                    return destInvoke.getName() + destInvoke.getDescriptor();
+                                    return  InvokeDescriptorUtils.descToText(destInvoke.getName() + destInvoke.getDescriptor(), true);
                                 case VIEW_PROXY:
                                     Integer invokeId = (Integer) value;
                                     return ProxyTransformMgr.getInstance().getCallSiteDisplay(invokeId);
                             }
-                            throw new RuntimeException("Unsupport level: " + currLevel);
+                            throw new RuntimeException("Unsupported level: " + currLevel);
                         }
                 )
         );
@@ -92,11 +93,16 @@ public class ViewMgr {
             Map<Object, Object> rsMap = new HashMap<>();
             map.forEach(
                     (key, value) -> {
-                        if (filterFunc.accept(currLevel, maxLevel, key))
-                            rsMap.put(
-                                    displayFunc.apply(currLevel, maxLevel, key),
-                                    newValue(nextLevel, maxLevel, value, filterFunc, displayFunc)
-                            );
+                        if (filterFunc.accept(currLevel, maxLevel, key)) {
+                            Object rsValue = newValue(nextLevel, maxLevel, value, filterFunc, displayFunc);
+                            if ((rsValue instanceof Map && !((Map) rsValue).isEmpty()) ||
+                                    (rsValue instanceof Collection && !((Collection) rsValue).isEmpty()) ||
+                                    rsValue != null)
+                                rsMap.put(
+                                        displayFunc.apply(currLevel, maxLevel, key),
+                                        rsValue
+                                );
+                        }
                     }
             );
             return rsMap;

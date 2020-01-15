@@ -3,15 +3,12 @@ package test;
 import agent.base.plugin.PluginFactory;
 import agent.hook.plugin.ClassFinder;
 import agent.hook.utils.App;
-import agent.server.transform.ContextClassLoaderMgr;
 import agent.server.transform.TransformMgr;
 import org.junit.After;
 import org.junit.BeforeClass;
 import test.utils.TestClassFinder;
 import test.utils.TestClassLoader;
 import test.utils.TestInstrumentation;
-
-import java.net.URL;
 
 import static test.utils.ServerTestUtils.initSystemConfig;
 import static test.utils.ServerTestUtils.mockClassFinder;
@@ -26,13 +23,6 @@ public class AbstractTest {
         TestClassFinder classFinder = new TestClassFinder();
         classFinder.set(context, classloader);
         PluginFactory.setMock(ClassFinder.class, classFinder);
-
-        URL url = clazz.getProtectionDomain().getCodeSource().getLocation();
-        ContextClassLoaderMgr.getInstance().addClasspath(
-                context,
-                url
-        );
-
         TransformMgr.getInstance().onStartup(new Object[]{instrumentation});
     }
 

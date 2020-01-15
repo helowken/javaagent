@@ -9,7 +9,6 @@ public class MessageType {
     public static final int CMD_ECHO = 5;
     public static final int CMD_TEST_CONFIG_BY_FILE = 6;
     public static final int CMD_VIEW = 7;
-    public static final int CMD_CLASSPATH = 8;
     public static final int CMD_TRANSFORM_BY_RULE = 9;
     public static final int CMD_TEST_CONFIG_BY_RULE = 10;
 }
