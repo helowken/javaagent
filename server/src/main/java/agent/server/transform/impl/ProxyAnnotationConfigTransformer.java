@@ -52,7 +52,7 @@ public abstract class ProxyAnnotationConfigTransformer extends AbstractAnnotatio
         return Collections.singleton(configClass);
     }
 
-    protected Class<? extends ProxyAnnotationConfig> getConfigClass() {
+    private Class<? extends ProxyAnnotationConfig> getConfigClass() {
         return lo.syncValue(
                 lock -> {
                     if (configClass == null) {

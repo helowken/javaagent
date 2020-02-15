@@ -37,7 +37,8 @@ class ProxyCallSite {
                         rsMap.put(
                                 pos.toString(),
                                 queue.stream()
-                                        .map(ProxyCall::getDisplayString)
+                                        .map(ProxyCall::getCallInfo)
+                                        .map(ProxyCallInfo::getTag)
                                         .collect(
                                                 Collectors.toList()
                                         )

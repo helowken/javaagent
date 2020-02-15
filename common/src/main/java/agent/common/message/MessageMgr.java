@@ -20,7 +20,7 @@ public class MessageMgr {
 
     static {
         reg(MessageType.RESULT_DEFAULT, DefaultExecResult.class);
-        reg(MessageType.CMD_RESET_CLASS, ResetClassCommand.class);
+        reg(MessageType.CMD_RESET, ResetCommand.class);
         reg(MessageType.CMD_TRANSFORM_BY_FILE, ByFileCommand.TransformByFileCommand.class);
         reg(MessageType.CMD_TRANSFORM_BY_RULE, ByRuleCommand.TransformByRuleCommand.class);
         reg(MessageType.CMD_FLUSH_LOG, FlushLogCommand.class);

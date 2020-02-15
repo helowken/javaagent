@@ -7,13 +7,13 @@ import agent.common.struct.impl.Structs;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class ResetClassCommand extends AbstractCommand<DefaultStruct> {
-    public ResetClassCommand() {
+public class ResetCommand extends AbstractCommand<DefaultStruct> {
+    public ResetCommand() {
         this(null);
     }
 
-    public ResetClassCommand(String contextExpr, String... classExprSet) {
-        super(MessageType.CMD_RESET_CLASS, Structs.newStringArray());
+    public ResetCommand(String contextExpr, String... classExprSet) {
+        super(MessageType.CMD_RESET, Structs.newStringArray());
         List<String> args = new ArrayList<>();
         if (contextExpr != null) {
             args.add(contextExpr);

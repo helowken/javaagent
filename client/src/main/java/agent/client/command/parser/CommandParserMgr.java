@@ -10,7 +10,7 @@ public class CommandParserMgr {
 
     static {
         reg(new FlushLogCmdParser());
-        reg(new ResetClassCmdParser());
+        reg(new ResetCmdParser());
         reg(new TransformCmdParser());
         reg(new EchoCmdParser());
         reg(new TestConfigCmdParser());

@@ -6,11 +6,11 @@
         "desc": "Used to measure time cost.",
         "transformers": [
           {
-            "ref": "sys_costTimeMeasure",
+            "ref": "@costTimeMeasure",
             "config": {
               "log": {
                 "autoFlush": false,
-                "outputFormat": "[${currTime}] - ${currTimeMillis} - ${method}: ${costTime}ms",
+                "outputFormat": "[${currTime}] - ${currTimeMillis} - ${invoke}: ${costTime}ms",
                 "timeFormat": "yyyy-MM-dd HH:mm:ss.SSS",
                 "maxBufferSize": 8192
               }
@@ -20,7 +20,7 @@
         "targets": [
           {
             "targetClass": "test.jetty.TestObject",
-            "methodFilter": {
+            "invokeFilter": {
               "includes": [
                 "test.*"
               ]
@@ -28,7 +28,7 @@
           },
           {
             "targetClass": "test.jetty.SubTestObject",
-            "methodFilter": {
+            "invokeFilter": {
               "includes": [
                 ".*[l|L]oad"
               ]

@@ -2,11 +2,11 @@ package agent.client.command.parser.impl;
 
 import agent.client.command.parser.CommandParser;
 import agent.common.message.command.Command;
-import agent.common.message.command.impl.ResetClassCommand;
+import agent.common.message.command.impl.ResetCommand;
 
 import java.util.Arrays;
 
-public class ResetClassCmdParser implements CommandParser {
+public class ResetCmdParser implements CommandParser {
     @Override
     public Command parse(String[] args) {
         String context = null;
@@ -16,7 +16,7 @@ public class ResetClassCmdParser implements CommandParser {
             if (args.length > 1)
                 classExprSet = Arrays.copyOfRange(args, 1, args.length);
         }
-        return new ResetClassCommand(context, classExprSet);
+        return new ResetCommand(context, classExprSet);
     }
 
     @Override

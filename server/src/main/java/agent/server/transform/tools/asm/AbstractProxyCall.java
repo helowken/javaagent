@@ -73,7 +73,12 @@ abstract class AbstractProxyCall implements ProxyCall {
     }
 
     @Override
-    public String getDisplayString() {
-        return callInfo.getDisplayString();
+    public ProxyCallInfo getCallInfo() {
+        return callInfo;
+    }
+
+    @Override
+    public ProxyPosition getPosition() {
+        return position;
     }
 }

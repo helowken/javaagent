@@ -6,9 +6,9 @@ import agent.server.ServerListener;
 import agent.server.event.AgentEvent;
 import agent.server.event.AgentEventListener;
 import agent.server.event.EventListenerMgr;
-import agent.server.event.impl.ResetClassEvent;
+import agent.server.event.impl.ResetEvent;
 import agent.server.event.impl.TransformClassEvent;
-import agent.server.transform.impl.ResetClassTransformer;
+import agent.server.transform.impl.ResetTransformer;
 
 import java.util.*;
 import java.util.regex.Pattern;
@@ -72,7 +72,7 @@ public class ResetMgr implements ServerListener, AgentEventListener {
             return contextToTransformedClassSet.isEmpty();
         });
         EventListenerMgr.fireEvent(
-                new ResetClassEvent(context, allReset)
+                new ResetEvent(context, allReset)
         );
     }
 
@@ -103,7 +103,7 @@ public class ResetMgr implements ServerListener, AgentEventListener {
                                         context,
                                         resetClassSet,
                                         Collections.singletonList(
-                                                new ResetClassTransformer()
+                                                new ResetTransformer()
                                         ),
                                         ACTION_RESET
                                 )

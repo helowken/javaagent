@@ -1,6 +1,7 @@
 package test.server.asm;
 
 import agent.base.utils.IOUtils;
+import agent.base.utils.InvokeDescriptorUtils;
 import agent.base.utils.ReflectionUtils;
 import agent.base.utils.Utils;
 import agent.server.transform.impl.DestInvokeIdRegistry;
@@ -17,7 +18,7 @@ import static agent.server.transform.tools.asm.ProxyArgsMask.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
-class AsmTestUtils {
+public class AsmTestUtils {
     private static final String DEFAULT_CONTEXT = "defaultContext";
 
     static void doCheck(int count, List<String> logList, boolean throwError, boolean hasBefore) {
@@ -101,32 +102,55 @@ class AsmTestUtils {
     static ProxyResult prepareData(int count, List<String> logList, ProxyRegInfo regInfo) throws Exception {
         for (int i = 0; i < count; ++i) {
             TestProxyB b = new TestProxyB(i, logList);
+            String tag = "b" + i;
             regInfo.addBefore(
                     new ProxyCallInfo(
                             b,
                             ReflectionUtils.findFirstMethod(TestProxyB.class, "testBefore"),
-                            DEFAULT_BEFORE
+                            DEFAULT_BEFORE,
+                            null,
+                            tag
                     )
             ).addOnReturning(
                     new ProxyCallInfo(
                             b,
                             ReflectionUtils.findFirstMethod(TestProxyB.class, "testOnReturning"),
-                            DEFAULT_ON_RETURNING
+                            DEFAULT_ON_RETURNING,
+                            null,
+                            tag
                     )
             ).addOnThrowing(
                     new ProxyCallInfo(
                             b,
                             ReflectionUtils.findFirstMethod(TestProxyB.class, "testOnThrowing"),
-                            DEFAULT_ON_THROWING
+                            DEFAULT_ON_THROWING,
+                            null,
+                            tag
                     )
             ).addAfter(
                     new ProxyCallInfo(
                             b,
                             ReflectionUtils.findFirstMethod(TestProxyB.class, "testAfter"),
-                            DEFAULT_AFTER
+                            DEFAULT_AFTER,
+                            null,
+                            tag
                     )
             );
         }
         return transform(regInfo);
+    }
+
+    public static String methodToString(Method method) {
+        return InvokeDescriptorUtils.descToText(
+                method.getName() + InvokeDescriptorUtils.getDescriptor(method),
+                true
+        );
+    }
+
+    public static String constructorToString(Constructor constructor) {
+        return InvokeDescriptorUtils.descToText(
+                "<init>" + InvokeDescriptorUtils.getDescriptor(constructor),
+                true
+        );
     }
 }

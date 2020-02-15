@@ -43,7 +43,8 @@ class ViewCmdExecutor extends AbstractCmdExecutor {
                         maxLevel,
                         filterMap.get(CATALOG_CONTEXT),
                         filterMap.get(CATALOG_CLASS),
-                        filterMap.get(CATALOG_INVOKE)
+                        filterMap.get(CATALOG_INVOKE),
+                        filterMap.get(CATALOG_PROXY)
                 )
         );
     }

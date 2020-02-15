@@ -1,11 +1,11 @@
 package agent.server.command.executor;
 
+import agent.base.utils.Logger;
+import agent.base.utils.Utils;
 import agent.common.message.command.Command;
 import agent.common.message.command.CommandExecutor;
 import agent.common.message.result.DefaultExecResult;
 import agent.common.message.result.ExecResult;
-import agent.base.utils.Logger;
-import agent.base.utils.Utils;
 
 import java.util.Optional;
 
@@ -24,7 +24,7 @@ public abstract class AbstractCmdExecutor implements CommandExecutor {
     }
 
     private ExecResult handleError(Exception e, Command cmd) {
-        return DefaultExecResult.toError(cmd.getType(), Utils.getMergedErrorMessage(e));
+        return DefaultExecResult.toRuntimeError(Utils.getMergedErrorMessage(e));
     }
 
     abstract ExecResult doExec(Command cmd) throws Exception;

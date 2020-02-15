@@ -21,7 +21,7 @@ public class CommandResultHandlerMgr {
         regResultHandlerClass(CMD_VIEW, new ViewResultHandler());
         regResultHandlerClass(CMD_TRANSFORM_BY_FILE, new TransformResultHandler());
         regResultHandlerClass(CMD_TRANSFORM_BY_RULE, new TransformResultHandler());
-        regResultHandlerClass(CMD_RESET_CLASS, new ResetClassResultHandler());
+        regResultHandlerClass(CMD_RESET, new ResetResultHandler());
     }
 
     private static void regResultHandlerClass(int type, ExecResultHandler rsHandler) {

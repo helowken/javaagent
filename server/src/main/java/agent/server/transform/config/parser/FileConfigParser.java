@@ -1,6 +1,7 @@
 package agent.server.transform.config.parser;
 
 import agent.base.utils.IOUtils;
+import agent.base.utils.Logger;
 import agent.base.utils.TypeObject;
 import agent.common.utils.JSONUtils;
 import agent.server.transform.config.ModuleConfig;
@@ -10,6 +11,8 @@ import java.io.File;
 import java.util.List;
 
 public class FileConfigParser implements ConfigParser {
+    private static final Logger logger = Logger.getLogger(FileConfigParser.class);
+
     @Override
     public List<ModuleConfig> parse(ConfigItem item) throws ConfigParseException {
         try {
@@ -21,7 +24,8 @@ public class FileConfigParser implements ConfigParser {
                     }
             );
         } catch (Exception e) {
-            throw new ConfigParseException("Config parse failed: " + item, e);
+            logger.error("Parse config failed.", e);
+            throw new ConfigParseException("Config parse failed: " + item);
         }
     }
 
@@ -51,6 +55,11 @@ public class FileConfigParser implements ConfigParser {
         @Override
         public ConfigParserType getType() {
             return ConfigParserType.FILE;
+        }
+
+        @Override
+        public String toString() {
+            return String.valueOf(source);
         }
     }
 }

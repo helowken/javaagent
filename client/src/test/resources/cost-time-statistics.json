@@ -6,7 +6,7 @@
         "desc": "Used to time cost analyze.",
         "transformers": [
           {
-            "ref": "sys_costTimeStatistics",
+            "ref": "@costTimeStatistics",
             "config": {
               "log": {
                 "outputPath": "/home/helowken/cost-time/cost-time-statistics.log",
@@ -17,7 +17,7 @@
               "entryPoint": [
                 {
                   "targetClass": "test.jetty.TestFilter2",
-                  "methodFilter": {
+                  "invokeFilter": {
                     "includes": [
                       "test"
                     ]
@@ -30,7 +30,7 @@
         "targets": [
           {
             "targetClass": "test.jetty.TestFilter2",
-            "methodFilter": {
+            "invokeFilter": {
               "includes": [
                 "test"
               ]
@@ -38,7 +38,7 @@
           },
           {
             "targetClass": "test.jetty.StatisticsCostTimeObject",
-            "methodFilter": {}
+            "invokeFilter": {}
           }
         ]
       }

@@ -5,10 +5,7 @@ import agent.server.transform.InvokeFinder;
 import agent.server.transform.impl.invoke.DestInvoke;
 import agent.server.transform.tools.asm.ProxyTransformMgr;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -26,11 +23,12 @@ public class ViewMgr {
         return pattern == null || pattern.matcher(value).matches();
     }
 
-    public static Object create(int maxLevel, String contextRegexp, String classRegExp, String invokeRegExp) {
+    public static Object create(int maxLevel, String contextRegexp, String classRegExp, String invokeRegExp, String proxyRegExp) {
         final Pattern contextPattern = newPattern(contextRegexp);
         final Pattern classPattern = newPattern(classRegExp);
         final Pattern invokePattern = invokeRegExp == null ? null : InvokeFinder.compilePattern(invokeRegExp);
         final Collection<Pattern> invokePatterns = invokePattern == null ? null : Collections.singleton(invokePattern);
+        final Pattern proxyPattern = newPattern(proxyRegExp);
         return DestInvokeIdRegistry.getInstance().run(
                 contextToClassToInvokeToId -> newValue(
                         VIEW_CONTEXT,
@@ -60,15 +58,36 @@ public class ViewMgr {
                                     return ((Class<?>) value).getName();
                                 case VIEW_INVOKE:
                                     DestInvoke destInvoke = (DestInvoke) value;
-                                    return  InvokeDescriptorUtils.descToText(destInvoke.getName() + destInvoke.getDescriptor(), true);
+                                    return InvokeDescriptorUtils.descToText(destInvoke.getName() + destInvoke.getDescriptor(), true);
                                 case VIEW_PROXY:
-                                    Integer invokeId = (Integer) value;
-                                    return ProxyTransformMgr.getInstance().getCallSiteDisplay(invokeId);
+                                    return filterProxy(
+                                            (Integer) value,
+                                            proxyPattern
+                                    );
                             }
                             throw new RuntimeException("Unsupported level: " + currLevel);
                         }
                 )
         );
+    }
+
+    private static Map<String, List<String>> filterProxy(Integer invokeId, Pattern proxyPattern) {
+        Map<String, List<String>> proxyMap = ProxyTransformMgr.getInstance().getCallSiteDisplay(invokeId);
+        Map<String, List<String>> rsMap = new TreeMap<>();
+        proxyMap.forEach(
+                (pos, proxyList) -> {
+                    List<String> rsList = proxyList.stream()
+                            .filter(
+                                    proxy -> match(proxyPattern, proxy)
+                            )
+                            .collect(
+                                    Collectors.toList()
+                            );
+                    if (!rsList.isEmpty())
+                        rsMap.put(pos, rsList);
+                }
+        );
+        return rsMap;
     }
 
     @SuppressWarnings("unchecked")

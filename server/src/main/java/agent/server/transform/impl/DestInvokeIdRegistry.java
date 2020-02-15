@@ -10,7 +10,7 @@ import agent.server.event.AgentEventListener;
 import agent.server.event.EventListenerMgr;
 import agent.server.event.impl.DestInvokeMetadataFlushedEvent;
 import agent.server.event.impl.LogFlushedEvent;
-import agent.server.event.impl.ResetClassEvent;
+import agent.server.event.impl.ResetEvent;
 import agent.server.transform.impl.invoke.DestInvoke;
 
 import java.util.*;
@@ -90,15 +90,15 @@ public class DestInvokeIdRegistry implements ServerListener, AgentEventListener 
     @Override
     public void onNotify(AgentEvent event) {
         Class<?> eventType = event.getClass();
-        if (eventType.equals(ResetClassEvent.class)) {
-            handleResetEvent((ResetClassEvent) event);
+        if (eventType.equals(ResetEvent.class)) {
+            handleResetEvent((ResetEvent) event);
         } else if (eventType.equals(LogFlushedEvent.class)) {
             handleLogFlushedEvent((LogFlushedEvent) event);
         } else
             throw new RuntimeException("Unsupported event type: " + eventType);
     }
 
-    private void handleResetEvent(ResetClassEvent event) {
+    private void handleResetEvent(ResetEvent event) {
         lo.sync(
                 lock -> {
                     if (event.isAllReset()) {
@@ -187,7 +187,7 @@ public class DestInvokeIdRegistry implements ServerListener, AgentEventListener 
     @Override
     public void onStartup(Object[] args) {
         EventListenerMgr.reg(LogFlushedEvent.class, this);
-        EventListenerMgr.reg(ResetClassEvent.class, this);
+        EventListenerMgr.reg(ResetEvent.class, this);
     }
 
     @Override

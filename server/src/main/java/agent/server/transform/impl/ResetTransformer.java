@@ -3,8 +3,8 @@ package agent.server.transform.impl;
 import agent.server.transform.TransformContext;
 import agent.server.transform.revision.ClassDataStore;
 
-public class ResetClassTransformer extends AbstractTransformer {
-    private static final String REG_KEY = "sys_reset";
+public class ResetTransformer extends AbstractTransformer {
+    private static final String REG_KEY = "@reset";
 
 //    @Override
 //    protected void doTransform(Class<?> clazz) throws Exception {

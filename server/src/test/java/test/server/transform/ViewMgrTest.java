@@ -1,11 +1,11 @@
 package test.server.transform;
 
-import agent.base.utils.InvokeDescriptorUtils;
 import agent.base.utils.ReflectionUtils;
 import agent.base.utils.Utils;
 import agent.server.transform.impl.ViewMgr;
 import org.junit.Test;
 import test.server.TestProxy;
+import test.server.asm.AsmTestUtils;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -62,15 +62,15 @@ public class ViewMgrTest extends AbstractViewTest {
         Set<String> invokeSet = new TreeSet<>();
         Stream.of(
                 A.class.getDeclaredMethods()
-        ).map(InvokeDescriptorUtils::getFullDescriptor)
+        ).map(AsmTestUtils::methodToString)
                 .forEach(invokeSet::add);
 
         Stream.of(
                 A.class.getDeclaredConstructors()
-        ).map(InvokeDescriptorUtils::getFullDescriptor)
+        ).map(AsmTestUtils::constructorToString)
                 .forEach(invokeSet::add);
 
-        Map map = (Map) ViewMgr.create(ViewMgr.VIEW_INVOKE, ".*A", ".*A", null);
+        Map map = (Map) ViewMgr.create(ViewMgr.VIEW_INVOKE, ".*A", ".*A", null, null);
         map = (Map) map.get(contextA);
         Collection<String> invokes = (Collection) map.get(A.class.getName());
         assertEquals(
@@ -81,10 +81,10 @@ public class ViewMgrTest extends AbstractViewTest {
         invokeSet = new TreeSet<>();
         Stream.of(
                 A.class.getDeclaredMethods()
-        ).map(InvokeDescriptorUtils::getFullDescriptor)
+        ).map(AsmTestUtils::methodToString)
                 .forEach(invokeSet::add);
 
-        map = (Map) ViewMgr.create(ViewMgr.VIEW_INVOKE, ".*A", ".*A", "[^<].*");
+        map = (Map) ViewMgr.create(ViewMgr.VIEW_INVOKE, ".*A", ".*A", "[^<].*", null);
         map = (Map) map.get(contextA);
         invokes = (Collection) map.get(A.class.getName());
         assertEquals(
@@ -95,15 +95,16 @@ public class ViewMgrTest extends AbstractViewTest {
 
     @Test
     public void testViewProxy() {
-        Map map = (Map) ViewMgr.create(ViewMgr.VIEW_PROXY, ".*A", ".*A", null);
+        Map map = (Map) ViewMgr.create(ViewMgr.VIEW_PROXY, ".*A", ".*A", null, null);
         map = (Map) map.get(contextA);
-        map = (Map) map.get(A.class.getName());
+        map = new TreeMap<>((Map) map.get(A.class.getName()));
+        System.out.println(map);
 
         Map methodResult = Stream.of(
                 A.class.getDeclaredMethods()
         ).collect(
                 Collectors.toMap(
-                        InvokeDescriptorUtils::getFullDescriptor,
+                        AsmTestUtils::methodToString,
                         method -> newProxyMap("onBefore", "onReturning", "onThrowing", "onAfter")
                 )
         );
@@ -111,7 +112,7 @@ public class ViewMgrTest extends AbstractViewTest {
                 A.class.getDeclaredConstructors()
         ).collect(
                 Collectors.toMap(
-                        InvokeDescriptorUtils::getFullDescriptor,
+                        AsmTestUtils::constructorToString,
                         method -> newProxyMap("onReturning", "onThrowing", "onAfter")
                 )
         );
@@ -119,12 +120,12 @@ public class ViewMgrTest extends AbstractViewTest {
         allResult.putAll(constructorResult);
         assertEquals(map, allResult);
 
-        map = (Map) ViewMgr.create(ViewMgr.VIEW_PROXY, ".*A", ".*A", "[^<].*");
+        map = (Map) ViewMgr.create(ViewMgr.VIEW_PROXY, ".*A", ".*A", "[^<].*", null);
         map = (Map) map.get(contextA);
         map = (Map) map.get(A.class.getName());
         assertEquals(map, methodResult);
 
-        map = (Map) ViewMgr.create(ViewMgr.VIEW_PROXY, ".*A", ".*A", "<.*");
+        map = (Map) ViewMgr.create(ViewMgr.VIEW_PROXY, ".*A", ".*A", "<.*", null);
         map = (Map) map.get(contextA);
         map = (Map) map.get(A.class.getName());
         assertEquals(map, constructorResult);
@@ -169,20 +170,28 @@ public class ViewMgrTest extends AbstractViewTest {
 
     private void validateViewClass(String contextRegexp, Collection<String> expectedContexts, String classRegexp,
                                    Map<String, List<String>> expectedContextToClasses) {
-        Map<String, List<String>> contextToClasses = (Map) ViewMgr.create(ViewMgr.VIEW_CLASS, contextRegexp, classRegexp, null);
+        Map<String, List<String>> contextToClasses = (Map) ViewMgr.create(ViewMgr.VIEW_CLASS, contextRegexp, classRegexp, null, null);
         assertEquals(
                 new TreeSet<>(expectedContexts),
                 new TreeSet<>(contextToClasses.keySet())
         );
         assertEquals(
                 expectedContextToClasses,
-                new TreeMap<>(contextToClasses)
+                sortMap(contextToClasses)
         );
+    }
+
+    private Map<String, List<String>> sortMap(Map<String, List<String>> map) {
+        Map<String, List<String>> rsMap = new TreeMap<>();
+        map.forEach(
+                (k, v) -> rsMap.put(k, new ArrayList<>(new TreeSet<>(v)))
+        );
+        return rsMap;
     }
 
     private void validateViewContext(String contextRegexp, Collection<String> contexts) {
         Collection<String> contextSet = new TreeSet<>(
-                (Collection) ViewMgr.create(ViewMgr.VIEW_CONTEXT, contextRegexp, null, null)
+                (Collection) ViewMgr.create(ViewMgr.VIEW_CONTEXT, contextRegexp, null, null, null)
         );
         assertEquals(
                 new TreeSet<>(contexts),

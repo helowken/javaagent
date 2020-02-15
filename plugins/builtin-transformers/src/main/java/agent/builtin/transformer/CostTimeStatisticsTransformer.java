@@ -13,7 +13,7 @@ import java.util.Map;
 
 @SuppressWarnings("unchecked")
 public class CostTimeStatisticsTransformer extends CallChainTransformer {
-    public static final String REG_KEY = "sys_costTimeStat";
+    public static final String REG_KEY = "@costTimeStat";
 
     @Override
     protected String newLogKey(Map<String, Object> config) {

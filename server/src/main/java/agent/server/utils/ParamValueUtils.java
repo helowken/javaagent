@@ -1,6 +1,5 @@
 package agent.server.utils;
 
-import agent.base.utils.Logger;
 import agent.base.utils.TimeFormatUtils;
 
 import java.util.HashMap;
@@ -8,11 +7,9 @@ import java.util.Map;
 
 public class ParamValueUtils {
     public static final String KEY_CLASS = "class";
-    public static final String KEY_METHOD = "method";
+    public static final String KEY_INVOKE = "invoke";
     public static final String KEY_CURR_TIME_MILLIS = "currTimeMillis";
     public static final String KEY_CURR_TIME = "currTime";
-
-    private static final Logger logger = Logger.getLogger(ParamValueUtils.class);
 
     public static Map<String, Object> newParamValueMap(Object... kvs) {
         return newParamValueMap(null, null, kvs);
@@ -23,7 +20,7 @@ public class ParamValueUtils {
         if (className != null)
             rsMap.put(KEY_CLASS, className);
         if (invoke != null)
-            rsMap.put(KEY_METHOD, invoke);
+            rsMap.put(KEY_INVOKE, invoke);
         rsMap.put(KEY_CURR_TIME_MILLIS, System.currentTimeMillis());
         if (kvs != null) {
             if (kvs.length % 2 != 0)

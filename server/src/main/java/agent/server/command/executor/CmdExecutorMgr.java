@@ -14,7 +14,7 @@ public class CmdExecutorMgr {
         CommandExecutor transformCmdExecutor = new TransformCmdExecutor();
         CommandExecutor testConfigCmdExecutor = new TestConfigCmdExecutor();
 
-        registry.reg(CMD_RESET_CLASS, new ResetClassCmdExecutor());
+        registry.reg(CMD_RESET, new ResetCmdExecutor());
         registry.reg(CMD_TRANSFORM_BY_FILE, transformCmdExecutor);
         registry.reg(CMD_TRANSFORM_BY_RULE, transformCmdExecutor);
         registry.reg(CMD_FLUSH_LOG, new FlushLogCmdExecutor());

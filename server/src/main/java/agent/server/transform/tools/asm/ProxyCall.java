@@ -5,5 +5,7 @@ import agent.server.transform.impl.invoke.DestInvoke;
 interface ProxyCall {
     void run(DestInvoke destInvoke, Object instanceOrNull, Object pv);
 
-    String getDisplayString();
+    ProxyCallInfo getCallInfo();
+
+    ProxyPosition getPosition();
 }

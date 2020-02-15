@@ -67,7 +67,8 @@ public class ViewCommand extends AbstractCommand<DefaultStruct> {
         String[] ts = filter.split(SEP);
         if (ts.length != 2 || Utils.isBlank(ts[1]))
             throw new IllegalArgumentException("Invalid filter: " + filter);
-        validateCatalog(ts[0]);
+        String filterCatalog = ts[0];
+        validateCatalog(filterCatalog);
         return ts;
     }
 }

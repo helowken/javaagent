@@ -23,16 +23,12 @@ public class DefaultExecResult extends AbstractMessage<MapStruct<String, Object>
         return toResult(ResultStatus.SUCCESS, cmdType, msg, content);
     }
 
-    public static DefaultExecResult toError(int cmdType, String errorMsg) {
-        return toError(cmdType, errorMsg, null);
-    }
-
     public static DefaultExecResult toError(int cmdType, String errorMsg, Object content) {
         return toResult(ResultStatus.ERROR, cmdType, errorMsg, content);
     }
 
     public static DefaultExecResult toRuntimeError(String errorMsg) {
-        return toError(MessageType.CMD_NONE, errorMsg);
+        return toError(MessageType.CMD_NONE, errorMsg, null);
     }
 
     public static DefaultExecResult toResult(ResultStatus resultStatus, int messageType, String msg, Object content) {

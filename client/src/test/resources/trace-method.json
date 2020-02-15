@@ -3,13 +3,13 @@
     "contextPath": "/test",
     "transformConfigs": [
       {
-        "desc": "Used to trace method arguments and return value",
+        "desc": "Used to trace invoke arguments and return value",
         "transformers": [
           {
-            "ref": "sys_traceMethod",
+            "ref": "@traceMethod",
             "config": {
               "log": {
-                "outputFormat": "${class}#${method}: \n${content}"
+                "outputFormat": "${class}#${invoke}: \n${content}"
               },
               "printerClass": ""
             }
@@ -18,7 +18,7 @@
         "targets": [
           {
             "targetClass": "test.jetty.ParamObject",
-            "methodFilter": {}
+            "invokeFilter": {}
           }
         ]
       }

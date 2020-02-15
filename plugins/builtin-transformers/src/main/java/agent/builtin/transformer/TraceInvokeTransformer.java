@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 import static agent.server.transform.impl.ProxyAnnotationConfig.ARGS_ON_AFTER;
 
 public class TraceInvokeTransformer extends CallChainTransformer {
-    public static final String REG_KEY = "sys_traceMethod";
+    public static final String REG_KEY = "@traceMethod";
     private static final String KEY_OUTPUT_FORMAT = "outputFormat";
     private static final String KEY_CONVERTER_CLASS = "printerClass";
     private static final String KEY_CONTENT = "content";
@@ -64,7 +64,6 @@ public class TraceInvokeTransformer extends CallChainTransformer {
     public String getRegKey() {
         return REG_KEY;
     }
-
 
     private static class Config extends CallChainTimeConfig<SelfInvokeInfo> {
 

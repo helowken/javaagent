@@ -13,7 +13,7 @@ import java.io.File;
 import java.util.*;
 
 public class SaveClassDataTransformer extends AbstractConfigTransformer {
-    public static final String REG_KEY = "sys_saveClassData";
+    public static final String REG_KEY = "@saveClassData";
     private static final String FILE_SUFFIX = ".class";
     private static final String KEY_OUTPUT_PATH = "outputPath";
     private static final String KEY_WITH_SELF = "withSelf";

@@ -6,7 +6,7 @@ import agent.common.buffer.ByteUtils;
 import agent.common.message.MessageMgr;
 import agent.common.message.command.Command;
 import agent.common.message.command.impl.EchoCommand;
-import agent.common.message.command.impl.ResetClassCommand;
+import agent.common.message.command.impl.ResetCommand;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
@@ -16,7 +16,7 @@ import static org.junit.Assert.assertTrue;
 public class CommandTest {
     @Test
     public void test() throws Exception {
-        doTest(new ResetClassCommand());
+        doTest(new ResetCommand());
         doTest(new EchoCommand("aaa"));
     }
 

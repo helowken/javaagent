@@ -14,9 +14,9 @@ import java.util.List;
 import java.util.Map;
 
 public class CostTimeMeasureTransformer extends CallChainTransformer {
-    public static final String REG_KEY = "sys_costTimeMeasure";
+    public static final String REG_KEY = "@costTimeMeasure";
     private static final String KEY_COST_TIME = "costTime";
-    private static final String DEFAULT_OUTPUT_FORMAT = StringParser.getKey(ParamValueUtils.KEY_METHOD) +
+    private static final String DEFAULT_OUTPUT_FORMAT = StringParser.getKey(ParamValueUtils.KEY_INVOKE) +
             " cost time is: " + StringParser.getKey(KEY_COST_TIME) + "ms";
 
     @Override

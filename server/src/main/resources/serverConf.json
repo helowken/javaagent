@@ -5,11 +5,11 @@
       "factoryMethod": "getInstance"
     },
     {
-      "factoryClass": "agent.server.transform.ResetClassMgr",
+      "factoryClass": "agent.server.transform.ResetMgr",
       "factoryMethod": "getInstance"
     },
     {
-      "factoryClass": "agent.server.transform.impl.InvokeEntityIdRegistry",
+      "factoryClass": "agent.server.transform.impl.DestInvokeIdRegistry",
       "factoryMethod": "getInstance"
     },
     {

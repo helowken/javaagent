@@ -6,7 +6,7 @@
         "desc": "Used to save class data",
         "transformers": [
           {
-            "ref": "sys_saveClassData",
+            "ref": "@saveClassData",
             "config": {
               "outputPath": "/home/helowken/agent_class_data"
             }
@@ -15,7 +15,7 @@
         "targets": [
           {
             "targetClass": "test.jetty.TestObject",
-            "methodFilter": {}
+            "invokeFilter": {}
           }
         ]
       },
@@ -23,7 +23,7 @@
         "desc": "Used to save class data",
         "transformers": [
           {
-            "ref": "sys_saveClassData",
+            "ref": "@saveClassData",
             "config": {
               "outputPath": "/home/helowken/agent_class_data",
               "withSelf": false,
@@ -34,7 +34,7 @@
         "targets": [
           {
             "targetClass": "test.jetty.TestObject",
-            "methodFilter": {}
+            "invokeFilter": {}
           }
         ]
       }
