@@ -1,15 +1,15 @@
 package agent.server.transform.impl.dynamic;
 
 import agent.base.plugin.PluginFactory;
-import agent.base.utils.Logger;
 import agent.base.utils.InvokeDescriptorUtils;
+import agent.base.utils.Logger;
 import agent.base.utils.ReflectionUtils;
 import agent.base.utils.Utils;
 import agent.hook.plugin.ClassFinder;
 import agent.server.transform.BytecodeMethodFinder;
-import agent.server.transform.impl.AbstractConfigTransformer;
-import agent.server.transform.cp.AgentClassPool;
 import agent.server.transform.InvokeFinder;
+import agent.server.transform.cp.AgentClassPool;
+import agent.server.transform.impl.AbstractConfigTransformer;
 import agent.server.transform.impl.invoke.DestInvoke;
 import javassist.CtClass;
 import javassist.CtMethod;
@@ -281,10 +281,11 @@ public class DynamicClassTransformer extends AbstractConfigTransformer {
                                     Map<String, Class<?>> subClassMap = new HashMap<>(
                                             item.methodRuleFilter.getImplClasses(
                                                     methodInfo,
-                                                    () -> ClassCache.getInstance().getSubClassMap(
-                                                            item.context,
-                                                            getClassFinder().findClass(item.context, baseClassName)
-                                                    )
+//                                                    () -> ClassCache.getInstance().getSubClassMap(
+//                                                            item.context,
+//                                                            getClassFinder().findClass(item.context, baseClassName)
+//                                                    )
+                                                    () -> new HashMap<>()
                                             )
                                     );
                                     ClassFinder classFinder = getClassFinder();

@@ -32,7 +32,14 @@ public abstract class AbstractAppHook implements AppHook {
         String context = "$hookApp";
         TransformMgr.getInstance().transform(
                 Collections.singletonList(
-                        new TransformContext(context, appClass, new HookAppTransformer(), ACTION_MODIFY)
+                        new TransformContext(
+                                context,
+                                Collections.singleton(appClass),
+                                Collections.singletonList(
+                                        new HookAppTransformer()
+                                ),
+                                ACTION_MODIFY
+                        )
                 )
         );
     }

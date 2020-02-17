@@ -1,16 +1,18 @@
 package agent.builtin.transformer;
 
-import agent.base.utils.ReflectionUtils;
 import agent.base.utils.Utils;
+import agent.hook.plugin.ClassFinder;
 import agent.server.transform.TransformContext;
+import agent.server.transform.cache.ClassCache;
 import agent.server.transform.impl.AbstractConfigTransformer;
-import agent.server.transform.impl.dynamic.ClassCache;
 import agent.server.transform.impl.invoke.DestInvoke;
 import agent.server.transform.revision.ClassDataRepository;
 import agent.server.transform.revision.ClassDataStore;
 
 import java.io.File;
 import java.util.*;
+
+import static agent.hook.utils.App.getClassFinder;
 
 public class SaveClassDataTransformer extends AbstractConfigTransformer {
     public static final String REG_KEY = "@saveClassData";
@@ -49,8 +51,15 @@ public class SaveClassDataTransformer extends AbstractConfigTransformer {
 
     @Override
     public void transform(TransformContext transformContext) throws Exception {
+        ClassFinder classFinder = getClassFinder();
         transformContext.getTargetClassSet().forEach(
-                clazz -> getClassSet(transformContext.getContext(), clazz).forEach(
+                clazz -> getClassSet(
+                        getTransformerInfo().getClassCache(),
+                        classFinder.findClassLoader(
+                                transformContext.getContext()
+                        ),
+                        clazz
+                ).forEach(
                         savingClass -> ClassDataStore.save(
                                 savingClass,
                                 ClassDataRepository.getInstance().getClassData(savingClass),
@@ -63,24 +72,18 @@ public class SaveClassDataTransformer extends AbstractConfigTransformer {
         );
     }
 
-    private Set<Class<?>> getClassSet(String context, Class<?> clazz) {
+    private Set<Class<?>> getClassSet(ClassCache classCache, ClassLoader loader, Class<?> baseClass) {
         Set<Class<?>> classSet = new HashSet<>();
         if (withSelf)
-            classSet.add(clazz);
-        if (withSubType || withSubClass) {
-            Map<String, Class<?>> nameToClass = ClassCache.getInstance().getSubClassMap(context, clazz);
-            if (!withSubType)
-                classSet.addAll(
-                        ReflectionUtils.findSubClasses(
-                                clazz,
-                                nameToClass.values()
-                        )
-                );
-            else
-                classSet.addAll(
-                        nameToClass.values()
-                );
-        }
+            classSet.add(baseClass);
+        if (withSubClass)
+            classSet.addAll(
+                    classCache.getSubClasses(loader, baseClass, false)
+            );
+        if (withSubType)
+            classSet.addAll(
+                    classCache.getSubTypes(loader, baseClass, false)
+            );
         return classSet;
     }
 

@@ -20,7 +20,7 @@
         "targets": [
           {
             "targetClass": "hello.HelloController",
-            "invokeFilter": {}
+            "methodFilter": {}
           }
         ]
       }

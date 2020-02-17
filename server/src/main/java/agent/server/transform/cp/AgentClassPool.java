@@ -1,9 +1,9 @@
 package agent.server.transform.cp;
 
+import agent.base.utils.InvokeDescriptorUtils;
 import agent.base.utils.LockObject;
 import agent.base.utils.Logger;
-import agent.base.utils.InvokeDescriptorUtils;
-import agent.base.utils.ReflectionUtils;
+import agent.server.transform.cache.ClassCache;
 import javassist.*;
 
 import java.lang.reflect.Method;
@@ -15,6 +15,7 @@ public class AgentClassPool {
     private static Collection<String> skipPackages = Collections.unmodifiableList(
             Arrays.asList(
                     "javassist.",
+                    "org.objectweb.asm.",
                     "agent."
             )
     );
@@ -25,8 +26,7 @@ public class AgentClassPool {
     private Map<Class<?>, byte[]> classToData = new HashMap<>();
 
     public static boolean isNativePackage(String namePath) {
-        return ReflectionUtils.isJavaNativePackage(namePath)
-                || skipPackages.stream().anyMatch(namePath::startsWith);
+        return ClassCache.isNativePackage(namePath);
     }
 
     public AgentClassPool(String context) {

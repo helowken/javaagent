@@ -22,12 +22,12 @@ abstract class AbstractRuleConfigHandler implements RuleConfigHandler {
     TransformConfig newTransformConfig(String targetMethod, String targetClass, DynamicConfigItem configItem) {
         RuleValidateMgr.checkMethodValid(configItem);
 
-        InvokeFilterConfig methodFilterConfig = new InvokeFilterConfig();
+        MethodFilterConfig methodFilterConfig = new MethodFilterConfig();
         methodFilterConfig.setIncludes(Collections.singleton(targetMethod));
 
         ClassConfig classConfig = new ClassConfig();
-        classConfig.setTargetClass(targetClass);
-        classConfig.setInvokeFilter(methodFilterConfig);
+        classConfig.setTargetClasses(Collections.singleton(targetClass));
+        classConfig.setMethodFilter(methodFilterConfig);
 
         TransformerConfig transformerConfig = new TransformerConfig();
         transformerConfig.setRef(DynamicClassTransformer.REG_KEY);

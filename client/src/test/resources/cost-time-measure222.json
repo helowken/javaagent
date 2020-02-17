@@ -20,7 +20,7 @@
         "targets": [
           {
             "targetClass": "test.jetty.TestObject",
-            "invokeFilter": {
+            "methodFilter": {
               "includes": [
                 "test.*"
               ]
@@ -28,7 +28,7 @@
           },
           {
             "targetClass": "test.jetty.SubTestObject",
-            "invokeFilter": {
+            "methodFilter": {
               "includes": [
                 ".*[l|L]oad"
               ]

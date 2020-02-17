@@ -1,32 +1,44 @@
 package agent.server.transform.config;
 
 import java.util.Objects;
+import java.util.Set;
 
 public class ClassConfig {
-    private String targetClass;
-    private InvokeFilterConfig invokeFilter;
+    private Set<String> targetClasses;
+    private Set<String> includeClasses;
+    private MethodFilterConfig methodFilter;
+    private ConstructorFilterConfig constructorFilter;
 
-    public static ClassConfig newInstance(String targetClass, InvokeFilterConfig methodFilter) {
-        ClassConfig config = new ClassConfig();
-        config.targetClass = targetClass;
-        config.invokeFilter = methodFilter;
-        return config;
+    public ConstructorFilterConfig getConstructorFilter() {
+        return constructorFilter;
     }
 
-    public String getTargetClass() {
-        return targetClass;
+    public void setConstructorFilter(ConstructorFilterConfig constructorFilter) {
+        this.constructorFilter = constructorFilter;
     }
 
-    public void setTargetClass(String targetClass) {
-        this.targetClass = targetClass;
+    public MethodFilterConfig getMethodFilter() {
+        return methodFilter;
     }
 
-    public InvokeFilterConfig getInvokeFilter() {
-        return invokeFilter;
+    public void setMethodFilter(MethodFilterConfig methodFilter) {
+        this.methodFilter = methodFilter;
     }
 
-    public void setInvokeFilter(InvokeFilterConfig invokeFilter) {
-        this.invokeFilter = invokeFilter;
+    public Set<String> getTargetClasses() {
+        return targetClasses;
+    }
+
+    public void setTargetClasses(Set<String> targetClasses) {
+        this.targetClasses = targetClasses;
+    }
+
+    public Set<String> getIncludeClasses() {
+        return includeClasses;
+    }
+
+    public void setIncludeClasses(Set<String> includeClasses) {
+        this.includeClasses = includeClasses;
     }
 
     @Override
@@ -34,21 +46,25 @@ public class ClassConfig {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ClassConfig that = (ClassConfig) o;
-        return Objects.equals(targetClass, that.targetClass) &&
-                Objects.equals(invokeFilter, that.invokeFilter);
+        return Objects.equals(targetClasses, that.targetClasses) &&
+                Objects.equals(includeClasses, that.includeClasses) &&
+                Objects.equals(methodFilter, that.methodFilter) &&
+                Objects.equals(constructorFilter, that.constructorFilter);
     }
 
     @Override
     public int hashCode() {
 
-        return Objects.hash(targetClass, invokeFilter);
+        return Objects.hash(targetClasses, includeClasses, methodFilter, constructorFilter);
     }
 
     @Override
     public String toString() {
         return "ClassConfig{" +
-                "targetClass='" + targetClass + '\'' +
-                ", invokeFilter=" + invokeFilter +
+                "targetClasses=" + targetClasses +
+                ", includeClasses=" + includeClasses +
+                ", methodFilter=" + methodFilter +
+                ", constructorFilter=" + constructorFilter +
                 '}';
     }
 }

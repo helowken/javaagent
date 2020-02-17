@@ -15,7 +15,7 @@
         "targets": [
           {
             "targetClass": "test.jetty.TestObject",
-            "invokeFilter": {}
+            "methodFilter": {}
           }
         ]
       },
@@ -34,7 +34,7 @@
         "targets": [
           {
             "targetClass": "test.jetty.TestObject",
-            "invokeFilter": {}
+            "methodFilter": {}
           }
         ]
       }

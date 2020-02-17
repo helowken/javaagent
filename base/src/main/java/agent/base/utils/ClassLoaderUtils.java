@@ -127,7 +127,9 @@ public class ClassLoaderUtils {
         logger.debug("classLoader cascade: \n{}", sb);
     }
 
-    public static boolean isDescendant(ClassLoader parentLoader, ClassLoader childLoader) {
+    public static boolean isSelfOrDescendant(ClassLoader parentLoader, ClassLoader childLoader) {
+        if (parentLoader == null)
+            return true;
         ClassLoader tmp = childLoader;
         while (tmp != null) {
             if (tmp == parentLoader)

@@ -2,6 +2,7 @@ package test.server;
 
 import agent.base.utils.IOUtils;
 import agent.base.utils.Utils;
+import agent.jvmti.JvmtiUtils;
 
 import java.lang.instrument.ClassDefinition;
 import java.lang.instrument.ClassFileTransformer;
@@ -70,7 +71,7 @@ public class TestInstrumentation implements Instrumentation {
 
     @Override
     public Class[] getAllLoadedClasses() {
-        return new Class[0];
+        return JvmtiUtils.getInstance().findLoadedClassList().toArray(new Class[0]);
     }
 
     @Override

@@ -3,9 +3,10 @@ package test.server.method;
 import agent.server.transform.InvokeFinder;
 import agent.server.transform.InvokeFinder.InvokeSearchResult;
 import agent.server.transform.config.ClassConfig;
-import agent.server.transform.config.InvokeFilterConfig;
-import agent.server.transform.impl.TargetClassConfig;
+import agent.server.transform.config.MethodFilterConfig;
 import org.junit.Test;
+
+import java.util.Collections;
 
 import static org.junit.Assert.assertEquals;
 
@@ -26,10 +27,16 @@ public class InvokeFinderTest {
 
     private InvokeSearchResult search(Class<?> clazz) {
         ClassConfig cc = new ClassConfig();
-        cc.setTargetClass(Impl.class.getName());
-        cc.setInvokeFilter(new InvokeFilterConfig());
-        TargetClassConfig tcc = new TargetClassConfig(clazz, cc);
-        return InvokeFinder.getInstance().find(tcc);
+        cc.setTargetClasses(
+                Collections.singleton(Impl.class.getName())
+        );
+        cc.setMethodFilter(new MethodFilterConfig());
+        return InvokeFinder.getInstance().find(
+                clazz,
+                Collections.singletonList(
+                        cc.getMethodFilter()
+                )
+        );
     }
 
     interface Intf<T> {

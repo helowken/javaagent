@@ -1,6 +1,7 @@
 [
   {
     "contextPath": "/test",
+    "excludePackages": ["org\\..*"],
     "transformConfigs": [
       {
         "desc": "Used to measure time cost.",
@@ -20,7 +21,7 @@
         "targets": [
           {
             "targetClass": "test.jetty.TestObject",
-            "invokeFilter": {
+            "methodFilter": {
               "includes": [
                 "test.*"
               ]
@@ -28,7 +29,7 @@
           },
           {
             "targetClass": "test.jetty.SubTestObject",
-            "invokeFilter": {
+            "methodFilter": {
               "includes": [
                 "load"
               ]
@@ -36,7 +37,7 @@
           },
           {
             "targetClass": "org.apache.commons.lang3.StringUtils",
-            "invokeFilter": {
+            "methodFilter": {
               "includes": [
                 "trim"
               ]
@@ -59,7 +60,7 @@
         "targets": [
           {
             "targetClass": "test.jetty.TestObject",
-            "invokeFilter": {
+            "methodFilter": {
               "includes": [
                 "test.*"
               ]

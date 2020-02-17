@@ -1,14 +1,12 @@
 package test.server;
 
 import agent.base.plugin.PluginFactory;
-import agent.base.utils.IOUtils;
-import agent.base.utils.ReflectionUtils;
-import agent.base.utils.SystemConfig;
-import agent.base.utils.Utils;
+import agent.base.utils.*;
 import agent.common.utils.JSONUtils;
 import agent.delegate.JSONDelegate;
 import agent.hook.plugin.ClassFinder;
 import agent.hook.utils.App;
+import agent.jvmti.JvmtiUtils;
 import agent.server.event.AgentEvent;
 import agent.server.event.AgentEventListener;
 import agent.server.event.EventListenerMgr;
@@ -19,11 +17,13 @@ import agent.server.transform.AgentTransformer;
 import agent.server.transform.TransformContext;
 import agent.server.transform.TransformMgr;
 import agent.server.transform.TransformResult;
+import agent.server.transform.cache.ClassCache;
 import agent.server.transform.config.ClassConfig;
-import agent.server.transform.config.InvokeFilterConfig;
+import agent.server.transform.config.FilterConfig;
+import agent.server.transform.config.MethodFilterConfig;
 import agent.server.transform.impl.AbstractConfigTransformer;
 import agent.server.transform.impl.DestInvokeIdRegistry;
-import agent.server.transform.impl.TransformerInfo;
+import agent.server.transform.impl.TransformShareInfo;
 import agent.server.transform.impl.invoke.MethodInvoke;
 import agent.server.transform.tools.asm.ProxyRegInfo;
 import agent.server.transform.tools.asm.ProxyResult;
@@ -75,6 +75,15 @@ public abstract class AbstractTest {
             );
             TransformMgr.getInstance().onStartup(new Object[]{instrumentation});
             DestInvokeIdRegistry.getInstance().onStartup(new Object[0]);
+            List<File> files = FileUtils.collectFiles(
+                    file -> file.getName().endsWith(".so"),
+                    new File("..").getAbsolutePath()
+            );
+            if (files.isEmpty())
+                throw new RuntimeException("No .so file found!");
+            JvmtiUtils.getInstance().load(
+                    files.get(0).getAbsolutePath()
+            );
             inited = true;
         }
     }
@@ -104,7 +113,9 @@ public abstract class AbstractTest {
                 Collections.singletonList(transformer),
                 ACTION_MODIFY
         );
-        TransformResult transformResult = TransformMgr.getInstance().transform(transformContext);
+        TransformResult transformResult = TransformMgr.getInstance().transform(
+                Collections.singletonList(transformContext)
+        ).get(0);
         assertFalse(transformResult.hasError());
     }
 
@@ -166,22 +177,37 @@ public abstract class AbstractTest {
         );
     }
 
-    private static TransformerInfo newTransformerInfo(String context, Map<Class<?>, String> classToMethodFilter) {
+    private static TransformShareInfo newTransformerInfo(String context, Map<Class<?>, String> classToMethodFilter) {
         List<ClassConfig> classConfigs = new ArrayList<>();
         classToMethodFilter.forEach(
-                (clazz, methodFilter) -> classConfigs.add(
-                        ClassConfig.newInstance(
-                                clazz.getName(),
-                                InvokeFilterConfig.includes(
-                                        Collections.singleton(methodFilter)
-                                )
-                        )
-                )
+                (clazz, methodFilter) -> {
+                    MethodFilterConfig config = new MethodFilterConfig();
+                    config.setIncludes(
+                            Collections.singleton(methodFilter)
+                    );
+                    classConfigs.add(
+                            newClassConfig(
+                                    clazz.getName(),
+                                    config
+                            )
+                    );
+                }
         );
-        return new TransformerInfo(
+        ClassCache classCache = new ClassCache(
+                Collections.emptyMap()
+        );
+        return new TransformShareInfo(
                 context,
-                TransformMgr.getInstance().convert(context, classConfigs)
+                TransformMgr.getInstance().newClassesToInvokeFilter(context, classConfigs, classCache),
+                classCache
         );
+    }
+
+    private static ClassConfig newClassConfig(String targetClass, MethodFilterConfig methodFilter) {
+        ClassConfig config = new ClassConfig();
+        config.setTargetClasses(Collections.singleton(targetClass));
+        config.setMethodFilter(methodFilter);
+        return config;
     }
 
     protected void runWithFile(RunFileFunc runFileFunc) throws Exception {

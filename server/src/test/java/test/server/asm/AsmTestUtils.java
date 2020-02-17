@@ -72,7 +72,7 @@ public class AsmTestUtils {
         );
     }
 
-    static Class<?> newClass(String className, byte[] classData) {
+    public static Class<?> newClass(String className, byte[] classData) {
         AsmUtils.verifyAndPrintResult(
                 AsmTestUtils.class.getClassLoader(),
                 classData,

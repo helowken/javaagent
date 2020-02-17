@@ -3,28 +3,9 @@ package agent.server.transform.config;
 import java.util.Objects;
 import java.util.Set;
 
-public class InvokeFilterConfig {
+public abstract class FilterConfig {
     private Set<String> includes;
     private Set<String> excludes;
-
-    public static InvokeFilterConfig includes(Set<String> includes) {
-        InvokeFilterConfig config = new InvokeFilterConfig();
-        config.includes = includes;
-        return config;
-    }
-
-    public static InvokeFilterConfig excludes(Set<String> excludes) {
-        InvokeFilterConfig config = new InvokeFilterConfig();
-        config.excludes = excludes;
-        return config;
-    }
-
-    public static InvokeFilterConfig newInstance(Set<String> includes, Set<String> excludes) {
-        InvokeFilterConfig config = new InvokeFilterConfig();
-        config.includes = includes;
-        config.excludes = excludes;
-        return config;
-    }
 
     public Set<String> getIncludes() {
         return includes;
@@ -46,7 +27,7 @@ public class InvokeFilterConfig {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        InvokeFilterConfig that = (InvokeFilterConfig) o;
+        FilterConfig that = (FilterConfig) o;
         return Objects.equals(includes, that.includes) &&
                 Objects.equals(excludes, that.excludes);
     }

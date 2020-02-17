@@ -20,11 +20,11 @@ import static agent.hook.utils.App.getClassFinder;
 @SuppressWarnings("unchecked")
 public abstract class AbstractConfigTransformer extends AbstractTransformer implements ConfigTransformer {
     private static final Logger logger = Logger.getLogger(AbstractConfigTransformer.class);
-    private TransformerInfo transformerInfo;
+    private TransformShareInfo transformShareInfo;
 
     @Override
-    public void setTransformerInfo(TransformerInfo transformerInfo) {
-        this.transformerInfo = transformerInfo;
+    public void setTransformerInfo(TransformShareInfo transformShareInfo) {
+        this.transformShareInfo = transformShareInfo;
     }
 
     @Override
@@ -59,8 +59,8 @@ public abstract class AbstractConfigTransformer extends AbstractTransformer impl
     protected void doSetConfig(Map<String, Object> config) throws Exception {
     }
 
-    protected TransformerInfo getTransformerInfo() {
-        return transformerInfo;
+    protected TransformShareInfo getTransformerInfo() {
+        return transformShareInfo;
     }
 
     protected String getContext() {
@@ -78,9 +78,8 @@ public abstract class AbstractConfigTransformer extends AbstractTransformer impl
     public void transform(TransformContext transformContext) throws Exception {
         for (Class<?> clazz : transformContext.getTargetClassSet()) {
             Collection<DestInvoke> invokes = InvokeFinder.getInstance().find(
-                    transformerInfo.getTargetClassConfig(
-                            clazz.getName()
-                    )
+                    clazz,
+                    transformShareInfo.getInvokeFilters(clazz)
             ).invokes;
 
             for (DestInvoke invoke : invokes) {
@@ -97,7 +96,7 @@ public abstract class AbstractConfigTransformer extends AbstractTransformer impl
     private String findContextOfDestInvoke(DestInvoke destInvoke) {
         String context = getContext();
         ClassLoader contextLoader = getClassFinder().findClassLoader(context);
-        return ClassLoaderUtils.isDescendant(
+        return ClassLoaderUtils.isSelfOrDescendant(
                 contextLoader,
                 destInvoke.getDeclaringClass().getClassLoader()
         ) ?

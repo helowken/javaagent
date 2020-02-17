@@ -3,15 +3,13 @@ package agent.server.transform;
 import agent.base.utils.Logger;
 import agent.base.utils.ReflectionUtils;
 import agent.base.utils.Utils;
-import agent.server.transform.config.ClassConfig;
-import agent.server.transform.config.InvokeFilterConfig;
-import agent.server.transform.impl.TargetClassConfig;
+import agent.server.transform.config.ConstructorFilterConfig;
+import agent.server.transform.config.FilterConfig;
+import agent.server.transform.config.MethodFilterConfig;
 import agent.server.transform.impl.invoke.ConstructorInvoke;
 import agent.server.transform.impl.invoke.DestInvoke;
 import agent.server.transform.impl.invoke.MethodInvoke;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.regex.Pattern;
@@ -23,12 +21,22 @@ public class InvokeFinder {
     private static final InvokeFinder instance = new InvokeFinder();
     private static int SYNTHETIC;
     private static int BRIDGE;
+    private static final Map<Class<? extends FilterConfig>, InvokeGetter> invokeGetterMap = new HashMap<>();
 
     static {
         Utils.wrapToRtError(() -> {
             SYNTHETIC = ReflectionUtils.getStaticFieldValue(Modifier.class, "SYNTHETIC");
             BRIDGE = ReflectionUtils.getStaticFieldValue(Modifier.class, "BRIDGE");
         });
+
+        invokeGetterMap.put(
+                MethodFilterConfig.class,
+                new MethodGetter()
+        );
+        invokeGetterMap.put(
+                ConstructorFilterConfig.class,
+                new ConstructorGetter()
+        );
     }
 
     public static InvokeFinder getInstance() {
@@ -38,62 +46,50 @@ public class InvokeFinder {
     private InvokeFinder() {
     }
 
-    public InvokeSearchResult find(TargetClassConfig targetClassConfig) {
-        ClassConfig classConfig = targetClassConfig.classConfig;
-        Class<?> clazz = targetClassConfig.targetClass;
+    public InvokeSearchResult find(Class<?> clazz, Collection<FilterConfig> invokeFilterConfigs) {
         logger.debug("Start to find invokes for class: {}", clazz.getName());
-        InvokeFilterConfig invokeFilterConfig = classConfig.getInvokeFilter();
-        if (invokeFilterConfig == null)
-            invokeFilterConfig = new InvokeFilterConfig();
-        Collection<DestInvoke> rsList = doFind(invokeFilterConfig, clazz);
         logger.debug("===============");
-        logger.debug("Invoke filter config: {}", invokeFilterConfig);
+        Set<DestInvoke> result = new HashSet<>();
+        Collection<FilterConfig> filterConfigs = invokeFilterConfigs;
+        if (filterConfigs.isEmpty())
+            filterConfigs = Collections.singletonList(
+                    new MethodFilterConfig()
+            );
+        filterConfigs.forEach(
+                invokeFilterConfig -> {
+                    logger.debug("Invoke filter config: {}", invokeFilterConfig);
+                    result.addAll(
+                            doFind(invokeFilterConfig, clazz)
+                    );
+                }
+        );
         logger.debug("Matched invokes:");
-        rsList.forEach(invoke -> logger.debug(invoke.toString()));
+        result.forEach(invoke -> logger.debug(invoke.toString()));
         logger.debug("===============");
-        return new InvokeSearchResult(clazz, rsList);
+        return new InvokeSearchResult(clazz, result);
     }
 
-    private Collection<DestInvoke> getDestInvokes(Object[] vs) {
-        return vs == null ?
-                Collections.emptyList() :
-                Stream.of(vs)
-                        .map(
-                                v -> {
-                                    if (v instanceof Constructor)
-                                        return new ConstructorInvoke((Constructor) v);
-                                    else if (v instanceof Method)
-                                        return new MethodInvoke((Method) v);
-                                    throw new RuntimeException("Invalid entity: " + v);
-                                }
-                        )
-                        .collect(
-                                Collectors.toList()
-                        );
-    }
-
-    private Collection<DestInvoke> doFind(InvokeFilterConfig invokeFilterConfig, Class<?> clazz) {
-        Set<DestInvoke> candidateList = new HashSet<>();
-        filterOutMeaningless(
-                candidateList,
-                getDestInvokes(
-                        clazz.getDeclaredMethods()
-                )
-        );
-        candidateList.addAll(
-                getDestInvokes(
-                        clazz.getDeclaredConstructors()
-                )
-        );
+    private Collection<DestInvoke> doFind(FilterConfig invokeFilterConfig, Class<?> clazz) {
         return filterByCondition(
                 invokeFilterConfig.getIncludes(),
                 filterByCondition(
                         invokeFilterConfig.getExcludes(),
-                        candidateList,
+                        getInvokeGetter(invokeFilterConfig).get(clazz),
                         false),
                 true
         );
     }
+
+    private InvokeGetter getInvokeGetter(FilterConfig filterConfig) {
+        return Optional.ofNullable(
+                invokeGetterMap.get(
+                        filterConfig.getClass()
+                )
+        ).orElseThrow(
+                () -> new RuntimeException("Unsupported filter config type: " + filterConfig.getClass())
+        );
+    }
+
 
     private Collection<DestInvoke> filterByCondition(Set<String> exprSet, Collection<DestInvoke> candidateList, final boolean match) {
         Set<String> tmp = exprSet;
@@ -149,7 +145,7 @@ public class InvokeFinder {
         );
     }
 
-    private void filterOutMeaningless(Collection<DestInvoke> candidateList, Collection<DestInvoke> invokes) {
+    private static void filterOutMeaningless(Collection<DestInvoke> candidateList, Collection<DestInvoke> invokes) {
         for (DestInvoke invoke : invokes) {
             if (isInvokeMeaningful(invoke.getModifiers()))
                 candidateList.add(invoke);
@@ -172,5 +168,36 @@ public class InvokeFinder {
         return (SYNTHETIC & methodModifiers) == 0 &&
                 (BRIDGE & methodModifiers) == 0 &&
                 !Modifier.isAbstract(methodModifiers);
+    }
+
+    private interface InvokeGetter {
+        Collection<DestInvoke> get(Class<?> clazz);
+    }
+
+    private static class MethodGetter implements InvokeGetter {
+
+        @Override
+        public Collection<DestInvoke> get(Class<?> clazz) {
+            Set<DestInvoke> candidateList = new HashSet<>();
+            filterOutMeaningless(
+                    candidateList,
+                    Stream.of(
+                            clazz.getDeclaredMethods()
+                    ).map(MethodInvoke::new)
+                            .collect(Collectors.toList())
+            );
+            return candidateList;
+        }
+    }
+
+    private static class ConstructorGetter implements InvokeGetter {
+
+        @Override
+        public Collection<DestInvoke> get(Class<?> clazz) {
+            return Stream.of(
+                    clazz.getDeclaredConstructors()
+            ).map(ConstructorInvoke::new)
+                    .collect(Collectors.toList());
+        }
     }
 }

@@ -12,7 +12,7 @@ import static agent.base.utils.InvokeDescriptorUtils.getDescriptor;
 
 @SuppressWarnings("unchecked")
 public class ReflectionUtils {
-    private static final String[] javaPackages = {"java.", "javax.", "sun."};
+    private static final String[] javaPackages = {"java.", "javax.", "sun.", "com.sun.", "com.oracle.", "jdk."};
 
     public static boolean isJavaNativePackage(String namePath) {
         for (String javaPackage : javaPackages) {

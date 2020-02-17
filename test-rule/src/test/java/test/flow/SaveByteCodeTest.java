@@ -2,8 +2,6 @@ package test.flow;
 
 import agent.base.utils.IndentUtils;
 import agent.hook.plugin.ClassFinder;
-import agent.server.transform.impl.dynamic.ClassCache;
-import agent.server.transform.cp.ClassPoolUtils;
 import javassist.*;
 import javassist.expr.ExprEditor;
 import javassist.expr.MethodCall;
@@ -16,7 +14,6 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.stream.Stream;
 
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.when;

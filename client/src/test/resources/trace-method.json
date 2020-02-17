@@ -18,7 +18,7 @@
         "targets": [
           {
             "targetClass": "test.jetty.ParamObject",
-            "invokeFilter": {}
+            "methodFilter": {}
           }
         ]
       }

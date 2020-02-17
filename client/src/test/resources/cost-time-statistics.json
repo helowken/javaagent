@@ -17,7 +17,7 @@
               "entryPoint": [
                 {
                   "targetClass": "test.jetty.TestFilter2",
-                  "invokeFilter": {
+                  "methodFilter": {
                     "includes": [
                       "test"
                     ]
@@ -30,7 +30,7 @@
         "targets": [
           {
             "targetClass": "test.jetty.TestFilter2",
-            "invokeFilter": {
+            "methodFilter": {
               "includes": [
                 "test"
               ]
@@ -38,7 +38,7 @@
           },
           {
             "targetClass": "test.jetty.StatisticsCostTimeObject",
-            "invokeFilter": {}
+            "methodFilter": {}
           }
         ]
       }
