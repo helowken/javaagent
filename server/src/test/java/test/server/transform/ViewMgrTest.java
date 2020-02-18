@@ -2,7 +2,9 @@ package test.server.transform;
 
 import agent.base.utils.ReflectionUtils;
 import agent.base.utils.Utils;
+import agent.server.transform.impl.DestInvokeIdRegistry;
 import agent.server.transform.impl.ViewMgr;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import test.server.TestProxy;
 import test.server.asm.AsmTestUtils;
@@ -118,7 +120,7 @@ public class ViewMgrTest extends AbstractViewTest {
         );
         Map allResult = new TreeMap(methodResult);
         allResult.putAll(constructorResult);
-        assertEquals(map, allResult);
+        assertEquals(allResult, map);
 
         map = (Map) ViewMgr.create(ViewMgr.VIEW_PROXY, ".*A", ".*A", "[^<].*", null);
         map = (Map) map.get(contextA);

@@ -184,6 +184,15 @@ public class DestInvokeIdRegistry implements ServerListener, AgentEventListener 
         );
     }
 
+    public void reset() {
+        lo.sync(
+                lock -> {
+                    contextToClassToInvokeToId.clear();
+                    outputPathToContexts.clear();
+                }
+        );
+    }
+
     @Override
     public void onStartup(Object[] args) {
         EventListenerMgr.reg(LogFlushedEvent.class, this);

@@ -12,6 +12,7 @@ import java.util.Collections;
 import java.util.HashSet;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class ClassCacheTest extends AbstractTest {
     @Test
@@ -46,6 +47,9 @@ public class ClassCacheTest extends AbstractTest {
         Class<?> newA2Class = newClass(A2.class, loader);
         Class<?> newA3Class = newClass(A3.class, newA2Class.getClassLoader());
 
+        classCache.getSubClasses(loader, A.class, true).forEach(
+                clazz -> System.out.println(clazz + ", loader: " + clazz.getClassLoader())
+        );
         assertEquals(
                 new HashSet<>(
                         Arrays.asList(A2.class, newA2Class)

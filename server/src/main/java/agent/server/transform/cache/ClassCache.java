@@ -7,7 +7,6 @@ import agent.server.tree.Node;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 public class ClassCache {
@@ -118,9 +117,12 @@ public class ClassCache {
                             new ClassCacheItem()
                     );
                     if (classLoader != null) {
-                        ClassLoader parentLoader = classLoader.getParent();
                         if (classLoader != baseLoader)
-                            getOrCreateNode(loaderToNode, baseLoader, parentLoader).appendChild(node);
+                            getOrCreateNode(
+                                    loaderToNode,
+                                    baseLoader,
+                                    classLoader.getParent()
+                            ).appendChild(node);
                     }
                     return node;
                 }
@@ -170,12 +172,12 @@ public class ClassCache {
         return rsList;
     }
 
-    private void traverse(Node<ClassCacheItem> node, Consumer<ClassCacheItem> consumer) {
+    private void traverse(Node<ClassCacheItem> node, TraverseFunc<ClassCacheItem> consumer) {
         List<Node<ClassCacheItem>> nodes = new ArrayList<>();
         nodes.add(node);
         while (!nodes.isEmpty()) {
             Node<ClassCacheItem> tmpNode = nodes.remove(0);
-            consumer.accept(tmpNode.getData());
+            consumer.run(tmpNode.getData());
             if (tmpNode.hasChild())
                 nodes.addAll(
                         tmpNode.getChildren()
@@ -211,5 +213,9 @@ public class ClassCache {
         void add(Class<?> clazz) {
             classList.add(clazz);
         }
+    }
+
+    private interface TraverseFunc<T> {
+        void run(T data);
     }
 }

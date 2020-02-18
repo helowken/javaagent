@@ -15,7 +15,7 @@ import java.util.*;
 import java.util.concurrent.CountDownLatch;
 
 public class BinaryLogWriterTest {
-    @Test
+//    @Test
     public void test() throws Exception {
         List<Long> usedTimes = new ArrayList<>();
         for (int i = 0; i < 20; ++i) {

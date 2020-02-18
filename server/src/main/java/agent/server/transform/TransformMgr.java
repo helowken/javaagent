@@ -108,7 +108,7 @@ public class TransformMgr implements ServerListener {
         );
     }
 
-    public ClassesToConfig newClassesToInvokeFilter(String context, List<ClassConfig> classConfigList, ClassCache classCache) {
+    public ClassesToConfig newClassesToConfig(String context, List<ClassConfig> classConfigList, ClassCache classCache) {
         ClassesToConfig classesToConfig = new ClassesToConfig();
         classConfigList.forEach(
                 classConfig -> {
@@ -207,7 +207,7 @@ public class TransformMgr implements ServerListener {
     private TransformShareInfo newTransformerInfo(String context, TransformConfig transformConfig, ClassCache classCache) {
         return new TransformShareInfo(
                 context,
-                newClassesToInvokeFilter(
+                newClassesToConfig(
                         context,
                         transformConfig.getTargets(),
                         classCache
