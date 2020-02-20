@@ -80,6 +80,21 @@ public class JSONUtils {
         );
     }
 
+    public static String writeAsString(Object o, boolean pretty) {
+        return Utils.wrapToRtError(
+                () -> ReflectionUtils.invokeStatic(
+                        getDelegateClass(),
+                        "writeAsString",
+                        new Class[]{
+                                Object.class,
+                                boolean.class
+                        },
+                        o,
+                        pretty
+                )
+        );
+    }
+
     private static synchronized ClassLoader getLoader() throws Exception {
         if (loader == null)
             loader = ClassLoaderUtils.newURLClassLoader(

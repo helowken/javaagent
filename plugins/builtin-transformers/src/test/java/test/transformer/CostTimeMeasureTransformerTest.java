@@ -9,6 +9,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import static agent.server.utils.log.LogConfig.STDOUT;
+
 public class CostTimeMeasureTransformerTest extends AbstractTest {
 
     @Test
@@ -32,7 +34,7 @@ public class CostTimeMeasureTransformerTest extends AbstractTest {
         ReflectionUtils.invoke("load", new Class[]{int.class}, b, 33);
         ReflectionUtils.invoke("recursiveLoad", new Class[]{long.class}, b, (long) 4);
 
-        flushAndWaitMetadata();
+        flushAndWaitMetadata(STDOUT);
     }
 
     static class A {

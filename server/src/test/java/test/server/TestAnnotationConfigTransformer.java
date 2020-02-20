@@ -4,6 +4,7 @@ import agent.server.transform.impl.AbstractAnnotationConfigTransformer;
 import agent.server.transform.impl.invoke.DestInvoke;
 
 import java.lang.reflect.Method;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
 
@@ -24,12 +25,12 @@ public class TestAnnotationConfigTransformer extends AbstractAnnotationConfigTra
     }
 
     @Override
-    protected Object getInstanceForMethod(Method method) {
+    protected Object getInstanceForAnntMethod(Class<?> anntClass, Method method) {
         return instance;
     }
 
     @Override
-    protected Set<Class<?>> getAnnotationClasses() {
+    protected Collection<Class<?>> getAnnotationClasses() {
         return anntClasses;
     }
 

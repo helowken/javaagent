@@ -25,7 +25,7 @@ public class TraceInvokeTransformerTest extends AbstractTest {
                     Object a = newInstance(classToData, A.class);
                     ReflectionUtils.invoke("service", a);
 
-                    flushAndWaitMetadata();
+                    flushAndWaitMetadata(outputPath);
 
                     InvokeResultTracer.main(
                             new String[]{

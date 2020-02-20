@@ -3,6 +3,8 @@ package test.transformer;
 import agent.base.utils.ReflectionUtils;
 import agent.builtin.tools.CostTimeByCallChain;
 import agent.builtin.transformer.CostTimeStatisticsTransformer;
+import agent.common.utils.JSONUtils;
+import agent.server.transform.impl.ViewMgr;
 import org.junit.Test;
 import test.server.AbstractTest;
 
@@ -23,11 +25,10 @@ public class CostTimeStatisticsTransformerTest extends AbstractTest {
                     doTransform(transformer, context, config, classToMethodFilter);
 
                     Map<Class<?>, byte[]> classToData = getClassToData(transformer);
-
                     Object a = newInstance(classToData, A.class);
                     ReflectionUtils.invoke("service", a);
 
-                    flushAndWaitMetadata();
+                    flushAndWaitMetadata(outputPath);
 
                     CostTimeByCallChain.main(
                             new String[]{

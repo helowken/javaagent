@@ -12,7 +12,6 @@ import java.util.Collections;
 import java.util.HashSet;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 public class ClassCacheTest extends AbstractTest {
     @Test
@@ -35,6 +34,48 @@ public class ClassCacheTest extends AbstractTest {
                 new HashSet<>(
                         classCache.getSubTypes(loader, A.class, true)
                 )
+        );
+
+        assertEquals(
+                new HashSet<>(
+                        Arrays.asList(SubIntf.class, A.class, A2.class, A3.class)
+                ),
+                new HashSet<>(
+                        classCache.getSubTypes(loader, Intf.class, true)
+                )
+        );
+        assertEquals(
+                new HashSet<>(
+                        Arrays.asList(A.class, A2.class, A3.class)
+                ),
+                new HashSet<>(
+                        classCache.getSubTypes(loader, Intf.class, false)
+                )
+        );
+        assertEquals(
+                new HashSet<>(
+                        Arrays.asList(A.class, A2.class, A3.class)
+                ),
+                new HashSet<>(
+                        classCache.getSubTypes(loader, SubIntf.class, true)
+                )
+        );
+        assertEquals(
+                Collections.singleton(A.class),
+                new HashSet<>(
+                        classCache.getSubClasses(loader, SubIntf.class, true)
+                )
+        );
+
+        assertEquals(
+                Collections.singleton(SubIntf.class),
+                new HashSet<>(
+                        classCache.getSubClasses(loader, Intf.class, true)
+                )
+        );
+        assertEquals(
+                Collections.emptyList(),
+                classCache.getSubClasses(loader, Intf.class, false)
         );
     }
 
@@ -98,8 +139,13 @@ public class ClassCacheTest extends AbstractTest {
         );
     }
 
+    public interface Intf {
+    }
 
-    public static class A {
+    public interface SubIntf extends Intf {
+    }
+
+    public static class A implements SubIntf {
     }
 
     public static class A2 extends A {

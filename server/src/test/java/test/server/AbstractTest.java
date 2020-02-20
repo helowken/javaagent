@@ -13,6 +13,7 @@ import agent.server.event.EventListenerMgr;
 import agent.server.event.impl.DestInvokeMetadataFlushedEvent;
 import agent.server.event.impl.FlushLogEvent;
 import agent.server.event.impl.LogFlushedEvent;
+import agent.server.event.impl.ResetEvent;
 import agent.server.transform.AgentTransformer;
 import agent.server.transform.TransformContext;
 import agent.server.transform.TransformMgr;
@@ -140,10 +141,14 @@ public abstract class AbstractTest {
     }
 
     protected Object newInstance(Map<Class<?>, byte[]> classToData, Class<?> clazz) throws Exception {
-        Class<?> newClass = loader.loadClass(
-                clazz.getName(),
-                classToData.get(clazz)
-        );
+        Class<?> newClass = classToData.containsKey(clazz) ?
+                loader.loadClass(
+                        clazz.getName(),
+                        classToData.get(clazz)
+                ) :
+                loader.loadClass(
+                        clazz.getName()
+                );
         return ReflectionUtils.newInstance(newClass);
     }
 
@@ -155,12 +160,18 @@ public abstract class AbstractTest {
         waitDataListener.await();
     }
 
-    protected void flushAndWaitMetadata() throws Exception {
+    protected void flushAndWaitMetadata(String outputPath) throws Exception {
         waitMetadataListener.clear();
         EventListenerMgr.fireEvent(
-                new FlushLogEvent()
+                new FlushLogEvent(outputPath)
         );
         waitMetadataListener.await();
+    }
+
+    protected void resetAll(String context) throws Exception {
+        EventListenerMgr.fireEvent(
+                new ResetEvent(context, true)
+        );
     }
 
     protected Map<Class<?>, byte[]> getClassToData(AgentTransformer transformer) {

@@ -47,7 +47,11 @@ public class ReflectionUtils {
 
     public static List<Class<?>> findSubClasses(Class<?> baseClass, Collection<Class<?>> candidateClasses) {
         return candidateClasses.stream()
-                .filter(clazz -> clazz.getSuperclass() == baseClass)
+                .filter(
+                        clazz -> baseClass.isInterface() ?
+                                Utils.contains(clazz.getInterfaces(), baseClass) :
+                                clazz.getSuperclass() == baseClass
+                )
                 .collect(Collectors.toList());
     }
 

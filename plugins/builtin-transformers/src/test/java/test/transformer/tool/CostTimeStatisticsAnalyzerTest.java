@@ -4,7 +4,7 @@ import agent.builtin.tools.CostTimeByInvoke;
 import org.junit.Test;
 
 public class CostTimeStatisticsAnalyzerTest {
-    @Test
+//    @Test
     public void test() throws Exception {
         String outputPath = "/home/helowken/cost-time/cost-time-statistics.log";
         CostTimeByInvoke.main(

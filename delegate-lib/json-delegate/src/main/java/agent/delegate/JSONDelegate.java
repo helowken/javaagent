@@ -45,7 +45,13 @@ public class JSONDelegate {
     }
 
     public static String writeAsString(Object o) throws IOException {
-        return objectMapper.writeValueAsString(o);
+        return writeAsString(o, false);
+    }
+
+    public static String writeAsString(Object o, boolean pretty) throws IOException {
+        return pretty ?
+                objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(o) :
+                objectMapper.writeValueAsString(o);
     }
 
     private static TypeReference newTypeReference(final Type type) {

@@ -208,6 +208,14 @@ public class Utils {
         return t;
     }
 
+    public static <T> boolean contains(T[] vs, T v) {
+        for (T t : vs) {
+            if (t.equals(v))
+                return true;
+        }
+        return false;
+    }
+
     public interface WithValueFunc<T> {
         T run() throws Exception;
     }

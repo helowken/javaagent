@@ -7,6 +7,7 @@ import agent.server.tree.Node;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 public class ClassCache {
@@ -177,7 +178,7 @@ public class ClassCache {
         nodes.add(node);
         while (!nodes.isEmpty()) {
             Node<ClassCacheItem> tmpNode = nodes.remove(0);
-            consumer.run(tmpNode.getData());
+            consumer.accept(tmpNode.getData());
             if (tmpNode.hasChild())
                 nodes.addAll(
                         tmpNode.getChildren()
@@ -215,7 +216,7 @@ public class ClassCache {
         }
     }
 
-    private interface TraverseFunc<T> {
-        void run(T data);
+    // Maybe some bug in java, so we need to use this interface instead of Consumer.
+    private interface TraverseFunc<T> extends Consumer<T> {
     }
 }

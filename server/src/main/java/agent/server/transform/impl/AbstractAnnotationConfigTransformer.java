@@ -1,6 +1,7 @@
 package agent.server.transform.impl;
 
 import agent.base.utils.ReflectionUtils;
+import agent.server.transform.AnnotationConfigTransformer;
 import agent.server.transform.impl.invoke.DestInvoke;
 import agent.server.transform.tools.asm.ProxyCallInfo;
 import agent.server.transform.tools.asm.ProxyRegInfo;
@@ -12,24 +13,39 @@ import agent.server.transform.tools.asm.annotation.OnThrowing;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.Collection;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
-public abstract class AbstractAnnotationConfigTransformer extends AbstractConfigTransformer {
+public abstract class AbstractAnnotationConfigTransformer extends AbstractConfigTransformer implements AnnotationConfigTransformer {
 
     @Override
     protected void transformDestInvoke(DestInvoke destInvoke) throws Exception {
-        Set<Method> rsMethods = new HashSet<>();
-        getAnnotationClasses().forEach(
-                clazz -> collectAllMethods(rsMethods, clazz)
-        );
-
         ProxyRegInfo regInfo = new ProxyRegInfo(destInvoke);
-        rsMethods.forEach(
-                candidateMethod -> maybeReg(destInvoke, regInfo, candidateMethod)
+        getAnntClassToMethods().forEach(
+                (anntClass, methods) -> methods.forEach(
+                        candidateMethod -> maybeReg(destInvoke, regInfo, anntClass, candidateMethod)
+                )
         );
         if (!regInfo.isEmpty())
             addRegInfo(regInfo);
+    }
+
+    protected Map<Class<?>, Collection<Method>> getAnntClassToMethods() {
+        return getAnnotationClasses()
+                .stream()
+                .collect(
+                        Collectors.toMap(
+                                clazz -> clazz,
+                                clazz -> {
+                                    Set<Method> rsMethods = new HashSet<>();
+                                    collectAllMethods(rsMethods, clazz);
+                                    return rsMethods;
+                                }
+                        )
+                );
     }
 
     private void collectAllMethods(Set<Method> rsMethods, Class<?> clazz) {
@@ -60,71 +76,75 @@ public abstract class AbstractAnnotationConfigTransformer extends AbstractConfig
         );
     }
 
-    private void maybeReg(DestInvoke destInvoke, ProxyRegInfo regInfo, Method anntMethod) {
-        Class<?> anntClass;
+    private void maybeReg(DestInvoke destInvoke, ProxyRegInfo regInfo, Class<?> anntClass, Method anntMethod) {
+        Class<?> anntType;
         Annotation[] annotations = anntMethod.getAnnotations();
         if (annotations != null) {
             for (Annotation annt : annotations) {
-                anntClass = annt.annotationType();
-                if (OnBefore.class.equals(anntClass))
+                anntType = annt.annotationType();
+                if (OnBefore.class.equals(anntType))
                     regInfo.addBefore(
-                            newCallInfo(destInvoke, anntMethod, (OnBefore) annt)
+                            newCallInfo(destInvoke, anntClass, anntMethod, (OnBefore) annt)
                     );
-                else if (OnAfter.class.equals(anntClass))
+                else if (OnAfter.class.equals(anntType))
                     regInfo.addAfter(
-                            newCallInfo(destInvoke, anntMethod, (OnAfter) annt)
+                            newCallInfo(destInvoke, anntClass, anntMethod, (OnAfter) annt)
                     );
-                else if (OnReturning.class.equals(anntClass))
+                else if (OnReturning.class.equals(anntType))
                     regInfo.addOnReturning(
-                            newCallInfo(destInvoke, anntMethod, (OnReturning) annt)
+                            newCallInfo(destInvoke, anntClass, anntMethod, (OnReturning) annt)
                     );
-                else if (OnThrowing.class.equals(anntClass))
+                else if (OnThrowing.class.equals(anntType))
                     regInfo.addOnThrowing(
-                            newCallInfo(destInvoke, anntMethod, (OnThrowing) annt)
+                            newCallInfo(destInvoke, anntClass, anntMethod, (OnThrowing) annt)
                     );
             }
         }
     }
 
-    private ProxyCallInfo newCallInfo(DestInvoke destInvoke, Method anntMethod, OnBefore annt) {
+    private ProxyCallInfo newCallInfo(DestInvoke destInvoke, Class<?> anntClass, Method anntMethod, OnBefore annt) {
         return newCallInfo(
                 destInvoke,
+                anntClass,
                 anntMethod,
                 annt.mask(),
                 annt.argsHint()
         );
     }
 
-    private ProxyCallInfo newCallInfo(DestInvoke destInvoke, Method anntMethod, OnAfter annt) {
+    private ProxyCallInfo newCallInfo(DestInvoke destInvoke, Class<?> anntClass, Method anntMethod, OnAfter annt) {
         return newCallInfo(
                 destInvoke,
+                anntClass,
                 anntMethod,
                 annt.mask(),
                 annt.argsHint()
         );
     }
 
-    private ProxyCallInfo newCallInfo(DestInvoke destInvoke, Method anntMethod, OnReturning annt) {
+    private ProxyCallInfo newCallInfo(DestInvoke destInvoke, Class<?> anntClass, Method anntMethod, OnReturning annt) {
         return newCallInfo(
                 destInvoke,
+                anntClass,
                 anntMethod,
                 annt.mask(),
                 annt.argsHint()
         );
     }
 
-    private ProxyCallInfo newCallInfo(DestInvoke destInvoke, Method anntMethod, OnThrowing annt) {
+    private ProxyCallInfo newCallInfo(DestInvoke destInvoke, Class<?> anntClass, Method anntMethod, OnThrowing annt) {
         return newCallInfo(
                 destInvoke,
+                anntClass,
                 anntMethod,
                 annt.mask(),
                 annt.argsHint()
         );
     }
 
-    private ProxyCallInfo newCallInfo(DestInvoke destInvoke, Method anntMethod, int mask, int argsHint) {
+    private ProxyCallInfo newCallInfo(DestInvoke destInvoke, Class<?> anntClass, Method anntMethod, int mask, int argsHint) {
         return new ProxyCallInfo(
-                getInstanceOrNull(anntMethod),
+                getInstanceOrNull(anntClass, anntMethod),
                 anntMethod,
                 mask,
                 getOtherArgs(destInvoke, anntMethod, argsHint),
@@ -132,10 +152,10 @@ public abstract class AbstractAnnotationConfigTransformer extends AbstractConfig
         );
     }
 
-    private Object getInstanceOrNull(Method anntMethod) {
+    private Object getInstanceOrNull(Class<?> anntClass, Method anntMethod) {
         if (Modifier.isStatic(anntMethod.getModifiers()))
             return null;
-        Object instance = getInstanceForMethod(anntMethod);
+        Object instance = getInstanceForAnntMethod(anntClass, anntMethod);
         if (instance == null)
             throw new RuntimeException("No instance found for method: " + anntMethod);
         if (!anntMethod.getDeclaringClass().isInstance(instance))
@@ -146,9 +166,9 @@ public abstract class AbstractAnnotationConfigTransformer extends AbstractConfig
 
     protected abstract Object[] getOtherArgs(DestInvoke destInvoke, Method anntMethod, int argsHint);
 
-    protected abstract Object getInstanceForMethod(Method method);
+    protected abstract Object getInstanceForAnntMethod(Class<?> anntClass, Method anntMethod);
 
-    protected abstract Set<Class<?>> getAnnotationClasses();
+    protected abstract Collection<Class<?>> getAnnotationClasses();
 
     protected String newTag(DestInvoke destInvoke, Method anntMethod, int mask, int argsHint) {
         return getRegKey();
