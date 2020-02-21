@@ -25,7 +25,7 @@
         </dependency>
         <dependency>
             <groupId>javaagent</groupId>
-            <artifactId>json-delegate</artifactId>
+            <artifactId>delegate-lib</artifactId>
         </dependency>
 
         <!-- test -->

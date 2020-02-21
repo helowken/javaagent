@@ -7,11 +7,10 @@ import org.junit.Test;
 import test.server.AbstractTest;
 import test.server.TestClassLoader;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
+import java.util.*;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class ClassCacheTest extends AbstractTest {
     @Test
@@ -119,13 +118,73 @@ public class ClassCacheTest extends AbstractTest {
         );
     }
 
-    private Class<?> newClass(Class<?> clazz, ClassLoader loader) throws Exception {
-        String className = clazz.getName();
-        byte[] bs = IOUtils.readBytes(
-                ClassLoader.getSystemResourceAsStream(className.replace('.', '/') + ".class")
+    @Test
+    public void testClasses() {
+        ClassLoader loader = Thread.currentThread().getContextClassLoader();
+        ClassCache classCache = newClassCache(loader);
+
+        String prefix = getClass().getName() + "\\$";
+        checkFindClasses(
+                classCache,
+                loader,
+                prefix + "[^$]*",
+                true,
+                Arrays.asList(Intf.class, SubIntf.class, A.class, A2.class, A3.class)
         );
+        checkFindClasses(
+                classCache,
+                loader,
+                prefix + "[^$]*",
+                false,
+                Arrays.asList(A.class, A2.class, A3.class)
+        );
+
+        checkFindClasses(
+                classCache,
+                loader,
+                prefix + "A.*",
+                true,
+                Arrays.asList(A.class, A2.class, A3.class)
+        );
+        checkFindClasses(
+                classCache,
+                loader,
+                prefix + "A2",
+                true,
+                Collections.singleton(A2.class)
+        );
+    }
+
+    private void checkFindClasses(ClassCache classCache, ClassLoader loader, String regexp,
+                                  boolean includeInterface, Collection<Class<?>> expectedClasses) {
+        assertTrue(
+                new HashSet<>(
+                        classCache.findClasses(
+                                loader,
+                                Collections.singleton(regexp),
+                                includeInterface
+                        )
+                ).containsAll(expectedClasses)
+        );
+    }
+
+    private List<Class<?>> newClasses(TestClassLoader loader, Class<?>... classes) throws Exception {
+        List<Class<?>> newClasses = new ArrayList<>();
+        for (Class<?> clazz : classes) {
+            String className = clazz.getName();
+            byte[] bs = IOUtils.readBytes(
+                    ClassLoader.getSystemResourceAsStream(className.replace('.', '/') + ".class")
+            );
+            newClasses.add(
+                    loader.loadClass(className, bs)
+            );
+        }
+        return newClasses;
+    }
+
+    private Class<?> newClass(Class<?> clazz, ClassLoader loader) throws Exception {
         TestClassLoader subLoader = new TestClassLoader(loader);
-        return subLoader.loadClass(className, bs);
+        return newClasses(subLoader, clazz).get(0);
     }
 
     private ClassCache newClassCache(ClassLoader loader) {

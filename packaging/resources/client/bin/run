@@ -3,8 +3,6 @@
 export type=client
 source $(dirname $0)/../../common/bin/env
 
-client_launcher_jar=$launcher_dir/client-launcher-$version.jar
-
 if [ "$1" = "-f" ]
 then
     if [ $# -lt 2 ]
@@ -29,5 +27,7 @@ else
     main_class=ClientLauncher
 fi
 
-$JAVA_HOME/bin/java -cp $client_launcher_jar agent.launcher.client.$main_class $conf_file $*
+classpath=$common_lib_base_dir/*:$launcher_dir/*
+
+$JAVA_HOME/bin/java -cp $classpath agent.launcher.client.$main_class $conf_file $*
 

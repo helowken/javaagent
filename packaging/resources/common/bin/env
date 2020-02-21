@@ -14,6 +14,8 @@ fi
 
 export version=1.0
 export base_dir=$AGENT_HOME/$type
+export common_dir=$base_dir/../common
+export common_lib_base_dir=$common_dir/lib/base
 export lib_dir=$base_dir/lib
 export launcher_dir=$lib_dir/launcher
 export conf_dir=$base_dir/conf

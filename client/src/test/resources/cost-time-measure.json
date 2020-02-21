@@ -1,7 +1,9 @@
 [
   {
     "contextPath": "/test",
-    "excludePackages": ["org\\..*"],
+    "excludePackages": [
+      "org\\..*"
+    ],
     "transformConfigs": [
       {
         "desc": "Used to measure time cost.",
@@ -20,49 +22,27 @@
         ],
         "targets": [
           {
-            "targetClass": "test.jetty.TestObject",
+            "includeClasses": [
+              ".*\\.TestObject"
+            ]
+          },
+          {
+            "includeClasses": [
+              ".*\\.SubTestObject"
+            ],
             "methodFilter": {
               "includes": [
-                "test.*"
+                ".*[l|L]oad"
               ]
             }
           },
           {
-            "targetClass": "test.jetty.SubTestObject",
-            "methodFilter": {
-              "includes": [
-                "load"
-              ]
-            }
-          },
-          {
-            "targetClass": "org.apache.commons.lang3.StringUtils",
+            "targetClasses": [
+              "org.apache.commons.lang3.StringUtils"
+            ],
             "methodFilter": {
               "includes": [
                 "trim"
-              ]
-            }
-          }
-        ]
-      }
-    ]
-  },
-  {
-    "contextPath": "/test2",
-    "transformConfigs": [
-      {
-        "desc": "Used to measure time cost.",
-        "transformers": [
-          {
-            "ref": "@costTimeMeasure"
-          }
-        ],
-        "targets": [
-          {
-            "targetClass": "test.jetty.TestObject",
-            "methodFilter": {
-              "includes": [
-                "test.*"
               ]
             }
           }

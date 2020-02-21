@@ -16,6 +16,10 @@
     <dependencies>
         <dependency>
             <groupId>javaagent</groupId>
+            <artifactId>base</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>javaagent</groupId>
             <artifactId>common</artifactId>
         </dependency>
         <dependency>
@@ -24,7 +28,7 @@
         </dependency>
         <dependency>
             <groupId>javaagent</groupId>
-            <artifactId>json-delegate</artifactId>
+            <artifactId>delegate-lib</artifactId>
         </dependency>
         <dependency>
             <groupId>javaagent</groupId>
@@ -33,6 +37,10 @@
         <dependency>
             <groupId>javaagent</groupId>
             <artifactId>client</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>javaagent</groupId>
+            <artifactId>basic-launcher</artifactId>
         </dependency>
         <dependency>
             <groupId>javaagent</groupId>

@@ -6,21 +6,14 @@
         "desc": "Used to measure time cost.",
         "transformers": [
           {
-            "ref": "@costTimeMeasure",
-            "config": {
-              "log": {
-                "autoFlush": false,
-                "outputFormat": "[${currTime}] - ${currTimeMillis} - ${class}#${invoke}: ${costTime}ms",
-                "timeFormat": "yyyy-MM-dd HH:mm:ss.SSS",
-                "maxBufferSize": 8192
-              }
-            }
+            "ref": "@costTimeMeasure"
           }
         ],
         "targets": [
           {
-            "targetClass": "hello.HelloController",
-            "methodFilter": {}
+            "targetClasses": [
+              "hello.HelloController"
+            ]
           }
         ]
       }

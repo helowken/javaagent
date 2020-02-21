@@ -15,7 +15,7 @@
             <modules>
                 <module>parent</module>
                 <module>dependent-lib</module>
-                <module>delegate-lib/json-delegate</module>
+                <module>delegate-lib</module>
                 <module>base</module>
                 <module>common</module>
                 <module>hook</module>
@@ -92,7 +92,7 @@
         <profile>
             <id>delegate-lib</id>
             <modules>
-                <module>delegate-lib/json-delegate</module>
+                <module>delegate-lib</module>
             </modules>
         </profile>
 

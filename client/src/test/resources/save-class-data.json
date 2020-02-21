@@ -33,8 +33,9 @@
         ],
         "targets": [
           {
-            "targetClass": "test.jetty.TestObject",
-            "methodFilter": {}
+            "targetClasses": [
+              "test.jetty.TestObject"
+            ]
           }
         ]
       }

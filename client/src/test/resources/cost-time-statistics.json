@@ -11,25 +11,17 @@
               "log": {
                 "outputPath": "/home/helowken/cost-time/cost-time-statistics.log",
                 "autoFlush": false,
-                "maxBufferSize": 8192,
+                "maxBufferSize": 819200,
                 "bufferCount": 100
-              },
-              "entryPoint": [
-                {
-                  "targetClass": "test.jetty.TestFilter2",
-                  "methodFilter": {
-                    "includes": [
-                      "test"
-                    ]
-                  }
-                }
-              ]
+              }
             }
           }
         ],
         "targets": [
           {
-            "targetClass": "test.jetty.TestFilter2",
+            "includeClasses": [
+              ".*\\.TestFilter2"
+            ],
             "methodFilter": {
               "includes": [
                 "test"
@@ -37,8 +29,9 @@
             }
           },
           {
-            "targetClass": "test.jetty.StatisticsCostTimeObject",
-            "methodFilter": {}
+            "targetClasses": [
+              ".*\\.StatisticsCostTimeObject"
+            ]
           }
         ]
       }
