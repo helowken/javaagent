@@ -1,6 +1,7 @@
 package agent.base.utils;
 
 import java.io.*;
+import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.function.Function;
@@ -214,6 +215,22 @@ public class Utils {
                 return true;
         }
         return false;
+    }
+
+    public static <T> List<T> reverse(List<T> vs) {
+        Collections.reverse(vs);
+        return vs;
+    }
+
+    public static <T> T[] reverse(T[] vs) {
+        T[] rs = (T[]) Array.newInstance(
+                vs.getClass().getComponentType(),
+                vs.length
+        );
+        for (int i = 0, j = vs.length - 1; i < vs.length; ++i, --j) {
+            rs[i] = vs[j];
+        }
+        return rs;
     }
 
     public interface WithValueFunc<T> {

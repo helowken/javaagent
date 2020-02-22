@@ -62,6 +62,8 @@ public class AsmTestUtils {
                 regInfo.getDestInvoke()
         );
         ProxyResult item = prepareData(count, logList, regInfo);
+        if (item.hasError())
+            item.getError().printStackTrace();
         assertFalse(item.hasError());
         ProxyTransformMgr.getInstance().reg(
                 Collections.singleton(item)

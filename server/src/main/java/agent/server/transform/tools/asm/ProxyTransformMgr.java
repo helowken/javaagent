@@ -1,5 +1,6 @@
 package agent.server.transform.tools.asm;
 
+import agent.base.utils.InvokeDescriptorUtils;
 import agent.base.utils.Logger;
 import agent.server.transform.impl.DestInvokeIdRegistry;
 import agent.server.transform.impl.invoke.DestInvoke;
@@ -132,4 +133,19 @@ public class ProxyTransformMgr {
         getCallSite(invokeId).invokeOnThrowing(instanceOrNull, error);
     }
 
+    public void onBeforeInnerCall(String methodName, Object[] args) throws Throwable {
+        String[] ts = methodName.split("#");
+        System.out.println(
+                "Before Inner Call: " + ts[0] + " # " + InvokeDescriptorUtils.descToText(ts[1], true) +
+                Arrays.toString(
+                        args == null ? new Object[0] : args
+                )
+        );
+    }
+
+    public void onAfterInnerCall(Object returnValue) throws Throwable {
+        System.out.println(
+                "After Inner Call: " + returnValue
+        );
+    }
 }

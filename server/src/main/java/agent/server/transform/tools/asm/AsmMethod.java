@@ -11,6 +11,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Stream;
 
 import static org.objectweb.asm.Opcodes.*;
 
@@ -69,20 +71,53 @@ class AsmMethod {
         );
     }
 
-    static List<ParamObject> getParamObjects(Method method) {
-        Class<?>[] paramTypes = method.getParameterTypes();
-        int size = paramTypes.length;
-        List<ParamObject> paramObjects = new ArrayList<>(size);
-        int idx = isStatic(method) ? 0 : 1;
-        for (Class<?> paramType : paramTypes) {
-            paramObjects.add(
-                    new ParamObject(
-                            Type.getType(paramType),
-                            idx++
-                    )
+    static List<Object> newLoad(Type[] types, int startIdx) {
+        List<Object> rsList = new ArrayList<>();
+        int idx = startIdx;
+        for (Type type: types) {
+            rsList.add(
+                    newLoad(type, idx)
             );
+            idx += type.getSize();
+        }
+        return rsList;
+    }
+
+    static List<ParamObject> getParamObjects(Method method, int startIdx) {
+        return newParamObjects(
+                Stream.of(
+                        method.getParameterTypes()
+                ).map(Type::getType)
+                        .toArray(Type[]::new),
+                startIdx
+        );
+    }
+
+    static List<ParamObject> newParamObjects(Type[] argTypes, int startIdx) {
+        int size = argTypes.length;
+        List<ParamObject> paramObjects = new ArrayList<>(size);
+        int idx = startIdx;
+        for (Type argType : argTypes) {
+            paramObjects.add(
+                    new ParamObject(argType, idx)
+            );
+            idx += argType.getSize();
         }
         return paramObjects;
+    }
+
+    static Object newLoadArgArray(List<ParamObject> poList) {
+        return poList.isEmpty() ?
+                newLoadNull(1) :
+                new Object[]{
+                        newObjectArray(
+                                poList.size()
+                        ),
+                        populateObjectArray(
+                                poList,
+                                AsmMethod::newLoadWrapPrimitive
+                        )
+                };
     }
 
     static Object newLoadWrapPrimitive(ParamObject po) {
@@ -90,7 +125,7 @@ class AsmMethod {
     }
 
     static Object newLoadWrapPrimitive(Type type, int index) {
-        Object load = AsmMethod.newLoad(type, index);
+        Object load = newLoad(type, index);
         Object wrapCall = PrimitiveWrapper.mayCreateWrapCallNode(
                 type.getDescriptor()
         );
@@ -153,6 +188,10 @@ class AsmMethod {
         return new LabelNode();
     }
 
+    static Object newObjectArray(int len) {
+        return newArray(Object.class, len);
+    }
+
     static Object newArray(Class<?> clazz, int len) {
         return new Object[]{
                 newNumLoad(len),
@@ -161,6 +200,10 @@ class AsmMethod {
                         Type.getInternalName(clazz)
                 )
         };
+    }
+
+    static <T> Object populateObjectArray(List<T> nodes, ValueConverter<T> arrayValueSupplier) {
+        return populateArray(Object.class, nodes, arrayValueSupplier);
     }
 
     static <T> Object populateArray(Class<?> clazz, List<T> nodes, ValueConverter<T> arrayValueSupplier) {
@@ -213,6 +256,18 @@ class AsmMethod {
                 type.getOpcode(ISTORE),
                 index
         );
+    }
+
+    static Object newStore(Type[] types, int startIdx) {
+        List<Object> rsList = new ArrayList<>();
+        int idx = startIdx;
+        for (Type type : types) {
+            rsList.add(
+                    newStore(type, idx)
+            );
+            idx += type.getSize();
+        }
+        return rsList;
     }
 
     static Object newObject(Constructor constructor, AsmFunc addArgsFunc) {

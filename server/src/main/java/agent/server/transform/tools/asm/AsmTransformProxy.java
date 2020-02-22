@@ -8,12 +8,13 @@ import org.objectweb.asm.tree.*;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.HashMap;
+import java.util.ListIterator;
+import java.util.Map;
+import java.util.Optional;
 
 import static agent.server.transform.tools.asm.AsmMethod.*;
-import static org.objectweb.asm.Opcodes.ATHROW;
-import static org.objectweb.asm.Opcodes.IRETURN;
-import static org.objectweb.asm.Opcodes.RETURN;
+import static org.objectweb.asm.Opcodes.*;
 
 class AsmTransformProxy {
     static byte[] transform(byte[] classData, Map<Integer, DestInvoke> idToInvoke) {
@@ -65,7 +66,7 @@ class AsmTransformProxy {
                 transformConstructorInvoke(methodNode, invokeId, (Constructor) destInvoke.getInvokeEntity());
                 break;
             case METHOD:
-                transformMethodInvoke(methodNode, invokeId, (Method) destInvoke.getInvokeEntity());
+                transformMethodInvoke(methodNode, invokeId, (Method) destInvoke.getInvokeEntity(), true);
                 break;
             default:
                 throw new IllegalArgumentException("Unknown dest invoke type: " + destInvoke.getType());
@@ -86,18 +87,15 @@ class AsmTransformProxy {
             } else if (opcode == ATHROW) {
                 methodNode.instructions.insertBefore(
                         node,
-                        newThrowList(false,invokeId, newLocalIdx)
+                        newThrowList(false, invokeId, newLocalIdx)
                 );
             }
         }
     }
 
-    private static void transformMethodInvoke(MethodNode methodNode, int invokeId, Method method) {
+    private static void transformMethodInvoke(MethodNode methodNode, int invokeId, Method method, boolean weaveInnerCalls) {
         boolean isStatic = isStatic(method);
         int newLocalIdx = methodNode.maxLocals;
-        methodNode.instructions.insert(
-                newBeforeList(invokeId, method)
-        );
         ListIterator<AbstractInsnNode> iter = methodNode.instructions.iterator();
         LabelNode startLabelNode = null;
         while (iter.hasNext()) {
@@ -116,10 +114,80 @@ class AsmTransformProxy {
             } else if (node.getType() == AbstractInsnNode.LABEL) {
                 if (startLabelNode == null)
                     startLabelNode = (LabelNode) node;
+            } else if (weaveInnerCalls && isMethodCall(opcode)) {
+                methodNode.instructions.insertBefore(
+                        node,
+                        newBeforeInnerCall(
+                                (MethodInsnNode) node,
+                                newLocalIdx
+                        )
+                );
+                methodNode.instructions.insertBefore(
+                        node.getNext(),
+                        newAfterInnerCall(
+                                (MethodInsnNode) node,
+                                newLocalIdx
+                        )
+                );
             }
         }
+        methodNode.instructions.insert(
+                newBeforeList(invokeId, method)
+        );
         if (startLabelNode != null)
             processTryCatch(isStatic, methodNode, startLabelNode, invokeId, newLocalIdx);
+    }
+
+    private static String getMethodFullDesc(MethodInsnNode node) {
+        return node.owner + "#" + node.name + node.desc;
+    }
+
+    private static InsnList newBeforeInnerCall(MethodInsnNode node, int newLocalIdx) {
+        Type[] argTypes = Type.getMethodType(node.desc).getArgumentTypes();
+        Type[] reversedTypes = Utils.reverse(argTypes);
+        return addTo(
+                new InsnList(),
+                newStore(reversedTypes, newLocalIdx),
+                newGetInstance(),
+                newLoadLdc(
+                        getMethodFullDesc(node)
+                ),
+                newLoadArgArray(
+                        Utils.reverse(
+                                newParamObjects(reversedTypes, newLocalIdx)
+                        )
+                ),
+                newOnBeforeInnerCallMethod(),
+                Utils.reverse(
+                        newLoad(reversedTypes, newLocalIdx)
+                )
+        );
+    }
+
+    private static InsnList newAfterInnerCall(MethodInsnNode node, int newLocalIdx) {
+        Type returnType = Type.getReturnType(node.desc);
+        return returnType.getSort() == Type.VOID ?
+                addTo(
+                        new InsnList(),
+                        newGetInstance(),
+                        newLoadNull(1),
+                        newOnAfterInnerCallMethod()
+                ) :
+                addTo(
+                        new InsnList(),
+                        newStore(returnType, newLocalIdx),
+                        newGetInstance(),
+                        newLoadWrapPrimitive(returnType, newLocalIdx),
+                        newOnAfterInnerCallMethod(),
+                        newLoad(returnType, newLocalIdx)
+                );
+    }
+
+    private static boolean isMethodCall(int opcode) {
+        return opcode == INVOKEVIRTUAL ||
+                opcode == INVOKESPECIAL ||
+                opcode == INVOKESTATIC ||
+                opcode == INVOKEINTERFACE;
     }
 
     private static void processTryCatch(boolean isStatic, MethodNode methodNode, LabelNode startLabelNode, int invokeId, int newLocalIdx) {
@@ -142,15 +210,11 @@ class AsmTransformProxy {
     private static InsnList newBeforeList(int invokeId, Method method) {
         return addTo(
                 new InsnList(),
-                newInvokeStatic(
-                        getGetInstanceMethod()
-                ),
+                newGetInstance(),
                 newNumLoad(invokeId),
                 newLoadThisOrNull(method),
                 collectArgs(method),
-                newInvokeVirtual(
-                        getOnBeforeMethod()
-                )
+                newOnBeforeMethod()
         );
     }
 
@@ -159,15 +223,11 @@ class AsmTransformProxy {
         return addTo(
                 new InsnList(),
                 newStore(returnType, newLocalIdx),
-                newInvokeStatic(
-                        getGetInstanceMethod()
-                ),
+                newGetInstance(),
                 newNumLoad(invokeId),
                 newLoadThisOrNull(method),
                 newLoadWrapPrimitive(returnType, newLocalIdx),
-                newInvokeVirtual(
-                        getOnReturningMethod()
-                ),
+                newOnReturningMethod(),
                 newLoad(returnType, newLocalIdx)
         );
     }
@@ -175,15 +235,11 @@ class AsmTransformProxy {
     private static InsnList newVoidReturnList(boolean isStatic, int invokeId) {
         return addTo(
                 new InsnList(),
-                newInvokeStatic(
-                        getGetInstanceMethod()
-                ),
+                newGetInstance(),
                 newNumLoad(invokeId),
                 newLoadThisOrNull(isStatic),
                 newLoadNull(1),
-                newInvokeVirtual(
-                        getOnReturningMethod()
-                )
+                newOnReturningMethod()
         );
     }
 
@@ -191,55 +247,64 @@ class AsmTransformProxy {
         return addTo(
                 new InsnList(),
                 newAStore(newLocalIdx),
-                newInvokeStatic(
-                        getGetInstanceMethod()
-                ),
+                newGetInstance(),
                 newNumLoad(invokeId),
                 newLoadThisOrNull(isStatic),
                 newALoad(newLocalIdx),
-                newInvokeVirtual(
-                        getOnThrowingMethod()
-                ),
+                newOnThrowingMethod(),
                 newALoad(newLocalIdx)
         );
     }
 
     private static Object collectArgs(Method method) {
-        List<ParamObject> poList = getParamObjects(method);
-        return poList.isEmpty() ?
-                newLoadNull(1) :
-                new Object[]{
-                        newArray(
-                                Object.class,
-                                poList.size()
-                        ),
-                        populateArray(
-                                Object.class,
-                                poList,
-                                AsmMethod::newLoadWrapPrimitive
-                        )
-                };
+        return newLoadArgArray(
+                getParamObjects(
+                        method,
+                        isStatic(method) ? 0 : 1
+                )
+        );
     }
 
-    private static Method getOnBeforeMethod() {
-        return findMethod("onBefore");
+    private static Object newGetInstance() {
+        return newInvokeStatic(
+                findMethod("getInstance")
+        );
     }
 
-    private static Method getOnReturningMethod() {
-        return findMethod("onReturning");
+    private static Object newProxyMethod(String methodName) {
+        return newInvokeVirtual(
+                findMethod(methodName)
+        );
     }
 
-    private static Method getOnThrowingMethod() {
-        return findMethod("onThrowing");
+    private static Object newOnBeforeMethod() {
+        return newProxyMethod("onBefore");
     }
 
-    private static Method getGetInstanceMethod() {
-        return findMethod("getInstance");
+    private static Object newOnReturningMethod() {
+        return newProxyMethod("onReturning");
+    }
+
+    private static Object newOnThrowingMethod() {
+        return newProxyMethod("onThrowing");
+    }
+
+    private static Object newOnBeforeInnerCallMethod() {
+        return newProxyMethod("onBeforeInnerCall");
+    }
+
+    private static Object newOnAfterInnerCallMethod() {
+        return newProxyMethod("onAfterInnerCall");
     }
 
     private static Method findMethod(String methodName) {
-        return Utils.wrapToRtError(
-                () -> ReflectionUtils.findFirstMethod(ProxyTransformMgr.class, methodName)
+        return Optional.ofNullable(
+                Utils.wrapToRtError(
+                        () ->
+                                ReflectionUtils.findFirstMethod(ProxyTransformMgr.class, methodName)
+                )
+        ).orElseThrow(
+                () -> new RuntimeException("No method found by name: " + methodName)
         );
     }
 
