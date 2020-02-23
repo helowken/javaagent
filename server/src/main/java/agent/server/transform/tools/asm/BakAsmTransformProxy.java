@@ -90,11 +90,11 @@ class BakAsmTransformProxy {
 //
 //    private static void createBeforePart(AsmMethod asmMethod, List<LocalVariableNode> args, int methodId) {
 //        asmMethod.add(
-//                newInvokeStatic(
+//                invokeStatic(
 //                        getGetInstanceMethod()
 //                ),
 //                collectArgs(methodId, args),
-//                newInvokeVirtual(
+//                invokeVirtual(
 //                        getOnBeforeRunningMethod()
 //                )
 //        );
@@ -103,9 +103,9 @@ class BakAsmTransformProxy {
 //    private static Object collectArgs(int methodId, List<LocalVariableNode> args) {
 //        int size = args.size();
 //        return new Object[]{
-//                newNumLoad(methodId),
+//                loadLong(methodId),
 //                newArray(Object.class, size),
-//                populateArray(Object.class, args, AsmMethod::newLoadWrapPrimitive),
+//                populateArray(Object.class, args, AsmMethod::loadMayWrapPrimitive),
 //                newArray(String.class, size),
 //                populateArray(
 //                        String.class,
@@ -119,7 +119,7 @@ class BakAsmTransformProxy {
 //        asmMethod.add(
 //                labelNode,
 //                newLoads(methodNode.localVariables),
-//                newInvokeVirtual(
+//                invokeVirtual(
 //                        classNode.name,
 //                        destMethodName,
 //                        methodNode.desc
@@ -131,20 +131,20 @@ class BakAsmTransformProxy {
 //        Type returnType = asmMethod.getReturnType();
 //        asmMethod.add(
 //                labelNode,
-//                newStore(returnType, startIdx),
-//                newInvokeStatic(
+//                storeByTypes(returnType, startIdx),
+//                invokeStatic(
 //                        getGetInstanceMethod()
 //                ),
 //                collectArgs(methodId, args),
-//                newLoad(returnType, startIdx),
+//                loadByType(returnType, startIdx),
 //                newLoadClassName(
 //                        returnType.getDescriptor()
 //                ),
-//                newInvokeVirtual(
+//                invokeVirtual(
 //                        getOnAfterReturningMethod()
 //                ),
-//                newLoad(returnType, startIdx),
-//                newReturn(
+//                loadByType(returnType, startIdx),
+//                newReturnByType(
 //                        asmMethod.getMethodNode().desc
 //                )
 //        );
@@ -154,16 +154,16 @@ class BakAsmTransformProxy {
 //        Class<?> errClass = Throwable.class;
 //        asmMethod.add(
 //                labelNode,
-//                newStore(errClass, startIdx),
-//                newInvokeStatic(
+//                storeByTypes(errClass, startIdx),
+//                invokeStatic(
 //                        getGetInstanceMethod()
 //                ),
 //                collectArgs(methodId, args),
-//                newLoad(errClass, startIdx),
-//                newInvokeVirtual(
+//                loadByType(errClass, startIdx),
+//                invokeVirtual(
 //                        getOnAfterThrowingMethod()
 //                ),
-//                newLoad(errClass, startIdx),
+//                loadByType(errClass, startIdx),
 //                newThrow()
 //        );
 //    }

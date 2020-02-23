@@ -133,19 +133,19 @@ public class ProxyTransformMgr {
         getCallSite(invokeId).invokeOnThrowing(instanceOrNull, error);
     }
 
-    public void onBeforeInnerCall(String methodName, Object[] args) throws Throwable {
+    public void onBeforeInnerCall(long callNum, String methodName, Object[] args) throws Throwable {
         String[] ts = methodName.split("#");
         System.out.println(
-                "Before Inner Call: " + ts[0] + " # " + InvokeDescriptorUtils.descToText(ts[1], true) +
-                Arrays.toString(
-                        args == null ? new Object[0] : args
-                )
+                "Before Inner Call " + callNum + ": " + ts[0] + " # " + InvokeDescriptorUtils.descToText(ts[1], true) +
+                        Arrays.toString(
+                                args == null ? new Object[0] : args
+                        )
         );
     }
 
-    public void onAfterInnerCall(Object returnValue) throws Throwable {
+    public void onAfterInnerCall(long callNum, Object returnValue) throws Throwable {
         System.out.println(
-                "After Inner Call: " + returnValue
+                "After Inner Call " + callNum + ": " + returnValue
         );
     }
 }

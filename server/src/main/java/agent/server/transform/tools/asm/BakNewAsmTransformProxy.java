@@ -100,13 +100,13 @@ class BakNewAsmTransformProxy {
 //                List<LocalVariableNode> args = getArguments(methodNode);
 //                addTo(
 //                        il,
-//                        newInvokeStatic(
+//                        invokeStatic(
 //                                getGetInstanceMethod()
 //                        ),
-//                        newLoadThis(),
-//                        newLoadNull(2),
+//                        aloadThis(),
+//                        loadNull(2),
 //                        collectArgs(invokeId, args),
-//                        newInvokeVirtual(
+//                        invokeVirtual(
 //                                getOnDelegateMethod()
 //                        )
 //                );
@@ -120,16 +120,16 @@ class BakNewAsmTransformProxy {
 //        AsmMethod asmMethod = copyFrom(methodNode);
 //        List<LocalVariableNode> args = getArguments(methodNode);
 //        asmMethod.add(
-//                newInvokeStatic(
+//                invokeStatic(
 //                        getGetInstanceMethod()
 //                ),
 //                isStatic(methodNode) ?
-//                        newLoadNull(1) :
-//                        newLoadThis(),
+//                        loadNull(1) :
+//                        aloadThis(),
 //                newLoadClass("L" + classNode.name + ";"),
-//                newLoadLdc(destInvokeName),
+//                loadLdc(destInvokeName),
 //                collectArgs(invokeId, args),
-//                newInvokeVirtual(
+//                invokeVirtual(
 //                        getOnDelegateMethod()
 //                ),
 //                createReturn(asmMethod)
@@ -141,7 +141,7 @@ class BakNewAsmTransformProxy {
 //    }
 //
 //    private static Object createReturn(AsmMethod asmMethod) {
-//        Object returnNode = newReturn(
+//        Object returnNode = newReturnByType(
 //                asmMethod.getReturnType()
 //        );
 //        if (asmMethod.isVoid())
@@ -163,9 +163,9 @@ class BakNewAsmTransformProxy {
 //    private static Object collectArgs(int invokeId, List<LocalVariableNode> args) {
 //        int size = args.size();
 //        return new Object[]{
-//                newNumLoad(invokeId),
+//                loadLong(invokeId),
 //                newArray(Object.class, size),
-//                populateArray(Object.class, args, AsmMethod::newLoadWrapPrimitive)
+//                populateArray(Object.class, args, AsmMethod::loadMayWrapPrimitive)
 //        };
 //    }
 //

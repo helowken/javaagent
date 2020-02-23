@@ -72,6 +72,7 @@ public class AsmUtils {
         transformFunc.transform(cn);
 
         ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
+//        ClassWriter cw = new ClassWriter(0);
         cn.accept(cw);
         return cw.toByteArray();
     }

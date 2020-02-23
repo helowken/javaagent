@@ -94,8 +94,13 @@ class AsmTransformProxy {
     }
 
     private static void transformMethodInvoke(MethodNode methodNode, int invokeId, Method method, boolean weaveInnerCalls) {
-        boolean isStatic = isStatic(method);
+        boolean isStatic = ReflectionUtils.isStatic(method);
         int newLocalIdx = methodNode.maxLocals;
+        int innerCallLocalIdx = -1;
+        if (weaveInnerCalls) {
+            innerCallLocalIdx = newLocalIdx;
+            newLocalIdx += Type.LONG_TYPE.getSize();
+        }
         ListIterator<AbstractInsnNode> iter = methodNode.instructions.iterator();
         LabelNode startLabelNode = null;
         while (iter.hasNext()) {
@@ -119,6 +124,7 @@ class AsmTransformProxy {
                         node,
                         newBeforeInnerCall(
                                 (MethodInsnNode) node,
+                                innerCallLocalIdx,
                                 newLocalIdx
                         )
                 );
@@ -126,6 +132,7 @@ class AsmTransformProxy {
                         node.getNext(),
                         newAfterInnerCall(
                                 (MethodInsnNode) node,
+                                innerCallLocalIdx,
                                 newLocalIdx
                         )
                 );
@@ -134,52 +141,67 @@ class AsmTransformProxy {
         methodNode.instructions.insert(
                 newBeforeList(invokeId, method)
         );
+        if (weaveInnerCalls)
+            methodNode.instructions.insert(
+                    newInitInnerCallNum(innerCallLocalIdx)
+            );
         if (startLabelNode != null)
             processTryCatch(isStatic, methodNode, startLabelNode, invokeId, newLocalIdx);
+    }
+
+    private static InsnList newInitInnerCallNum(int innerCallIdx) {
+        return addTo(
+                new InsnList(),
+                initLong(0, innerCallIdx)
+        );
     }
 
     private static String getMethodFullDesc(MethodInsnNode node) {
         return node.owner + "#" + node.name + node.desc;
     }
 
-    private static InsnList newBeforeInnerCall(MethodInsnNode node, int newLocalIdx) {
+    private static InsnList newBeforeInnerCall(MethodInsnNode node, int innerCallIdx, int newLocalIdx) {
         Type[] argTypes = Type.getMethodType(node.desc).getArgumentTypes();
         Type[] reversedTypes = Utils.reverse(argTypes);
         return addTo(
                 new InsnList(),
-                newStore(reversedTypes, newLocalIdx),
+                updateLong(1, innerCallIdx),
+                storeByTypes(reversedTypes, newLocalIdx),
                 newGetInstance(),
-                newLoadLdc(
+                loadLongType(innerCallIdx),
+                loadLdc(
                         getMethodFullDesc(node)
                 ),
-                newLoadArgArray(
+                loadArgArray(
                         Utils.reverse(
                                 newParamObjects(reversedTypes, newLocalIdx)
                         )
                 ),
                 newOnBeforeInnerCallMethod(),
                 Utils.reverse(
-                        newLoad(reversedTypes, newLocalIdx)
+                        loadByTypes(reversedTypes, newLocalIdx)
                 )
         );
     }
 
-    private static InsnList newAfterInnerCall(MethodInsnNode node, int newLocalIdx) {
+    private static InsnList newAfterInnerCall(MethodInsnNode node, int innerCallIdx, int newLocalIdx) {
         Type returnType = Type.getReturnType(node.desc);
         return returnType.getSort() == Type.VOID ?
                 addTo(
                         new InsnList(),
                         newGetInstance(),
-                        newLoadNull(1),
+                        loadLongType(innerCallIdx),
+                        loadNull(1),
                         newOnAfterInnerCallMethod()
                 ) :
                 addTo(
                         new InsnList(),
-                        newStore(returnType, newLocalIdx),
+                        storeByType(returnType, newLocalIdx),
                         newGetInstance(),
-                        newLoadWrapPrimitive(returnType, newLocalIdx),
+                        loadLongType(innerCallIdx),
+                        loadMayWrapPrimitive(returnType, newLocalIdx),
                         newOnAfterInnerCallMethod(),
-                        newLoad(returnType, newLocalIdx)
+                        loadByType(returnType, newLocalIdx)
                 );
     }
 
@@ -211,8 +233,8 @@ class AsmTransformProxy {
         return addTo(
                 new InsnList(),
                 newGetInstance(),
-                newNumLoad(invokeId),
-                newLoadThisOrNull(method),
+                loadInt(invokeId),
+                aloadThisOrNull(method),
                 collectArgs(method),
                 newOnBeforeMethod()
         );
@@ -222,13 +244,13 @@ class AsmTransformProxy {
         Type returnType = getReturnType(method);
         return addTo(
                 new InsnList(),
-                newStore(returnType, newLocalIdx),
+                storeByType(returnType, newLocalIdx),
                 newGetInstance(),
-                newNumLoad(invokeId),
-                newLoadThisOrNull(method),
-                newLoadWrapPrimitive(returnType, newLocalIdx),
+                loadInt(invokeId),
+                aloadThisOrNull(method),
+                loadMayWrapPrimitive(returnType, newLocalIdx),
                 newOnReturningMethod(),
-                newLoad(returnType, newLocalIdx)
+                loadByType(returnType, newLocalIdx)
         );
     }
 
@@ -236,9 +258,9 @@ class AsmTransformProxy {
         return addTo(
                 new InsnList(),
                 newGetInstance(),
-                newNumLoad(invokeId),
-                newLoadThisOrNull(isStatic),
-                newLoadNull(1),
+                loadInt(invokeId),
+                aloadThisOrNull(isStatic),
+                loadNull(1),
                 newOnReturningMethod()
         );
     }
@@ -246,33 +268,33 @@ class AsmTransformProxy {
     private static InsnList newThrowList(boolean isStatic, int invokeId, int newLocalIdx) {
         return addTo(
                 new InsnList(),
-                newAStore(newLocalIdx),
+                astore(newLocalIdx),
                 newGetInstance(),
-                newNumLoad(invokeId),
-                newLoadThisOrNull(isStatic),
-                newALoad(newLocalIdx),
+                loadInt(invokeId),
+                aloadThisOrNull(isStatic),
+                aload(newLocalIdx),
                 newOnThrowingMethod(),
-                newALoad(newLocalIdx)
+                aload(newLocalIdx)
         );
     }
 
     private static Object collectArgs(Method method) {
-        return newLoadArgArray(
+        return loadArgArray(
                 getParamObjects(
                         method,
-                        isStatic(method) ? 0 : 1
+                        ReflectionUtils.isStatic(method) ? 0 : 1
                 )
         );
     }
 
     private static Object newGetInstance() {
-        return newInvokeStatic(
+        return invokeStatic(
                 findMethod("getInstance")
         );
     }
 
     private static Object newProxyMethod(String methodName) {
-        return newInvokeVirtual(
+        return invokeVirtual(
                 findMethod(methodName)
         );
     }

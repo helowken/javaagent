@@ -5,8 +5,8 @@ import org.objectweb.asm.Type;
 import java.util.HashMap;
 import java.util.Map;
 
-import static agent.server.transform.tools.asm.AsmMethod.newInvokeStatic;
-import static agent.server.transform.tools.asm.AsmMethod.newInvokeVirtual;
+import static agent.server.transform.tools.asm.AsmMethod.invokeStatic;
+import static agent.server.transform.tools.asm.AsmMethod.invokeVirtual;
 
 class PrimitiveWrapper {
     private static final Map<String, WrapperItem> primitiveDescToWrapperItem = new HashMap<>();
@@ -47,14 +47,14 @@ class PrimitiveWrapper {
         WrapperItem item = primitiveDescToWrapperItem.get(desc);
         return item == null ?
                 null :
-                newInvokeStatic(item.owner, item.wrapMethod, item.wrapMethodDesc);
+                invokeStatic(item.owner, item.wrapMethod, item.wrapMethodDesc);
     }
 
     static Object mayCreateUnwrapCallNode(String desc) {
         WrapperItem item = primitiveDescToWrapperItem.get(desc);
         return item == null ?
                 null :
-                newInvokeVirtual(item.owner, item.unwrapMethod, item.unwrapMethodDesc);
+                invokeVirtual(item.owner, item.unwrapMethod, item.unwrapMethodDesc);
     }
 
     private static class WrapperItem {

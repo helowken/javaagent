@@ -1,17 +1,16 @@
 package agent.server.transform.tools.asm;
 
+import agent.base.utils.ReflectionUtils;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.*;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
 import static org.objectweb.asm.Opcodes.*;
@@ -50,37 +49,41 @@ class AsmMethod {
         return insnList;
     }
 
-    static Object newLoad(String desc, int index) {
-        return newLoad(
+    static Object loadByDesc(String desc, int index) {
+        return loadByType(
                 Type.getType(desc),
                 index
         );
     }
 
-    static Object newLoad(Class<?> clazz, int index) {
-        return newLoad(
+    static Object loadByClass(Class<?> clazz, int index) {
+        return loadByType(
                 Type.getType(clazz),
                 index
         );
     }
 
-    static Object newLoad(Type type, int index) {
+    static Object loadByType(Type type, int index) {
         return new VarInsnNode(
                 type.getOpcode(ILOAD),
                 index
         );
     }
 
-    static List<Object> newLoad(Type[] types, int startIdx) {
+    static List<Object> loadByTypes(Type[] types, int startIdx) {
         List<Object> rsList = new ArrayList<>();
         int idx = startIdx;
-        for (Type type: types) {
+        for (Type type : types) {
             rsList.add(
-                    newLoad(type, idx)
+                    loadByType(type, idx)
             );
             idx += type.getSize();
         }
         return rsList;
+    }
+
+    static Object loadLongType(int index) {
+        return loadByType(Type.LONG_TYPE, index);
     }
 
     static List<ParamObject> getParamObjects(Method method, int startIdx) {
@@ -106,26 +109,26 @@ class AsmMethod {
         return paramObjects;
     }
 
-    static Object newLoadArgArray(List<ParamObject> poList) {
+    static Object loadArgArray(List<ParamObject> poList) {
         return poList.isEmpty() ?
-                newLoadNull(1) :
+                loadNull(1) :
                 new Object[]{
                         newObjectArray(
                                 poList.size()
                         ),
                         populateObjectArray(
                                 poList,
-                                AsmMethod::newLoadWrapPrimitive
+                                AsmMethod::loadMayWrapPrimitive
                         )
                 };
     }
 
-    static Object newLoadWrapPrimitive(ParamObject po) {
-        return newLoadWrapPrimitive(po.type, po.index);
+    static Object loadMayWrapPrimitive(ParamObject po) {
+        return loadMayWrapPrimitive(po.type, po.index);
     }
 
-    static Object newLoadWrapPrimitive(Type type, int index) {
-        Object load = newLoad(type, index);
+    static Object loadMayWrapPrimitive(Type type, int index) {
+        Object load = loadByType(type, index);
         Object wrapCall = PrimitiveWrapper.mayCreateWrapCallNode(
                 type.getDescriptor()
         );
@@ -134,38 +137,74 @@ class AsmMethod {
                 load;
     }
 
-    static Object newLoadClassName(String desc) {
-        return newLoadLdc(
+    static Object loadClassName(String desc) {
+        return loadLdc(
                 Type.getType(desc).getClassName()
         );
     }
 
-    static Object newLoadClass(String internalName) {
-        return newLoadLdc(
+    static Object loadClass(String internalName) {
+        return loadLdc(
                 Type.getType(internalName)
         );
     }
 
-    static Object newLoadLdc(Object value) {
+    static Object loadLdc(Object value) {
         return new LdcInsnNode(value);
     }
 
-    static boolean isStatic(MethodNode methodNode) {
-        return (methodNode.access & ACC_STATIC) != 0;
+    static Object loadNull(int count) {
+        List<Object> rsList = new ArrayList<>();
+        for (int i = 0; i < count; ++i) {
+            rsList.add(
+                    new InsnNode(ACONST_NULL)
+            );
+        }
+        return rsList;
     }
 
+    static Object aload(int index) {
+        return new VarInsnNode(ALOAD, index);
+    }
+
+    static Object astore(int index) {
+        return new VarInsnNode(ASTORE, index);
+    }
+
+    static Object storeByType(Type type, int index) {
+        return new VarInsnNode(
+                type.getOpcode(ISTORE),
+                index
+        );
+    }
+
+    static Object storeByTypes(Type[] types, int startIdx) {
+        List<Object> rsList = new ArrayList<>();
+        int idx = startIdx;
+        for (Type type : types) {
+            rsList.add(
+                    storeByType(type, idx)
+            );
+            idx += type.getSize();
+        }
+        return rsList;
+    }
+
+    static Object storeLongType(int index) {
+        return storeByType(Type.LONG_TYPE, index);
+    }
 
     static Object newThrow() {
         return new InsnNode(ATHROW);
     }
 
-    static Object newReturn(String desc) {
-        return newReturn(
+    static Object newReturnByDesc(String desc) {
+        return newReturnByType(
                 Type.getType(desc).getReturnType()
         );
     }
 
-    static Object newReturn(Type returnType) {
+    static Object newReturnByType(Type returnType) {
         return new InsnNode(
                 returnType.getOpcode(IRETURN)
         );
@@ -188,13 +227,9 @@ class AsmMethod {
         return new LabelNode();
     }
 
-    static Object newObjectArray(int len) {
-        return newArray(Object.class, len);
-    }
-
     static Object newArray(Class<?> clazz, int len) {
         return new Object[]{
-                newNumLoad(len),
+                loadInt(len),
                 new TypeInsnNode(
                         ANEWARRAY,
                         Type.getInternalName(clazz)
@@ -202,8 +237,8 @@ class AsmMethod {
         };
     }
 
-    static <T> Object populateObjectArray(List<T> nodes, ValueConverter<T> arrayValueSupplier) {
-        return populateArray(Object.class, nodes, arrayValueSupplier);
+    static Object newObjectArray(int len) {
+        return newArray(Object.class, len);
     }
 
     static <T> Object populateArray(Class<?> clazz, List<T> nodes, ValueConverter<T> arrayValueSupplier) {
@@ -222,52 +257,19 @@ class AsmMethod {
         return rsList;
     }
 
+    static <T> Object populateObjectArray(List<T> nodes, ValueConverter<T> arrayValueSupplier) {
+        return populateArray(Object.class, nodes, arrayValueSupplier);
+    }
+
     static Object setValueToArray(Class<?> clazz, int index, Object value) {
         return new Object[]{
                 new InsnNode(DUP),
-                newNumLoad(index),
+                loadInt(index),
                 value,
                 new InsnNode(
                         Type.getType(clazz).getOpcode(IASTORE)
                 )
         };
-    }
-
-    static Object newLoadNull(int count) {
-        List<Object> rsList = new ArrayList<>();
-        for (int i = 0; i < count; ++i) {
-            rsList.add(
-                    new InsnNode(ACONST_NULL)
-            );
-        }
-        return rsList;
-    }
-
-    static Object newAStore(int index) {
-        return new VarInsnNode(ASTORE, index);
-    }
-
-    static Object newALoad(int index) {
-        return new VarInsnNode(ALOAD, index);
-    }
-
-    static Object newStore(Type type, int index) {
-        return new VarInsnNode(
-                type.getOpcode(ISTORE),
-                index
-        );
-    }
-
-    static Object newStore(Type[] types, int startIdx) {
-        List<Object> rsList = new ArrayList<>();
-        int idx = startIdx;
-        for (Type type : types) {
-            rsList.add(
-                    newStore(type, idx)
-            );
-            idx += type.getSize();
-        }
-        return rsList;
     }
 
     static Object newObject(Constructor constructor, AsmFunc addArgsFunc) {
@@ -291,7 +293,31 @@ class AsmMethod {
         };
     }
 
-    static Object newNumLoad(int n) {
+    static Object initLong(long n, int index) {
+        return new Object[]{
+                loadLong(n),
+                storeLongType(index)
+        };
+    }
+
+    static Object updateLong(long value, int index) {
+        return new Object[]{
+                loadLongType(index),
+                loadLong(value),
+                new InsnNode(LADD),
+                storeLongType(index)
+        };
+    }
+
+    static Object loadLong(long n) {
+        if (n == 0)
+            return new InsnNode(LCONST_0);
+        if (n == 1)
+            return new InsnNode(LCONST_1);
+        return loadLdc(n);
+    }
+
+    static Object loadInt(int n) {
         int opcode = NOP;
         switch (n) {
             case -1:
@@ -325,15 +351,15 @@ class AsmMethod {
         return new LdcInsnNode(n);
     }
 
-    static Object newLoadThis() {
-        return new VarInsnNode(ALOAD, 0);
+    static Object aloadThis() {
+        return aload(0);
     }
 
-    static Object newInvokeVirtual(Method method) {
+    static Object invokeVirtual(Method method) {
         return newInvoke(method, INVOKEVIRTUAL);
     }
 
-    static Object newInvokeVirtual(String classInternalName, String methodName, String methodDesc) {
+    static Object invokeVirtual(String classInternalName, String methodName, String methodDesc) {
         return new MethodInsnNode(
                 INVOKEVIRTUAL,
                 classInternalName,
@@ -343,11 +369,11 @@ class AsmMethod {
         );
     }
 
-    static Object newInvokeStatic(Method method) {
+    static Object invokeStatic(Method method) {
         return newInvoke(method, INVOKESTATIC);
     }
 
-    static Object newInvokeStatic(String classInternalName, String methodName, String methodDesc) {
+    static Object invokeStatic(String classInternalName, String methodName, String methodDesc) {
         return new MethodInsnNode(
                 INVOKESTATIC,
                 classInternalName,
@@ -357,7 +383,7 @@ class AsmMethod {
         );
     }
 
-    static Object newGetStaticField(Field field) {
+    static Object getStaticField(Field field) {
         return new FieldInsnNode(
                 GETSTATIC,
                 Type.getType(
@@ -384,49 +410,43 @@ class AsmMethod {
         );
     }
 
-    static Object newPop() {
+    static Object pop() {
         return new InsnNode(POP);
     }
 
-    static Object newCast(String desc) {
+    static Object castByDesc(String desc) {
         return new TypeInsnNode(
                 CHECKCAST,
                 Type.getType(desc).getInternalName()
         );
     }
 
-    static boolean isStatic(Method method) {
-        return Modifier.isStatic(
-                method.getModifiers()
+    static Object aloadThisOrNull(Method method) {
+        return aloadThisOrNull(
+                ReflectionUtils.isStatic(method)
         );
     }
 
-    static Object newLoadThisOrNull(Method method) {
-        return newLoadThisOrNull(
-                isStatic(method)
-        );
-    }
-
-    static Object newLoadThisOrNull(boolean isStatic) {
+    static Object aloadThisOrNull(boolean isStatic) {
         return isStatic ?
-                newLoadNull(1) :
-                newLoadThis();
+                loadNull(1) :
+                aloadThis();
     }
 
-    static Object newDup() {
+    static Object dup() {
         return new InsnNode(DUP);
     }
 
-    static Object mayCastToReturnType(Type returnType) {
+    static Object castByReturnType(Type returnType) {
         if (returnType.getSort() == Type.VOID ||
                 returnType.getClassName().equals(Object.class.getName()))
             return null;
         String returnDesc = returnType.getDescriptor();
         Object unwrapCallNode = PrimitiveWrapper.mayCreateUnwrapCallNode(returnDesc);
         return unwrapCallNode == null ?
-                newCast(returnDesc) :
+                castByDesc(returnDesc) :
                 new Object[]{
-                        newCast(
+                        castByDesc(
                                 Optional.ofNullable(
                                         PrimitiveWrapper.getWrapperType(returnDesc)
                                 ).orElseThrow(

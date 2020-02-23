@@ -22,6 +22,12 @@ public class ReflectionUtils {
         return false;
     }
 
+    public static boolean isStatic(Method method) {
+        return Modifier.isStatic(
+                method.getModifiers()
+        );
+    }
+
     public static String getClassNamePath(Class<?> clazz) {
         return getClassNamePath(clazz.getName());
     }

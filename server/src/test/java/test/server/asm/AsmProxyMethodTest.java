@@ -168,81 +168,81 @@ public class AsmProxyMethodTest {
             );
         }
 
-//        private Double argsAndReturnWrapper(int a, double a2, String b, Short ccc) {
-//            System.out.println("a: " + a + ", b: " + b + ", ccc: " + ccc);
-//            System.out.println("Return Double wrapper");
-//            return 3.3D;
-//        }
-//
-//        private static String staticArgsAndReturnWrapper(int a, double a2, String b, Short ccc) {
-//            System.out.println("a: " + a + ", b: " + b + ", ccc: " + ccc);
-//            System.out.println("Return Double wrapper");
-//            return "return from static";
-//        }
-//
-//        private int returnPrimitive() {
-//            System.out.println("Return primitive");
-//            return 333;
-//        }
-//
-//        private void returnVoid() {
-//            System.out.println("Return void");
-//        }
-//
-//        private void throwException() {
-//            throw new RuntimeException(errorMsg);
-//        }
-//
-//        private void callErrorFunc() {
-//            raiseError();
-//        }
-//
-//        private void tryFinally() {
-//            try {
-//                throw new RuntimeException(errorMsg);
-//            } finally {
-//                System.out.println(111);
-//            }
-//        }
-//
-//        private void tryCatch() {
-//            try {
-//                throw new Exception(errorMsg);
-//            } catch (Throwable e) {
-//                e.printStackTrace();
-//            }
-//        }
-//
-//        private void tryCatchThrow() {
-//            try {
-//                throw new Exception(errorMsg);
-//            } catch (Throwable e) {
-//                e.printStackTrace();
-//                throw new RuntimeException(e.getMessage());
-//            }
-//        }
-//
-//        private void tryNotCatch() throws Exception {
-//            try {
-//                throw new RuntimeException(errorMsg);
-//            } catch (IllegalArgumentException e) {
-//                e.printStackTrace();
-//            }
-//        }
-//
-//        private void trySyncThrow() throws Exception {
-//            synchronized (this) {
-//                throw new RuntimeException(errorMsg);
-//            }
-//        }
-//
-//        private synchronized void trySyncMethodThrow() throws Exception {
-//            throw new RuntimeException(errorMsg);
-//        }
-//
-//        private void raiseError() {
-//            throw new RuntimeException(errorMsg);
-//        }
+        private Double argsAndReturnWrapper(int a, double a2, String b, Short ccc) {
+            System.out.println("a: " + a + ", b: " + b + ", ccc: " + ccc);
+            System.out.println("Return Double wrapper");
+            return 3.3D;
+        }
+
+        private static String staticArgsAndReturnWrapper(int a, double a2, String b, Short ccc) {
+            System.out.println("a: " + a + ", b: " + b + ", ccc: " + ccc);
+            System.out.println("Return Double wrapper");
+            return "return from static";
+        }
+
+        private int returnPrimitive() {
+            System.out.println("Return primitive");
+            return 333;
+        }
+
+        private void returnVoid() {
+            System.out.println("Return void");
+        }
+
+        private void throwException() {
+            throw new RuntimeException(errorMsg);
+        }
+
+        private void callErrorFunc() {
+            raiseError();
+        }
+
+        private void tryFinally() {
+            try {
+                throw new RuntimeException(errorMsg);
+            } finally {
+                System.out.println(111);
+            }
+        }
+
+        private void tryCatch() {
+            try {
+                throw new Exception(errorMsg);
+            } catch (Throwable e) {
+                e.printStackTrace();
+            }
+        }
+
+        private void tryCatchThrow() {
+            try {
+                throw new Exception(errorMsg);
+            } catch (Throwable e) {
+                e.printStackTrace();
+                throw new RuntimeException(e.getMessage());
+            }
+        }
+
+        private void tryNotCatch() throws Exception {
+            try {
+                throw new RuntimeException(errorMsg);
+            } catch (IllegalArgumentException e) {
+                e.printStackTrace();
+            }
+        }
+
+        private void trySyncThrow() throws Exception {
+            synchronized (this) {
+                throw new RuntimeException(errorMsg);
+            }
+        }
+
+        private synchronized void trySyncMethodThrow() throws Exception {
+            throw new RuntimeException(errorMsg);
+        }
+
+        private void raiseError() {
+            throw new RuntimeException(errorMsg);
+        }
     }
 
     public static class B {
