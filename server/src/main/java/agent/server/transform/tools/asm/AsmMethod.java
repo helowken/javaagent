@@ -414,13 +414,6 @@ class AsmMethod {
         return new InsnNode(POP);
     }
 
-    static Object castByDesc(String desc) {
-        return new TypeInsnNode(
-                CHECKCAST,
-                Type.getType(desc).getInternalName()
-        );
-    }
-
     static Object aloadThisOrNull(Method method) {
         return aloadThisOrNull(
                 ReflectionUtils.isStatic(method)
@@ -437,7 +430,14 @@ class AsmMethod {
         return new InsnNode(DUP);
     }
 
-    static Object castByReturnType(Type returnType) {
+    static Object castByDesc(String desc) {
+        return new TypeInsnNode(
+                CHECKCAST,
+                Type.getType(desc).getInternalName()
+        );
+    }
+
+    static Object castForReturnType(Type returnType) {
         if (returnType.getSort() == Type.VOID ||
                 returnType.getClassName().equals(Object.class.getName()))
             return null;

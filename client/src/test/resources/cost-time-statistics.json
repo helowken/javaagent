@@ -30,7 +30,7 @@
           },
           {
             "targetClasses": [
-              ".*\\.StatisticsCostTimeObject"
+              "test.jetty.StatisticsCostTimeObject"
             ]
           }
         ]

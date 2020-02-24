@@ -17,7 +17,12 @@ public class CostTimeStatItem {
     private long maxTime = 0;
     private Map<Long, Long> timeToCount = new TreeMap<>();
     private Map<Long, BigInteger> timeToBigCount = new TreeMap<>();
-    private boolean freezed = false;
+    private boolean frozen = false;
+
+    private void checkFrozen() {
+        if (frozen)
+            throw new RuntimeException("Frozen!!!");
+    }
 
     private BigInteger wrap(long t) {
         return BigInteger.valueOf(t);
@@ -40,8 +45,7 @@ public class CostTimeStatItem {
     }
 
     public synchronized void add(long time) {
-        if (freezed)
-            return;
+        checkFrozen();
         if (currTotalTime + time <= 0) {
             updateTotalTime(currTotalTime);
             currTotalTime = time;
@@ -83,8 +87,7 @@ public class CostTimeStatItem {
     }
 
     public synchronized void merge(CostTimeStatItem other) {
-        if (freezed)
-            return;
+        checkFrozen();
         updateTotalTime(other.totalTime);
         if (this.currTotalTime + other.currTotalTime < 0) {
             updateTotalTime(this.currTotalTime);
@@ -135,9 +138,8 @@ public class CostTimeStatItem {
     }
 
     public synchronized void freeze() {
-        if (freezed)
-            return;
-        freezed = true;
+        checkFrozen();
+        frozen = true;
         if (currTotalTime > 0) {
             updateTotalTime(currTotalTime);
             currTotalTime = 0;

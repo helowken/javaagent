@@ -9,7 +9,7 @@ import agent.server.utils.ParamValueUtils;
 import agent.server.utils.log.LogMgr;
 import agent.server.utils.log.text.TextLogConfigParser;
 
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -20,10 +20,14 @@ public class CostTimeMeasureTransformer extends CallChainTransformer {
             " cost time is: " + StringParser.getKey(KEY_COST_TIME) + "ms";
 
     @Override
-    protected String newLogKey(Map<String, Object> config) {
-        Map<String, Object> defaultValueMap = new HashMap<>();
-        defaultValueMap.put(TextLogConfigParser.CONF_OUTPUT_FORMAT, DEFAULT_OUTPUT_FORMAT);
-        return regLogText(config, defaultValueMap);
+    protected String newLogKey(Map<String, Object> logConf) {
+        return regLogText(
+                logConf,
+                Collections.singletonMap(
+                        TextLogConfigParser.CONF_OUTPUT_FORMAT,
+                        DEFAULT_OUTPUT_FORMAT
+                )
+        );
     }
 
     @Override

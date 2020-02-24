@@ -5,10 +5,7 @@ import agent.server.tree.Node;
 import agent.server.tree.Tree;
 import agent.server.tree.TreeUtils;
 
-import java.util.Collection;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 import static agent.builtin.tools.result.ByCallChainCostTimeResultHandler.NodeData;
 
@@ -97,60 +94,44 @@ public class ByCallChainCostTimeResultHandler extends AbstractCostTimeResultHand
 
     private Tree<NodeData> doCalculate(String dataFilePath) {
         Tree<NodeData> tree = new Tree<>();
-        ThreadLocal<Node<NodeData>> local = new ThreadLocal<>();
+        Map<Integer, Node<NodeData>> idToNode = new HashMap<>();
         doCalculateFile(
                 dataFilePath,
-                (parentInvokeId, invokeId, costTime, error) -> {
+                (id, parentId, invokeId, costTime, error) -> {
                     Node<NodeData> node;
-                    if (parentInvokeId == -1) {
-                        node = addChild(tree, invokeId, costTime);
+                    if (parentId == -1) {
+                        node = addChild(tree, id, invokeId, costTime);
+                        idToNode.clear();
                     } else {
-                        Node<NodeData> pn = local.get();
+                        Node<NodeData> pn = idToNode.get(parentId);
                         if (pn == null)
                             throw new RuntimeException("No parent node found in local!");
-                        if (pn.getData().invokeId == parentInvokeId)
-                            node = mayAddChild(pn, invokeId, costTime);
-                        else {
-                            Node<NodeData> tmp = findParentNode(pn, parentInvokeId);
-                            node = mayAddChild(tmp, invokeId, costTime);
-                        }
+                        node = mayAddChild(pn, id, invokeId, costTime);
                     }
-                    local.set(node);
+                    idToNode.put(id, node);
                 }
         );
         return tree;
     }
 
-    private Node<NodeData> findParentNode(Node<NodeData> node, int parentInvokeId) {
-        Node<NodeData> tmp = node.getParent();
-        while (tmp != null && tmp.getData().invokeId != parentInvokeId) {
-            tmp = tmp.getParent();
-            if (tmp.isRoot()) {
-                tmp = null;
-                break;
-            }
-        }
-        if (tmp == null)
-            throw new RuntimeException("No parent node found in tree!");
-        return tmp;
-    }
-
-    private Node<NodeData> mayAddChild(Node<NodeData> pn, int invokeId, int costTime) {
+    private Node<NodeData> mayAddChild(Node<NodeData> pn, int id, int invokeId, int costTime) {
         Node<NodeData> childNode = pn.findFirstChild(
                 nodeData -> nodeData.invokeId == invokeId
+//                        nodeData.id == id   this can separate each call
         );
         if (childNode == null)
-            childNode = addChild(pn, invokeId, costTime);
+            childNode = addChild(pn, id, invokeId, costTime);
         else
             childNode.getData().item.add(costTime);
         return childNode;
     }
 
-    private Node<NodeData> addChild(Node<NodeData> pn, int invokeId, int costTime) {
+    private Node<NodeData> addChild(Node<NodeData> pn, int id, int invokeId, int costTime) {
         Node<NodeData> node = pn.addChildAt(
                 0,
                 new Node<>(
                         new NodeData(
+                                id,
                                 invokeId,
                                 new CostTimeStatItem()
                         )
@@ -161,10 +142,12 @@ public class ByCallChainCostTimeResultHandler extends AbstractCostTimeResultHand
     }
 
     static class NodeData {
+        final int id;
         final int invokeId;
         final CostTimeStatItem item;
 
-        private NodeData(int invokeId, CostTimeStatItem item) {
+        private NodeData(int id, int invokeId, CostTimeStatItem item) {
+            this.id = id;
             this.invokeId = invokeId;
             this.item = item;
         }

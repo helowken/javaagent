@@ -2,9 +2,8 @@ package test.transformer;
 
 import agent.base.utils.ReflectionUtils;
 import agent.builtin.tools.CostTimeByCallChain;
+import agent.builtin.tools.CostTimeByInvoke;
 import agent.builtin.transformer.CostTimeStatisticsTransformer;
-import agent.common.utils.JSONUtils;
-import agent.server.transform.impl.ViewMgr;
 import org.junit.Test;
 import test.server.AbstractTest;
 
@@ -35,6 +34,14 @@ public class CostTimeStatisticsTransformerTest extends AbstractTest {
                                     outputPath
                             }
                     );
+
+                    System.out.println("====================");
+
+                    CostTimeByInvoke.main(
+                            new String[] {
+                                    outputPath
+                            }
+                    );
                 }
         );
     }
@@ -46,12 +53,10 @@ public class CostTimeStatisticsTransformerTest extends AbstractTest {
                 runApi1();
                 runApi2();
                 runApi2();
-                runApi3();
-                runApi3();
-                runApi3();
-//                for (int i = 0; i < 1000; ++i) {
-//                    runApi3();
-//                }
+                for (int i = 0; i < 3; ++i) {
+                    runApi3();
+                }
+                runApi4(5);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -86,14 +91,26 @@ public class CostTimeStatisticsTransformerTest extends AbstractTest {
         private void runApi3_1() throws InterruptedException {
             System.out.println("Running in api3_1");
             Thread.sleep(30);
-            runApi3_1_1();
-            commonCall();
+            int i = 0;
+            while (i++ < 3) {
+                runApi3_1_1();
+                commonCall();
+            }
         }
 
         private void runApi3_1_1() throws InterruptedException {
             System.out.println("Running in api3_1_1");
             Thread.sleep(35);
             commonCall();
+        }
+
+        private void runApi4(int n) throws InterruptedException {
+            if (n <= 0)
+                return;
+            System.out.println("Running in api4 on n=" + n);
+            Thread.sleep(5);
+            commonCall();
+            runApi4(n - 1);
         }
 
         private void commonCalls(Integer count) throws InterruptedException {

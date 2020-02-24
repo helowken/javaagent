@@ -6,11 +6,16 @@ import java.util.List;
 import java.util.Stack;
 
 public class AroundItem<T, R> {
+    private int seq = 0;
     private Stack<T> undergoing = new Stack<>();
     private LinkedList<R> completed = new LinkedList<>();
 
     void add(T data) {
         undergoing.push(data);
+    }
+
+    int nextSeq() {
+        return ++seq;
     }
 
     public T peek() {

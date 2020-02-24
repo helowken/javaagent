@@ -4,17 +4,25 @@ import agent.base.utils.Utils;
 import agent.server.transform.impl.invoke.DestInvoke;
 
 import java.lang.reflect.Method;
+import java.util.Collections;
 import java.util.Map;
 
 import static agent.server.transform.impl.ProxyAnnotationConfig.ARGS_ON_AFTER;
 import static agent.server.transform.impl.ProxyAnnotationConfig.ARGS_ON_BEFORE;
 
 public abstract class CallChainTransformer extends ProxyAnnotationConfigTransformer {
+    private static final String KEY_LOG = "log";
     protected String logKey;
 
     @Override
+    @SuppressWarnings("unchecked")
     protected void doSetConfig(Map<String, Object> config) throws Exception {
-        logKey = newLogKey(config);
+        logKey = newLogKey(
+                (Map) config.getOrDefault(
+                        KEY_LOG,
+                        Collections.emptyMap()
+                )
+        );
     }
 
     @Override
@@ -39,12 +47,12 @@ public abstract class CallChainTransformer extends ProxyAnnotationConfigTransfor
         @Override
         protected T newDataOnBefore(Object[] args, Class<?>[] argTypes, DestInvoke destInvoke, Object[] otherArgs) {
             int invokeId = Utils.getArgValue(otherArgs, 0);
-            InvokeItem parentItem = getAroundItem().peek();
-            int parentInvokeId = parentItem == null ? -1 : parentItem.invokeId;
-
+            AroundItem<T, T> aroundItem = getAroundItem();
+            InvokeItem parentItem = aroundItem.peek();
             T data = newData(args, argTypes, destInvoke, otherArgs);
+            data.id = aroundItem.nextSeq();
+            data.parentId = parentItem == null ? -1 : parentItem.id;
             data.invokeId = invokeId;
-            data.parentInvokeId = parentInvokeId;
             return data;
         }
 
@@ -80,7 +88,8 @@ public abstract class CallChainTransformer extends ProxyAnnotationConfigTransfor
     }
 
     public static abstract class InvokeItem {
-        public int parentInvokeId;
+        public int id;
+        public int parentId;
         public int invokeId;
     }
 

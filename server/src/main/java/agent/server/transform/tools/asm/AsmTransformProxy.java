@@ -66,7 +66,7 @@ class AsmTransformProxy {
                 transformConstructorInvoke(methodNode, invokeId, (Constructor) destInvoke.getInvokeEntity());
                 break;
             case METHOD:
-                transformMethodInvoke(methodNode, invokeId, (Method) destInvoke.getInvokeEntity(), true);
+                transformMethodInvoke(methodNode, invokeId, (Method) destInvoke.getInvokeEntity(), false);
                 break;
             default:
                 throw new IllegalArgumentException("Unknown dest invoke type: " + destInvoke.getType());

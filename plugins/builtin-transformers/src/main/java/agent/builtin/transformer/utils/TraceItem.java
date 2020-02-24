@@ -8,6 +8,7 @@ import java.util.Map;
 public class TraceItem {
     private int id;
     private int parentId;
+    private int invokeId;
     private long startTime;
     private long endTime;
     private List<Map<String, Object>> args;
@@ -20,6 +21,14 @@ public class TraceItem {
 
     public void setId(int id) {
         this.id = id;
+    }
+
+    public int getInvokeId() {
+        return invokeId;
+    }
+
+    public void setInvokeId(int invokeId) {
+        this.invokeId = invokeId;
     }
 
     public int getParentId() {

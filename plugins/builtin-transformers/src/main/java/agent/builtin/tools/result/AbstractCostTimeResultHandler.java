@@ -25,12 +25,13 @@ abstract class AbstractCostTimeResultHandler<T> extends AbstractResultHandler<T>
                     int count = in.readInt();
                     totalSize += Integer.BYTES;
                     for (int i = 0; i < count; ++i) {
-                        int parentInvokeId = in.readInt();
+                        int id = in.readInt();
+                        int parentId = in.readInt();
                         int invokeId = in.readInt();
                         int costTime = in.readInt();
                         boolean error = in.readByte() == 1;
-                        calculateFunc.exec(parentInvokeId, invokeId, costTime, error);
-                        totalSize += Integer.BYTES * 3 + Byte.BYTES;
+                        calculateFunc.exec(id, parentId, invokeId, costTime, error);
+                        totalSize += Integer.BYTES * 4 + Byte.BYTES;
                     }
                     return totalSize;
                 }
@@ -50,6 +51,6 @@ abstract class AbstractCostTimeResultHandler<T> extends AbstractResultHandler<T>
     abstract void printTree(Map<String, Map<String, Integer>> classToInvokeToId, T result, boolean skipAvgEq0, Set<Float> rates);
 
     interface CostTimeCalculateFunc {
-        void exec(int parentInvokeId, int invokeId, int costTime, boolean error);
+        void exec(int id, int parentId, int invokeId, int costTime, boolean error);
     }
 }

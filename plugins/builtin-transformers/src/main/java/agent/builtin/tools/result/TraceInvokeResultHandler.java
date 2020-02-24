@@ -33,24 +33,24 @@ public class TraceInvokeResultHandler extends AbstractResultHandler<Collection<T
                             new TreeUtils.PrintConfig(false),
                             (node, config) -> convert(
                                     idToInvoke,
-                                    node.getData()
+                                    node
                             )
                     );
-                    System.out.println("\n");
+//                    System.out.println("\n");
                 }
         );
     }
 
-    private String convert(Map<Integer, InvokeMetadata> idToInvoke, TraceItem item) {
-        Integer pid = item.getParentId();
+    private String convert(Map<Integer, InvokeMetadata> idToInvoke, Node<TraceItem> node) {
+        TraceItem item = node.getData();
         InvokeMetadata metadata = getMetadata(
                 idToInvoke,
-                item.getId()
+                item.getInvokeId()
         );
         StringBuilder sb = new StringBuilder();
         sb.append(
                 convertInvoke(
-                        pid == -1 ? null : pid,
+                        item.getParentId() == -1 ? null : node.getParent().getData().getInvokeId(),
                         idToInvoke,
                         metadata
                 )
@@ -65,13 +65,16 @@ public class TraceInvokeResultHandler extends AbstractResultHandler<Collection<T
                     )
             );
         }
-        if (item.hasReturnValue())
-            append(
-                    sb.append("Return: \n").append(indent),
-                    new TreeMap<>(
-                            item.getReturnValue()
-                    )
-            );
+        if (item.hasReturnValue()) {
+            String className = (String) item.getReturnValue().get(KEY_CLASS);
+            if (className == null || !className.equals(void.class.getName()))
+                append(
+                        sb.append("Return: \n").append(indent),
+                        new TreeMap<>(
+                                item.getReturnValue()
+                        )
+                );
+        }
         if (item.hasError())
             append(
                     sb.append("Error: \n").append(indent),

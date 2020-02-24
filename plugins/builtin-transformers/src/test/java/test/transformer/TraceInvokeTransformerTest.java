@@ -65,7 +65,9 @@ public class TraceInvokeTransformerTest extends AbstractTest {
         }
 
         Double test4(Boolean a1, Byte a2, Character a3, Short a4, Integer a5, Long a6) {
-            test5(7.2F, 8.3);
+            for (int i = 0; i < 3; ++i) {
+                test5(i + 7.2F, 8.3);
+            }
             return 99.9;
         }
 

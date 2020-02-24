@@ -19,7 +19,6 @@ public abstract class AbstractLogConfigParser implements LogConfigParser {
     private static final String CONF_ROLL_FILE_SIZE = "rollFileSize";
     private static final String CONF_WRITE_TIMEOUT_MS = "writeTimeoutMs";
 
-    private static final String KEY_LOG = "log";
     private static final int MAX_BUFFER_SIZE = 1024 * 1024;
     private static final int MIN_BUFFER_SIZE = 0;
     private static final int MAX_BUFFER_COUNT = 1000;
@@ -42,10 +41,9 @@ public abstract class AbstractLogConfigParser implements LogConfigParser {
     }
 
     @Override
-    public LogConfig parse(Map<String, Object> config, Map<String, Object> defaultValueMap) {
+    public LogConfig parse(Map<String, Object> logConf, Map<String, Object> defaultValueMap) {
         Map<String, Object> defaults = new HashMap<>(defaultValueMap);
         populateDefaults(defaults);
-        Map<String, Object> logConf = (Map) config.getOrDefault(KEY_LOG, Collections.emptyMap());
         return doParse(
                 Utils.getConfigValue(logConf, CONF_OUTPUT_PATH, defaults),
                 Utils.getConfigValue(logConf, CONF_AUTO_FLUSH, defaults),

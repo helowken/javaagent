@@ -1,7 +1,8 @@
 package test.transformer;
 
 import agent.base.utils.ReflectionUtils;
-import agent.builtin.transformer.CostTimeMeasureTransformer;
+import agent.builtin.tools.InvokeResultTracer;
+import agent.builtin.transformer.TraceInvokeTransformer;
 import org.junit.Test;
 import test.server.AbstractTest;
 
@@ -15,26 +16,36 @@ public class CostTimeMeasureTransformerTest extends AbstractTest {
 
     @Test
     public void test() throws Exception {
-        CostTimeMeasureTransformer transformer = new CostTimeMeasureTransformer();
-        String context = "test";
-        Map<Class<?>, String> classToMethodFilter = new HashMap<>();
-        classToMethodFilter.put(A.class, "test.*");
-        classToMethodFilter.put(B.class, ".*[l|L]oad");
-        doTransform(transformer, context, Collections.emptyMap(), classToMethodFilter);
+        runWithFile(
+                (outputPath, config) -> {
+                    TraceInvokeTransformer transformer = new TraceInvokeTransformer();
+                    String context = "test";
+                    Map<Class<?>, String> classToMethodFilter = new HashMap<>();
+                    classToMethodFilter.put(A.class, "test.*");
+                    classToMethodFilter.put(B.class, ".*[l|L]oad");
+                    doTransform(transformer, context, config, classToMethodFilter);
 
-        Map<Class<?>, byte[]> classToData = getClassToData(transformer);
+                    Map<Class<?>, byte[]> classToData = getClassToData(transformer);
 
-        Object a = newInstance(classToData, A.class);
-        ReflectionUtils.invoke("test", a);
-        ReflectionUtils.invoke("test2", a);
+                    Object a = newInstance(classToData, A.class);
+                    ReflectionUtils.invoke("test", a);
+                    ReflectionUtils.invoke("test2", a);
 
-        System.out.println("=================");
-        Object b = newInstance(classToData, B.class);
-        ReflectionUtils.invoke("load", new Class[]{String.class}, b, "xxx");
-        ReflectionUtils.invoke("load", new Class[]{int.class}, b, 33);
-        ReflectionUtils.invoke("recursiveLoad", new Class[]{long.class}, b, (long) 4);
+                    System.out.println("=================");
+                    Object b = newInstance(classToData, B.class);
+                    ReflectionUtils.invoke("load", new Class[]{String.class}, b, "xxx");
+                    ReflectionUtils.invoke("load", new Class[]{int.class}, b, 33);
+                    ReflectionUtils.invoke("recursiveLoad", new Class[]{long.class}, b, (long) 4);
 
-        flushAndWaitMetadata(STDOUT);
+                    flushAndWaitMetadata(outputPath);
+
+                    InvokeResultTracer.main(
+                            new String[]{
+                                    outputPath
+                            }
+                    );
+                }
+        );
     }
 
     static class A {

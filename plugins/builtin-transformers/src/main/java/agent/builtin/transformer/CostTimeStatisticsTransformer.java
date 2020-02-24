@@ -16,8 +16,8 @@ public class CostTimeStatisticsTransformer extends CallChainTransformer {
     public static final String REG_KEY = "@costTimeStat";
 
     @Override
-    protected String newLogKey(Map<String, Object> config) {
-        return regLogBinary(config, Collections.EMPTY_MAP);
+    protected String newLogKey(Map<String, Object> logConf) {
+        return regLogBinary(logConf, Collections.EMPTY_MAP);
     }
 
     @Override
@@ -41,7 +41,8 @@ public class CostTimeStatisticsTransformer extends CallChainTransformer {
             );
             completed.forEach(
                     item -> {
-                        logItem.putInt(item.parentInvokeId);
+                        logItem.putInt(item.id);
+                        logItem.putInt(item.parentId);
                         logItem.putInt(item.invokeId);
                         logItem.putInt((int) (item.endTime - item.startTime));
                         logItem.put((byte) (item.error != null ? 1 : 0));

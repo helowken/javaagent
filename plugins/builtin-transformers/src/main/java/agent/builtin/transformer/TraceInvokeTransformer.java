@@ -12,10 +12,7 @@ import agent.server.utils.ParamValueUtils;
 import agent.server.utils.log.LogMgr;
 
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static agent.server.transform.impl.ProxyAnnotationConfig.ARGS_ON_AFTER;
@@ -30,13 +27,12 @@ public class TraceInvokeTransformer extends CallChainTransformer {
     private ValueConverter valueConverter;
 
     @Override
-    protected String newLogKey(Map<String, Object> config) {
+    protected String newLogKey(Map<String, Object> logConf) {
+        Map<String, Object> newLogConf = new HashMap<>(logConf);
+        newLogConf.put(KEY_OUTPUT_FORMAT, DEFAULT_OUTPUT_FORMAT);
         return regLogText(
-                config,
-                Collections.singletonMap(
-                        KEY_OUTPUT_FORMAT,
-                        DEFAULT_OUTPUT_FORMAT
-                )
+                newLogConf,
+                Collections.emptyMap()
         );
     }
 
@@ -100,8 +96,9 @@ public class TraceInvokeTransformer extends CallChainTransformer {
 
         private TraceItem convert(SelfInvokeInfo item, ValueConverter valueConverter) {
             TraceItem traceItem = new TraceItem();
-            traceItem.setId(item.invokeId);
-            traceItem.setParentId(item.parentInvokeId);
+            traceItem.setId(item.id);
+            traceItem.setParentId(item.parentId);
+            traceItem.setInvokeId(item.invokeId);
             traceItem.setStartTime(item.startTime);
             traceItem.setEndTime(item.endTime);
 
