@@ -12,7 +12,7 @@ import java.util.Map;
 
 import static agent.server.utils.log.LogConfig.STDOUT;
 
-public class CostTimeMeasureTransformerTest extends AbstractTest {
+public class TraceInvokeTransformerTest2 extends AbstractTest {
 
     @Test
     public void test() throws Exception {

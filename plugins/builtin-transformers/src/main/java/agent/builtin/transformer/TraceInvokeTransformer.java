@@ -8,7 +8,6 @@ import agent.builtin.transformer.utils.ValueConverter;
 import agent.common.utils.JSONUtils;
 import agent.server.transform.impl.CallChainTransformer;
 import agent.server.transform.impl.invoke.DestInvoke;
-import agent.server.utils.ParamValueUtils;
 import agent.server.utils.log.LogMgr;
 
 import java.lang.reflect.Method;
@@ -88,10 +87,7 @@ public class TraceInvokeTransformer extends CallChainTransformer {
                                     Collectors.toList()
                             )
             );
-            LogMgr.logText(
-                    logKey,
-                    ParamValueUtils.newParamValueMap(KEY_CONTENT, content)
-            );
+            LogMgr.logText(logKey, content);
         }
 
         private TraceItem convert(SelfInvokeInfo item, ValueConverter valueConverter) {

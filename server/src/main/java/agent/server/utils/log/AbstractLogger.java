@@ -64,10 +64,8 @@ public abstract class AbstractLogger<T extends LogItem> implements ILogger<T>, A
         return key;
     }
 
-    // used in bytecode
     public void log(String key, T item) {
         try {
-//            getLogger().debug("Start to log, paramValues: {}", content);
             LogWriter<T> logWriter = keyToLogWriter.get(key);
             if (logWriter != null)
                 logWriter.write(item);
@@ -119,8 +117,9 @@ public abstract class AbstractLogger<T extends LogItem> implements ILogger<T>, A
     @Override
     public LogConfig getLogConfig(String key) {
         return Optional.ofNullable(keyToLogWriter.get(key))
-                .orElseThrow(() -> new RuntimeException("No log writer found by key: " + key))
-                .getConfig();
+                .orElseThrow(
+                        () -> new RuntimeException("No log writer found by key: " + key)
+                ).getConfig();
     }
 
 }

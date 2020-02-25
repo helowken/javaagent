@@ -1,6 +1,7 @@
 package agent.server.utils.log;
 
 import agent.common.utils.Registry;
+import agent.server.utils.log.binary.BinaryLogItem;
 import agent.server.utils.log.binary.BinaryLogger;
 import agent.server.utils.log.text.TextLogItem;
 import agent.server.utils.log.text.TextLogger;
@@ -42,11 +43,11 @@ public class LogMgr {
         getLogger(loggerType).log(logKey, item);
     }
 
-    public static void logText(String logKey, Map<String, Object> paramValues) {
-        log(LoggerType.TEXT, logKey, new TextLogItem(paramValues));
+    public static void logText(String logKey, String content) {
+        log(LoggerType.TEXT, logKey, new TextLogItem(content));
     }
 
-    public static void logBinary(String logKey, LogItem item) {
+    public static void logBinary(String logKey, BinaryLogItem item) {
         log(LoggerType.BINARY, logKey, item);
     }
 

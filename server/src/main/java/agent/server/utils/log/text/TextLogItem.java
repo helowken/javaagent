@@ -2,13 +2,14 @@ package agent.server.utils.log.text;
 
 import agent.server.utils.log.AbstractLogItem;
 
-import java.util.Map;
-
 public class TextLogItem extends AbstractLogItem {
-    final Map<String, Object> paramValues;
-    String content;
+    final String content;
 
-    public TextLogItem(Map<String, Object> paramValues) {
-        this.paramValues = paramValues;
+    public TextLogItem(String content) {
+        this.content = content;
+    }
+
+    public int getSize() {
+        return this.content.length();
     }
 }

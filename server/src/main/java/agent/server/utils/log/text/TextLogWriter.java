@@ -3,7 +3,6 @@ package agent.server.utils.log.text;
 import agent.base.utils.IOUtils;
 import agent.base.utils.LockObject;
 import agent.base.utils.StringParser;
-import agent.server.utils.ParamValueUtils;
 import agent.server.utils.log.AbstractLogWriter;
 
 import java.io.BufferedWriter;
@@ -29,15 +28,7 @@ public class TextLogWriter extends AbstractLogWriter<TextLogConfig, TextLogItem>
 
     @Override
     protected long computeSize(TextLogItem item) {
-        item.content = expr.eval(
-                item.paramValues,
-                (pvs, key) -> ParamValueUtils.formatValue(
-                        pvs,
-                        key,
-                        logConfig.getTimeFormat()
-                )
-        ) + "\n";
-        return item.content.length();
+        return item.getSize();
     }
 
     private Writer getWriter() {
