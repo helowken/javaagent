@@ -4,6 +4,7 @@ import agent.base.utils.IndentUtils;
 import agent.base.utils.TypeObject;
 import agent.builtin.transformer.utils.TraceItem;
 import agent.common.utils.JSONUtils;
+import agent.server.tree.INode;
 import agent.server.tree.Node;
 import agent.server.tree.Tree;
 import agent.server.tree.TreeUtils;
@@ -27,18 +28,23 @@ public class TraceInvokeResultHandler extends AbstractResultHandler<Collection<T
                 readMetadata(inputPath)
         );
         calculateStats(inputPath).forEach(
-                tree -> {
-                    TreeUtils.printTree(
-                            tree,
-                            new TreeUtils.PrintConfig(false),
-                            (node, config) -> convert(
-                                    idToInvoke,
-                                    node
-                            )
-                    );
-//                    System.out.println("\n");
-                }
+                tree -> TreeUtils.printTree(
+                        transform(tree),
+                        new TreeUtils.PrintConfig(false),
+                        (node, config) -> convert(
+                                idToInvoke,
+                                node
+                        )
+                )
         );
+    }
+
+    private Tree<TraceItem> transform(Tree<TraceItem> tree) {
+        TreeUtils.traverse(
+                tree,
+                INode::reverseChildren
+        );
+        return tree;
     }
 
     private String convert(Map<Integer, InvokeMetadata> idToInvoke, Node<TraceItem> node) {

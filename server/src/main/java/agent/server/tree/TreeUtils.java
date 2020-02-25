@@ -14,7 +14,7 @@ public class TreeUtils {
     private static final String indent = "    ";
     private static final PrintConfig defaultConfig = new PrintConfig(true);
 
-    public static <T> void traverseTree(Node<T> tree, NodeAccessor<T> nodeAccessor) {
+    public static <T> void traverse(Node<T> tree, NodeAccessor<T> nodeAccessor) {
         LinkedList<Node<T>> leftNodes = new LinkedList<>();
         leftNodes.add(tree);
         while (!leftNodes.isEmpty()) {
@@ -25,7 +25,7 @@ public class TreeUtils {
     }
 
     public static <O extends OutputStream, T> void printTree(O outputStream, Node<T> tree, PrintConfig config, NodePrinter<O, T> nodePrinter) {
-        traverseTree(
+        traverse(
                 tree,
                 node -> nodePrinter.print(
                         outputStream,

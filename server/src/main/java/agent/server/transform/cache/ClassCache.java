@@ -4,10 +4,10 @@ import agent.base.utils.ClassLoaderUtils;
 import agent.base.utils.ReflectionUtils;
 import agent.server.transform.TransformMgr;
 import agent.server.tree.Node;
+import agent.server.tree.TreeUtils;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 public class ClassCache {
@@ -161,29 +161,16 @@ public class ClassCache {
 
     private List<Class<?>> findSubTypes(Class<?> baseClass, Node<ClassCacheItem> node) {
         List<Class<?>> rsList = new ArrayList<>();
-        traverse(
+        TreeUtils.traverse(
                 node,
-                classCacheItem -> rsList.addAll(
+                n -> rsList.addAll(
                         ReflectionUtils.findSubTypes(
                                 baseClass,
-                                classCacheItem.classList
+                                n.getData().classList
                         )
                 )
         );
         return rsList;
-    }
-
-    private void traverse(Node<ClassCacheItem> node, TraverseFunc<ClassCacheItem> consumer) {
-        List<Node<ClassCacheItem>> nodes = new ArrayList<>();
-        nodes.add(node);
-        while (!nodes.isEmpty()) {
-            Node<ClassCacheItem> tmpNode = nodes.remove(0);
-            consumer.accept(tmpNode.getData());
-            if (tmpNode.hasChild())
-                nodes.addAll(
-                        tmpNode.getChildren()
-                );
-        }
     }
 
     public Collection<Class<?>> findClasses(ClassLoader loader, Collection<String> includes, boolean includeInterface) {
@@ -194,9 +181,9 @@ public class ClassCache {
                     ClassFilter filter = newClassFilter(includes, null, includeInterface);
                     List<Class<?>> rsList = new ArrayList<>();
                     if (filter != null)
-                        traverse(
+                        TreeUtils.traverse(
                                 node,
-                                classCacheItem -> classCacheItem.classList
+                                n -> n.getData().classList
                                         .stream()
                                         .filter(filter::accept)
                                         .forEach(rsList::add)
@@ -216,7 +203,4 @@ public class ClassCache {
         }
     }
 
-    // Maybe some bug in java, so we need to use this interface instead of Consumer.
-    private interface TraverseFunc<T> extends Consumer<T> {
-    }
 }

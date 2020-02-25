@@ -1,5 +1,6 @@
 package agent.server.tree;
 
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Predicate;
@@ -35,6 +36,11 @@ public class Node<T> implements INode<T, Node<T>> {
     @Override
     public boolean isRoot() {
         return parent == null;
+    }
+
+    @Override
+    public void reverseChildren() {
+        Collections.reverse(children);
     }
 
     @Override

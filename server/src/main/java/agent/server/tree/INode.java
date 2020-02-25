@@ -16,6 +16,8 @@ public interface INode<T, N extends INode> {
 
     boolean isRoot();
 
+    void reverseChildren();
+
     N addChildAt(int idx, N child);
 
     N appendChild(N child);
