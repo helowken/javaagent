@@ -8,9 +8,6 @@
           {
             "ref": "@traceMethod",
             "config": {
-              "log": {
-                "outputFormat": "${class}#${invoke}: \n${content}"
-              },
               "printerClass": ""
             }
           }
@@ -18,7 +15,8 @@
         "targets": [
           {
             "targetClasses": [
-              "test.jetty.ParamObject"
+              "test.jetty.ParamObject",
+              "test.jetty.TestHibernate"
             ]
           }
         ]

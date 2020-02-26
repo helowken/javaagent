@@ -1,5 +1,6 @@
 package agent.server.transform.tools.asm;
 
+import agent.base.utils.Logger;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.tree.ClassNode;
@@ -11,6 +12,8 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 
 public class AsmUtils {
+    private static final Logger logger = Logger.getLogger(AsmUtils.class);
+
     public static void verifyAndPrintResult(ClassLoader loader, byte[] bs, OutputStream out) {
         verify(
                 loader,
@@ -64,15 +67,19 @@ public class AsmUtils {
                 );
     }
 
-    public static byte[] transform(byte[] bs, TransformFunc transformFunc) {
+    public static byte[] transform(Class<?> sourceClass, byte[] bs, TransformFunc transformFunc) {
         ClassNode cn = new ClassNode();
         ClassReader cr = new ClassReader(bs);
         cr.accept(cn, 0);
 
         transformFunc.transform(cn);
 
-        ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
-//        ClassWriter cw = new ClassWriter(0);
+        logger.debug("====ClassLoader: {}", cn.getClass().getClassLoader());
+        logger.debug("====Source classLoader: {}", sourceClass.getClassLoader());
+        ClassWriter cw = new AsmClassWriter(
+                ClassWriter.COMPUTE_FRAMES,
+                sourceClass.getClassLoader()
+        );
         cn.accept(cw);
         return cw.toByteArray();
     }

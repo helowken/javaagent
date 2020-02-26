@@ -4,10 +4,10 @@ import agent.base.utils.IndentUtils;
 import agent.base.utils.TypeObject;
 import agent.builtin.transformer.utils.TraceItem;
 import agent.common.utils.JSONUtils;
-import agent.server.tree.INode;
-import agent.server.tree.Node;
-import agent.server.tree.Tree;
-import agent.server.tree.TreeUtils;
+import agent.common.tree.INode;
+import agent.common.tree.Node;
+import agent.common.tree.Tree;
+import agent.common.tree.TreeUtils;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;

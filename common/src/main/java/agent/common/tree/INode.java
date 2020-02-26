@@ -1,4 +1,4 @@
-package agent.server.tree;
+package agent.common.tree;
 
 import java.util.List;
 import java.util.function.Predicate;

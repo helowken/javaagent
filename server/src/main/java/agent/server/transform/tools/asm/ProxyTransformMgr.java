@@ -69,6 +69,7 @@ public class ProxyTransformMgr {
     private ProxyResult doTransform(ProxyItem item, Function<Class<?>, byte[]> classDataFunc) {
         Class<?> targetClass = item.getTargetClass();
         byte[] newClassData = AsmTransformProxy.transform(
+                targetClass,
                 classDataFunc.apply(targetClass),
                 item.getIdToInvoke()
         );

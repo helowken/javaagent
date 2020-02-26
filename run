@@ -2,8 +2,10 @@
 
 export AGENT_HOME=$HOME/test_agent
 export PACKAGING=packaging
+export TAR_NAME=javaagent
+export VERSION=1.0
 
 rm -rf $AGENT_HOME/*
-tar -xvf $PACKAGING/target/$PACKAGING-1.0.tar -C $AGENT_HOME
+tar -xvf $PACKAGING/target/$TAR_NAME-$VERSION.tar -C $AGENT_HOME
 
 

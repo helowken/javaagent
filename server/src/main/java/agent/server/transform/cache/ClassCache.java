@@ -3,8 +3,8 @@ package agent.server.transform.cache;
 import agent.base.utils.ClassLoaderUtils;
 import agent.base.utils.ReflectionUtils;
 import agent.server.transform.TransformMgr;
-import agent.server.tree.Node;
-import agent.server.tree.TreeUtils;
+import agent.common.tree.Node;
+import agent.common.tree.TreeUtils;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;

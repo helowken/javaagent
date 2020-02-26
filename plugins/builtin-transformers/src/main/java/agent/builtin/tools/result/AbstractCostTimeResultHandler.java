@@ -1,7 +1,7 @@
 package agent.builtin.tools.result;
 
 import agent.builtin.tools.CostTimeStatItem;
-import agent.server.tree.Node;
+import agent.common.tree.Node;
 
 import java.util.Map;
 import java.util.Set;

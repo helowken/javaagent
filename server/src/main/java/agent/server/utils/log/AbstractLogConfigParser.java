@@ -34,8 +34,8 @@ public abstract class AbstractLogConfigParser implements LogConfigParser {
     protected void populateDefaults(Map<String, Object> defaults) {
         defaults.putIfAbsent(CONF_OUTPUT_PATH, STDOUT);
         defaults.putIfAbsent(CONF_AUTO_FLUSH, false);
-        defaults.putIfAbsent(CONF_MAX_BUFFER_SIZE, 8192);
-        defaults.putIfAbsent(CONF_BUFFER_COUNT, 20);
+        defaults.putIfAbsent(CONF_MAX_BUFFER_SIZE, 819200);
+        defaults.putIfAbsent(CONF_BUFFER_COUNT, 100);
         defaults.putIfAbsent(CONF_ROLL_FILE_SIZE, 1024 * 1024 * 10);
         defaults.putIfAbsent(CONF_WRITE_TIMEOUT_MS, 5000);
     }

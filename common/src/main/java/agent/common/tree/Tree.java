@@ -1,4 +1,4 @@
-package agent.server.tree;
+package agent.common.tree;
 
 public class Tree<T> extends Node<T> {
     public Tree() {

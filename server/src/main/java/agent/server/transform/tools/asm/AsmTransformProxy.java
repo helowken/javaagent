@@ -17,8 +17,9 @@ import static agent.server.transform.tools.asm.AsmMethod.*;
 import static org.objectweb.asm.Opcodes.*;
 
 class AsmTransformProxy {
-    static byte[] transform(byte[] classData, Map<Integer, DestInvoke> idToInvoke) {
+    static byte[] transform(Class<?> sourceClass, byte[] classData, Map<Integer, DestInvoke> idToInvoke) {
         return AsmUtils.transform(
+                sourceClass,
                 classData,
                 classNode -> doTransform(classNode, idToInvoke)
         );

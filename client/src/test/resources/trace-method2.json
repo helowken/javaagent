@@ -9,15 +9,7 @@
         "desc": "Used to measure time cost.",
         "transformers": [
           {
-            "ref": "@costTimeMeasure",
-            "config": {
-              "log": {
-                "autoFlush": false,
-                "outputFormat": "[${currTime}] - ${currTimeMillis} - ${invoke}: ${costTime}ms",
-                "timeFormat": "yyyy-MM-dd HH:mm:ss.SSS",
-                "maxBufferSize": 8192
-              }
-            }
+            "ref": "@traceMethod"
           }
         ],
         "targets": [

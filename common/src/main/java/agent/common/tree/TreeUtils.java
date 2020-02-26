@@ -1,4 +1,4 @@
-package agent.server.tree;
+package agent.common.tree;
 
 import java.io.OutputStream;
 import java.io.PrintStream;

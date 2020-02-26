@@ -2,8 +2,8 @@ package agent.server.transform.impl.dynamic.rule;
 
 import agent.base.utils.Logger;
 import agent.server.transform.impl.dynamic.MethodInfo;
-import agent.server.tree.Node;
-import agent.server.tree.Tree;
+import agent.common.tree.Node;
+import agent.common.tree.Tree;
 
 import java.util.HashSet;
 import java.util.Set;
