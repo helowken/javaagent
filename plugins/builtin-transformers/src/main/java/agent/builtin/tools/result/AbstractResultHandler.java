@@ -1,10 +1,10 @@
 package agent.builtin.tools.result;
 
+import agent.base.utils.FileUtils;
 import agent.base.utils.IOUtils;
 import agent.base.utils.InvokeDescriptorUtils;
 import agent.base.utils.Utils;
 import agent.common.utils.JSONUtils;
-import agent.server.transform.impl.DestInvokeIdRegistry;
 
 import java.io.*;
 import java.util.*;
@@ -12,13 +12,16 @@ import java.util.concurrent.ForkJoinPool;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static agent.server.transform.impl.DestInvokeIdRegistry.METADATA_FILE;
+
 abstract class AbstractResultHandler<T> {
-    private List<String> findDataFiles(String dataFilePath) {
-        File dir = new File(dataFilePath).getParentFile();
+    private List<String> findDataFiles(String dataFilePath) throws FileNotFoundException {
+        File dir = FileUtils.getValidFile(dataFilePath).getParentFile();
+        List<String> dataFiles = null;
         if (dir != null) {
             File[] files = dir.listFiles();
             if (files != null) {
-                return Stream.of(files)
+                dataFiles = Stream.of(files)
                         .map(File::getAbsolutePath)
                         .filter(filePath -> {
                             if (filePath.equals(dataFilePath))
@@ -27,22 +30,23 @@ abstract class AbstractResultHandler<T> {
                             String tmpPath = filePath;
                             if (pos > -1)
                                 tmpPath = filePath.substring(0, pos);
-                            return tmpPath.equals(dataFilePath) && !filePath.endsWith(DestInvokeIdRegistry.METADATA_FILE);
+                            return tmpPath.equals(dataFilePath) && !filePath.endsWith(METADATA_FILE);
                         })
                         .collect(Collectors.toList());
             }
         }
-        return Collections.emptyList();
+        if (dataFiles == null || dataFiles.isEmpty())
+            throw new FileNotFoundException("No data files found in dir of file: " + dataFilePath);
+        return dataFiles;
     }
 
     T calculateStats(String inputPath) throws Exception {
+        List<String> dataFilePaths = findDataFiles(inputPath);
         long st = System.currentTimeMillis();
         ForkJoinPool pool = new ForkJoinPool(Runtime.getRuntime().availableProcessors() - 1);
         try {
             return pool.submit(
-                    () -> calculate(
-                            findDataFiles(inputPath)
-                    )
+                    () -> calculate(dataFilePaths)
             ).get();
         } finally {
             long et = System.currentTimeMillis();
@@ -54,7 +58,9 @@ abstract class AbstractResultHandler<T> {
     Map<String, Map<String, Integer>> readMetadata(String inputPath) throws IOException {
         return JSONUtils.read(
                 IOUtils.readToString(
-                        inputPath + DestInvokeIdRegistry.METADATA_FILE
+                        FileUtils.getValidFile(
+                                inputPath + METADATA_FILE
+                        ).getAbsolutePath()
                 )
         );
     }

@@ -1,8 +1,9 @@
 package test.transformer;
 
 import agent.base.utils.ReflectionUtils;
-import agent.builtin.tools.CostTimeByCallChain;
 import agent.builtin.tools.CostTimeByInvoke;
+import agent.builtin.tools.CostTimeUtils;
+import agent.builtin.tools.result.ByCallChainCostTimeResultHandler;
 import agent.builtin.transformer.CostTimeStatisticsTransformer;
 import org.junit.Test;
 import test.server.AbstractTest;
@@ -29,16 +30,17 @@ public class CostTimeStatisticsTransformerTest extends AbstractTest {
 
                     flushAndWaitMetadata(outputPath);
 
-                    CostTimeByCallChain.main(
+                    CostTimeUtils.run(
                             new String[]{
                                     outputPath
-                            }
+                            },
+                            new ByCallChainCostTimeResultHandler()
                     );
 
                     System.out.println("====================");
 
                     CostTimeByInvoke.main(
-                            new String[] {
+                            new String[]{
                                     outputPath
                             }
                     );

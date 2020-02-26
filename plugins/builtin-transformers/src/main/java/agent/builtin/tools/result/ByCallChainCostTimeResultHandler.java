@@ -6,6 +6,7 @@ import agent.common.tree.Tree;
 import agent.common.tree.TreeUtils;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static agent.builtin.tools.result.ByCallChainCostTimeResultHandler.NodeData;
 
@@ -51,20 +52,20 @@ public class ByCallChainCostTimeResultHandler extends AbstractCostTimeResultHand
 
     @Override
     Tree<NodeData> calculate(Collection<String> dataFiles) {
-        ThreadLocal<Tree<NodeData>> local = new ThreadLocal<>();
+        AtomicReference<Tree<NodeData>> ref = new AtomicReference<>();
         dataFiles.parallelStream()
                 .map(this::doCalculate)
                 .forEach(
                         tree -> {
-                            Tree<NodeData> sumTree = local.get();
+                            Tree<NodeData> sumTree = ref.get();
                             if (sumTree == null)
-                                local.set(tree);
+                                ref.set(tree);
                             else
                                 mergeTrees(sumTree, tree);
                         }
                 );
         return Optional.ofNullable(
-                local.get()
+                ref.get()
         ).orElseThrow(
                 () -> new RuntimeException("No tree found in local.")
         );
@@ -100,7 +101,7 @@ public class ByCallChainCostTimeResultHandler extends AbstractCostTimeResultHand
                 (id, parentId, invokeId, costTime, error) -> {
                     Node<NodeData> node;
                     if (parentId == -1) {
-                        node = addChild(tree, id, invokeId, costTime);
+                        node = mayAddChild(tree, id, invokeId, costTime);
                         idToNode.clear();
                     } else {
                         Node<NodeData> pn = idToNode.get(parentId);
@@ -117,7 +118,6 @@ public class ByCallChainCostTimeResultHandler extends AbstractCostTimeResultHand
     private Node<NodeData> mayAddChild(Node<NodeData> pn, int id, int invokeId, int costTime) {
         Node<NodeData> childNode = pn.findFirstChild(
                 nodeData -> nodeData.invokeId == invokeId
-//                        nodeData.id == id   this can separate each call
         );
         if (childNode == null)
             childNode = addChild(pn, id, invokeId, costTime);

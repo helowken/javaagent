@@ -3,11 +3,11 @@ package agent.builtin.tools.result;
 import agent.base.utils.IndentUtils;
 import agent.base.utils.TypeObject;
 import agent.builtin.transformer.utils.TraceItem;
-import agent.common.utils.JSONUtils;
 import agent.common.tree.INode;
 import agent.common.tree.Node;
 import agent.common.tree.Tree;
 import agent.common.tree.TreeUtils;
+import agent.common.utils.JSONUtils;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -17,10 +17,18 @@ import static agent.base.utils.InvokeDescriptorUtils.JAVA_LANG_PACKAGE_LENGTH;
 
 
 public class TraceInvokeResultHandler extends AbstractResultHandler<Collection<Tree<TraceItem>>> implements TraceResultHandler {
+    private static final TraceInvokeResultHandler instance = new TraceInvokeResultHandler();
     private static final String indent = IndentUtils.getIndent(1);
     private static final String KEY_CLASS = "class";
     private static final String KEY_INDEX = "index";
     private static final String KEY_VALUE = "value";
+
+    public static TraceInvokeResultHandler getInstance() {
+        return instance;
+    }
+
+    private TraceInvokeResultHandler() {
+    }
 
     @Override
     public void printResult(String inputPath) throws Exception {

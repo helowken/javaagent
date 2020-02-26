@@ -4,9 +4,26 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.FileNotFoundException;
 import java.util.*;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 public class FileUtils {
+
+    public static File getValidFile(String path) throws FileNotFoundException {
+        return getValidFile(
+                path,
+                () -> new FileNotFoundException(path + " not exists.")
+        );
+    }
+
+    public static File getValidFile(String path, Supplier<FileNotFoundException> errorFunc) throws FileNotFoundException {
+        File file = new File(
+                new File(path).getAbsolutePath()
+        );
+        if (!file.exists())
+            throw errorFunc.get();
+        return file;
+    }
 
     public static String[] splitPathStringToPathArray(Collection<String> paths, String currDir) {
         return splitPathStringToPathList(paths, currDir).toArray(new String[0]);

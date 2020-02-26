@@ -32,8 +32,8 @@ public class ByInvokeCostTimeResultHandler extends AbstractCostTimeResultHandler
 
         TreeUtils.printTree(
                 tree,
-                new TreeUtils.PrintConfig(false),
-                (node, config) -> node.getData()
+                new TreeUtils.PrintConfig(true),
+                (node, config) -> node.isRoot() ? "ALL" : node.getData()
         );
     }
 

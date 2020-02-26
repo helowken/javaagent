@@ -6,13 +6,14 @@
         "desc": "Used to time cost analyze.",
         "transformers": [
           {
-            "ref": "@costTimeStatistics",
+            "ref": "@costTimeStat",
             "config": {
               "log": {
                 "outputPath": "/home/helowken/cost-time/cost-time-statistics.log",
                 "autoFlush": false,
                 "maxBufferSize": 819200,
-                "bufferCount": 100
+                "bufferCount": 100,
+                "rollFileSize": 1048576
               }
             }
           }

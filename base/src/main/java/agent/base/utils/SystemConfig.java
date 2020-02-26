@@ -1,5 +1,6 @@
 package agent.base.utils;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -17,6 +18,7 @@ public class SystemConfig {
     }
 
     public static void load(String path) throws Exception {
+        baseDir = new File(path).getParentFile().getParent();
         load(
                 Utils.loadProperties(path)
         );
@@ -42,10 +44,6 @@ public class SystemConfig {
 
     public static void set(String key, String value) {
         userDefineProps.put(key, value);
-    }
-
-    public static void setBaseDir(String dir) {
-        baseDir = dir;
     }
 
     public static String getBaseDir() {

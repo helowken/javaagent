@@ -1,5 +1,6 @@
 package agent.builtin.tools;
 
+import agent.base.utils.SystemConfig;
 import agent.builtin.tools.result.CostTimeResultHandler;
 
 import java.util.Arrays;
@@ -12,14 +13,15 @@ public class CostTimeUtils {
             Arrays.asList(0.9F, 0.95F, 0.99F)
     );
 
-    static void run(String[] args, CostTimeResultHandler resultBuilder) throws Exception {
-        if (args.length < 1) {
-            System.err.println("Usage: inputPath [skipAvgEq0] [rates]");
+    public static void run(String[] args, CostTimeResultHandler resultBuilder) throws Exception {
+        if (args.length < 2) {
+            System.err.println("Usage: configFile inputPath [skipAvgEq0] [rates]");
             System.exit(-1);
         }
-        String inputPath = args[0];
-        boolean skipAvgEq0 = args.length > 1 && args[1].equals("true");
-        Set<Float> rates = parseRates(args.length > 2 ? args[2] : null);
+        SystemConfig.load(args[0]);
+        String inputPath = args[1];
+        boolean skipAvgEq0 = args.length > 2 && args[2].equals("true");
+        Set<Float> rates = parseRates(args.length > 3 ? args[3] : null);
         resultBuilder.printResult(inputPath, skipAvgEq0, rates);
     }
 

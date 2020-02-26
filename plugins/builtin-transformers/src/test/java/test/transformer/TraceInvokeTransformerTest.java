@@ -1,7 +1,7 @@
 package test.transformer;
 
 import agent.base.utils.ReflectionUtils;
-import agent.builtin.tools.InvokeResultTracer;
+import agent.builtin.tools.result.TraceInvokeResultHandler;
 import agent.builtin.transformer.TraceInvokeTransformer;
 import org.junit.Test;
 import test.server.AbstractTest;
@@ -27,11 +27,7 @@ public class TraceInvokeTransformerTest extends AbstractTest {
 
                     flushAndWaitMetadata(outputPath);
 
-                    InvokeResultTracer.main(
-                            new String[]{
-                                    outputPath
-                            }
-                    );
+                    TraceInvokeResultHandler.getInstance().printResult(outputPath);
                 }
         );
     }

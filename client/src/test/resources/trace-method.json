@@ -8,6 +8,9 @@
           {
             "ref": "@traceMethod",
             "config": {
+              "log": {
+                "outputPath": "/home/helowken/test_pt/test_trace.txt"
+              },
               "printerClass": ""
             }
           }
