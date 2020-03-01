@@ -18,7 +18,7 @@ import static org.objectweb.asm.Opcodes.*;
 
 class AsmTransformProxy {
     static byte[] transform(Class<?> sourceClass, byte[] classData, Map<Integer, DestInvoke> idToInvoke) {
-        return AsmUtils.transform(
+        return AsmUtils.transformClass(
                 sourceClass,
                 classData,
                 classNode -> doTransform(classNode, idToInvoke)
@@ -120,7 +120,7 @@ class AsmTransformProxy {
             } else if (node.getType() == AbstractInsnNode.LABEL) {
                 if (startLabelNode == null)
                     startLabelNode = (LabelNode) node;
-            } else if (weaveInnerCalls && isMethodCall(opcode)) {
+            } else if (weaveInnerCalls && isInvoke(opcode)) {
                 methodNode.instructions.insertBefore(
                         node,
                         newBeforeInnerCall(
@@ -206,7 +206,7 @@ class AsmTransformProxy {
                 );
     }
 
-    private static boolean isMethodCall(int opcode) {
+    static boolean isInvoke(int opcode) {
         return opcode == INVOKEVIRTUAL ||
                 opcode == INVOKESPECIAL ||
                 opcode == INVOKESTATIC ||

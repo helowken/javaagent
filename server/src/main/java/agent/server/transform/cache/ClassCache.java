@@ -2,10 +2,11 @@ package agent.server.transform.cache;
 
 import agent.base.utils.ClassLoaderUtils;
 import agent.base.utils.ReflectionUtils;
-import agent.server.transform.TransformMgr;
 import agent.common.tree.Node;
 import agent.common.tree.TreeUtils;
+import agent.server.transform.TransformMgr;
 
+import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -131,6 +132,8 @@ public class ClassCache {
     }
 
     public Collection<Class<?>> getSubTypes(ClassLoader loader, Class<?> baseClass, boolean includeInterface) {
+        if (Modifier.isFinal(baseClass.getModifiers()))
+            return Collections.emptyList();
         Collection<Class<?>> classes = classToSubTypes.computeIfAbsent(
                 baseClass,
                 key -> Optional.ofNullable(

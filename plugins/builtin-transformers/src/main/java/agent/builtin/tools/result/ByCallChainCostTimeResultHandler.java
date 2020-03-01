@@ -15,26 +15,30 @@ public class ByCallChainCostTimeResultHandler extends AbstractCostTimeResultHand
     void printTree(Map<String, Map<String, Integer>> classToInvokeToId, Tree<NodeData> tree, boolean skipAvgEq0, Set<Float> rates) {
         Map<Integer, InvokeMetadata> idToInvoke = convertMetadata(classToInvokeToId);
         TreeUtils.printTree(
-                convertTree(tree, idToInvoke, rates),
+                convertTree(tree, idToInvoke, skipAvgEq0, rates),
                 new TreeUtils.PrintConfig(false),
                 (node, config) -> node.getData()
         );
     }
 
-    private Tree<String> convertTree(Tree<NodeData> tree, final Map<Integer, InvokeMetadata> idToInvoke, final Set<Float> rates) {
+    private Tree<String> convertTree(Tree<NodeData> tree, final Map<Integer, InvokeMetadata> idToInvoke, boolean skipAvgEq0, final Set<Float> rates) {
         Tree<String> rsTree = new Tree<>();
         tree.getChildren().forEach(
-                child -> rsTree.appendChild(
-                        convertNode(null, child, idToInvoke, rates)
-                )
+                child -> Optional.ofNullable(
+                        convertNode(null, child, idToInvoke, skipAvgEq0, rates)
+                ).ifPresent(rsTree::appendChild)
         );
         return rsTree;
     }
 
-    private Node<String> convertNode(Integer parentInvokeId, Node<NodeData> node, final Map<Integer, InvokeMetadata> idToInvoke, final Set<Float> rates) {
+    private Node<String> convertNode(Integer parentInvokeId, Node<NodeData> node, final Map<Integer, InvokeMetadata> idToInvoke,
+                                     boolean skipAvgEq0, final Set<Float> rates) {
         final NodeData data = node.getData();
         InvokeMetadata metadata = getMetadata(idToInvoke, data.invokeId);
         data.item.freeze();
+
+        if (data.item.getAvgTime() == 0 && skipAvgEq0)
+            return null;
 
         Node<String> rsNode = newInvokeNode(
                 convertInvoke(parentInvokeId, idToInvoke, metadata),
@@ -43,9 +47,9 @@ public class ByCallChainCostTimeResultHandler extends AbstractCostTimeResultHand
         );
 
         node.getChildren().forEach(
-                child -> rsNode.appendChild(
-                        convertNode(data.invokeId, child, idToInvoke, rates)
-                )
+                child -> Optional.ofNullable(
+                        convertNode(data.invokeId, child, idToInvoke, skipAvgEq0, rates)
+                ).ifPresent(rsNode::appendChild)
         );
         return rsNode;
     }

@@ -286,7 +286,7 @@ class AsmMethod {
                 new MethodInsnNode(
                         INVOKESPECIAL,
                         type.getInternalName(),
-                        "<init>",
+                        ReflectionUtils.CONSTRUCTOR_NAME,
                         Type.getType(constructor).getDescriptor(),
                         false
                 )

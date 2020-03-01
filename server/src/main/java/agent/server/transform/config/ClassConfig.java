@@ -8,6 +8,15 @@ public class ClassConfig {
     private Set<String> includeClasses;
     private MethodFilterConfig methodFilter;
     private ConstructorFilterConfig constructorFilter;
+    private CallChainConfig callChainConfig;
+
+    public CallChainConfig getCallChainConfig() {
+        return callChainConfig;
+    }
+
+    public void setCallChainConfig(CallChainConfig callChainConfig) {
+        this.callChainConfig = callChainConfig;
+    }
 
     public ConstructorFilterConfig getConstructorFilter() {
         return constructorFilter;

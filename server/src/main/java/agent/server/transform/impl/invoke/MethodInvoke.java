@@ -3,15 +3,23 @@ package agent.server.transform.impl.invoke;
 import org.objectweb.asm.Type;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.Objects;
 
 public class MethodInvoke implements DestInvoke {
     private final Method method;
 
     public MethodInvoke(Method method) {
+        checkValid(method);
+        this.method = method;
+    }
+
+    private void checkValid(Method method) {
         if (method == null)
             throw new IllegalArgumentException("Method is null!");
-        this.method = method;
+        int modifier = method.getModifiers();
+        if (Modifier.isNative(modifier) || Modifier.isAbstract(modifier))
+            throw new IllegalArgumentException("Method can't be abstract or native!");
     }
 
     @Override

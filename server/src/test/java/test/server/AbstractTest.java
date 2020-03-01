@@ -174,15 +174,19 @@ public abstract class AbstractTest {
         );
     }
 
+    protected byte[] getClassData(Class<?> clazz) {
+        return Utils.wrapToRtError(
+                () -> IOUtils.readBytes(
+                        ClassLoader.getSystemResourceAsStream(clazz.getName().replace('.', '/') + ".class")
+                )
+        );
+    }
+
     protected Map<Class<?>, byte[]> getClassToData(AgentTransformer transformer) {
         Collection<ProxyRegInfo> regInfos = transformer.getProxyRegInfos();
         List<ProxyResult> results = ProxyTransformMgr.getInstance().transform(
                 regInfos,
-                clazz -> Utils.wrapToRtError(
-                        () -> IOUtils.readBytes(
-                                ClassLoader.getSystemResourceAsStream(clazz.getName().replace('.', '/') + ".class")
-                        )
-                )
+                this::getClassData
         );
         ProxyTransformMgr.getInstance().reg(results);
         return results.stream().collect(

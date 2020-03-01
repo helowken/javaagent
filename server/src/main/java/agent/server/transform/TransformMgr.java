@@ -133,12 +133,13 @@ public class TransformMgr implements ServerListener {
     }
 
     private void collectIncludeClasses(String context, Collection<String> includes, ClassCache classCache, Set<Class<?>> classSet) {
-        classSet.addAll(
-                classCache.findClasses(
-                        getClassFinder().findClassLoader(context),
-                        includes,
-                        false
-                )
+        ClassLoader loader = getClassFinder().findClassLoader(context);
+        classCache.findClasses(
+                getClassFinder().findClassLoader(context),
+                includes,
+                true
+        ).forEach(
+                clazz -> collectClassOrInterface(clazz, loader, classCache, classSet)
         );
     }
 
@@ -148,14 +149,18 @@ public class TransformMgr implements ServerListener {
         classNames.forEach(
                 className -> {
                     Class<?> clazz = classFinder.findClass(context, className);
-                    if (clazz.isInterface())
-                        classSet.addAll(
-                                classCache.getSubTypes(loader, clazz, false)
-                        );
-                    else
-                        classSet.add(clazz);
+                    collectClassOrInterface(clazz, loader, classCache, classSet);
                 }
         );
+    }
+
+    private void collectClassOrInterface(Class<?> clazz, ClassLoader loader, ClassCache classCache, Set<Class<?>> classSet) {
+        if (clazz.isInterface())
+            classSet.addAll(
+                    classCache.getSubTypes(loader, clazz, false)
+            );
+        else
+            classSet.add(clazz);
     }
 
     private ClassCache newClassCache(Collection<ModuleConfig> moduleConfigs) {

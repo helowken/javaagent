@@ -44,7 +44,7 @@ public class InvokeDescriptorUtils {
     }
 
     public static String getFullDescriptor(Constructor constructor) {
-        return "<init>" + getDescriptor(constructor);
+        return ReflectionUtils.CONSTRUCTOR_NAME + getDescriptor(constructor);
     }
 
     public static String getDescriptor(Method method) {

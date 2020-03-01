@@ -73,12 +73,17 @@ public class ProxyTransformMgr {
                 classDataFunc.apply(targetClass),
                 item.getIdToInvoke()
         );
-        String verifyResult = AsmUtils.getVerifyResult(
-                targetClass.getClassLoader(),
-                newClassData,
-                false
-        );
-        if (!verifyResult.isEmpty()) {
+        String verifyResult = null;
+        try {
+            verifyResult = AsmUtils.getVerifyResult(
+                    targetClass.getClassLoader(),
+                    newClassData,
+                    false
+            );
+        } catch (Exception e) {
+            logger.error("Get verify result fail.", e);
+        }
+        if (verifyResult != null && !verifyResult.isEmpty()) {
             logger.error("Verify {} transform failed: \n{}\n=================\n{}",
                     targetClass.getName(),
                     AsmUtils.getVerifyResult(

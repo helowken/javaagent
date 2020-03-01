@@ -1,6 +1,7 @@
 package agent.server.transform.impl.invoke;
 
 
+import agent.base.utils.ReflectionUtils;
 import org.objectweb.asm.Type;
 
 import java.lang.reflect.Constructor;
@@ -27,7 +28,7 @@ public class ConstructorInvoke implements DestInvoke {
 
     @Override
     public String getName() {
-        return "<init>";
+        return ReflectionUtils.CONSTRUCTOR_NAME;
     }
 
     @Override
