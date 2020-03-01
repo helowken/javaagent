@@ -26,9 +26,9 @@ import static agent.server.transform.tools.asm.AsmTransformProxy.isInvoke;
 
 public class AsmInvokeFinder {
     private static final int SEARCH_NONE = 0;
-    private static final int SEARCH_UP = 1;
-    private static final int SEARCH_DOWN = 2;
-    private static final int SEARCH_UP_AND_DOWN = SEARCH_UP | SEARCH_DOWN;
+    private static final int SEARCH_UPWARD = 1;
+    private static final int SEARCH_DOWNWARD = 2;
+    private static final int SEARCH_UP_AND_DOWN = SEARCH_UPWARD | SEARCH_DOWNWARD;
     public static boolean debugEnabled = false;
 
     private final Map<Class<?>, ClassItem> itemMap = new HashMap<>();
@@ -36,15 +36,15 @@ public class AsmInvokeFinder {
     private final ClassCache classCache;
     private final Function<Class<?>, ClassNode> classNodeFunc;
 
-    public static Collection<DestInvoke> find(Map<ClassLoader, Collection<DestInvoke>> loaderToDestInvokes,
-                                              ClassLoader loader, ClassCache classCache, Function<Class<?>, byte[]> classDataFunc) {
+    public static Collection<DestInvoke> find(Collection<DestInvoke> destInvokes, ClassLoader loader,
+                                              ClassCache classCache, Function<Class<?>, byte[]> classDataFunc) {
         return new AsmInvokeFinder(
                 loader,
                 classCache,
                 clazz -> AsmUtils.newClassNode(
                         classDataFunc.apply(clazz)
                 )
-        ).find(loaderToDestInvokes);
+        ).find(destInvokes);
     }
 
     private AsmInvokeFinder(ClassLoader loader, ClassCache classCache, Function<Class<?>, ClassNode> classNodeFunc) {
@@ -53,23 +53,18 @@ public class AsmInvokeFinder {
         this.classNodeFunc = classNodeFunc;
     }
 
-    private Collection<DestInvoke> find(Map<ClassLoader, Collection<DestInvoke>> loaderToDestInvokes) {
-        loaderToDestInvokes.forEach(
-                (loader, destInvokes) -> destInvokes.forEach(
-                        destInvoke -> {
-                            Utils.wrapToRtError(
-                                    () -> collectInnerInvokes(
-                                            destInvoke.getDeclaringClass(),
-                                            getInvokeKey(
-                                                    destInvoke.getName(),
-                                                    destInvoke.getDescriptor()
-                                            ),
-                                            SEARCH_UP_AND_DOWN,
-                                            0
-                                    )
-                            );
-                            debug("------------------------------------------------------");
-                        }
+    private Collection<DestInvoke> find(Collection<DestInvoke> destInvokes) {
+        destInvokes.forEach(
+                destInvoke -> Utils.wrapToRtError(
+                        () -> collectInnerInvokes(
+                                destInvoke.getDeclaringClass(),
+                                getInvokeKey(
+                                        destInvoke.getName(),
+                                        destInvoke.getDescriptor()
+                                ),
+                                SEARCH_UP_AND_DOWN,
+                                0
+                        )
                 )
         );
         List<DestInvoke> rsList = new ArrayList<>();
@@ -79,17 +74,12 @@ public class AsmInvokeFinder {
         return rsList;
     }
 
-    private boolean isSearchUp(int searchFlags) {
-        return (searchFlags & SEARCH_UP) != 0;
+    private boolean isSearchUpward(int searchFlags) {
+        return (searchFlags & SEARCH_UPWARD) != 0;
     }
 
-    private boolean isSearchDown(int searchFlags) {
-        return (searchFlags & SEARCH_DOWN) != 0;
-    }
-
-    private void debug(String s) {
-        if (debugEnabled)
-            System.out.println(s);
+    private boolean isSearchDownward(int searchFlags) {
+        return (searchFlags & SEARCH_DOWNWARD) != 0;
     }
 
     private void debug(int level, String prefix, Class<?> clazz, String invokeKey) {
@@ -114,63 +104,84 @@ public class AsmInvokeFinder {
             return;
         }
         ClassItem item = getItem(clazz);
-        if (isConstructorKey(invokeKey)) {
-            if (item.containsInvoke(invokeKey))
-                debug(level, "@ Skip traverse existed constructor: ", clazz, invokeKey);
-            else
-                traverseInvoke(item, invokeKey, level);
-        } else if (item.containsMethod(invokeKey)) {
-            if (item.containsInvoke(invokeKey))
-                debug(level, "@ Skip traverse existed method: ", clazz, invokeKey);
-            else if (item.isAbstractOrNativeMethod(invokeKey))
-                debug(level, "@ Skip traverse abstract or native method: ", clazz, invokeKey);
-            else
-                traverseInvoke(item, invokeKey, level);
-
-            if (isSearchDown(searchFlags)) {
-                if (item.markMethodSearch(invokeKey, SEARCH_DOWN)) {
-                    ClassItem result = findItemByMethod(item, invokeKey);
-                    if (result == null)
-                        throw new RuntimeException("No class found " + invokeKey + " from " + clazz);
-                    if (result.canBeOverridden(invokeKey)) {
-                        Collection<Class<?>> subTypes = classCache.getSubTypes(loader, clazz, false);
-                        for (Class<?> subType : subTypes) {
-                            debug(level, "Try to find subType of " + clazz.getSimpleName() + ": ", subType, invokeKey);
-                            collectInnerInvokes(subType, invokeKey, SEARCH_NONE, level);
-                        }
-                    } else
-                        debug(level, "Can't be overridden: ", result.getSourceClass(), invokeKey);
-                } else
-                    debug(level, "@ Skip search existed method down: ", clazz, invokeKey);
-            }
-        } else if (isSearchUp(searchFlags)) {
-            if (item.markMethodSearch(invokeKey, SEARCH_UP)) {
-                debug(level, "Not found: ", clazz, invokeKey);
-                Class<?>[] interfaces = item.getSourceClass().getInterfaces();
-                for (Class<?> intf : interfaces) {
-                    debug(level, "Try to find interface: ", intf, invokeKey);
-                    collectInnerInvokes(intf, invokeKey, SEARCH_UP, level);
-                }
-                Class<?> superClass = item.getSourceClass().getSuperclass();
-                if (superClass != null) {
-                    debug(level, "Try to find superclass: ", superClass, invokeKey);
-                    collectInnerInvokes(superClass, invokeKey, SEARCH_UP, level);
-                }
-            } else
-                debug(level, "@ Skip search existed method up: ", clazz, invokeKey);
+        if (isConstructorKey(invokeKey))
+            traverseConstructor(item, invokeKey, level);
+        else if (item.containsMethod(invokeKey)) {
+            traverseMethod(item, invokeKey, level);
+            if (isSearchDownward(searchFlags))
+                searchDownward(item, invokeKey, level);
+        } else if (isSearchUpward(searchFlags)) {
+            searchUpward(item, invokeKey, level);
+            searchDownward(item, invokeKey, level);
         } else
             debug(level, "@ Skip not declared method and search none: ", clazz, invokeKey);
     }
 
-    private ClassItem findItemByMethod(ClassItem item, String invokeKey) {
+    private void traverseConstructor(ClassItem item, String invokeKey, int level) throws Exception {
+        Class<?> clazz = item.getSourceClass();
+        if (item.containsInvoke(invokeKey))
+            debug(level, "@ Skip traverse existed constructor: ", clazz, invokeKey);
+        else
+            traverseInvoke(item, invokeKey, level);
+    }
+
+    private void traverseMethod(ClassItem item, String invokeKey, int level) throws Exception {
+        Class<?> clazz = item.getSourceClass();
+        if (item.containsInvoke(invokeKey))
+            debug(level, "@ Skip traverse existed method: ", clazz, invokeKey);
+        else if (item.isAbstractOrNativeMethod(invokeKey))
+            debug(level, "@ Skip traverse abstract or native method: ", clazz, invokeKey);
+        else
+            traverseInvoke(item, invokeKey, level);
+    }
+
+    private void searchDownward(ClassItem item, String invokeKey, int level) throws Exception {
+        Class<?> clazz = item.getSourceClass();
+        if (item.markMethodSearch(invokeKey, SEARCH_DOWNWARD)) {
+            ClassItem result = findItemByMethod(item, invokeKey, level);
+            if (result == null)
+                throw new RuntimeException("!!! No class found " + invokeKey + " from " + clazz);
+            if (result.canBeOverridden(invokeKey)) {
+                Collection<Class<?>> subTypes = classCache.getSubTypes(loader, clazz, false);
+                for (Class<?> subType : subTypes) {
+                    debug(level, "$$ Try to find subType of " + clazz.getSimpleName() + ": ", subType, invokeKey);
+                    collectInnerInvokes(subType, invokeKey, SEARCH_NONE, level);
+                }
+            } else
+                debug(level, "Can't be overridden: ", result.getSourceClass(), invokeKey);
+        } else
+            debug(level, "@ Skip search existed method down: ", clazz, invokeKey);
+    }
+
+    private void searchUpward(ClassItem item, String invokeKey, int level) throws Exception {
+        Class<?> clazz = item.getSourceClass();
+        if (item.markMethodSearch(invokeKey, SEARCH_UPWARD)) {
+            debug(level, "!!! Not found: ", clazz, invokeKey);
+            Class<?>[] interfaces = item.getSourceClass().getInterfaces();
+            for (Class<?> intf : interfaces) {
+                debug(level, "$$ Try to find interface: ", intf, invokeKey);
+                collectInnerInvokes(intf, invokeKey, SEARCH_UPWARD, level);
+            }
+            Class<?> superClass = item.getSourceClass().getSuperclass();
+            if (superClass != null) {
+                debug(level, "$$ Try to find superClass: ", superClass, invokeKey);
+                collectInnerInvokes(superClass, invokeKey, SEARCH_UPWARD, level);
+            }
+        } else
+            debug(level, "@ Skip search existed method up: ", clazz, invokeKey);
+    }
+
+    private ClassItem findItemByMethod(ClassItem item, String invokeKey, int level) {
         if (item.containsMethod(invokeKey))
             return item;
 
         Class<?>[] interfaces = item.getSourceClass().getInterfaces();
         for (Class<?> intf : interfaces) {
+            debug(level, "$$ Try to find interface for method: ", intf, invokeKey);
             ClassItem result = findItemByMethod(
                     getItem(intf),
-                    invokeKey
+                    invokeKey,
+                    level
             );
             if (result != null)
                 return result;
@@ -179,9 +190,11 @@ public class AsmInvokeFinder {
         Class<?> superClass = item.getSourceClass().getSuperclass();
         if (superClass == null)
             return null;
+        debug(level, "$$ Try to find superClass for method: ", superClass, invokeKey);
         return findItemByMethod(
                 getItem(superClass),
-                invokeKey
+                invokeKey,
+                level
         );
     }
 
