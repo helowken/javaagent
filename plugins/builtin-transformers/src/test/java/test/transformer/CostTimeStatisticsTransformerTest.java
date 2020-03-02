@@ -1,15 +1,16 @@
 package test.transformer;
 
 import agent.base.utils.ReflectionUtils;
-import agent.builtin.tools.CostTimeByInvoke;
-import agent.builtin.tools.CostTimeUtils;
 import agent.builtin.tools.result.ByCallChainCostTimeResultHandler;
+import agent.builtin.tools.result.ByInvokeCostTimeResultHandler;
 import agent.builtin.transformer.CostTimeStatisticsTransformer;
 import org.junit.Test;
 import test.server.AbstractTest;
 
 import java.util.HashMap;
 import java.util.Map;
+
+import static agent.builtin.tools.CostTimeUtils.DEFAULT_RATES;
 
 public class CostTimeStatisticsTransformerTest extends AbstractTest {
 
@@ -30,20 +31,11 @@ public class CostTimeStatisticsTransformerTest extends AbstractTest {
 
                     flushAndWaitMetadata(outputPath);
 
-                    CostTimeUtils.run(
-                            new String[]{
-                                    outputPath
-                            },
-                            new ByCallChainCostTimeResultHandler()
-                    );
+                    new ByCallChainCostTimeResultHandler().printResult(outputPath, false, DEFAULT_RATES);
 
                     System.out.println("====================");
 
-                    CostTimeByInvoke.main(
-                            new String[]{
-                                    outputPath
-                            }
-                    );
+                    new ByInvokeCostTimeResultHandler().printResult(outputPath, false, DEFAULT_RATES);
                 }
         );
     }

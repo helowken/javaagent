@@ -3,7 +3,7 @@ package agent.server.transform.impl;
 import agent.base.utils.ClassLoaderUtils;
 import agent.base.utils.Logger;
 import agent.server.transform.ConfigTransformer;
-import agent.server.transform.InvokeFinder;
+import agent.server.transform.InvokeSearcher;
 import agent.server.transform.TransformContext;
 import agent.server.transform.exception.InvalidTransformerConfigException;
 import agent.server.transform.impl.invoke.DestInvoke;
@@ -77,7 +77,7 @@ public abstract class AbstractConfigTransformer extends AbstractTransformer impl
     @Override
     public void transform(TransformContext transformContext) throws Exception {
         for (Class<?> clazz : transformContext.getTargetClassSet()) {
-            Collection<DestInvoke> invokes = InvokeFinder.getInstance().find(
+            Collection<DestInvoke> invokes = InvokeSearcher.getInstance().find(
                     clazz,
                     transformShareInfo.getInvokeFilters(clazz)
             ).invokes;

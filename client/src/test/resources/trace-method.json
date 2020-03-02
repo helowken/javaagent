@@ -17,10 +17,12 @@
         ],
         "targets": [
           {
-            "targetClasses": [
-              "test.jetty.ParamObject",
-              "test.jetty.TestHibernate"
-            ]
+            "classFilter": {
+              "classes": [
+                "test.jetty.ParamObject",
+                "test.jetty.TestHibernate"
+              ]
+            }
           }
         ]
       }

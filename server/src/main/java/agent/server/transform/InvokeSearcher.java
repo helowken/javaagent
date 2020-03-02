@@ -16,9 +16,9 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class InvokeFinder {
-    private static final Logger logger = Logger.getLogger(InvokeFinder.class);
-    private static final InvokeFinder instance = new InvokeFinder();
+public class InvokeSearcher {
+    private static final Logger logger = Logger.getLogger(InvokeSearcher.class);
+    private static final InvokeSearcher instance = new InvokeSearcher();
     private static int SYNTHETIC;
     private static int BRIDGE;
     private static final Map<Class<? extends FilterConfig>, InvokeGetter> invokeGetterMap = new HashMap<>();
@@ -39,11 +39,11 @@ public class InvokeFinder {
         );
     }
 
-    public static InvokeFinder getInstance() {
+    public static InvokeSearcher getInstance() {
         return instance;
     }
 
-    private InvokeFinder() {
+    private InvokeSearcher() {
     }
 
     public InvokeSearchResult find(Class<?> clazz, Collection<FilterConfig> invokeFilterConfigs) {
@@ -107,7 +107,7 @@ public class InvokeFinder {
 
     private Set<Pattern> compileExprSet(Set<String> exprSet) {
         return exprSet.stream()
-                .map(InvokeFinder::compilePattern)
+                .map(InvokeSearcher::compilePattern)
                 .collect(Collectors.toSet());
     }
 

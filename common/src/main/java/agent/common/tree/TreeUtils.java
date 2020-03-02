@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.function.BiFunction;
+import java.util.function.Consumer;
 
 public class TreeUtils {
     private static final String branch = "├─";
@@ -14,12 +15,12 @@ public class TreeUtils {
     private static final String indent = "    ";
     private static final PrintConfig defaultConfig = new PrintConfig(true);
 
-    public static <T> void traverse(Node<T> tree, NodeAccessor<T> nodeAccessor) {
+    public static <T> void traverse(Node<T> tree, Consumer<Node<T>> nodeAccessor) {
         LinkedList<Node<T>> leftNodes = new LinkedList<>();
         leftNodes.add(tree);
         while (!leftNodes.isEmpty()) {
             Node<T> node = leftNodes.pop();
-            nodeAccessor.access(node);
+            nodeAccessor.accept(node);
             leftNodes.addAll(0, node.getChildren());
         }
     }
@@ -127,10 +128,6 @@ public class TreeUtils {
 
     public interface NodePrinter<O extends OutputStream, T> {
         void print(O outputStream, Node<T> node, PrintConfig config);
-    }
-
-    public interface NodeAccessor<T> {
-        void access(Node<T> node);
     }
 
     public static class PrintConfig {

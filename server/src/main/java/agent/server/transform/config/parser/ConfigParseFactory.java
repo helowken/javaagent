@@ -10,7 +10,6 @@ public class ConfigParseFactory {
 
     static {
         reg(new FileConfigParser());
-        reg(RuleConfigParser.getInstance());
     }
 
     private static void reg(ConfigParser configParser) {

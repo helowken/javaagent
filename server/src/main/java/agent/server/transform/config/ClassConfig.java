@@ -1,22 +1,11 @@
 package agent.server.transform.config;
 
 import java.util.Objects;
-import java.util.Set;
 
 public class ClassConfig {
-    private Set<String> targetClasses;
-    private Set<String> includeClasses;
+    private ClassFilterConfig classFilter;
     private MethodFilterConfig methodFilter;
     private ConstructorFilterConfig constructorFilter;
-    private CallChainConfig callChainConfig;
-
-    public CallChainConfig getCallChainConfig() {
-        return callChainConfig;
-    }
-
-    public void setCallChainConfig(CallChainConfig callChainConfig) {
-        this.callChainConfig = callChainConfig;
-    }
 
     public ConstructorFilterConfig getConstructorFilter() {
         return constructorFilter;
@@ -34,20 +23,12 @@ public class ClassConfig {
         this.methodFilter = methodFilter;
     }
 
-    public Set<String> getTargetClasses() {
-        return targetClasses;
+    public ClassFilterConfig getClassFilter() {
+        return classFilter;
     }
 
-    public void setTargetClasses(Set<String> targetClasses) {
-        this.targetClasses = targetClasses;
-    }
-
-    public Set<String> getIncludeClasses() {
-        return includeClasses;
-    }
-
-    public void setIncludeClasses(Set<String> includeClasses) {
-        this.includeClasses = includeClasses;
+    public void setClassFilter(ClassFilterConfig classFilter) {
+        this.classFilter = classFilter;
     }
 
     @Override
@@ -55,8 +36,7 @@ public class ClassConfig {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ClassConfig that = (ClassConfig) o;
-        return Objects.equals(targetClasses, that.targetClasses) &&
-                Objects.equals(includeClasses, that.includeClasses) &&
+        return Objects.equals(classFilter, that.classFilter) &&
                 Objects.equals(methodFilter, that.methodFilter) &&
                 Objects.equals(constructorFilter, that.constructorFilter);
     }
@@ -64,14 +44,13 @@ public class ClassConfig {
     @Override
     public int hashCode() {
 
-        return Objects.hash(targetClasses, includeClasses, methodFilter, constructorFilter);
+        return Objects.hash(classFilter, methodFilter, constructorFilter);
     }
 
     @Override
     public String toString() {
         return "ClassConfig{" +
-                "targetClasses=" + targetClasses +
-                ", includeClasses=" + includeClasses +
+                "classFilter=" + classFilter +
                 ", methodFilter=" + methodFilter +
                 ", constructorFilter=" + constructorFilter +
                 '}';

@@ -1,7 +1,7 @@
 package agent.server.transform.impl;
 
 import agent.base.utils.InvokeDescriptorUtils;
-import agent.server.transform.InvokeFinder;
+import agent.server.transform.InvokeSearcher;
 import agent.server.transform.impl.invoke.DestInvoke;
 import agent.server.transform.tools.asm.ProxyTransformMgr;
 
@@ -26,7 +26,7 @@ public class ViewMgr {
     public static Object create(int maxLevel, String contextRegexp, String classRegExp, String invokeRegExp, String proxyRegExp) {
         final Pattern contextPattern = newPattern(contextRegexp);
         final Pattern classPattern = newPattern(classRegExp);
-        final Pattern invokePattern = invokeRegExp == null ? null : InvokeFinder.compilePattern(invokeRegExp);
+        final Pattern invokePattern = invokeRegExp == null ? null : InvokeSearcher.compilePattern(invokeRegExp);
         final Collection<Pattern> invokePatterns = invokePattern == null ? null : Collections.singleton(invokePattern);
         final Pattern proxyPattern = newPattern(proxyRegExp);
         return DestInvokeIdRegistry.getInstance().run(
@@ -44,7 +44,7 @@ public class ViewMgr {
                                             ((Class<?>) value).getName()
                                     );
                                 case VIEW_INVOKE:
-                                    return invokePatterns == null || InvokeFinder.isMatch(invokePatterns, (DestInvoke) value);
+                                    return invokePatterns == null || InvokeSearcher.isMatch(invokePatterns, (DestInvoke) value);
                                 case VIEW_PROXY:
                                 default:
                                     throw new RuntimeException("Unsupport level: " + currLevel);

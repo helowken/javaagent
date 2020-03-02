@@ -7,7 +7,7 @@ import agent.hook.plugin.ClassFinder;
 import agent.server.ServerListener;
 import agent.server.event.EventListenerMgr;
 import agent.server.event.impl.TransformClassEvent;
-import agent.server.transform.InvokeFinder.InvokeSearchResult;
+import agent.server.transform.InvokeSearcher.InvokeSearchResult;
 import agent.server.transform.cache.ClassCache;
 import agent.server.transform.cache.ClassFilter;
 import agent.server.transform.config.ClassConfig;
@@ -30,6 +30,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static agent.hook.utils.App.getClassFinder;
+import static agent.hook.utils.App.getLoader;
 import static agent.server.transform.TransformContext.ACTION_MODIFY;
 
 public class TransformMgr implements ServerListener {
@@ -101,7 +102,7 @@ public class TransformMgr implements ServerListener {
                         transformShareInfo -> transformShareInfo.getClassToInvokeFilters().forEach(
                                 (clazz, invokeFilterConfigs) -> func.exec(
                                         contextPath,
-                                        InvokeFinder.getInstance().find(clazz, invokeFilterConfigs)
+                                        InvokeSearcher.getInstance().find(clazz, invokeFilterConfigs)
                                 )
                         )
                 )
@@ -109,58 +110,16 @@ public class TransformMgr implements ServerListener {
     }
 
     public ClassesToConfig newClassesToConfig(String context, List<ClassConfig> classConfigList, ClassCache classCache) {
+        ClassLoader loader = getLoader(context);
         ClassesToConfig classesToConfig = new ClassesToConfig();
         classConfigList.forEach(
                 classConfig -> {
-                    Set<Class<?>> classSet = new HashSet<>();
-                    Optional.ofNullable(
-                            classConfig.getTargetClasses()
-                    ).ifPresent(
-                            targetClasses -> collectTargetClasses(context, targetClasses, classCache, classSet)
-                    );
-
-                    Optional.ofNullable(
-                            classConfig.getIncludeClasses()
-                    ).ifPresent(
-                            includes -> collectIncludeClasses(context, includes, classCache, classSet)
-                    );
-
+                    Collection<Class<?>> classSet = ClassSearcher.search(loader, classCache, classConfig);
                     if (!classSet.isEmpty())
                         classesToConfig.add(classSet, classConfig);
                 }
         );
         return classesToConfig;
-    }
-
-    private void collectIncludeClasses(String context, Collection<String> includes, ClassCache classCache, Set<Class<?>> classSet) {
-        ClassLoader loader = getClassFinder().findClassLoader(context);
-        classCache.findClasses(
-                getClassFinder().findClassLoader(context),
-                includes,
-                true
-        ).forEach(
-                clazz -> collectClassOrInterface(clazz, loader, classCache, classSet)
-        );
-    }
-
-    private void collectTargetClasses(String context, Collection<String> classNames, ClassCache classCache, Set<Class<?>> classSet) {
-        ClassFinder classFinder = getClassFinder();
-        ClassLoader loader = classFinder.findClassLoader(context);
-        classNames.forEach(
-                className -> {
-                    Class<?> clazz = classFinder.findClass(context, className);
-                    collectClassOrInterface(clazz, loader, classCache, classSet);
-                }
-        );
-    }
-
-    private void collectClassOrInterface(Class<?> clazz, ClassLoader loader, ClassCache classCache, Set<Class<?>> classSet) {
-        if (clazz.isInterface())
-            classSet.addAll(
-                    classCache.getSubTypes(loader, clazz, false)
-            );
-        else
-            classSet.add(clazz);
     }
 
     private ClassCache newClassCache(Collection<ModuleConfig> moduleConfigs) {

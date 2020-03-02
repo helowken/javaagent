@@ -20,6 +20,7 @@ import agent.server.transform.TransformMgr;
 import agent.server.transform.TransformResult;
 import agent.server.transform.cache.ClassCache;
 import agent.server.transform.config.ClassConfig;
+import agent.server.transform.config.ClassFilterConfig;
 import agent.server.transform.config.ConstructorFilterConfig;
 import agent.server.transform.config.MethodFilterConfig;
 import agent.server.transform.impl.AbstractConfigTransformer;
@@ -260,8 +261,10 @@ public abstract class AbstractTest {
     }
 
     private static ClassConfig newClassConfig(String targetClass, MethodFilterConfig methodFilter, ConstructorFilterConfig constructorFilter) {
+        ClassFilterConfig classFilter = new ClassFilterConfig();
+        classFilter.setClasses(Collections.singleton(targetClass));
         ClassConfig config = new ClassConfig();
-        config.setTargetClasses(Collections.singleton(targetClass));
+        config.setClassFilter(classFilter);
         config.setMethodFilter(methodFilter);
         config.setConstructorFilter(constructorFilter);
         return config;

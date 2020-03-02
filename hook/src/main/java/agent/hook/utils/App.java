@@ -11,4 +11,8 @@ public class App {
                 AppTypePluginFilter.getInstance()
         );
     }
+
+    public static ClassLoader getLoader(String context) {
+        return getClassFinder().findClassLoader(context);
+    }
 }

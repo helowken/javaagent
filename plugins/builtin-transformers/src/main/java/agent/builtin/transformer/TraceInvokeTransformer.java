@@ -87,7 +87,7 @@ public class TraceInvokeTransformer extends CallChainTransformer {
                                     Collectors.toList()
                             )
             );
-            LogMgr.logText(logKey, content);
+            LogMgr.logText(logKey, content + "\n");
         }
 
         private TraceItem convert(SelfInvokeInfo item, ValueConverter valueConverter) {

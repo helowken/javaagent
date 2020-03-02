@@ -10,7 +10,6 @@
 
     <properties>
         <jdk.version>1.8</jdk.version>
-        <javaassist.version>3.21.0-GA</javaassist.version>
         <jackson.version>2.9.9.1</jackson.version>
         <junit.version>4.12</junit.version>
         <mockito.version>1.9.5</mockito.version>
@@ -23,11 +22,6 @@
 
     <dependencyManagement>
         <dependencies>
-            <dependency>
-                <groupId>org.javassist</groupId>
-                <artifactId>javassist</artifactId>
-                <version>${javaassist.version}</version>
-            </dependency>
             <dependency>
                 <groupId>com.fasterxml.jackson.core</groupId>
                 <artifactId>jackson-databind</artifactId>

@@ -109,5 +109,12 @@
                 <module>integration-test</module>
             </modules>
         </profile>
+
+        <profile>
+            <id>backup-rule</id>
+            <modules>
+                <module>backup-rule</module>
+            </modules>
+        </profile>
     </profiles>
 </project>

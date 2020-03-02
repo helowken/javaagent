@@ -13,6 +13,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 public class ClassCacheTest extends AbstractTest {
+
     @Test
     public void testSubClassesAndSubTypes() {
         ClassLoader loader = Thread.currentThread().getContextClassLoader();
@@ -86,6 +87,8 @@ public class ClassCacheTest extends AbstractTest {
 
         Class<?> newA2Class = newClass(A2.class, loader);
         Class<?> newA3Class = newClass(A3.class, newA2Class.getClassLoader());
+
+        assertTrue(A.class.isAssignableFrom(newA2Class));
 
         classCache.getSubClasses(loader, A.class, true).forEach(
                 clazz -> System.out.println(clazz + ", loader: " + clazz.getClassLoader())
@@ -162,6 +165,7 @@ public class ClassCacheTest extends AbstractTest {
                         classCache.findClasses(
                                 loader,
                                 Collections.singleton(regexp),
+                                null,
                                 includeInterface
                         )
                 ).containsAll(expectedClasses)

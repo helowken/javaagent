@@ -3,7 +3,7 @@ package agent.server.transform.config;
 import java.util.Objects;
 import java.util.Set;
 
-public abstract class FilterConfig {
+public class FilterConfig {
     private Set<String> includes;
     private Set<String> excludes;
 
@@ -39,9 +39,7 @@ public abstract class FilterConfig {
 
     @Override
     public String toString() {
-        return "MethodFilterConfig{" +
-                "includes=" + includes +
-                ", excludes=" + excludes +
-                '}';
+        return "includes=" + includes +
+                ", excludes=" + excludes;
     }
 }

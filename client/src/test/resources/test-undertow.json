@@ -11,9 +11,11 @@
         ],
         "targets": [
           {
-            "targetClasses": [
-              "hello.HelloController"
-            ]
+            "classFilter": {
+              "classes": [
+                "hello.HelloController"
+              ]
+            }
           }
         ]
       }

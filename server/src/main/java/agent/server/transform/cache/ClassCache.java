@@ -176,12 +176,18 @@ public class ClassCache {
         return rsList;
     }
 
-    public Collection<Class<?>> findClasses(ClassLoader loader, Collection<String> includes, boolean includeInterface) {
+    public Collection<Class<?>> findClasses(ClassLoader loader, Collection<String> includes, Collection<String> excludes, boolean includeInterface) {
+        return findClasses(
+                loader,
+                newClassFilter(includes, excludes, includeInterface)
+        );
+    }
+
+    public Collection<Class<?>> findClasses(ClassLoader loader, ClassFilter filter) {
         return Optional.ofNullable(
                 getLoaderToRoot().get(loader)
         ).map(
                 node -> {
-                    ClassFilter filter = newClassFilter(includes, null, includeInterface);
                     List<Class<?>> rsList = new ArrayList<>();
                     if (filter != null)
                         TreeUtils.traverse(

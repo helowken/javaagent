@@ -8,10 +8,10 @@ import java.util.Set;
 import java.util.TreeSet;
 
 public class CostTimeUtils {
-    private static final String RATE_SEP = ",";
-    private static final Set<Float> DEFAULT_RATES = new TreeSet<>(
+    public static final Set<Float> DEFAULT_RATES = new TreeSet<>(
             Arrays.asList(0.9F, 0.95F, 0.99F)
     );
+    private static final String RATE_SEP = ",";
 
     public static void run(String[] args, CostTimeResultHandler resultBuilder) throws Exception {
         if (args.length < 2) {

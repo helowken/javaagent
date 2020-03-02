@@ -14,14 +14,18 @@
         ],
         "targets": [
           {
-            "includeClasses": [
-              ".*\\.TestObject"
-            ]
+            "classFilter": {
+              "includes": [
+                ".*\\.TestObject"
+              ]
+            }
           },
           {
-            "includeClasses": [
-              ".*\\.SubTestObject"
-            ],
+            "classFilter": {
+              "includes": [
+                ".*\\.SubTestObject"
+              ]
+            },
             "methodFilter": {
               "includes": [
                 ".*[l|L]oad"
@@ -29,9 +33,11 @@
             }
           },
           {
-            "targetClasses": [
-              "org.apache.commons.lang3.StringUtils"
-            ],
+            "classFilter": {
+              "classes": [
+                "org.apache.commons.lang3.StringUtils"
+              ]
+            },
             "methodFilter": {
               "includes": [
                 "trim"

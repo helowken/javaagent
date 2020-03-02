@@ -3,7 +3,6 @@ package agent.server.command.executor;
 import agent.base.utils.TypeObject;
 import agent.common.message.command.Command;
 import agent.common.message.command.impl.ByFileCommand.TestConfigByFileCommand;
-import agent.common.message.command.impl.ByRuleCommand.TestConfigByRuleCommand;
 import agent.common.message.result.DefaultExecResult;
 import agent.common.message.result.ExecResult;
 import agent.common.message.result.entity.TestConfigResultEntity;
@@ -11,7 +10,6 @@ import agent.common.utils.JSONUtils;
 import agent.server.transform.TransformMgr;
 import agent.server.transform.config.parser.ConfigItem;
 import agent.server.transform.config.parser.FileConfigParser;
-import agent.server.transform.config.parser.RuleConfigParser;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -19,7 +17,6 @@ import java.util.List;
 import java.util.Map;
 
 import static agent.common.message.MessageType.CMD_TEST_CONFIG_BY_FILE;
-import static agent.common.message.MessageType.CMD_TEST_CONFIG_BY_RULE;
 import static agent.common.message.result.entity.TestConfigResultEntity.ClassResultEntity;
 import static agent.common.message.result.entity.TestConfigResultEntity.InvokeResultEntity;
 
@@ -35,13 +32,13 @@ public class TestConfigCmdExecutor extends AbstractCmdExecutor {
                         ((TestConfigByFileCommand) cmd).getConfig()
                 );
                 break;
-            case CMD_TEST_CONFIG_BY_RULE:
-                TestConfigByRuleCommand ruleCmd = (TestConfigByRuleCommand) cmd;
-                item = new RuleConfigParser.RuleConfigItem(
-                        ruleCmd.getContext(),
-                        ruleCmd.getClassName()
-                );
-                break;
+//            case CMD_TEST_CONFIG_BY_RULE:
+//                TestConfigByRuleCommand ruleCmd = (TestConfigByRuleCommand) cmd;
+//                item = new RuleConfigParser.RuleConfigItem(
+//                        ruleCmd.getContext(),
+//                        ruleCmd.getClassName()
+//                );
+//                break;
             default:
                 throw new RuntimeException("Invalid cmd type: " + cmdType);
         }

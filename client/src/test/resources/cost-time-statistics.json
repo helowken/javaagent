@@ -16,20 +16,23 @@
         ],
         "targets": [
           {
-            "includeClasses": [
-              ".*\\.TestFilter2"
-            ],
+            "classFilter": {
+              "includes": [
+                ".*\\.TestFilter2"
+              ]
+            },
             "methodFilter": {
               "includes": [
                 "test"
               ]
-            },
-            "callChain": {}
+            }
           },
           {
-            "targetClasses": [
-              "test.jetty.StatisticsCostTimeObject"
-            ]
+            "classFilter": {
+              "classes": [
+                "test.jetty.StatisticsCostTimeObject"
+              ]
+            }
           }
         ]
       }
