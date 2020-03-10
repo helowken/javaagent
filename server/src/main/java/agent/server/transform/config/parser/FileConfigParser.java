@@ -8,19 +8,18 @@ import agent.server.transform.config.ModuleConfig;
 import agent.server.transform.config.parser.exception.ConfigParseException;
 
 import java.io.File;
-import java.util.List;
 
 public class FileConfigParser implements ConfigParser {
     private static final Logger logger = Logger.getLogger(FileConfigParser.class);
 
     @Override
-    public List<ModuleConfig> parse(ConfigItem item) throws ConfigParseException {
+    public ModuleConfig parse(ConfigItem item) throws ConfigParseException {
         try {
             return JSONUtils.read(
                     getContent(
                             ((FileConfigItem) item).source
                     ),
-                    new TypeObject<List<ModuleConfig>>() {
+                    new TypeObject<ModuleConfig>() {
                     }
             );
         } catch (Exception e) {

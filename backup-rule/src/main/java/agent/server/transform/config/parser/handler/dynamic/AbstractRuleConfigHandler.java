@@ -34,7 +34,7 @@ abstract class AbstractRuleConfigHandler implements RuleConfigHandler {
         transformerConfig.setConfig(Collections.singletonMap(DynamicClassTransformer.KEY_CONFIG, configItem));
 
         TransformConfig transformConfig = new TransformConfig();
-        transformConfig.setTargets(Collections.singletonList(classConfig));
+        transformConfig.setTargets(Collections.singletonList(targetConfig));
         transformConfig.setTransformers(Collections.singletonList(transformerConfig));
 
         return transformConfig;

@@ -2,13 +2,17 @@ package agent.server.transform.config;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 
-public class ModuleConfig {
+public class ModuleConfig extends AbstractAgentConfig {
     private String contextPath;
-    private Set<String> includePackages;
-    private Set<String> excludePackages;
-    private List<TransformConfig> transformConfigs;
+    private List<TransformerConfig> transformers;
+    private List<TargetConfig> targets;
+
+    public void validate() {
+        validate(contextPath, "Context path");
+        validate(transformers, "Transformer configs");
+        validate(targets, "Target configs");
+    }
 
     public String getContextPath() {
         return contextPath;
@@ -18,28 +22,20 @@ public class ModuleConfig {
         this.contextPath = contextPath;
     }
 
-    public List<TransformConfig> getTransformConfigs() {
-        return transformConfigs;
+    public List<TransformerConfig> getTransformers() {
+        return transformers;
     }
 
-    public void setTransformConfigs(List<TransformConfig> transformConfigs) {
-        this.transformConfigs = transformConfigs;
+    public void setTransformers(List<TransformerConfig> transformers) {
+        this.transformers = transformers;
     }
 
-    public Set<String> getIncludePackages() {
-        return includePackages;
+    public List<TargetConfig> getTargets() {
+        return targets;
     }
 
-    public void setIncludePackages(Set<String> includePackages) {
-        this.includePackages = includePackages;
-    }
-
-    public Set<String> getExcludePackages() {
-        return excludePackages;
-    }
-
-    public void setExcludePackages(Set<String> excludePackages) {
-        this.excludePackages = excludePackages;
+    public void setTargets(List<TargetConfig> targets) {
+        this.targets = targets;
     }
 
     @Override
@@ -48,24 +44,22 @@ public class ModuleConfig {
         if (o == null || getClass() != o.getClass()) return false;
         ModuleConfig that = (ModuleConfig) o;
         return Objects.equals(contextPath, that.contextPath) &&
-                Objects.equals(includePackages, that.includePackages) &&
-                Objects.equals(excludePackages, that.excludePackages) &&
-                Objects.equals(transformConfigs, that.transformConfigs);
+                Objects.equals(transformers, that.transformers) &&
+                Objects.equals(targets, that.targets);
     }
 
     @Override
     public int hashCode() {
 
-        return Objects.hash(contextPath, includePackages, excludePackages, transformConfigs);
+        return Objects.hash(contextPath, transformers, targets);
     }
 
     @Override
     public String toString() {
         return "ModuleConfig{" +
                 "contextPath='" + contextPath + '\'' +
-                ", includePackages=" + includePackages +
-                ", excludePackages=" + excludePackages +
-                ", transformConfigs=" + transformConfigs +
+                ", transformers=" + transformers +
+                ", targets=" + targets +
                 '}';
     }
 }

@@ -1,17 +1,18 @@
 package test.server.method;
 
-import agent.server.transform.InvokeSearcher;
-import agent.server.transform.InvokeSearcher.InvokeSearchResult;
-import agent.server.transform.config.ClassConfig;
 import agent.server.transform.config.ClassFilterConfig;
 import agent.server.transform.config.MethodFilterConfig;
+import agent.server.transform.config.TargetConfig;
+import agent.server.transform.impl.invoke.DestInvoke;
+import agent.server.transform.search.InvokeSearcher;
 import org.junit.Test;
 
+import java.util.Collection;
 import java.util.Collections;
 
 import static org.junit.Assert.assertEquals;
 
-public class InvokeFinderTest {
+public class InvokeSearcherTest {
     @Test
     public void test() {
 //        check(Intf.class, 1, 0);
@@ -21,24 +22,23 @@ public class InvokeFinderTest {
     }
 
     private void check(Class<?> clazz, int methodsCount, int meaningfulCount) {
-        InvokeSearchResult result = search(clazz);
+        Collection<DestInvoke> invokes = search(clazz);
         assertEquals(methodsCount, clazz.getDeclaredMethods().length);
-        assertEquals(meaningfulCount, result.invokes.size());
+        assertEquals(meaningfulCount, invokes.size());
     }
 
-    private InvokeSearchResult search(Class<?> clazz) {
-        ClassConfig cc = new ClassConfig();
+    private Collection<DestInvoke> search(Class<?> clazz) {
+        TargetConfig cc = new TargetConfig();
         ClassFilterConfig classFilterConfig = new ClassFilterConfig();
-        classFilterConfig.setClasses(
+        classFilterConfig.setIncludes(
                 Collections.singleton(Impl.class.getName())
         );
         cc.setClassFilter(classFilterConfig);
         cc.setMethodFilter(new MethodFilterConfig());
-        return InvokeSearcher.getInstance().find(
+        return InvokeSearcher.getInstance().search(
                 clazz,
-                Collections.singletonList(
-                        cc.getMethodFilter()
-                )
+                cc.getMethodFilter(),
+                cc.getConstructorFilter()
         );
     }
 

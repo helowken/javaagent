@@ -1,8 +1,9 @@
 package agent.server.transform.impl;
 
 import agent.base.utils.InvokeDescriptorUtils;
-import agent.server.transform.InvokeSearcher;
 import agent.server.transform.impl.invoke.DestInvoke;
+import agent.server.transform.search.filter.AgentFilter;
+import agent.server.transform.search.filter.FilterUtils;
 import agent.server.transform.tools.asm.ProxyTransformMgr;
 
 import java.util.*;
@@ -26,8 +27,10 @@ public class ViewMgr {
     public static Object create(int maxLevel, String contextRegexp, String classRegExp, String invokeRegExp, String proxyRegExp) {
         final Pattern contextPattern = newPattern(contextRegexp);
         final Pattern classPattern = newPattern(classRegExp);
-        final Pattern invokePattern = invokeRegExp == null ? null : InvokeSearcher.compilePattern(invokeRegExp);
-        final Collection<Pattern> invokePatterns = invokePattern == null ? null : Collections.singleton(invokePattern);
+        final AgentFilter<DestInvoke> invokeFilter = FilterUtils.newInvokeFilter(
+                invokeRegExp == null ? null : Collections.singleton(invokeRegExp),
+                null
+        );
         final Pattern proxyPattern = newPattern(proxyRegExp);
         return DestInvokeIdRegistry.getInstance().run(
                 contextToClassToInvokeToId -> newValue(
@@ -44,7 +47,10 @@ public class ViewMgr {
                                             ((Class<?>) value).getName()
                                     );
                                 case VIEW_INVOKE:
-                                    return invokePatterns == null || InvokeSearcher.isMatch(invokePatterns, (DestInvoke) value);
+                                    return FilterUtils.isAccept(
+                                            invokeFilter,
+                                            (DestInvoke) value
+                                    );
                                 case VIEW_PROXY:
                                 default:
                                     throw new RuntimeException("Unsupport level: " + currLevel);

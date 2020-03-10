@@ -16,7 +16,7 @@ public class ConfigParseFactory {
         registry.reg(configParser.getType(), configParser);
     }
 
-    public static List<ModuleConfig> parse(ConfigItem item) {
+    public static ModuleConfig parse(ConfigItem item) {
         return registry.get(item.getType()).parse(item);
     }
 }

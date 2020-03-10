@@ -7,7 +7,6 @@ import agent.server.transform.tools.asm.ProxyRegInfo;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 
 public abstract class AbstractTransformer implements AgentTransformer {
     private Collection<ProxyRegInfo> proxyRegInfos = new ArrayList<>();
@@ -21,14 +20,4 @@ public abstract class AbstractTransformer implements AgentTransformer {
         proxyRegInfos.add(regInfo);
     }
 
-    protected void addRegInfos(List<ProxyRegInfo> regInfos) {
-        proxyRegInfos.addAll(regInfos);
-    }
-
-    protected Method findSelfMethod(String methodName) throws Exception {
-        return ReflectionUtils.findFirstMethod(
-                this.getClass(),
-                methodName
-        );
-    }
 }

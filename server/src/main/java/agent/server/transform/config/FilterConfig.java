@@ -1,18 +1,29 @@
 package agent.server.transform.config;
 
+import agent.base.utils.Utils;
+
+import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
-public class FilterConfig {
+public class FilterConfig extends AbstractAgentConfig {
     private Set<String> includes;
     private Set<String> excludes;
+
+    @Override
+    public void validate() {
+    }
 
     public Set<String> getIncludes() {
         return includes;
     }
 
     public void setIncludes(Set<String> includes) {
-        this.includes = includes;
+        this.includes = includes == null ?
+                null :
+                new HashSet<>(
+                        Utils.emptyToNull(includes, Utils::isNotBlank)
+                );
     }
 
     public Set<String> getExcludes() {
@@ -20,7 +31,11 @@ public class FilterConfig {
     }
 
     public void setExcludes(Set<String> excludes) {
-        this.excludes = excludes;
+        this.excludes = excludes == null ?
+                null :
+                new HashSet<>(
+                        Utils.emptyToNull(excludes, Utils::isNotBlank)
+                );
     }
 
     @Override
@@ -42,4 +57,5 @@ public class FilterConfig {
         return "includes=" + includes +
                 ", excludes=" + excludes;
     }
+
 }

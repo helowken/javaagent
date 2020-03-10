@@ -16,7 +16,7 @@ import java.util.Optional;
 import static agent.server.transform.tools.asm.AsmMethod.*;
 import static org.objectweb.asm.Opcodes.*;
 
-class AsmTransformProxy {
+public class AsmTransformProxy {
     static byte[] transform(Class<?> sourceClass, byte[] classData, Map<Integer, DestInvoke> idToInvoke) {
         return AsmUtils.transformClass(
                 sourceClass,
@@ -206,7 +206,7 @@ class AsmTransformProxy {
                 );
     }
 
-    static boolean isInvoke(int opcode) {
+    public static boolean isInvoke(int opcode) {
         return opcode == INVOKEVIRTUAL ||
                 opcode == INVOKESPECIAL ||
                 opcode == INVOKESTATIC ||

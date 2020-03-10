@@ -3,18 +3,9 @@ package agent.server.transform.config;
 import java.util.Map;
 import java.util.Objects;
 
-public class TransformerConfig {
-    private String implClass;
+public class TransformerConfig extends AbstractAgentConfig {
     private String ref;
     private Map<String, Object> config;
-
-    public String getImplClass() {
-        return implClass;
-    }
-
-    public void setImplClass(String implClass) {
-        this.implClass = implClass;
-    }
 
     public String getRef() {
         return ref;
@@ -37,16 +28,14 @@ public class TransformerConfig {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         TransformerConfig that = (TransformerConfig) o;
-        return Objects.equals(implClass, that.implClass) &&
-                Objects.equals(ref, that.ref) &&
+        return Objects.equals(ref, that.ref) &&
                 Objects.equals(config, that.config);
     }
 
     @Override
     public String toString() {
         return "TransformerConfig{" +
-                "implClass='" + implClass + '\'' +
-                ", ref='" + ref + '\'' +
+                "ref='" + ref + '\'' +
                 ", config=" + config +
                 '}';
     }
@@ -54,8 +43,11 @@ public class TransformerConfig {
     @Override
     public int hashCode() {
 
-        return Objects.hash(implClass, ref, config);
+        return Objects.hash(ref, config);
     }
 
-
+    @Override
+    public void validate() {
+        validate(ref, "Transformer reference");
+    }
 }

@@ -3,7 +3,6 @@
     "contextPath": "",
     "transformConfigs": [
       {
-        "desc": "Used to measure time cost.",
         "transformers": [
           {
             "ref": "@costTimeMeasure"

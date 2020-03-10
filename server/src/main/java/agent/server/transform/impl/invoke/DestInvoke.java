@@ -16,4 +16,8 @@ public interface DestInvoke {
     Class<?>[] getParamTypes();
 
     Class<?> getReturnType();
+
+    default String getFullName() {
+        return getName() + getDescriptor();
+    }
 }

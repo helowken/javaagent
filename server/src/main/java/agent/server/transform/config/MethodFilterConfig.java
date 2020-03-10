@@ -1,4 +1,4 @@
 package agent.server.transform.config;
 
-public class MethodFilterConfig extends InvokeFilterConfig {
+public class MethodFilterConfig extends FilterConfig {
 }

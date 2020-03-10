@@ -19,11 +19,10 @@ import static agent.server.transform.impl.ProxyAnnotationConfig.ARGS_ON_AFTER;
 public class TraceInvokeTransformer extends CallChainTransformer {
     public static final String REG_KEY = "@traceMethod";
     private static final String KEY_OUTPUT_FORMAT = "outputFormat";
-    private static final String KEY_CONVERTER_CLASS = "printerClass";
     private static final String KEY_CONTENT = "content";
     private static final String DEFAULT_OUTPUT_FORMAT = StringParser.getKey(KEY_CONTENT);
 
-    private ValueConverter valueConverter;
+    private ValueConverter valueConverter = new DefaultValueConverter();
 
     @Override
     protected String newLogKey(Map<String, Object> logConf) {
@@ -33,16 +32,6 @@ public class TraceInvokeTransformer extends CallChainTransformer {
                 newLogConf,
                 Collections.emptyMap()
         );
-    }
-
-    @Override
-    protected void doSetConfig(Map<String, Object> config) throws Exception {
-        String className = Utils.getConfigValue(config, KEY_CONVERTER_CLASS);
-        Class<? extends ValueConverter> clazz = Utils.isBlank(className) ?
-                DefaultValueConverter.class :
-                findClass(className);
-        valueConverter = clazz.newInstance();
-        super.doSetConfig(config);
     }
 
     @Override

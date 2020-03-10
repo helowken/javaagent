@@ -2,10 +2,24 @@ package agent.server.transform.config;
 
 import java.util.Objects;
 
-public class ClassConfig {
+public class TargetConfig extends AbstractAgentConfig {
     private ClassFilterConfig classFilter;
     private MethodFilterConfig methodFilter;
     private ConstructorFilterConfig constructorFilter;
+    private InvokeChainConfig invokeChainConfig;
+
+    @Override
+    public void validate() {
+        validate(classFilter, "Class filter");
+        validateAnyNotNull(
+                "No method filter or constructor filter found.",
+                methodFilter,
+                constructorFilter
+        );
+        validateIfNotNull(methodFilter);
+        validateIfNotNull(constructorFilter);
+        validateIfNotNull(invokeChainConfig);
+    }
 
     public ConstructorFilterConfig getConstructorFilter() {
         return constructorFilter;
@@ -31,28 +45,39 @@ public class ClassConfig {
         this.classFilter = classFilter;
     }
 
+    public InvokeChainConfig getInvokeChainConfig() {
+        return invokeChainConfig;
+    }
+
+    public void setInvokeChainConfig(InvokeChainConfig invokeChainConfig) {
+        this.invokeChainConfig = invokeChainConfig;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        ClassConfig that = (ClassConfig) o;
+        TargetConfig that = (TargetConfig) o;
         return Objects.equals(classFilter, that.classFilter) &&
                 Objects.equals(methodFilter, that.methodFilter) &&
-                Objects.equals(constructorFilter, that.constructorFilter);
+                Objects.equals(constructorFilter, that.constructorFilter) &&
+                Objects.equals(invokeChainConfig, that.invokeChainConfig);
     }
 
     @Override
     public int hashCode() {
 
-        return Objects.hash(classFilter, methodFilter, constructorFilter);
+        return Objects.hash(classFilter, methodFilter, constructorFilter, invokeChainConfig);
     }
 
     @Override
     public String toString() {
-        return "ClassConfig{" +
+        return "TargetConfig{" +
                 "classFilter=" + classFilter +
                 ", methodFilter=" + methodFilter +
                 ", constructorFilter=" + constructorFilter +
+                ", invokeChainConfig=" + invokeChainConfig +
                 '}';
     }
+
 }

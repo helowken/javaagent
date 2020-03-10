@@ -11,43 +11,37 @@ import agent.server.transform.TransformResult;
 
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.stream.Collectors;
 
 abstract class AbstractTransformCmdExecutor extends AbstractCmdExecutor {
-    ExecResult convert(List<TransformResult> transformResultList, final int cmdType, String msgPrefix) {
-        AtomicBoolean failed = new AtomicBoolean(false);
-        List<TransformResultEntity> entityList = transformResultList.stream()
-                .map(result -> {
-                    if (result.hasError())
-                        failed.set(true);
-                    TransformResultEntity entity = new TransformResultEntity();
-                    entity.setContext(result.getContext());
-                    if (result.hasTransformError())
-                        addErrorList(
-                                entity,
-                                TransformResultEntity.TRANSFORM_ERROR,
-                                result.getTransformErrorList()
-                        );
-                    if (result.hasCompileError())
-                        addErrorList(
-                                entity,
-                                TransformResultEntity.COMPILE_ERROR,
-                                result.getCompileErrorList()
-                        );
-                    if (result.hasReTransformError())
-                        addErrorList(
-                                entity,
-                                TransformResultEntity.RETRANSFORM_ERROR,
-                                result.getReTransformErrorItemList()
-                        );
-                    return entity;
-                })
-                .collect(Collectors.toList());
-        return failed.get() ?
+    ExecResult convert(TransformResult result, final int cmdType, String msgPrefix) {
+        boolean failed = false;
+        if (result.hasError())
+            failed = true;
+        TransformResultEntity entity = new TransformResultEntity();
+        entity.setContext(result.getContext());
+        if (result.hasTransformError())
+            addErrorList(
+                    entity,
+                    TransformResultEntity.TRANSFORM_ERROR,
+                    result.getTransformErrorList()
+            );
+        if (result.hasCompileError())
+            addErrorList(
+                    entity,
+                    TransformResultEntity.COMPILE_ERROR,
+                    result.getCompileErrorList()
+            );
+        if (result.hasReTransformError())
+            addErrorList(
+                    entity,
+                    TransformResultEntity.RETRANSFORM_ERROR,
+                    result.getReTransformErrorItemList()
+            );
+
+        return failed ?
                 DefaultExecResult.toError(cmdType, msgPrefix + " failed.",
-                        JSONUtils.convert(entityList,
-                                new TypeObject<List<Map>>() {
+                        JSONUtils.convert(entity,
+                                new TypeObject<Map>() {
                                 }
                         )
                 ) :

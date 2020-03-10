@@ -1,10 +1,9 @@
 package test.server.transform;
 
-import agent.server.transform.cache.ClassCache;
-import agent.server.transform.cache.IncludeClassFilter;
 import agent.server.transform.impl.invoke.DestInvoke;
 import agent.server.transform.impl.invoke.MethodInvoke;
-import agent.server.transform.tools.asm.AsmInvokeFinder;
+import agent.server.transform.search.ClassCache;
+import agent.server.transform.search.InvokeChainSearcher;
 import org.junit.Test;
 import test.server.AbstractTest;
 
@@ -20,17 +19,10 @@ import static org.junit.Assert.*;
 public class AsmInvokeFinderTest extends AbstractTest {
     private static final boolean debugEnabled = true;
     private static final ClassLoader loader = Thread.currentThread().getContextClassLoader();
-    private static final ClassCache classCache = new ClassCache(
-            Collections.singletonMap(
-                    loader,
-                    new IncludeClassFilter(
-                            Collections.singletonList("test\\..*")
-                    )
-            )
-    );
+    private static final ClassCache classCache = new ClassCache();
 
     static {
-        AsmInvokeFinder.debugEnabled = debugEnabled;
+        InvokeChainSearcher.debugEnabled = debugEnabled;
     }
 
     @Test
@@ -174,15 +166,16 @@ public class AsmInvokeFinderTest extends AbstractTest {
     private void doTest(Object... expectation) {
         assertNotNull(expectation);
         assertTrue(expectation.length > 0);
-        Collection<DestInvoke> rsList = AsmInvokeFinder.find(
+        Collection<DestInvoke> rsList = InvokeChainSearcher.search(
+                loader,
+                classCache,
+                this::getClassData,
                 Collections.singletonList(
                         new MethodInvoke(
                                 (Method) expectation[0]
                         )
                 ),
-                loader,
-                classCache,
-                this::getClassData
+                null
         );
         if (debugEnabled) {
             System.out.println("=============================");

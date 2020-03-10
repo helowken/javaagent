@@ -6,7 +6,6 @@
     ],
     "transformConfigs": [
       {
-        "desc": "Used to measure time cost.",
         "transformers": [
           {
             "ref": "@traceMethod"

@@ -5,6 +5,7 @@ import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -154,6 +155,13 @@ public class Utils {
         if (s != null && s.trim().isEmpty())
             return null;
         return s;
+    }
+
+    public static <T> Collection<T> emptyToNull(Collection<T> vs, Predicate<T> filter) {
+        if (vs == null)
+            return null;
+        Collection<T> rs = vs.stream().filter(filter).collect(Collectors.toList());
+        return rs.isEmpty() ? null : rs;
     }
 
     public static Set<String> splitToSet(String s, String sep) {

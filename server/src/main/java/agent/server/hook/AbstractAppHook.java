@@ -8,6 +8,7 @@ import agent.jvmti.JvmtiUtils;
 import agent.server.transform.TransformContext;
 import agent.server.transform.TransformMgr;
 import agent.server.transform.impl.HookAppTransformer;
+import agent.server.transform.impl.invoke.ConstructorInvoke;
 
 import java.util.Collections;
 
@@ -31,15 +32,17 @@ public abstract class AbstractAppHook implements AppHook {
         Class<?> appClass = ReflectionUtils.findClass(getAppClass());
         String context = "$hookApp";
         TransformMgr.getInstance().transform(
-                Collections.singletonList(
-                        new TransformContext(
-                                context,
-                                Collections.singleton(appClass),
-                                Collections.singletonList(
-                                        new HookAppTransformer()
-                                ),
-                                ACTION_MODIFY
-                        )
+                new TransformContext(
+                        context,
+                        Collections.singleton(
+                                new ConstructorInvoke(
+                                        ReflectionUtils.findConstructor(appClass, "()V")
+                                )
+                        ),
+                        Collections.singletonList(
+                                new HookAppTransformer()
+                        ),
+                        ACTION_MODIFY
                 )
         );
     }

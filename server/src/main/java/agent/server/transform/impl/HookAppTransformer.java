@@ -2,27 +2,25 @@ package agent.server.transform.impl;
 
 import agent.base.utils.ReflectionUtils;
 import agent.hook.utils.App;
-import agent.server.transform.TransformContext;
+import agent.server.transform.impl.invoke.DestInvoke;
 import agent.server.transform.tools.asm.ProxyCallInfo;
 import agent.server.transform.tools.asm.ProxyRegInfo;
 
 import static agent.server.transform.tools.asm.ProxyArgsMask.MASK_INSTANCE;
 
-public class HookAppTransformer extends AbstractTransformer {
+public class HookAppTransformer extends AbstractConfigTransformer {
     private static final String REG_KEY = "@hookApp";
 
     @Override
-    public void transform(TransformContext transformContext) throws Exception {
+    protected void transformDestInvoke(DestInvoke destInvoke) throws Exception {
         addRegInfo(
-                new ProxyRegInfo(
-                        ReflectionUtils.findConstructor(
-                                transformContext.getTargetClass(),
-                                "()V"
-                        )
-                ).addOnReturning(
+                new ProxyRegInfo(destInvoke).addOnReturning(
                         new ProxyCallInfo(
                                 null,
-                                findSelfMethod("doHook"),
+                                ReflectionUtils.findFirstMethod(
+                                        this.getClass(),
+                                        "doHook"
+                                ),
                                 MASK_INSTANCE,
                                 null,
                                 getRegKey()

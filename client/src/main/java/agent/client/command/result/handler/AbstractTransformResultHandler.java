@@ -21,8 +21,6 @@ abstract class AbstractTransformResultHandler extends AbstractContextResultHandl
                 new TypeObject<List<TransformResultEntity>>() {
                 }
         );
-        System.out.println("===============: " + result.getContent());
-        System.out.println("===============: " + rsList);
         write(msgPrefix + " Result",
                 rsList,
                 TransformResultEntity::getContext,

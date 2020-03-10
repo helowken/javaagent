@@ -7,44 +7,41 @@ import agent.server.transform.config.parser.FileConfigParser;
 import agent.server.transform.config.parser.FileConfigParser.FileConfigItem;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Test;
+import test.server.AbstractTest;
 
 import java.io.File;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 
-public class ConfigParserTest {
+public class ConfigParserTest extends AbstractTest {
     private static final Logger logger = Logger.getLogger(ConfigParserTest.class);
     private static final ObjectMapper objectMapper = new ObjectMapper();
     private static final FileConfigParser fileConfigParser = new FileConfigParser();
 
     @Test
     public void testParseFileConfig() throws Exception {
-        List<ModuleConfig> moduleConfigList = createModuleConfigList();
-        String content = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(moduleConfigList);
+        ModuleConfig moduleConfig = createModuleConfig();
+        String content = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(moduleConfig);
         logger.info("Content: \n{}", content);
 
-        List<ModuleConfig> parsedList = fileConfigParser.parse(new FileConfigItem(content));
-        assertEquals(moduleConfigList, parsedList);
+        ModuleConfig parsedConfig = fileConfigParser.parse(new FileConfigItem(content));
+        assertEquals(moduleConfig, parsedConfig);
 
-        parsedList = fileConfigParser.parse(new FileConfigItem(content.getBytes()));
-        assertEquals(moduleConfigList, parsedList);
+        parsedConfig = fileConfigParser.parse(new FileConfigItem(content.getBytes()));
+        assertEquals(moduleConfig, parsedConfig);
 
         File file = File.createTempFile("config", ".json");
         IOUtils.writeString(file.getAbsolutePath(), content, false);
-        parsedList = fileConfigParser.parse(new FileConfigItem(file));
-        assertEquals(moduleConfigList, parsedList);
+        parsedConfig = fileConfigParser.parse(new FileConfigItem(file));
+        assertEquals(moduleConfig, parsedConfig);
     }
 
-    private List<ModuleConfig> createModuleConfigList() {
-        List<ModuleConfig> moduleConfigList = new ArrayList<>();
+    private ModuleConfig createModuleConfig() {
         ModuleConfig moduleConfig = new ModuleConfig();
-        moduleConfigList.add(moduleConfig);
         moduleConfig.setContextPath("/test");
-
-        TransformConfig transformConfig = new TransformConfig();
-        transformConfig.setDesc("Used to measure time cost.");
-        moduleConfig.setTransformConfigs(Collections.singletonList(transformConfig));
 
         TransformerConfig transformerConfig = new TransformerConfig();
         transformerConfig.setRef("timeMeasure");
@@ -52,19 +49,18 @@ public class ConfigParserTest {
         config.put("outputFile", "/tmp/111/222");
         config.put("outputFormat", "Cost time: $costTime$");
         transformerConfig.setConfig(config);
-        transformConfig.setTransformers(Collections.singletonList(transformerConfig));
 
-        ClassConfig classConfig = new ClassConfig();
+        TargetConfig targetConfig = new TargetConfig();
         ClassFilterConfig classFilterConfig = new ClassFilterConfig();
-        classFilterConfig.setClasses(
+        classFilterConfig.setIncludes(
                 Collections.singleton("test.jetty.TestObject")
         );
-        classConfig.setClassFilter(classFilterConfig);
+        targetConfig.setClassFilter(classFilterConfig);
         MethodFilterConfig methodConfig = new MethodFilterConfig();
         methodConfig.setIncludes(Collections.singleton("test"));
-        classConfig.setMethodFilter(methodConfig);
-        transformConfig.setTargets(Collections.singletonList(classConfig));
+        targetConfig.setMethodFilter(methodConfig);
+        moduleConfig.setTargets(Collections.singletonList(targetConfig));
 
-        return moduleConfigList;
+        return moduleConfig;
     }
 }

@@ -18,14 +18,10 @@ import agent.server.transform.AgentTransformer;
 import agent.server.transform.TransformContext;
 import agent.server.transform.TransformMgr;
 import agent.server.transform.TransformResult;
-import agent.server.transform.cache.ClassCache;
-import agent.server.transform.config.ClassConfig;
-import agent.server.transform.config.ClassFilterConfig;
-import agent.server.transform.config.ConstructorFilterConfig;
-import agent.server.transform.config.MethodFilterConfig;
+import agent.server.transform.config.*;
 import agent.server.transform.impl.AbstractConfigTransformer;
 import agent.server.transform.impl.DestInvokeIdRegistry;
-import agent.server.transform.impl.TransformShareInfo;
+import agent.server.transform.impl.invoke.DestInvoke;
 import agent.server.transform.impl.invoke.MethodInvoke;
 import agent.server.transform.tools.asm.ProxyRegInfo;
 import agent.server.transform.tools.asm.ProxyResult;
@@ -38,11 +34,11 @@ import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static agent.server.transform.TransformContext.ACTION_MODIFY;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
 
 public abstract class AbstractTest {
     private static final TestClassLoader loader = new TestClassLoader();
@@ -97,47 +93,26 @@ public abstract class AbstractTest {
     }
 
     protected void doTransform(AbstractConfigTransformer transformer, String context, Map<String, Object> config, Map<Class<?>, String> classToMethodFilter) throws Exception {
-        transformer.setTransformerInfo(
-                newTransformerInfo(
-                        context,
-                        classToMethodFilter,
-                        null
-                )
-        );
+        transformer.setContext(context);
         transformer.setConfig(config);
         transformer.transform(
-                newTransformContext(
-                        context,
-                        transformer,
-                        classToMethodFilter.keySet().toArray(new Class[0])
-                )
+                newTransformContext(context, transformer, classToMethodFilter)
         );
     }
 
     protected static void transformByAnnt(String context, Map<Class<?>, String> classToMethodFilter,
                                           Map<Class<?>, String> classToConstructorFilter, Object instance) {
         TestAnnotationConfigTransformer transformer = new TestAnnotationConfigTransformer(instance);
-        transformer.setTransformerInfo(
-                newTransformerInfo(
-                        context,
-                        classToMethodFilter,
-                        classToConstructorFilter
-                )
+        Set<DestInvoke> invokeSet = TransformMgr.getInstance().searchInvokes(
+                newModuleConfig(context, classToMethodFilter, classToConstructorFilter)
         );
-        Set<Class<?>> classSet = new HashSet<>();
-        if (classToMethodFilter != null)
-            classSet.addAll(classToMethodFilter.keySet());
-        if (classToConstructorFilter != null)
-            classSet.addAll(classToConstructorFilter.keySet());
         TransformContext transformContext = new TransformContext(
                 context,
-                classSet,
+                invokeSet,
                 Collections.singletonList(transformer),
                 ACTION_MODIFY
         );
-        TransformResult transformResult = TransformMgr.getInstance().transform(
-                Collections.singletonList(transformContext)
-        ).get(0);
+        TransformResult transformResult = TransformMgr.getInstance().transform(transformContext);
         assertFalse(transformResult.hasError());
     }
 
@@ -198,76 +173,67 @@ public abstract class AbstractTest {
         );
     }
 
-    private TransformContext newTransformContext(String context, AgentTransformer transformer, Class<?>... classes) {
-        assertNotNull(classes);
-        Set<Class<?>> classSet = new HashSet<>(
-                Arrays.asList(
-                        classes
+    private static TargetConfig newTargetConfig(Map<Class<?>, String> classToFilter, Function<TargetConfig, FilterConfig> filterConfigSupplier) {
+        TargetConfig targetConfig = new TargetConfig();
+        ClassFilterConfig classFilterConfig = new ClassFilterConfig();
+        classFilterConfig.setIncludes(
+                classToFilter.keySet()
+                        .stream()
+                        .map(Class::getName)
+                        .collect(Collectors.toSet())
+        );
+        FilterConfig filterConfig = filterConfigSupplier.apply(targetConfig);
+        filterConfig.setIncludes(
+                new HashSet<>(
+                        classToFilter.values()
                 )
+        );
+        targetConfig.setClassFilter(
+                classFilterConfig
+        );
+        return targetConfig;
+    }
+
+    private static ModuleConfig newModuleConfig(String context, Map<Class<?>, String> classToMethodFilter, Map<Class<?>, String> classToConstructorFilter) {
+        ModuleConfig moduleConfig = new ModuleConfig();
+        moduleConfig.setContextPath(context);
+        List<TargetConfig> targetConfigList = new ArrayList<>();
+        if (classToConstructorFilter != null)
+            targetConfigList.add(
+                    newTargetConfig(
+                            classToConstructorFilter,
+                            targetConfig -> {
+                                ConstructorFilterConfig config = new ConstructorFilterConfig();
+                                targetConfig.setConstructorFilter(config);
+                                return config;
+                            }
+                    )
+            );
+        if (classToMethodFilter != null)
+            targetConfigList.add(
+                    newTargetConfig(
+                            classToMethodFilter,
+                            targetConfig -> {
+                                MethodFilterConfig config = new MethodFilterConfig();
+                                targetConfig.setMethodFilter(config);
+                                return config;
+                            }
+                    )
+            );
+        moduleConfig.setTargets(targetConfigList);
+        return moduleConfig;
+    }
+
+    private TransformContext newTransformContext(String context, AgentTransformer transformer, Map<Class<?>, String> classToMethodFilter) {
+        Set<DestInvoke> invokeSet = TransformMgr.getInstance().searchInvokes(
+                newModuleConfig(context, classToMethodFilter, null)
         );
         return new TransformContext(
                 context,
-                classSet,
+                invokeSet,
                 Collections.singletonList(transformer),
                 ACTION_MODIFY
         );
-    }
-
-    private static TransformShareInfo newTransformerInfo(String context, Map<Class<?>, String> classToMethodFilter, Map<Class<?>, String> classToConstructorFilter) {
-        List<ClassConfig> classConfigs = new ArrayList<>();
-        if (classToMethodFilter != null) {
-            classToMethodFilter.forEach(
-                    (clazz, methodFilter) -> {
-                        MethodFilterConfig methodFilterConfig = new MethodFilterConfig();
-                        methodFilterConfig.setIncludes(
-                                Collections.singleton(methodFilter)
-                        );
-                        classConfigs.add(
-                                newClassConfig(
-                                        clazz.getName(),
-                                        methodFilterConfig,
-                                        null
-                                )
-                        );
-                    }
-            );
-        }
-        if (classToConstructorFilter != null) {
-            classToConstructorFilter.forEach(
-                    (clazz, constructorFiler) -> {
-                        ConstructorFilterConfig constructorFilterConfig = new ConstructorFilterConfig();
-                        constructorFilterConfig.setIncludes(
-                                Collections.singleton(constructorFiler)
-                        );
-                        classConfigs.add(
-                                newClassConfig(
-                                        clazz.getName(),
-                                        null,
-                                        constructorFilterConfig
-                                )
-                        );
-                    }
-            );
-        }
-
-        ClassCache classCache = new ClassCache(
-                Collections.emptyMap()
-        );
-        return new TransformShareInfo(
-                context,
-                TransformMgr.getInstance().newClassesToConfig(context, classConfigs, classCache),
-                classCache
-        );
-    }
-
-    private static ClassConfig newClassConfig(String targetClass, MethodFilterConfig methodFilter, ConstructorFilterConfig constructorFilter) {
-        ClassFilterConfig classFilter = new ClassFilterConfig();
-        classFilter.setClasses(Collections.singleton(targetClass));
-        ClassConfig config = new ClassConfig();
-        config.setClassFilter(classFilter);
-        config.setMethodFilter(methodFilter);
-        config.setConstructorFilter(constructorFilter);
-        return config;
     }
 
     protected void runWithFile(RunFileFunc runFileFunc) throws Exception {

@@ -3,7 +3,7 @@ package agent.builtin.transformer;
 import agent.base.utils.Utils;
 import agent.hook.plugin.ClassFinder;
 import agent.server.transform.TransformContext;
-import agent.server.transform.cache.ClassCache;
+import agent.server.transform.search.ClassCache;
 import agent.server.transform.impl.AbstractConfigTransformer;
 import agent.server.transform.impl.invoke.DestInvoke;
 import agent.server.transform.revision.ClassDataRepository;
@@ -51,41 +51,41 @@ public class SaveClassDataTransformer extends AbstractConfigTransformer {
 
     @Override
     public void transform(TransformContext transformContext) throws Exception {
-        ClassFinder classFinder = getClassFinder();
-        transformContext.getTargetClassSet().forEach(
-                clazz -> getClassSet(
-                        getTransformerInfo().getClassCache(),
-                        classFinder.findClassLoader(
-                                transformContext.getContext()
-                        ),
-                        clazz
-                ).forEach(
-                        savingClass -> ClassDataStore.save(
-                                savingClass,
-                                ClassDataRepository.getInstance().getClassData(savingClass),
-                                currClass -> new File(
-                                        outputPath,
-                                        ClassDataStore.getFileName(currClass) + FILE_SUFFIX
-                                )
-                        )
-                )
-        );
+//        ClassFinder classFinder = getClassFinder();
+//        transformContext.getTargetClassSet().forEach(
+//                clazz -> getClassSet(
+//                        getTransformShareInfo().getClassCache(),
+//                        classFinder.findClassLoader(
+//                                transformContext.getContext()
+//                        ),
+//                        clazz
+//                ).forEach(
+//                        savingClass -> ClassDataStore.save(
+//                                savingClass,
+//                                ClassDataRepository.getInstance().getClassData(savingClass),
+//                                currClass -> new File(
+//                                        outputPath,
+//                                        ClassDataStore.getFileName(currClass) + FILE_SUFFIX
+//                                )
+//                        )
+//                )
+//        );
     }
 
-    private Set<Class<?>> getClassSet(ClassCache classCache, ClassLoader loader, Class<?> baseClass) {
-        Set<Class<?>> classSet = new HashSet<>();
-        if (withSelf)
-            classSet.add(baseClass);
-        if (withSubClass)
-            classSet.addAll(
-                    classCache.getSubClasses(loader, baseClass, false)
-            );
-        if (withSubType)
-            classSet.addAll(
-                    classCache.getSubTypes(loader, baseClass, false)
-            );
-        return classSet;
-    }
+//    private Set<Class<?>> getClassSet(ClassCache classCache, ClassLoader loader, Class<?> baseClass) {
+//        Set<Class<?>> classSet = new HashSet<>();
+//        if (withSelf)
+//            classSet.add(baseClass);
+//        if (withSubClass)
+//            classSet.addAll(
+//                    classCache.getSubClasses(loader, baseClass, false)
+//            );
+//        if (withSubType)
+//            classSet.addAll(
+//                    classCache.getSubTypes(loader, baseClass, false)
+//            );
+//        return classSet;
+//    }
 
     @Override
     public String getRegKey() {

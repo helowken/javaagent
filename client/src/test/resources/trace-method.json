@@ -3,7 +3,6 @@
     "contextPath": "/test",
     "transformConfigs": [
       {
-        "desc": "Used to trace invoke arguments and return value",
         "transformers": [
           {
             "ref": "@traceMethod",

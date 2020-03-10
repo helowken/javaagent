@@ -2,10 +2,19 @@ package agent.server.transform.config;
 
 import java.util.Objects;
 
-public class CallChainConfig {
+import static agent.base.utils.AssertUtils.assertTrue;
+
+public class InvokeChainConfig extends AbstractAgentConfig {
     private ClassFilterConfig classFilter;
-    private FilterConfig methodFilter;
-    private FilterConfig constructorFilter;
+    private MethodFilterConfig methodFilter;
+    private ConstructorFilterConfig constructorFilter;
+    private int maxLevel;
+
+    @Override
+    public void validate() {
+        validateIfNotNull(classFilter, methodFilter, constructorFilter);
+        assertTrue(maxLevel >= 1, "Max level must >= 1");
+    }
 
     public ClassFilterConfig getClassFilter() {
         return classFilter;
@@ -15,27 +24,35 @@ public class CallChainConfig {
         this.classFilter = classFilter;
     }
 
-    public FilterConfig getMethodFilter() {
+    public MethodFilterConfig getMethodFilter() {
         return methodFilter;
     }
 
-    public void setMethodFilter(FilterConfig methodFilter) {
+    public void setMethodFilter(MethodFilterConfig methodFilter) {
         this.methodFilter = methodFilter;
     }
 
-    public FilterConfig getConstructorFilter() {
+    public ConstructorFilterConfig getConstructorFilter() {
         return constructorFilter;
     }
 
-    public void setConstructorFilter(FilterConfig constructorFilter) {
+    public void setConstructorFilter(ConstructorFilterConfig constructorFilter) {
         this.constructorFilter = constructorFilter;
+    }
+
+    public int getMaxLevel() {
+        return maxLevel;
+    }
+
+    public void setMaxLevel(int maxLevel) {
+        this.maxLevel = maxLevel;
     }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        CallChainConfig that = (CallChainConfig) o;
+        InvokeChainConfig that = (InvokeChainConfig) o;
         return Objects.equals(classFilter, that.classFilter) &&
                 Objects.equals(methodFilter, that.methodFilter) &&
                 Objects.equals(constructorFilter, that.constructorFilter);
@@ -49,10 +66,11 @@ public class CallChainConfig {
 
     @Override
     public String toString() {
-        return "CallChainConfig{" +
+        return "InvokeChainConfig{" +
                 "classFilter=" + classFilter +
                 ", methodFilter=" + methodFilter +
                 ", constructorFilter=" + constructorFilter +
                 '}';
     }
+
 }

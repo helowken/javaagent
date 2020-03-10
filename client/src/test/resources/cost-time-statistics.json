@@ -24,7 +24,10 @@
             "methodFilter": {
               "includes": [
                 "test"
-              ]
+              ],
+              "callChain": {
+
+              }
             }
           },
           {

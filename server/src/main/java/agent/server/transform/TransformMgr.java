@@ -1,25 +1,23 @@
 package agent.server.transform;
 
+import agent.base.utils.ClassLoaderUtils;
 import agent.base.utils.Logger;
-import agent.base.utils.ReflectionUtils;
 import agent.base.utils.Utils;
-import agent.hook.plugin.ClassFinder;
 import agent.server.ServerListener;
 import agent.server.event.EventListenerMgr;
 import agent.server.event.impl.TransformClassEvent;
-import agent.server.transform.InvokeSearcher.InvokeSearchResult;
-import agent.server.transform.cache.ClassCache;
-import agent.server.transform.cache.ClassFilter;
-import agent.server.transform.config.ClassConfig;
 import agent.server.transform.config.ModuleConfig;
-import agent.server.transform.config.TransformConfig;
 import agent.server.transform.config.TransformerConfig;
 import agent.server.transform.config.parser.ConfigItem;
 import agent.server.transform.config.parser.ConfigParseFactory;
-import agent.server.transform.impl.ClassesToConfig;
-import agent.server.transform.impl.TransformShareInfo;
+import agent.server.transform.impl.DestInvokeIdRegistry;
 import agent.server.transform.impl.UpdateClassDataTransformer;
+import agent.server.transform.impl.invoke.DestInvoke;
 import agent.server.transform.revision.ClassDataRepository;
+import agent.server.transform.search.ClassCache;
+import agent.server.transform.search.ClassSearcher;
+import agent.server.transform.search.InvokeChainSearcher;
+import agent.server.transform.search.InvokeSearcher;
 import agent.server.transform.tools.asm.ProxyRegInfo;
 import agent.server.transform.tools.asm.ProxyResult;
 import agent.server.transform.tools.asm.ProxyTransformMgr;
@@ -29,7 +27,6 @@ import java.lang.instrument.Instrumentation;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static agent.hook.utils.App.getClassFinder;
 import static agent.hook.utils.App.getLoader;
 import static agent.server.transform.TransformContext.ACTION_MODIFY;
 
@@ -62,142 +59,105 @@ public class TransformMgr implements ServerListener {
         return instrumentation.getAllLoadedClasses();
     }
 
-    public List<TransformResult> transformByConfig(ConfigItem configItem) {
-        List<TransformContext> transformContextList = new ArrayList<>();
-        Map<String, Map<TransformConfig, TransformShareInfo>> rsMap = parseConfig(configItem);
-        rsMap.forEach(
-                (contextPath, configToInfo) -> {
-                    Set<Class<?>> classSet = new HashSet<>();
-                    List<AgentTransformer> transformerList = new ArrayList<>();
-                    configToInfo.forEach(
-                            (transformConfig, transformShareInfo) -> {
-                                classSet.addAll(transformShareInfo.getTargetClasses());
-                                transformConfig.getTransformers().forEach(
-                                        transformerConfig -> {
-                                            ConfigTransformer transformer = newTransformer(transformerConfig);
-                                            transformer.setTransformerInfo(transformShareInfo);
-                                            transformer.setConfig(transformerConfig.getConfig());
-                                            transformerList.add(transformer);
-                                        }
-                                );
-                            }
-                    );
-                    transformContextList.add(
-                            new TransformContext(
-                                    contextPath,
-                                    classSet,
-                                    transformerList,
-                                    ACTION_MODIFY
-                            )
-                    );
-                }
-        );
-        return transform(transformContextList);
-    }
-
-    public void searchInvokes(ConfigItem item, SearchFunc func) {
-        Map<String, Map<TransformConfig, TransformShareInfo>> rsMap = parseConfig(item);
-        rsMap.forEach(
-                (contextPath, configToInfo) -> configToInfo.values().forEach(
-                        transformShareInfo -> transformShareInfo.getClassToInvokeFilters().forEach(
-                                (clazz, invokeFilterConfigs) -> func.exec(
-                                        contextPath,
-                                        InvokeSearcher.getInstance().find(clazz, invokeFilterConfigs)
-                                )
-                        )
+    private void registerInvokes(String context, Collection<DestInvoke> invokes) {
+        ClassLoader contextLoader = getLoader(context);
+        Map<ClassLoader, String> loaderToContext = new HashMap<>();
+        invokes.forEach(
+                invoke -> DestInvokeIdRegistry.getInstance().reg(
+                        loaderToContext.computeIfAbsent(
+                                invoke.getDeclaringClass().getClassLoader(),
+                                loader -> ClassLoaderUtils.isSelfOrDescendant(contextLoader, loader) ? context : null
+                        ),
+                        invoke
                 )
         );
     }
 
-    public ClassesToConfig newClassesToConfig(String context, List<ClassConfig> classConfigList, ClassCache classCache) {
-        ClassLoader loader = getLoader(context);
-        ClassesToConfig classesToConfig = new ClassesToConfig();
-        classConfigList.forEach(
-                classConfig -> {
-                    Collection<Class<?>> classSet = ClassSearcher.search(loader, classCache, classConfig);
-                    if (!classSet.isEmpty())
-                        classesToConfig.add(classSet, classConfig);
-                }
-        );
-        return classesToConfig;
-    }
+    public TransformResult transformByConfig(ConfigItem configItem) {
+        ModuleConfig moduleConfig = parseConfig(configItem);
+        String context = moduleConfig.getContextPath();
+        Set<DestInvoke> invokeSet = searchInvokes(moduleConfig);
+        registerInvokes(context, invokeSet);
 
-    private ClassCache newClassCache(Collection<ModuleConfig> moduleConfigs) {
-        ClassFinder classFinder = getClassFinder();
-        Map<ClassLoader, ClassFilter> loaderToFilter = new HashMap<>();
-        moduleConfigs.forEach(
-                moduleConfig -> {
-                    ClassLoader loader = classFinder.findClassLoader(
-                            moduleConfig.getContextPath()
-                    );
-                    if (loaderToFilter.containsKey(loader))
-                        throw new RuntimeException("Duplicated context path: " + moduleConfig.getContextPath());
-                    loaderToFilter.put(
-                            loader,
-                            ClassCache.newClassFilter(
-                                    moduleConfig.getIncludePackages(),
-                                    moduleConfig.getExcludePackages(),
-                                    true
-                            )
-                    );
-                }
-        );
-        return new ClassCache(loaderToFilter);
-    }
-
-    private Map<String, Map<TransformConfig, TransformShareInfo>> parseConfig(ConfigItem item) {
-        List<ModuleConfig> moduleConfigList = ConfigParseFactory.parse(item);
-        ClassCache classCache = newClassCache(moduleConfigList);
-        return moduleConfigList.stream()
+        List<AgentTransformer> transformerList = moduleConfig.getTransformers()
+                .stream()
+                .map(
+                        transformerConfig -> {
+                            ConfigTransformer transformer = newTransformer(transformerConfig);
+                            transformer.setContext(context);
+                            transformer.setConfig(
+                                    transformerConfig.getConfig()
+                            );
+                            return transformer;
+                        }
+                )
                 .collect(
-                        Collectors.toMap(
-                                ModuleConfig::getContextPath,
-                                moduleConfig -> moduleConfig.getTransformConfigs()
-                                        .stream()
-                                        .collect(
-                                                Collectors.toMap(
-                                                        transformConfig -> transformConfig,
-                                                        transformConfig -> newTransformerInfo(
-                                                                moduleConfig.getContextPath(),
-                                                                transformConfig,
-                                                                classCache
-                                                        )
-                                                )
-                                        )
-                        )
+                        Collectors.toList()
                 );
+
+        return transform(
+                new TransformContext(context, invokeSet, transformerList, ACTION_MODIFY)
+        );
     }
 
-    private TransformShareInfo newTransformerInfo(String context, TransformConfig transformConfig, ClassCache classCache) {
-        return new TransformShareInfo(
-                context,
-                newClassesToConfig(
-                        context,
-                        transformConfig.getTargets(),
-                        classCache
-                ),
-                classCache
+    public Set<DestInvoke> searchInvokes(ConfigItem item) {
+        ModuleConfig moduleConfig = parseConfig(item);
+        return searchInvokes(moduleConfig);
+    }
+
+    public Set<DestInvoke> searchInvokes(ModuleConfig moduleConfig) {
+        ClassLoader loader = getLoader(
+                moduleConfig.getContextPath()
         );
+        ClassCache classCache = new ClassCache();
+        Set<DestInvoke> invokeSet = new HashSet<>();
+        moduleConfig.getTargets().forEach(
+                targetConfig -> ClassSearcher.getInstance().search(
+                        loader,
+                        classCache,
+                        targetConfig.getClassFilter()
+                ).forEach(
+                        clazz -> {
+                            Collection<DestInvoke> invokes = InvokeSearcher.getInstance()
+                                    .search(
+                                            clazz,
+                                            targetConfig.getMethodFilter(),
+                                            targetConfig.getConstructorFilter()
+                                    );
+                            invokeSet.addAll(invokes);
+
+                            Optional.ofNullable(
+                                    targetConfig.getInvokeChainConfig()
+                            ).ifPresent(
+                                    invokeChainConfig -> invokeSet.addAll(
+                                            InvokeChainSearcher.search(
+                                                    loader,
+                                                    classCache,
+                                                    ClassDataRepository.getInstance()::getClassData,
+                                                    invokes,
+                                                    invokeChainConfig
+                                            )
+                                    )
+                            );
+                        }
+                )
+        );
+        return invokeSet;
+    }
+
+    private ModuleConfig parseConfig(ConfigItem item) {
+        ModuleConfig moduleConfig = ConfigParseFactory.parse(item);
+        moduleConfig.validate();
+        return moduleConfig;
     }
 
     private ConfigTransformer newTransformer(TransformerConfig transformerConfig) {
         return Utils.wrapToRtError(
-                () -> {
-                    String className = transformerConfig.getImplClass();
-                    if (className != null)
-                        return ConfigTransformer.class.cast(
-                                ReflectionUtils.findClass(className).newInstance()
-                        );
-                    return TransformerClassRegistry.get(transformerConfig.getRef()).newInstance();
-                },
+                () -> TransformerClassRegistry.get(
+                        transformerConfig.getRef()
+                ).newInstance(),
                 () -> "Create transformer failed."
         );
-    }
-
-    public List<TransformResult> transform(List<TransformContext> transformContextList) {
-        return transformContextList.stream()
-                .map(this::doTransform)
-                .collect(Collectors.toList());
     }
 
     public <T extends ClassFileTransformer> void reTransformClasses(Collection<Class<?>> classes, Collection<T> transformers,
@@ -216,15 +176,11 @@ public class TransformMgr implements ServerListener {
         }
     }
 
-    public interface SearchFunc {
-        void exec(String context, InvokeSearchResult result);
-    }
-
     public interface ReTransformClassErrorHandler {
         void handle(Class<?> clazz, Throwable e);
     }
 
-    private TransformResult doTransform(TransformContext transformContext) {
+    public TransformResult transform(TransformContext transformContext) {
         TransformResult transformResult = new TransformResult(
                 transformContext.getContext()
         );

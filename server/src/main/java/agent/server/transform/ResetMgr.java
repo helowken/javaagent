@@ -8,11 +8,8 @@ import agent.server.event.AgentEventListener;
 import agent.server.event.EventListenerMgr;
 import agent.server.event.impl.ResetEvent;
 import agent.server.event.impl.TransformClassEvent;
-import agent.server.transform.impl.ResetTransformer;
 
 import java.util.*;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 import static agent.server.transform.TransformContext.ACTION_MODIFY;
 import static agent.server.transform.TransformContext.ACTION_RESET;
@@ -77,55 +74,57 @@ public class ResetMgr implements ServerListener, AgentEventListener {
     }
 
     private List<TransformContext> newResetContexts(String contextExpr, Set<String> classExprSet) {
-        logger.debug("Reset context expr: {}, class expr set: {}", contextExpr, classExprSet);
-        Pattern contextPattern = contextExpr == null ? null : Pattern.compile(contextExpr);
-        List<Pattern> classPatterns = classExprSet == null || classExprSet.isEmpty() ?
-                null :
-                classExprSet.stream()
-                        .map(Pattern::compile)
-                        .collect(Collectors.toList());
-        List<TransformContext> transformContextList = new ArrayList<>();
-        classLock.sync(lock ->
-                contextToTransformedClassSet.forEach((context, classSet) -> {
-                    if (contextPattern == null || contextPattern.matcher(context).matches()) {
-                        Set<Class<?>> resetClassSet = new HashSet<>();
-                        classSet.forEach(clazz -> {
-                            if (classPatterns == null ||
-                                    classPatterns.stream().anyMatch(
-                                            classPattern -> classPattern.matcher(clazz.getName()).matches())
-                                    ) {
-                                logger.debug("Add to reset, context: {}, class: {}", context, clazz);
-                                resetClassSet.add(clazz);
-                            }
-                        });
-                        transformContextList.add(
-                                new TransformContext(
-                                        context,
-                                        resetClassSet,
-                                        Collections.singletonList(
-                                                new ResetTransformer()
-                                        ),
-                                        ACTION_RESET
-                                )
-                        );
-                    }
-                })
-        );
-        return transformContextList;
+//        logger.debug("Reset context expr: {}, class expr set: {}", contextExpr, classExprSet);
+//        Pattern contextPattern = contextExpr == null ? null : Pattern.compile(contextExpr);
+//        List<Pattern> classPatterns = classExprSet == null || classExprSet.isEmpty() ?
+//                null :
+//                classExprSet.stream()
+//                        .map(Pattern::compile)
+//                        .collect(Collectors.toList());
+//        List<TransformContext> transformContextList = new ArrayList<>();
+//        classLock.sync(lock ->
+//                contextToTransformedClassSet.forEach((context, classSet) -> {
+//                    if (contextPattern == null || contextPattern.matcher(context).matches()) {
+//                        Set<Class<?>> resetClassSet = new HashSet<>();
+//                        classSet.forEach(clazz -> {
+//                            if (classPatterns == null ||
+//                                    classPatterns.stream().anyMatch(
+//                                            classPattern -> classPattern.matcher(clazz.getName()).matches())
+//                                    ) {
+//                                logger.debug("Add to reset, context: {}, class: {}", context, clazz);
+//                                resetClassSet.add(clazz);
+//                            }
+//                        });
+//                        transformContextList.add(
+//                                new TransformContext(
+//                                        context,
+//                                        resetClassSet,
+//                                        Collections.singletonList(
+//                                                new ResetTransformer()
+//                                        ),
+//                                        ACTION_RESET
+//                                )
+//                        );
+//                    }
+//                })
+//        );
+//        return transformContextList;
+        return null;
     }
 
-    public List<TransformResult> resetAllClasses() {
+    public TransformResult resetAllClasses() {
         return resetClasses(null, null);
     }
 
-    public List<TransformResult> resetClasses(String contextExpr, Set<String> classExprSet) {
-        List<TransformContext> transformContextList = newResetContexts(contextExpr, classExprSet);
-        if (transformContextList.isEmpty()) {
-            logger.debug("No class need to reset.");
-            return Collections.emptyList();
-        } else {
-            return TransformMgr.getInstance().transform(transformContextList);
-        }
+    public TransformResult resetClasses(String contextExpr, Set<String> classExprSet) {
+//        List<TransformContext> transformContextList = newResetContexts(contextExpr, classExprSet);
+//        if (transformContextList.isEmpty()) {
+//            logger.debug("No class need to reset.");
+//            return Collections.emptyList();
+//        } else {
+//            return TransformMgr.getInstance().transform(transformContextList);
+//        }
+        return null;
     }
 
     public Map<String, Set<Class<?>>> getContextToTransformedClassSet() {

@@ -25,18 +25,14 @@ public class TransformCmdExecutor extends AbstractTransformCmdExecutor {
                         ((TransformByFileCommand) cmd).getConfig()
                 );
                 break;
-//            case CMD_TRANSFORM_BY_RULE:
-//                TransformByRuleCommand ruleCmd = (TransformByRuleCommand) cmd;
-//                item = new RuleConfigParser.RuleConfigItem(
-//                        ruleCmd.getContext(),
-//                        ruleCmd.getClassName()
-//                );
-//                break;
             default:
                 throw new RuntimeException("Invalid cmd type: " + cmdType);
         }
-        List<TransformResult> resultList = TransformMgr.getInstance().transformByConfig(item);
-        return convert(resultList, cmdType, PREFIX);
+        return convert(
+                TransformMgr.getInstance().transformByConfig(item),
+                cmdType,
+                PREFIX
+        );
     }
 
 }
