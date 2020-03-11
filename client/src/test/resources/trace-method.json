@@ -5,7 +5,7 @@
       {
         "transformers": [
           {
-            "ref": "@traceMethod",
+            "ref": "@traceInvoke",
             "config": {
               "log": {
                 "outputPath": "/home/helowken/test_pt/test_trace.txt"

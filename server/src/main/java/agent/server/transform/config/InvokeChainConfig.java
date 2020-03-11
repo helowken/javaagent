@@ -8,7 +8,7 @@ public class InvokeChainConfig extends AbstractAgentConfig {
     private ClassFilterConfig classFilter;
     private MethodFilterConfig methodFilter;
     private ConstructorFilterConfig constructorFilter;
-    private int maxLevel;
+    private int maxLevel = 100;
 
     @Override
     public void validate() {

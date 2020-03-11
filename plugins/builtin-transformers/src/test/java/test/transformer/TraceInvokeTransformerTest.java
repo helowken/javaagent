@@ -3,6 +3,7 @@ package test.transformer;
 import agent.base.utils.ReflectionUtils;
 import agent.builtin.tools.result.TraceInvokeResultHandler;
 import agent.builtin.transformer.TraceInvokeTransformer;
+import agent.server.transform.config.InvokeChainConfig;
 import org.junit.Test;
 import test.server.AbstractTest;
 
@@ -13,13 +14,27 @@ import java.util.Map;
 public class TraceInvokeTransformerTest extends AbstractTest {
     @Test
     public void test() throws Exception {
+        Map<Class<?>, String> classToMethodFilter = new HashMap<>();
+        classToMethodFilter.put(A.class, "*");
+        doTest(classToMethodFilter, null);
+    }
+
+    @Test
+    public void test2() throws Exception {
+        Map<Class<?>, String> classToMethodFilter = new HashMap<>();
+        classToMethodFilter.put(A.class, "service");
+        doTest(
+                classToMethodFilter,
+                new InvokeChainConfig()
+        );
+    }
+
+    private void doTest(Map<Class<?>, String> classToMethodFilter, InvokeChainConfig invokeChainConfig) throws Exception {
         runWithFile(
                 (outputPath, config) -> {
                     TraceInvokeTransformer transformer = new TraceInvokeTransformer();
                     String context = "test";
-                    Map<Class<?>, String> classToMethodFilter = new HashMap<>();
-                    classToMethodFilter.put(A.class, "*");
-                    doTransform(transformer, context, config, classToMethodFilter);
+                    doTransform(transformer, context, config, classToMethodFilter, invokeChainConfig);
 
                     Map<Class<?>, byte[]> classToData = getClassToData(transformer);
                     Object a = newInstance(classToData, A.class);

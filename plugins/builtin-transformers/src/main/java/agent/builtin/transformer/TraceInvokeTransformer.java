@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 import static agent.server.transform.impl.ProxyAnnotationConfig.ARGS_ON_AFTER;
 
 public class TraceInvokeTransformer extends CallChainTransformer {
-    public static final String REG_KEY = "@traceMethod";
+    public static final String REG_KEY = "@traceInvoke";
     private static final String KEY_OUTPUT_FORMAT = "outputFormat";
     private static final String KEY_CONTENT = "content";
     private static final String DEFAULT_OUTPUT_FORMAT = StringParser.getKey(KEY_CONTENT);

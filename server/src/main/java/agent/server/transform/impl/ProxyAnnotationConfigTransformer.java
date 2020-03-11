@@ -10,8 +10,6 @@ import agent.server.transform.impl.invoke.DestInvoke;
 import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -20,6 +18,7 @@ import static agent.server.transform.impl.ProxyAnnotationConfig.ARGS_NONE;
 
 public abstract class ProxyAnnotationConfigTransformer extends AbstractAnnotationConfigTransformer {
     private static final Registry<Class<? extends AnnotationConfigTransformer>, MetadataCacheItem> metadataCache = new Registry<>();
+    private volatile Object config;
 
     @Override
     protected Object[] getOtherArgs(DestInvoke destInvoke, Method anntMethod, int argsHint) {
@@ -35,10 +34,14 @@ public abstract class ProxyAnnotationConfigTransformer extends AbstractAnnotatio
 
     @Override
     protected Object getInstanceForAnntMethod(Class<?> anntClass, Method anntMethod) {
-        return getCacheItem().getConfig(
-                anntClass,
-                this::newInstanceForClass
-        );
+        if (config == null) {
+            synchronized (this) {
+                if (config == null) {
+                    config = newInstanceForClass(anntClass);
+                }
+            }
+        }
+        return config;
     }
 
     protected Object newInstanceForClass(Class<?> clazz) {
@@ -76,15 +79,10 @@ public abstract class ProxyAnnotationConfigTransformer extends AbstractAnnotatio
 
 
     private static class MetadataCacheItem {
-        private final Map<Class<?>, Object> classToInstance = new ConcurrentHashMap<>();
         private volatile Map<Class<?>, Collection<Method>> anntClassToMethods;
         private final LockObject lo = new LockObject();
 
         private MetadataCacheItem() {
-        }
-
-        Object getConfig(Class<?> clazz, Function<Class<?>, Object> func) {
-            return classToInstance.computeIfAbsent(clazz, func);
         }
 
         private Map<Class<?>, Collection<Method>> getAnntMethods(Supplier<Map<Class<?>, Collection<Method>>> supplier) {

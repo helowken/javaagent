@@ -8,7 +8,7 @@
       {
         "transformers": [
           {
-            "ref": "@traceMethod"
+            "ref": "@traceInvoke"
           }
         ],
         "targets": [

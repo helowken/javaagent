@@ -14,12 +14,8 @@ import agent.server.event.impl.DestInvokeMetadataFlushedEvent;
 import agent.server.event.impl.FlushLogEvent;
 import agent.server.event.impl.LogFlushedEvent;
 import agent.server.event.impl.ResetEvent;
-import agent.server.transform.AgentTransformer;
-import agent.server.transform.TransformContext;
-import agent.server.transform.TransformMgr;
-import agent.server.transform.TransformResult;
+import agent.server.transform.*;
 import agent.server.transform.config.*;
-import agent.server.transform.impl.AbstractConfigTransformer;
 import agent.server.transform.impl.DestInvokeIdRegistry;
 import agent.server.transform.impl.invoke.DestInvoke;
 import agent.server.transform.impl.invoke.MethodInvoke;
@@ -92,19 +88,40 @@ public abstract class AbstractTest {
         }
     }
 
-    protected void doTransform(AbstractConfigTransformer transformer, String context, Map<String, Object> config, Map<Class<?>, String> classToMethodFilter) throws Exception {
-        transformer.setContext(context);
-        transformer.setConfig(config);
-        transformer.transform(
-                newTransformContext(context, transformer, classToMethodFilter)
+    protected void doTransform(ConfigTransformer transformer, String context, Map<String, Object> config,
+                               Map<Class<?>, String> classToMethodFilter, InvokeChainConfig invokeChainConfig) throws Exception {
+        doTransform(
+                Collections.singletonMap(transformer, config),
+                context,
+                classToMethodFilter,
+                invokeChainConfig
         );
+    }
+
+    protected void doTransform(Map<ConfigTransformer, Map<String, Object>> transformerToConfig, String context,
+                               Map<Class<?>, String> classToMethodFilter, InvokeChainConfig invokeChainConfig) throws Exception {
+        TransformContext transformContext = newTransformContext(
+                context,
+                new ArrayList<>(
+                        transformerToConfig.keySet()
+                ),
+                classToMethodFilter,
+                invokeChainConfig
+        );
+        for (Map.Entry<ConfigTransformer, Map<String, Object>> entry : transformerToConfig.entrySet()) {
+            ConfigTransformer transformer = entry.getKey();
+            Map<String, Object> config = entry.getValue();
+            transformer.setContext(context);
+            transformer.setConfig(config);
+            transformer.transform(transformContext);
+        }
     }
 
     protected static void transformByAnnt(String context, Map<Class<?>, String> classToMethodFilter,
                                           Map<Class<?>, String> classToConstructorFilter, Object instance) {
         TestAnnotationConfigTransformer transformer = new TestAnnotationConfigTransformer(instance);
         Set<DestInvoke> invokeSet = TransformMgr.getInstance().searchInvokes(
-                newModuleConfig(context, classToMethodFilter, classToConstructorFilter)
+                newModuleConfig(context, classToMethodFilter, classToConstructorFilter, null)
         );
         System.out.println("=========: " + invokeSet);
         TransformMgr.getInstance().registerInvokes(context, invokeSet);
@@ -161,7 +178,18 @@ public abstract class AbstractTest {
     }
 
     protected Map<Class<?>, byte[]> getClassToData(AgentTransformer transformer) {
-        Collection<ProxyRegInfo> regInfos = transformer.getProxyRegInfos();
+        return getClassToData(
+                Collections.singletonList(transformer)
+        );
+    }
+
+    protected Map<Class<?>, byte[]> getClassToData(Collection<? extends AgentTransformer> transformers) {
+        Set<ProxyRegInfo> regInfos = new HashSet<>();
+        transformers.forEach(
+                transformer -> regInfos.addAll(
+                        transformer.getProxyRegInfos()
+                )
+        );
         List<ProxyResult> results = ProxyTransformMgr.getInstance().transform(
                 regInfos,
                 this::getClassData
@@ -175,7 +203,8 @@ public abstract class AbstractTest {
         );
     }
 
-    private static TargetConfig newTargetConfig(Map<Class<?>, String> classToFilter, Function<TargetConfig, FilterConfig> filterConfigSupplier) {
+    private static TargetConfig newTargetConfig(Map<Class<?>, String> classToFilter, Function<TargetConfig, FilterConfig> filterConfigSupplier,
+                                                InvokeChainConfig invokeChainConfig) {
         TargetConfig targetConfig = new TargetConfig();
         ClassFilterConfig classFilterConfig = new ClassFilterConfig();
         classFilterConfig.setIncludes(
@@ -193,10 +222,13 @@ public abstract class AbstractTest {
         targetConfig.setClassFilter(
                 classFilterConfig
         );
+        if (invokeChainConfig != null)
+            targetConfig.setInvokeChainConfig(invokeChainConfig);
         return targetConfig;
     }
 
-    private static ModuleConfig newModuleConfig(String context, Map<Class<?>, String> classToMethodFilter, Map<Class<?>, String> classToConstructorFilter) {
+    private static ModuleConfig newModuleConfig(String context, Map<Class<?>, String> classToMethodFilter,
+                                                Map<Class<?>, String> classToConstructorFilter, InvokeChainConfig invokeChainConfig) {
         ModuleConfig moduleConfig = new ModuleConfig();
         moduleConfig.setContextPath(context);
         List<TargetConfig> targetConfigList = new ArrayList<>();
@@ -208,7 +240,8 @@ public abstract class AbstractTest {
                                 ConstructorFilterConfig config = new ConstructorFilterConfig();
                                 targetConfig.setConstructorFilter(config);
                                 return config;
-                            }
+                            },
+                            invokeChainConfig
                     )
             );
         if (classToMethodFilter != null)
@@ -219,22 +252,24 @@ public abstract class AbstractTest {
                                 MethodFilterConfig config = new MethodFilterConfig();
                                 targetConfig.setMethodFilter(config);
                                 return config;
-                            }
+                            },
+                            invokeChainConfig
                     )
             );
         moduleConfig.setTargets(targetConfigList);
         return moduleConfig;
     }
 
-    private TransformContext newTransformContext(String context, AgentTransformer transformer, Map<Class<?>, String> classToMethodFilter) {
+    private TransformContext newTransformContext(String context, List<AgentTransformer> transformers, Map<Class<?>, String> classToMethodFilter,
+                                                 InvokeChainConfig invokeChainConfig) {
         Set<DestInvoke> invokeSet = TransformMgr.getInstance().searchInvokes(
-                newModuleConfig(context, classToMethodFilter, null)
+                newModuleConfig(context, classToMethodFilter, null, invokeChainConfig)
         );
         TransformMgr.getInstance().registerInvokes(context, invokeSet);
         return new TransformContext(
                 context,
                 invokeSet,
-                Collections.singletonList(transformer),
+                transformers,
                 ACTION_MODIFY
         );
     }

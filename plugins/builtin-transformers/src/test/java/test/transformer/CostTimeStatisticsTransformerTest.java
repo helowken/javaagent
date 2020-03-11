@@ -4,6 +4,7 @@ import agent.base.utils.ReflectionUtils;
 import agent.builtin.tools.result.ByCallChainCostTimeResultHandler;
 import agent.builtin.tools.result.ByInvokeCostTimeResultHandler;
 import agent.builtin.transformer.CostTimeStatisticsTransformer;
+import agent.server.transform.config.InvokeChainConfig;
 import org.junit.Test;
 import test.server.AbstractTest;
 
@@ -16,14 +17,28 @@ public class CostTimeStatisticsTransformerTest extends AbstractTest {
 
     @Test
     public void test() throws Exception {
+        Map<Class<?>, String> classToMethodFilter = new HashMap<>();
+        classToMethodFilter.put(A.class, "*");
+        doTest(classToMethodFilter, null);
+    }
+
+    @Test
+    public void test2() throws Exception {
+        Map<Class<?>, String> classToMethodFilter = new HashMap<>();
+        classToMethodFilter.put(A.class, "service");
+        doTest(
+                classToMethodFilter,
+                new InvokeChainConfig()
+        );
+    }
+
+    private void doTest(Map<Class<?>, String> classToMethodFilter, InvokeChainConfig invokeChainConfig) throws Exception {
         runWithFile(
                 (outputPath, config) -> {
                     CostTimeStatisticsTransformer transformer = new CostTimeStatisticsTransformer();
 
                     String context = "test";
-                    Map<Class<?>, String> classToMethodFilter = new HashMap<>();
-                    classToMethodFilter.put(A.class, "*");
-                    doTransform(transformer, context, config, classToMethodFilter);
+                    doTransform(transformer, context, config, classToMethodFilter, invokeChainConfig);
 
                     Map<Class<?>, byte[]> classToData = getClassToData(transformer);
                     Object a = newInstance(classToData, A.class);
