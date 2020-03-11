@@ -1,5 +1,6 @@
 package agent.server.transform.search.filter;
 
+import agent.base.utils.StringItem;
 import agent.server.transform.config.ClassFilterConfig;
 import agent.server.transform.config.FilterConfig;
 import agent.server.transform.config.InvokeChainConfig;
@@ -9,34 +10,39 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class FilterUtils {
+    private static final Pattern classPattern = Pattern.compile("[a-zA-Z0-9_.*\\[$]+");
+    private static final Pattern invokePattern = Pattern.compile("[a-zA-Z0-9_.*<> ]+");
     private static final String WILDCARD = "*";
 
     public static boolean isRegexp(String s) {
         return s.contains(WILDCARD);
     }
 
-    private static String parse(String fs) {
+    public static String parse(String fs) {
         if (fs == null)
             throw new IllegalArgumentException("Filter string is null!");
         String filterString = fs.replaceAll(" ", "");
-        return filterString.contains(WILDCARD) ?
-                filterString.replaceAll("\\.", "\\\\.")
-                        .replaceAll("\\*", ".*") :
-                filterString;
+        return new StringItem(filterString).replaceAll(".", "\\.")
+                .replaceAll("[", "\\[")
+                .replaceAll("$", "\\$")
+                .replaceAll("*", ".*")
+                .toString();
     }
 
     private static String parseForClass(String fs) {
-        return parse(fs);
+        return "^" + parse(fs) + "$";
     }
 
     private static String parseForInvoke(String fs) {
         String filterString = parse(fs);
-        return filterString.contains("(") ?
+        String result = filterString.contains("(") ?
                 filterString :
                 filterString + "\\(.*\\)";
+        return "^" + result + "$";
     }
 
     private static <T extends AgentFilter> void collectFilters(Collection<T> filters, Collection<String> input,
@@ -54,7 +60,7 @@ public class FilterUtils {
         }
     }
 
-    public static ClassFilter newClassFilter(ClassFilterConfig classFilterConfig, boolean includeInterface) {
+    static ClassFilter newClassFilter(ClassFilterConfig classFilterConfig, boolean includeInterface) {
         return classFilterConfig == null ?
                 null :
                 newClassFilter(
@@ -65,6 +71,7 @@ public class FilterUtils {
     }
 
     public static ClassFilter newClassFilter(Collection<String> includes, Collection<String> excludes, boolean includeInterface) {
+        validateClassFilters(includes, excludes);
         List<ClassFilter> filters = new ArrayList<>();
         collectFilters(
                 filters,
@@ -95,6 +102,7 @@ public class FilterUtils {
     }
 
     public static InvokeFilter newInvokeFilter(Collection<String> includes, Collection<String> excludes) {
+        validateInvokeFilters(includes, excludes);
         List<InvokeFilter> filters = new ArrayList<>();
         collectFilters(
                 filters,
@@ -139,7 +147,7 @@ public class FilterUtils {
         return null;
     }
 
-    public static boolean isAccept(AgentFilter<DestInvoke> filter, DestInvoke invoke) {
+    public static <T> boolean isAccept(AgentFilter<T> filter, T invoke) {
         return filter == null || filter.accept(invoke);
     }
 
@@ -159,4 +167,28 @@ public class FilterUtils {
         sb.append(")");
         return sb.toString();
     }
+
+    public static void validateClassFilters(Collection<String> includes, Collection<String> excludes) {
+        validateFilters(includes, excludes, classPattern);
+    }
+
+    public static void validateInvokeFilters(Collection<String> includes, Collection<String> excludes) {
+        validateFilters(includes, excludes, invokePattern);
+    }
+
+    private static void validateFilters(Collection<String> includes, Collection<String> excludes, Pattern pattern) {
+        validateFilters(includes, "Invalid include: ", pattern);
+        validateFilters(excludes, "Invalid exclude: ", pattern);
+    }
+
+    private static void validateFilters(Collection<String> filters, String errMsg, Pattern pattern) {
+        if (filters != null)
+            filters.forEach(
+                    filter -> {
+                        if (!pattern.matcher(filter).matches())
+                            throw new RuntimeException(errMsg + filter);
+                    }
+            );
+    }
+
 }

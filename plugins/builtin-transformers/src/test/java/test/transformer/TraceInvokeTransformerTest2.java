@@ -18,8 +18,8 @@ public class TraceInvokeTransformerTest2 extends AbstractTest {
                     TraceInvokeTransformer transformer = new TraceInvokeTransformer();
                     String context = "test";
                     Map<Class<?>, String> classToMethodFilter = new HashMap<>();
-                    classToMethodFilter.put(A.class, "test.*");
-                    classToMethodFilter.put(B.class, ".*[l|L]oad");
+                    classToMethodFilter.put(A.class, "test*");
+                    classToMethodFilter.put(B.class, "*oad");
                     doTransform(transformer, context, config, classToMethodFilter);
 
                     Map<Class<?>, byte[]> classToData = getClassToData(transformer);

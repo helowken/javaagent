@@ -6,13 +6,9 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
-public class FilterConfig extends AbstractAgentConfig {
+public abstract class FilterConfig extends AbstractAgentConfig {
     private Set<String> includes;
     private Set<String> excludes;
-
-    @Override
-    public void validate() {
-    }
 
     public Set<String> getIncludes() {
         return includes;
@@ -54,8 +50,8 @@ public class FilterConfig extends AbstractAgentConfig {
 
     @Override
     public String toString() {
-        return "includes=" + includes +
-                ", excludes=" + excludes;
+        return getClass().getSimpleName() + "{includes=" + includes +
+                ", excludes=" + excludes + "}";
     }
 
 }

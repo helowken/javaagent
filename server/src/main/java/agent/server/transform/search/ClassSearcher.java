@@ -39,16 +39,19 @@ public class ClassSearcher {
                         )
                 );
             }
-            if (!includesItem.classNames.isEmpty() && excludes != null) {
-                ClassFilter classFilter = FilterUtils.newClassFilter(
-                        null,
-                        excludes,
-                        true
-                );
-                loadClasses(loader, includesItem.classNames)
-                        .stream()
-                        .filter(classFilter::accept)
-                        .forEach(classSet::add);
+            if (!includesItem.classNames.isEmpty()) {
+                Collection<Class<?>> classes = loadClasses(loader, includesItem.classNames);
+                if (excludes != null) {
+                    ClassFilter classFilter = FilterUtils.newClassFilter(
+                            null,
+                            excludes,
+                            true
+                    );
+                    classes.stream()
+                            .filter(classFilter::accept)
+                            .forEach(classSet::add);
+                } else
+                    classSet.addAll(classes);
             }
             return classSet;
         }

@@ -22,7 +22,7 @@ public class CostTimeStatisticsTransformerTest extends AbstractTest {
 
                     String context = "test";
                     Map<Class<?>, String> classToMethodFilter = new HashMap<>();
-                    classToMethodFilter.put(A.class, ".*");
+                    classToMethodFilter.put(A.class, "*");
                     doTransform(transformer, context, config, classToMethodFilter);
 
                     Map<Class<?>, byte[]> classToData = getClassToData(transformer);

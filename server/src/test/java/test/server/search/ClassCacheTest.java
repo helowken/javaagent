@@ -1,8 +1,9 @@
-package test.server.transform;
+package test.server.search;
 
 import agent.base.utils.IOUtils;
 import agent.server.transform.search.ClassCache;
 import agent.server.transform.search.filter.FilterUtils;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import test.server.AbstractTest;
 import test.server.TestClassLoader;
@@ -14,10 +15,14 @@ import static org.junit.Assert.assertTrue;
 
 public class ClassCacheTest extends AbstractTest {
 
+    @BeforeClass
+    public static void beforeClassClassCacheTest() {
+        new A3();
+    }
+
     @Test
     public void testSubClassesAndSubTypes() {
         ClassCache classCache = newClassCache();
-        new A3();
         assertEquals(
                 Collections.singletonList(A2.class),
                 getSubClasses(classCache, A.class, true)
@@ -82,7 +87,6 @@ public class ClassCacheTest extends AbstractTest {
     public void test() throws Exception {
         ClassLoader loader = Thread.currentThread().getContextClassLoader();
         ClassCache classCache = newClassCache();
-        new A3();
 
         Class<?> newA2Class = newClass(A2.class, loader);
         Class<?> newA3Class = newClass(A3.class, newA2Class.getClassLoader());
@@ -124,26 +128,32 @@ public class ClassCacheTest extends AbstractTest {
     public void testClasses() {
         ClassCache classCache = newClassCache();
 
-        String prefix = getClass().getName() + "\\$";
+        String prefix = getClass().getName() + "$";
         checkFindClasses(
                 classCache,
-                prefix + "[^$]*",
+                prefix + "*",
                 true,
                 Arrays.asList(Intf.class, SubIntf.class, A.class, A2.class, A3.class)
         );
         checkFindClasses(
                 classCache,
-                prefix + "[^$]*",
+                prefix + "*",
                 false,
                 Arrays.asList(A.class, A2.class, A3.class)
         );
 
         checkFindClasses(
                 classCache,
-                prefix + "A.*",
+                prefix + "A*",
                 true,
                 Arrays.asList(A.class, A2.class, A3.class)
         );
+
+        FilterUtils.newClassFilter(
+                Collections.singleton(prefix + "A2"),
+                null,
+               true
+        ).accept(A2.class);
         checkFindClasses(
                 classCache,
                 prefix + "A2",
@@ -168,16 +178,18 @@ public class ClassCacheTest extends AbstractTest {
 
     private void checkFindClasses(ClassCache classCache, String regexp,
                                   boolean includeInterface, Collection<Class<?>> expectedClasses) {
-        assertTrue(
-                new HashSet<>(
-                        classCache.findClasses(
-                                FilterUtils.newClassFilter(
-                                        Collections.singleton(regexp),
-                                        null,
-                                        includeInterface
-                                )
-                        )
-                ).containsAll(expectedClasses)
+        Collection<Class<?>> classes = classCache.findClasses(
+                FilterUtils.newClassFilter(
+                        Collections.singleton(regexp),
+                        null,
+                        includeInterface
+                )
+        );
+        expectedClasses.forEach(
+                clazz -> assertTrue(
+                        "Fail: " + clazz,
+                        classes.contains(clazz)
+                )
         );
     }
 

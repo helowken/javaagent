@@ -59,7 +59,7 @@ public class TransformMgr implements ServerListener {
         return instrumentation.getAllLoadedClasses();
     }
 
-    private void registerInvokes(String context, Collection<DestInvoke> invokes) {
+    public void registerInvokes(String context, Collection<DestInvoke> invokes) {
         ClassLoader contextLoader = getLoader(context);
         Map<ClassLoader, String> loaderToContext = new HashMap<>();
         invokes.forEach(

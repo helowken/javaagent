@@ -106,6 +106,8 @@ public abstract class AbstractTest {
         Set<DestInvoke> invokeSet = TransformMgr.getInstance().searchInvokes(
                 newModuleConfig(context, classToMethodFilter, classToConstructorFilter)
         );
+        System.out.println("=========: " + invokeSet);
+        TransformMgr.getInstance().registerInvokes(context, invokeSet);
         TransformContext transformContext = new TransformContext(
                 context,
                 invokeSet,
@@ -228,6 +230,7 @@ public abstract class AbstractTest {
         Set<DestInvoke> invokeSet = TransformMgr.getInstance().searchInvokes(
                 newModuleConfig(context, classToMethodFilter, null)
         );
+        TransformMgr.getInstance().registerInvokes(context, invokeSet);
         return new TransformContext(
                 context,
                 invokeSet,

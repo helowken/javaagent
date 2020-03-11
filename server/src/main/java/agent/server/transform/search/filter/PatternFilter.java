@@ -15,7 +15,7 @@ abstract class PatternFilter implements AgentFilter<String> {
                 );
     }
 
-    static PatternFilter include(Collection<String> strings) {
+    public static PatternFilter include(Collection<String> strings) {
         return new Include(strings);
     }
 

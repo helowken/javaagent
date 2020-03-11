@@ -1,4 +1,4 @@
-package test.server.transform;
+package test.server.search;
 
 import agent.server.transform.impl.invoke.DestInvoke;
 import agent.server.transform.impl.invoke.MethodInvoke;
@@ -16,7 +16,7 @@ import java.util.stream.Stream;
 
 import static org.junit.Assert.*;
 
-public class AsmInvokeFinderTest extends AbstractTest {
+public class InvokeChainSearcherTest extends AbstractTest {
     private static final boolean debugEnabled = true;
     private static final ClassLoader loader = Thread.currentThread().getContextClassLoader();
     private static final ClassCache classCache = new ClassCache();

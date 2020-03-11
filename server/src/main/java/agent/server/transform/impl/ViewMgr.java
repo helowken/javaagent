@@ -3,6 +3,7 @@ package agent.server.transform.impl;
 import agent.base.utils.InvokeDescriptorUtils;
 import agent.server.transform.impl.invoke.DestInvoke;
 import agent.server.transform.search.filter.AgentFilter;
+import agent.server.transform.search.filter.ClassFilter;
 import agent.server.transform.search.filter.FilterUtils;
 import agent.server.transform.tools.asm.ProxyTransformMgr;
 
@@ -17,7 +18,11 @@ public class ViewMgr {
     public static final int VIEW_PROXY = 3;
 
     private static Pattern newPattern(String regExp) {
-        return regExp == null ? null : Pattern.compile(regExp);
+        return regExp == null ?
+                null :
+                Pattern.compile(
+                        FilterUtils.parse(regExp)
+                );
     }
 
     private static boolean match(Pattern pattern, String value) {
@@ -26,7 +31,11 @@ public class ViewMgr {
 
     public static Object create(int maxLevel, String contextRegexp, String classRegExp, String invokeRegExp, String proxyRegExp) {
         final Pattern contextPattern = newPattern(contextRegexp);
-        final Pattern classPattern = newPattern(classRegExp);
+        final ClassFilter classFilter = FilterUtils.newClassFilter(
+                classRegExp == null ? null : Collections.singleton(classRegExp),
+                null,
+                true
+        );
         final AgentFilter<DestInvoke> invokeFilter = FilterUtils.newInvokeFilter(
                 invokeRegExp == null ? null : Collections.singleton(invokeRegExp),
                 null
@@ -42,9 +51,9 @@ public class ViewMgr {
                                 case VIEW_CONTEXT:
                                     return match(contextPattern, (String) value);
                                 case VIEW_CLASS:
-                                    return match(
-                                            classPattern,
-                                            ((Class<?>) value).getName()
+                                    return FilterUtils.isAccept(
+                                            classFilter,
+                                            (Class<?>) value
                                     );
                                 case VIEW_INVOKE:
                                     return FilterUtils.isAccept(

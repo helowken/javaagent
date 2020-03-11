@@ -1,4 +1,4 @@
-package test.server.method;
+package test.server.search;
 
 import agent.server.transform.config.ClassFilterConfig;
 import agent.server.transform.config.MethodFilterConfig;
@@ -15,7 +15,7 @@ import static org.junit.Assert.assertEquals;
 public class InvokeSearcherTest {
     @Test
     public void test() {
-//        check(Intf.class, 1, 0);
+        check(Intf.class, 1, 0);
         check(Base.class, 2, 1);
         check(Impl.class, 3, 1);
         check(PrivateFieldClass.class, 1, 0);

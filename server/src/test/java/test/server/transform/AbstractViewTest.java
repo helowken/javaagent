@@ -17,17 +17,17 @@ public abstract class AbstractViewTest extends AbstractTest {
     public static void prepare() {
         DestInvokeIdRegistry.getInstance().reset();
         TestProxy proxy = new TestProxy();
-        Map<Class<?>, String> map = new HashMap<>();
-        map.put(A.class, ".*");
-        Map<Class<?>, String> map2 = new HashMap<>();
-        map2.put(A.class, ".*");
-        map2.put(A2.class, ".*");
-        transformByAnnt(contextA, map, map2, proxy);
+        Map<Class<?>, String> methodFilterMap = new HashMap<>();
+        methodFilterMap.put(A.class, "*");
+        Map<Class<?>, String> constructorFilterMap = new HashMap<>();
+        constructorFilterMap.put(A.class, "*");
+        constructorFilterMap.put(A2.class, "*");
+        transformByAnnt(contextA, methodFilterMap, constructorFilterMap, proxy);
 
-        Map<Class<?>, String> map3 = new HashMap<>();
-        map3.put(B2.class, ".*");
-        map3.put(B.class, "<init>.*");
-        transformByAnnt(contextB, null, map3, proxy);
+        constructorFilterMap = new HashMap<>();
+        constructorFilterMap.put(B2.class, "*");
+        constructorFilterMap.put(B.class, "<init>*");
+        transformByAnnt(contextB, null, constructorFilterMap, proxy);
     }
 
     protected static class A {
