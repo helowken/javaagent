@@ -1,5 +1,6 @@
 package agent.server.transform.impl.invoke;
 
+import agent.base.utils.ReflectionUtils;
 import org.objectweb.asm.Type;
 
 import java.lang.reflect.Method;
@@ -60,6 +61,11 @@ public class MethodInvoke implements DestInvoke {
     @Override
     public Class<?> getReturnType() {
         return method.getReturnType();
+    }
+
+    @Override
+    public boolean isStatic() {
+        return ReflectionUtils.isStatic(method);
     }
 
     @Override

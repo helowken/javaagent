@@ -1,8 +1,8 @@
 package test.server.search;
 
-import agent.server.transform.config.ClassFilterConfig;
-import agent.server.transform.config.MethodFilterConfig;
-import agent.server.transform.config.TargetConfig;
+import agent.common.config.ClassFilterConfig;
+import agent.common.config.MethodFilterConfig;
+import agent.common.config.TargetConfig;
 import agent.server.transform.impl.invoke.DestInvoke;
 import agent.server.transform.search.InvokeSearcher;
 import org.junit.Test;

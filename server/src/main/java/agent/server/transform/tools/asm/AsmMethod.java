@@ -87,10 +87,16 @@ class AsmMethod {
     }
 
     static List<ParamObject> getParamObjects(Method method, int startIdx) {
+        return getParamObjects(
+                method.getParameterTypes(),
+                startIdx
+        );
+    }
+
+    static List<ParamObject> getParamObjects(Class[] paramTypes, int startIdx) {
         return newParamObjects(
-                Stream.of(
-                        method.getParameterTypes()
-                ).map(Type::getType)
+                Stream.of(paramTypes)
+                        .map(Type::getType)
                         .toArray(Type[]::new),
                 startIdx
         );

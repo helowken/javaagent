@@ -1,6 +1,6 @@
 package test.server.search;
 
-import agent.server.transform.config.ClassFilterConfig;
+import agent.common.config.ClassFilterConfig;
 import agent.server.transform.search.ClassCache;
 import agent.server.transform.search.ClassSearcher;
 import org.junit.BeforeClass;

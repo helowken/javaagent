@@ -2,9 +2,8 @@ package test.server.transform.config.parser;
 
 import agent.base.utils.IOUtils;
 import agent.base.utils.Logger;
-import agent.server.transform.config.*;
-import agent.server.transform.config.parser.FileConfigParser;
-import agent.server.transform.config.parser.FileConfigParser.FileConfigItem;
+import agent.common.config.*;
+import agent.server.transform.config.parser.ConfigParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Test;
 import test.server.AbstractTest;
@@ -19,23 +18,26 @@ import static org.junit.Assert.assertEquals;
 public class ConfigParserTest extends AbstractTest {
     private static final Logger logger = Logger.getLogger(ConfigParserTest.class);
     private static final ObjectMapper objectMapper = new ObjectMapper();
-    private static final FileConfigParser fileConfigParser = new FileConfigParser();
 
     @Test
     public void testParseFileConfig() throws Exception {
         ModuleConfig moduleConfig = createModuleConfig();
+        Map<String, Object> map = objectMapper.convertValue(moduleConfig, Map.class);
+        ModuleConfig parsedConfig = ConfigParser.parse(map);
+        assertEquals(moduleConfig, parsedConfig);
+
         String content = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(moduleConfig);
         logger.info("Content: \n{}", content);
 
-        ModuleConfig parsedConfig = fileConfigParser.parse(new FileConfigItem(content));
+        parsedConfig = ConfigParser.parse(content);
         assertEquals(moduleConfig, parsedConfig);
 
-        parsedConfig = fileConfigParser.parse(new FileConfigItem(content.getBytes()));
+        parsedConfig = ConfigParser.parse(content.getBytes());
         assertEquals(moduleConfig, parsedConfig);
 
         File file = File.createTempFile("config", ".json");
         IOUtils.writeString(file.getAbsolutePath(), content, false);
-        parsedConfig = fileConfigParser.parse(new FileConfigItem(file));
+        parsedConfig = ConfigParser.parse(file);
         assertEquals(moduleConfig, parsedConfig);
     }
 
@@ -49,6 +51,9 @@ public class ConfigParserTest extends AbstractTest {
         config.put("outputFile", "/tmp/111/222");
         config.put("outputFormat", "Cost time: $costTime$");
         transformerConfig.setConfig(config);
+        moduleConfig.setTransformers(
+                Collections.singletonList(transformerConfig)
+        );
 
         TargetConfig targetConfig = new TargetConfig();
         ClassFilterConfig classFilterConfig = new ClassFilterConfig();

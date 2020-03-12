@@ -81,7 +81,7 @@ abstract class AbstractClientRunner implements Runner {
                 }
             }
         } catch (Exception e) {
-            logError("Connect to server failed: {}", e);
+            logError("Connect to server failed.", e);
             return true;
         }
     }

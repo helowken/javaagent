@@ -1,23 +1,17 @@
 package agent.client.command.parser.impl;
 
 import agent.common.message.command.Command;
-import agent.common.message.command.impl.ByFileCommand;
-import agent.common.message.command.impl.ByRuleCommand;
 
-public class TestConfigCmdParser extends AbstractConfigCmdParser {
+public class TestConfigCmdParser extends AbstractCmdParser {
+
+    @Override
+    public Command parse(String[] args) {
+        return null;
+    }
 
     @Override
     public String getCmdName() {
         return "test";
     }
 
-    @Override
-    Command newFileCmd(byte[] bs) {
-        return new ByFileCommand.TestConfigByFileCommand(bs);
-    }
-
-    @Override
-    Command newRuleCmd(String context, String className) {
-        return new ByRuleCommand.TestConfigByRuleCommand(context, className);
-    }
 }

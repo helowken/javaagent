@@ -1,6 +1,7 @@
-package agent.server.transform.config;
+package agent.common.config;
 
 import java.util.Collection;
+import java.util.Objects;
 import java.util.stream.Stream;
 
 import static agent.base.utils.AssertUtils.assertNotNull;
@@ -9,7 +10,9 @@ import static agent.base.utils.AssertUtils.fail;
 abstract class AbstractAgentConfig implements AgentConfig {
     void validateIfNotNull(AgentConfig... configs) {
         if (configs != null)
-            Stream.of(configs).forEach(AgentConfig::validate);
+            Stream.of(configs)
+                    .filter(Objects::nonNull)
+                    .forEach(AgentConfig::validate);
     }
 
     void validateAnyNotNull(String errMsg, Object... vs) {

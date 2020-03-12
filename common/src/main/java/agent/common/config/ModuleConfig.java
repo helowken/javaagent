@@ -1,4 +1,4 @@
-package agent.server.transform.config;
+package agent.common.config;
 
 import java.util.List;
 import java.util.Objects;

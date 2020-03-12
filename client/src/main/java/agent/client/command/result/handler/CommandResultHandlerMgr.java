@@ -17,10 +17,9 @@ public class CommandResultHandlerMgr {
 
     static {
         regResultHandlerClass(CMD_TEST_CONFIG_BY_FILE, new TestConfigResultHandler());
-        regResultHandlerClass(CMD_TEST_CONFIG_BY_RULE, new TestConfigResultHandler());
         regResultHandlerClass(CMD_VIEW, new ViewResultHandler());
         regResultHandlerClass(CMD_TRANSFORM_BY_FILE, new TransformResultHandler());
-        regResultHandlerClass(CMD_TRANSFORM_BY_RULE, new TransformResultHandler());
+        regResultHandlerClass(CMD_TRANSFORM, new TransformResultHandler());
         regResultHandlerClass(CMD_RESET, new ResetResultHandler());
     }
 

@@ -22,11 +22,10 @@ public class MessageMgr {
         reg(MessageType.RESULT_DEFAULT, DefaultExecResult.class);
         reg(MessageType.CMD_RESET, ResetCommand.class);
         reg(MessageType.CMD_TRANSFORM_BY_FILE, ByFileCommand.TransformByFileCommand.class);
-        reg(MessageType.CMD_TRANSFORM_BY_RULE, ByRuleCommand.TransformByRuleCommand.class);
+        reg(MessageType.CMD_TRANSFORM, TransformCommand.class);
         reg(MessageType.CMD_FLUSH_LOG, FlushLogCommand.class);
         reg(MessageType.CMD_ECHO, EchoCommand.class);
         reg(MessageType.CMD_TEST_CONFIG_BY_FILE, ByFileCommand.TestConfigByFileCommand.class);
-        reg(MessageType.CMD_TEST_CONFIG_BY_RULE, ByRuleCommand.TestConfigByRuleCommand.class);
         reg(MessageType.CMD_VIEW, ViewCommand.class);
     }
 

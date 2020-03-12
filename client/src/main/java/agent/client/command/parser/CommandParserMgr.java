@@ -29,6 +29,7 @@ public class CommandParserMgr {
         } catch (CommandParseException e) {
             throw e;
         } catch (Exception e) {
+            e.printStackTrace();
             throw new CommandParseException(e.getMessage());
         }
     }

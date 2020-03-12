@@ -1,6 +1,7 @@
-package agent.server.transform.config;
+package agent.common.config;
 
-import static agent.server.transform.search.filter.FilterUtils.validateInvokeFilters;
+
+import static agent.common.config.ConfigValidator.validateInvokeFilters;
 
 public class MethodFilterConfig extends FilterConfig {
     @Override

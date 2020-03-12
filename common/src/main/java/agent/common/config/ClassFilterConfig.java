@@ -1,6 +1,7 @@
-package agent.server.transform.config;
+package agent.common.config;
 
-import static agent.server.transform.search.filter.FilterUtils.validateClassFilters;
+
+import static agent.common.config.ConfigValidator.validateClassFilters;
 
 public class ClassFilterConfig extends FilterConfig {
     @Override

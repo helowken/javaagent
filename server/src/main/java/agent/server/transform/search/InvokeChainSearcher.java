@@ -3,7 +3,7 @@ package agent.server.transform.search;
 import agent.base.utils.IndentUtils;
 import agent.base.utils.ReflectionUtils;
 import agent.base.utils.Utils;
-import agent.server.transform.config.InvokeChainConfig;
+import agent.common.config.InvokeChainConfig;
 import agent.server.transform.impl.invoke.ConstructorInvoke;
 import agent.server.transform.impl.invoke.DestInvoke;
 import agent.server.transform.impl.invoke.MethodInvoke;

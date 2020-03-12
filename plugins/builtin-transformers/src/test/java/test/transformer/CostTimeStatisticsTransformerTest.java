@@ -4,7 +4,7 @@ import agent.base.utils.ReflectionUtils;
 import agent.builtin.tools.result.ByCallChainCostTimeResultHandler;
 import agent.builtin.tools.result.ByInvokeCostTimeResultHandler;
 import agent.builtin.transformer.CostTimeStatisticsTransformer;
-import agent.server.transform.config.InvokeChainConfig;
+import agent.common.config.InvokeChainConfig;
 import org.junit.Test;
 import test.server.AbstractTest;
 

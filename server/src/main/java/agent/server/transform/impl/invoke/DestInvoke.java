@@ -17,6 +17,8 @@ public interface DestInvoke {
 
     Class<?> getReturnType();
 
+    boolean isStatic();
+
     default String getFullName() {
         return getName() + getDescriptor();
     }

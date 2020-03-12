@@ -2,6 +2,7 @@ package test.server;
 
 import agent.base.plugin.PluginFactory;
 import agent.base.utils.*;
+import agent.common.config.*;
 import agent.common.utils.JSONUtils;
 import agent.delegate.JSONDelegate;
 import agent.hook.plugin.ClassFinder;
@@ -15,7 +16,6 @@ import agent.server.event.impl.FlushLogEvent;
 import agent.server.event.impl.LogFlushedEvent;
 import agent.server.event.impl.ResetEvent;
 import agent.server.transform.*;
-import agent.server.transform.config.*;
 import agent.server.transform.impl.DestInvokeIdRegistry;
 import agent.server.transform.impl.invoke.DestInvoke;
 import agent.server.transform.impl.invoke.MethodInvoke;
@@ -37,7 +37,7 @@ import static agent.server.transform.TransformContext.ACTION_MODIFY;
 import static org.junit.Assert.assertFalse;
 
 public abstract class AbstractTest {
-    private static final TestClassLoader loader = new TestClassLoader();
+    protected static final TestClassLoader loader = new TestClassLoader();
     private static final TestClassFinder classFinder = new TestClassFinder();
     private static boolean inited = false;
     private static final TestInstrumentation instrumentation = new TestInstrumentation();
@@ -257,6 +257,12 @@ public abstract class AbstractTest {
                     )
             );
         moduleConfig.setTargets(targetConfigList);
+
+        TransformerConfig transformerConfig = new TransformerConfig();
+        transformerConfig.setRef("dummy");
+        moduleConfig.setTransformers(
+                Collections.singletonList(transformerConfig)
+        );
         return moduleConfig;
     }
 

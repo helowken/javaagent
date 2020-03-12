@@ -1,21 +1,21 @@
 package agent.server.transform.search.filter;
 
 import agent.base.utils.StringItem;
-import agent.server.transform.config.ClassFilterConfig;
-import agent.server.transform.config.FilterConfig;
-import agent.server.transform.config.InvokeChainConfig;
+import agent.common.config.ClassFilterConfig;
+import agent.common.config.FilterConfig;
+import agent.common.config.InvokeChainConfig;
 import agent.server.transform.impl.invoke.DestInvoke;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static agent.common.config.ConfigValidator.validateClassFilters;
+import static agent.common.config.ConfigValidator.validateInvokeFilters;
+
 public class FilterUtils {
-    private static final Pattern classPattern = Pattern.compile("[a-zA-Z0-9_.*\\[$]+");
-    private static final Pattern invokePattern = Pattern.compile("[a-zA-Z0-9_.*<> ]+");
     private static final String WILDCARD = "*";
 
     public static boolean isRegexp(String s) {
@@ -168,27 +168,5 @@ public class FilterUtils {
         return sb.toString();
     }
 
-    public static void validateClassFilters(Collection<String> includes, Collection<String> excludes) {
-        validateFilters(includes, excludes, classPattern);
-    }
-
-    public static void validateInvokeFilters(Collection<String> includes, Collection<String> excludes) {
-        validateFilters(includes, excludes, invokePattern);
-    }
-
-    private static void validateFilters(Collection<String> includes, Collection<String> excludes, Pattern pattern) {
-        validateFilters(includes, "Invalid include: ", pattern);
-        validateFilters(excludes, "Invalid exclude: ", pattern);
-    }
-
-    private static void validateFilters(Collection<String> filters, String errMsg, Pattern pattern) {
-        if (filters != null)
-            filters.forEach(
-                    filter -> {
-                        if (!pattern.matcher(filter).matches())
-                            throw new RuntimeException(errMsg + filter);
-                    }
-            );
-    }
 
 }

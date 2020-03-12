@@ -3,13 +3,11 @@ package agent.server.transform;
 import agent.base.utils.ClassLoaderUtils;
 import agent.base.utils.Logger;
 import agent.base.utils.Utils;
+import agent.common.config.ModuleConfig;
+import agent.common.config.TransformerConfig;
 import agent.server.ServerListener;
 import agent.server.event.EventListenerMgr;
 import agent.server.event.impl.TransformClassEvent;
-import agent.server.transform.config.ModuleConfig;
-import agent.server.transform.config.TransformerConfig;
-import agent.server.transform.config.parser.ConfigItem;
-import agent.server.transform.config.parser.ConfigParseFactory;
 import agent.server.transform.impl.DestInvokeIdRegistry;
 import agent.server.transform.impl.UpdateClassDataTransformer;
 import agent.server.transform.impl.invoke.DestInvoke;
@@ -73,8 +71,8 @@ public class TransformMgr implements ServerListener {
         );
     }
 
-    public TransformResult transformByConfig(ConfigItem configItem) {
-        ModuleConfig moduleConfig = parseConfig(configItem);
+    public TransformResult transformByConfig(ModuleConfig moduleConfig) {
+        moduleConfig.validate();
         String context = moduleConfig.getContextPath();
         Set<DestInvoke> invokeSet = searchInvokes(moduleConfig);
         registerInvokes(context, invokeSet);
@@ -100,12 +98,8 @@ public class TransformMgr implements ServerListener {
         );
     }
 
-    public Set<DestInvoke> searchInvokes(ConfigItem item) {
-        ModuleConfig moduleConfig = parseConfig(item);
-        return searchInvokes(moduleConfig);
-    }
-
     public Set<DestInvoke> searchInvokes(ModuleConfig moduleConfig) {
+        moduleConfig.validate();
         ClassLoader loader = getLoader(
                 moduleConfig.getContextPath()
         );
@@ -142,13 +136,12 @@ public class TransformMgr implements ServerListener {
                         }
                 )
         );
+        logger.debug("====== Found invokes: ");
+        invokeSet.forEach(
+                invoke -> logger.debug("{}", invoke.toString())
+        );
+        logger.debug("==================");
         return invokeSet;
-    }
-
-    private ModuleConfig parseConfig(ConfigItem item) {
-        ModuleConfig moduleConfig = ConfigParseFactory.parse(item);
-        moduleConfig.validate();
-        return moduleConfig;
     }
 
     private ConfigTransformer newTransformer(TransformerConfig transformerConfig) {

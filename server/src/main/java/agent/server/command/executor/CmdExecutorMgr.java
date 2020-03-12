@@ -16,11 +16,10 @@ public class CmdExecutorMgr {
 
         registry.reg(CMD_RESET, new ResetCmdExecutor());
         registry.reg(CMD_TRANSFORM_BY_FILE, transformCmdExecutor);
-        registry.reg(CMD_TRANSFORM_BY_RULE, transformCmdExecutor);
+        registry.reg(CMD_TRANSFORM, transformCmdExecutor);
         registry.reg(CMD_FLUSH_LOG, new FlushLogCmdExecutor());
         registry.reg(CMD_ECHO, new EchoCmdExecutor());
         registry.reg(CMD_TEST_CONFIG_BY_FILE, testConfigCmdExecutor);
-        registry.reg(CMD_TEST_CONFIG_BY_RULE, testConfigCmdExecutor);
         registry.reg(CMD_VIEW, new ViewCmdExecutor());
     }
 

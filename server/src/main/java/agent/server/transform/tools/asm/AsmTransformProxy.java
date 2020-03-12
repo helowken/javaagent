@@ -2,11 +2,12 @@ package agent.server.transform.tools.asm;
 
 import agent.base.utils.ReflectionUtils;
 import agent.base.utils.Utils;
+import agent.server.transform.impl.invoke.ConstructorInvoke;
 import agent.server.transform.impl.invoke.DestInvoke;
+import agent.server.transform.impl.invoke.MethodInvoke;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.*;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.ListIterator;
@@ -64,17 +65,17 @@ public class AsmTransformProxy {
     private static void transformInvoke(MethodNode methodNode, int invokeId, DestInvoke destInvoke) {
         switch (destInvoke.getType()) {
             case CONSTRUCTOR:
-                transformConstructorInvoke(methodNode, invokeId, (Constructor) destInvoke.getInvokeEntity());
+                transformConstructorInvoke(methodNode, invokeId, (ConstructorInvoke) destInvoke);
                 break;
             case METHOD:
-                transformMethodInvoke(methodNode, invokeId, (Method) destInvoke.getInvokeEntity(), false);
+                transformMethodInvoke(methodNode, invokeId, (MethodInvoke) destInvoke, false);
                 break;
             default:
                 throw new IllegalArgumentException("Unknown dest invoke type: " + destInvoke.getType());
         }
     }
 
-    private static void transformConstructorInvoke(MethodNode methodNode, int invokeId, Constructor constructor) {
+    private static void transformConstructorInvoke(MethodNode methodNode, int invokeId, ConstructorInvoke invoke) {
         int newLocalIdx = methodNode.maxLocals;
         ListIterator<AbstractInsnNode> iter = methodNode.instructions.iterator();
         while (iter.hasNext()) {
@@ -92,10 +93,13 @@ public class AsmTransformProxy {
                 );
             }
         }
+        methodNode.instructions.insert(
+                newBeforeList(invokeId, invoke, true)
+        );
     }
 
-    private static void transformMethodInvoke(MethodNode methodNode, int invokeId, Method method, boolean weaveInnerCalls) {
-        boolean isStatic = ReflectionUtils.isStatic(method);
+    private static void transformMethodInvoke(MethodNode methodNode, int invokeId, MethodInvoke invoke, boolean weaveInnerCalls) {
+        boolean isStatic = invoke.isStatic();
         int newLocalIdx = methodNode.maxLocals;
         int innerCallLocalIdx = -1;
         if (weaveInnerCalls) {
@@ -110,7 +114,11 @@ public class AsmTransformProxy {
             if (opcode >= IRETURN && opcode < RETURN) {
                 methodNode.instructions.insertBefore(
                         node,
-                        newValueReturnList(method, invokeId, newLocalIdx)
+                        newValueReturnList(
+                                (Method) invoke.getInvokeEntity(),
+                                invokeId,
+                                newLocalIdx
+                        )
                 );
             } else if (opcode == RETURN) {
                 methodNode.instructions.insertBefore(
@@ -140,7 +148,7 @@ public class AsmTransformProxy {
             }
         }
         methodNode.instructions.insert(
-                newBeforeList(invokeId, method)
+                newBeforeList(invokeId, invoke, false)
         );
         if (weaveInnerCalls)
             methodNode.instructions.insert(
@@ -230,13 +238,18 @@ public class AsmTransformProxy {
         );
     }
 
-    private static InsnList newBeforeList(int invokeId, Method method) {
+    private static InsnList newBeforeList(int invokeId, DestInvoke invoke, boolean unInit) {
         return addTo(
                 new InsnList(),
                 newGetInstance(),
                 loadInt(invokeId),
-                aloadThisOrNull(method),
-                collectArgs(method),
+                aloadThisOrNull(
+                        unInit || invoke.isStatic()
+                ),
+                collectArgs(
+                        invoke.getParamTypes(),
+                        invoke.isStatic() ? 0 : 1
+                ),
                 newOnBeforeMethod()
         );
     }
@@ -285,6 +298,12 @@ public class AsmTransformProxy {
                         method,
                         ReflectionUtils.isStatic(method) ? 0 : 1
                 )
+        );
+    }
+
+    private static Object collectArgs(Class[] paramTypes, int startIdx) {
+        return loadArgArray(
+                getParamObjects(paramTypes, startIdx)
         );
     }
 

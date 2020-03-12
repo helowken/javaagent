@@ -2,14 +2,12 @@ package agent.server.command.executor;
 
 import agent.common.message.command.Command;
 import agent.common.message.command.impl.ByFileCommand.TransformByFileCommand;
+import agent.common.message.command.impl.TransformCommand;
 import agent.common.message.result.ExecResult;
 import agent.server.transform.TransformMgr;
-import agent.server.transform.TransformResult;
-import agent.server.transform.config.parser.ConfigItem;
-import agent.server.transform.config.parser.FileConfigParser;
+import agent.server.transform.config.parser.ConfigParser;
 
-import java.util.List;
-
+import static agent.common.message.MessageType.CMD_TRANSFORM;
 import static agent.common.message.MessageType.CMD_TRANSFORM_BY_FILE;
 
 public class TransformCmdExecutor extends AbstractTransformCmdExecutor {
@@ -18,18 +16,21 @@ public class TransformCmdExecutor extends AbstractTransformCmdExecutor {
     @Override
     ExecResult doExec(Command cmd) {
         int cmdType = cmd.getType();
-        ConfigItem item;
+        Object data;
         switch (cmdType) {
             case CMD_TRANSFORM_BY_FILE:
-                item = new FileConfigParser.FileConfigItem(
-                        ((TransformByFileCommand) cmd).getConfig()
-                );
+                data = ((TransformByFileCommand) cmd).getConfig();
+                break;
+            case CMD_TRANSFORM:
+                data = ((TransformCommand) cmd).getConfig();
                 break;
             default:
                 throw new RuntimeException("Invalid cmd type: " + cmdType);
         }
         return convert(
-                TransformMgr.getInstance().transformByConfig(item),
+                TransformMgr.getInstance().transformByConfig(
+                        ConfigParser.parse(data)
+                ),
                 cmdType,
                 PREFIX
         );

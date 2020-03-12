@@ -1,4 +1,4 @@
-package agent.server.transform.config;
+package agent.common.config;
 
 import java.util.Map;
 import java.util.Objects;
@@ -6,6 +6,11 @@ import java.util.Objects;
 public class TransformerConfig extends AbstractAgentConfig {
     private String ref;
     private Map<String, Object> config;
+
+    @Override
+    public void validate() {
+        validate(ref, "Transformer reference");
+    }
 
     public String getRef() {
         return ref;
@@ -46,8 +51,4 @@ public class TransformerConfig extends AbstractAgentConfig {
         return Objects.hash(ref, config);
     }
 
-    @Override
-    public void validate() {
-        validate(ref, "Transformer reference");
-    }
 }

@@ -1,7 +1,7 @@
 package agent.server.transform.search;
 
 import agent.base.utils.Logger;
-import agent.server.transform.config.ClassFilterConfig;
+import agent.common.config.ClassFilterConfig;
 import agent.server.transform.search.filter.ClassFilter;
 import agent.server.transform.search.filter.FilterUtils;
 

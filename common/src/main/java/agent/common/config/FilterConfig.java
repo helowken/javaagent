@@ -1,9 +1,10 @@
-package agent.server.transform.config;
+package agent.common.config;
 
 import agent.base.utils.Utils;
 
 import java.util.HashSet;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 
 public abstract class FilterConfig extends AbstractAgentConfig {
@@ -15,11 +16,11 @@ public abstract class FilterConfig extends AbstractAgentConfig {
     }
 
     public void setIncludes(Set<String> includes) {
-        this.includes = includes == null ?
-                null :
-                new HashSet<>(
-                        Utils.emptyToNull(includes, Utils::isNotBlank)
-                );
+        Optional.ofNullable(
+                Utils.emptyToNull(includes, Utils::isNotBlank)
+        ).ifPresent(
+                in -> this.includes = new HashSet<>(in)
+        );
     }
 
     public Set<String> getExcludes() {
@@ -27,11 +28,11 @@ public abstract class FilterConfig extends AbstractAgentConfig {
     }
 
     public void setExcludes(Set<String> excludes) {
-        this.excludes = excludes == null ?
-                null :
-                new HashSet<>(
-                        Utils.emptyToNull(excludes, Utils::isNotBlank)
-                );
+        Optional.ofNullable(
+                Utils.emptyToNull(excludes, Utils::isNotBlank)
+        ).ifPresent(
+                ex -> this.excludes = new HashSet<>(ex)
+        );
     }
 
     @Override

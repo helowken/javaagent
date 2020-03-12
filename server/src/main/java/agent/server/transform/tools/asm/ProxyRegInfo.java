@@ -31,9 +31,7 @@ public class ProxyRegInfo {
     }
 
     public ProxyRegInfo addBefore(ProxyCallInfo... proxyCallInfos) {
-        if (destInvoke instanceof MethodInvoke)
-            return add(ON_BEFORE, proxyCallInfos);
-        return this;
+        return add(ON_BEFORE, proxyCallInfos);
     }
 
     public ProxyRegInfo addOnReturning(ProxyCallInfo... proxyCallInfos) {
