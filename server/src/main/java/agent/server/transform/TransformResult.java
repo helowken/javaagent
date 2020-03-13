@@ -20,7 +20,7 @@ public class TransformResult {
 
     void addTransformError(Throwable error, AgentTransformer transformer) {
         this.transformErrorList.add(
-                new ErrorItem(null, error, transformer)
+                new ErrorItem(null, error, transformer.getRegKey())
         );
     }
 
@@ -67,12 +67,12 @@ public class TransformResult {
     public static class ErrorItem {
         private final Class<?> clazz;
         private final Throwable error;
-        private final AgentTransformer transformer;
+        private final String transformerKey;
 
-        private ErrorItem(Class<?> clazz, Throwable error, AgentTransformer transformer) {
+        private ErrorItem(Class<?> clazz, Throwable error, String transformerKey) {
             this.clazz = clazz;
             this.error = error;
-            this.transformer = transformer;
+            this.transformerKey = transformerKey;
         }
 
         public String getTargetClassName() {
@@ -83,8 +83,8 @@ public class TransformResult {
             return error;
         }
 
-        public AgentTransformer getTransformer() {
-            return transformer;
+        public String getTransformerKey() {
+            return transformerKey;
         }
     }
 }

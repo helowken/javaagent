@@ -1,6 +1,7 @@
 package agent.server.transform.search;
 
 import agent.base.utils.IndentUtils;
+import agent.base.utils.Logger;
 import agent.base.utils.ReflectionUtils;
 import agent.base.utils.Utils;
 import agent.common.config.InvokeChainConfig;
@@ -11,11 +12,13 @@ import agent.server.transform.search.filter.FilterUtils;
 import agent.server.transform.search.filter.InvokeChainFilter;
 import agent.server.transform.search.filter.NotInterfaceFilter;
 import agent.server.transform.tools.asm.AsmUtils;
+import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.tree.MethodNode;
 
+import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -29,6 +32,7 @@ import static agent.base.utils.ReflectionUtils.CONSTRUCTOR_NAME;
 import static agent.server.transform.tools.asm.AsmTransformProxy.isInvoke;
 
 public class InvokeChainSearcher {
+    private static final Logger logger = Logger.getLogger(InvokeChainSearcher.class);
     private static final int SEARCH_NONE = 0;
     private static final int SEARCH_UPWARD = 1;
     private static final int SEARCH_DOWNWARD = 2;
@@ -106,10 +110,7 @@ public class InvokeChainSearcher {
     private ClassItem getItem(Class<?> clazz) {
         return itemMap.computeIfAbsent(
                 clazz,
-                cls -> new ClassItem(
-                        cls,
-                        classNodeFunc.apply(cls)
-                )
+                cls -> new ClassItem(cls, classNodeFunc)
         );
     }
 
@@ -155,8 +156,10 @@ public class InvokeChainSearcher {
     private void searchDownward(InvokeInfo info, InvokeChainFilter filter) throws Exception {
         if (info.markMethodSearch(SEARCH_DOWNWARD)) {
             InvokeInfo result = findItemByMethod(info);
-            if (result == null)
-                throw new RuntimeException("!!! No class found " + info.getInvokeKey() + " from " + info.getInvokeClass());
+            if (result == null) {
+                debug(info, "!!! No class found from: ");
+                return;
+            }
             if (result.canBeOverridden()) {
                 Collection<Class<?>> subTypes = classCache.getSubTypes(
                         info.getInvokeClass(),
@@ -217,6 +220,8 @@ public class InvokeChainSearcher {
         debug(info, "=> Start to traverse: ");
         info.addInvoke();
         MethodNode methodNode = info.getMethodNode();
+        if (methodNode == null)
+            return;
         for (AbstractInsnNode node : methodNode.instructions) {
             if (isInvoke(node.getOpcode())) {
                 MethodInsnNode innerInvokeNode = (MethodInsnNode) node;
@@ -224,19 +229,40 @@ public class InvokeChainSearcher {
                         innerInvokeNode.name,
                         innerInvokeNode.desc
                 );
-                Class<?> innerInvokeClass = loader.loadClass(
-                        innerInvokeNode.owner.replaceAll("/", ".")
-                );
-                InvokeInfo innerInfo = new InvokeInfo(
-                        innerInvokeClass,
-                        innerInvokeKey,
-                        info.getLevel() + 1
-                );
-                debug(innerInfo, "## Found in code body: ");
-                collectInnerInvokes(innerInfo, SEARCH_UP_AND_DOWN, filter);
+                logger.debug("======== Load class: {}, method node: {}", innerInvokeNode.owner, innerInvokeKey);
+                Class<?> innerInvokeClass = loadClass(loader, innerInvokeNode.owner);
+                if (innerInvokeClass != null) {
+                    InvokeInfo innerInfo = new InvokeInfo(
+                            innerInvokeClass,
+                            innerInvokeKey,
+                            info.getLevel() + 1
+                    );
+                    debug(innerInfo, "## Found in code body: ");
+                    collectInnerInvokes(innerInfo, SEARCH_UP_AND_DOWN, filter);
+                }
             }
         }
         debug(info, "<= Finish traversing: ");
+    }
+
+    private Class<?> loadClass(ClassLoader loader, String invokeOwner) throws Exception {
+        try {
+            Type type = Type.getObjectType(invokeOwner);
+            if (type.getSort() == Type.ARRAY) {
+                return Array.newInstance(
+                        loader.loadClass(
+                                type.getElementType().getClassName()
+                        ),
+                        new int[type.getDimensions()]
+                ).getClass();
+            }
+            return loader.loadClass(
+                    type.getClassName()
+            );
+        } catch (Throwable t) {
+            logger.error("Load class failed: {}", t, invokeOwner);
+            return null;
+        }
     }
 
     private static String getInvokeKey(String name, String desc) {
@@ -252,40 +278,53 @@ public class InvokeChainSearcher {
         private final Map<String, DestInvoke> invokeMap = new HashMap<>();
         private final Map<String, Constructor> constructorMap;
         private final Map<String, Method> methodMap;
-        private final Map<String, MethodNode> methodNodeMap;
+        private Map<String, MethodNode> methodNodeMap;
         private final Map<String, Integer> methodToSearchFlags = new HashMap<>();
+        private final Function<Class<?>, ClassNode> classNodeFunc;
 
-        ClassItem(Class<?> clazz, ClassNode classNode) {
+        ClassItem(Class<?> clazz, Function<Class<?>, ClassNode> classNodeFunc) {
             this.clazz = clazz;
-            this.constructorMap = Stream.of(
-                    clazz.getDeclaredConstructors()
-            ).collect(
-                    Collectors.toMap(
-                            constructor -> getInvokeKey(
-                                    CONSTRUCTOR_NAME,
-                                    getDescriptor(constructor)
-                            ),
-                            constructor -> constructor
-                    )
-            );
-            this.methodMap = Stream.of(
-                    clazz.getDeclaredMethods()
-            ).collect(
-                    Collectors.toMap(
-                            method -> getInvokeKey(
-                                    method.getName(),
-                                    getDescriptor(method)
-                            ),
-                            method -> method
-                    )
-            );
-            this.methodNodeMap = classNode.methods.stream()
-                    .collect(
-                            Collectors.toMap(
-                                    mn -> getInvokeKey(mn.name, mn.desc),
-                                    mn -> mn
-                            )
-                    );
+            this.classNodeFunc = classNodeFunc;
+            this.constructorMap = createConstructorMap();
+            this.methodMap = createMethodMap();
+        }
+
+        private Map<String, Method> createMethodMap() {
+            try {
+                return Stream.of(
+                        clazz.getDeclaredMethods()
+                ).collect(
+                        Collectors.toMap(
+                                method -> getInvokeKey(
+                                        method.getName(),
+                                        getDescriptor(method)
+                                ),
+                                method -> method
+                        )
+                );
+            } catch (Throwable e) {
+                logger.error("create method map failed: {}", e, clazz.getName());
+                return Collections.emptyMap();
+            }
+        }
+
+        private Map<String, Constructor> createConstructorMap() {
+            try {
+                return Stream.of(
+                        clazz.getDeclaredConstructors()
+                ).collect(
+                        Collectors.toMap(
+                                constructor -> getInvokeKey(
+                                        CONSTRUCTOR_NAME,
+                                        getDescriptor(constructor)
+                                ),
+                                constructor -> constructor
+                        )
+                );
+            } catch (Throwable e) {
+                logger.error("create constructor map failed: {}", e, clazz.getName());
+                return Collections.emptyMap();
+            }
         }
 
         boolean markMethodSearch(String invokeKey, int searchFlag) {
@@ -301,11 +340,25 @@ public class InvokeChainSearcher {
         }
 
         MethodNode getMethodNode(String invokeKey) {
-            return Optional.ofNullable(
-                    methodNodeMap.get(invokeKey)
-            ).orElseThrow(
-                    () -> new RuntimeException("No method node found by: " + invokeKey)
-            );
+            if (methodNodeMap == null) {
+                if (!clazz.isArray()) {
+                    try {
+                        methodNodeMap = classNodeFunc.apply(clazz).methods
+                                .stream()
+                                .collect(
+                                        Collectors.toMap(
+                                                mn -> getInvokeKey(mn.name, mn.desc),
+                                                mn -> mn
+                                        )
+                                );
+                    } catch (Exception e) {
+                        logger.error("Init method node map failed, invokeKey: {}", e, invokeKey);
+                    }
+                }
+                if (methodNodeMap == null)
+                    methodNodeMap = Collections.emptyMap();
+            }
+            return methodNodeMap.get(invokeKey);
         }
 
         boolean containsInvoke(String invokeKey) {
@@ -379,8 +432,9 @@ public class InvokeChainSearcher {
             this.item = getItem(clazz);
         }
 
-        public boolean isValid() {
-            return isConstructor() || containsMethod();
+        private boolean isValid() {
+            return isConstructor() ||
+                    (containsMethod() && !isAbstractOrNative());
         }
 
         public DestInvoke getInvoke() {

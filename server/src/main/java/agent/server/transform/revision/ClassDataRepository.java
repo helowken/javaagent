@@ -34,7 +34,7 @@ public class ClassDataRepository {
                         Collections.singleton(clazz),
                         Collections.singleton(classDataTransformer),
                         (transformClass, error) -> {
-                            throw new RuntimeException(error);
+                            throw new RuntimeException("Get class data failed: " + clazz.getName(), error);
                         }
                 );
                 byte[] data = classDataTransformer.getClassData();

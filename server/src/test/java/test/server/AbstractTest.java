@@ -195,7 +195,9 @@ public abstract class AbstractTest {
                 this::getClassData
         );
         ProxyTransformMgr.getInstance().reg(results);
-        return results.stream().collect(
+        return results.stream()
+                .filter(r -> !r.hasError())
+                .collect(
                 Collectors.toMap(
                         ProxyResult::getTargetClass,
                         ProxyResult::getClassData

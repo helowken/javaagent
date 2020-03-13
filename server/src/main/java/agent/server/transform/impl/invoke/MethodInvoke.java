@@ -20,7 +20,7 @@ public class MethodInvoke implements DestInvoke {
             throw new IllegalArgumentException("Method is null!");
         int modifier = method.getModifiers();
         if (Modifier.isNative(modifier) || Modifier.isAbstract(modifier))
-            throw new IllegalArgumentException("Method can't be abstract or native!");
+            throw new IllegalArgumentException("Method can't be abstract or native: " + method);
     }
 
     @Override

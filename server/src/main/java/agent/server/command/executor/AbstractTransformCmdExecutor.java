@@ -54,7 +54,7 @@ abstract class AbstractTransformCmdExecutor extends AbstractCmdExecutor {
                         type,
                         new ErrorEntity(
                                 errorItem.getTargetClassName(),
-                                errorItem.getTransformer().getRegKey(),
+                                errorItem.getTransformerKey(),
                                 Utils.getMergedErrorMessage(
                                         errorItem.getError()
                                 )

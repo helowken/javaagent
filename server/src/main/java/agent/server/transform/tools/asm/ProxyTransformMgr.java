@@ -66,42 +66,51 @@ public class ProxyTransformMgr {
                         );
     }
 
+    private void verifyClassData(byte[] newClassData) {
+//        String verifyResult = null;
+//        try {
+//            verifyResult = AsmUtils.getVerifyResult(
+//                    targetClass.getClassLoader(),
+//                    newClassData,
+//                    false
+//            );
+//        } catch (Exception e) {
+//            logger.error("Get verify result fail.", e);
+//        }
+//        if (verifyResult != null && !verifyResult.isEmpty()) {
+//            logger.error("Verify {} transform failed: \n{}\n=================\n{}",
+//                    targetClass.getName(),
+//                    AsmUtils.getVerifyResult(
+//                            targetClass.getClassLoader(),
+//                            newClassData,
+//                            true
+//                    ),
+//                    AsmUtils.convertToReadableContent(newClassData)
+//            );
+//            return new ProxyResult(
+//                    item,
+//                    new RuntimeException("Verify transform failed.")
+//            );
+//        }
+    }
+
     private ProxyResult doTransform(ProxyItem item, Function<Class<?>, byte[]> classDataFunc) {
         Class<?> targetClass = item.getTargetClass();
-        byte[] newClassData = AsmTransformProxy.transform(
-                targetClass,
-                classDataFunc.apply(targetClass),
-                item.getIdToInvoke()
-        );
-        String verifyResult = null;
         try {
-            verifyResult = AsmUtils.getVerifyResult(
-                    targetClass.getClassLoader(),
-                    newClassData,
-                    false
+            byte[] newClassData = AsmTransformProxy.transform(
+                    targetClass,
+                    classDataFunc.apply(targetClass),
+                    item.getIdToInvoke()
             );
-        } catch (Exception e) {
-            logger.error("Get verify result fail.", e);
-        }
-        if (verifyResult != null && !verifyResult.isEmpty()) {
-            logger.error("Verify {} transform failed: \n{}\n=================\n{}",
-                    targetClass.getName(),
-                    AsmUtils.getVerifyResult(
-                            targetClass.getClassLoader(),
-                            newClassData,
-                            true
-                    ),
-                    AsmUtils.convertToReadableContent(newClassData)
-            );
+            verifyClassData(newClassData);
             return new ProxyResult(
                     item,
-                    new RuntimeException("Verify transform failed.")
+                    newClassData
             );
+        } catch (Exception e) {
+            logger.error("doTransform failed: " + targetClass.getName(), e);
+            return new ProxyResult(item, e);
         }
-        return new ProxyResult(
-                item,
-                newClassData
-        );
     }
 
     public void reg(Collection<ProxyResult> results) {
