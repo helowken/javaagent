@@ -1,5 +1,7 @@
 package agent.client.command.parser.impl;
 
+import agent.base.utils.Logger;
+import agent.base.utils.ReflectionUtils;
 import agent.base.utils.TypeObject;
 import agent.base.utils.Utils;
 import agent.common.config.*;
@@ -11,12 +13,16 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class TransformCmdParser extends AbstractCmdParser {
+    private static final Logger logger = Logger.getLogger(TransformCmdParser.class);
     private static final String SEP = ";";
     private static final String INCLUDE = "+";
     private static final String EXCLUDE = "-";
+    private static final int INCLUDE_LEN = INCLUDE.length();
+    private static final int EXCLUDE_LEN = EXCLUDE.length();
 
     private static final String OPT_METHOD = "-m";
     private static final String OPT_CONSTRUCTOR = "-i";
@@ -28,23 +34,23 @@ public class TransformCmdParser extends AbstractCmdParser {
     private static final String OPT_OUTPUT = "-o";
 
     private static String usageError() {
-        return "Usage: transform contextPath type classFilter [-m methods] [-i constructors] " +
-                "[-l[l level | c chainClasses | m chainMethods | i chainConstructors]] -o outputPath\n" +
-                "        type                        Transform type.\n" +
-                "                                        traceInvoke:          Trace information of methods and constructors.\n" +
-                "                                        costTimeStat:       Calculate time costs of methods and constructors.\n" +
-                "        -c classFilter           Filter rules for classes. \n" +
-                "        -m methods            Filter rules for methods. \n" +
-                "        -i constructors       Filter rules for constructors. \n" +
-                "        -l                              Enable chain transformation.\n" +
-                "        -ll                             The max level of chain nested hierarchy. It must be > 0.\n" +
-                "        -lc                            Filter rules for classes in chain.\n" +
-                "        -lm                           Filter rules for methods in chain.\n" +
-                "        -li                             Filter rules for constructors in chain.\n" +
-                "        -o outputPath         Absolute file path to save data.\n" +
-                "        Filter rules:             '+' or no prefix means inclusion, '-' means exclusion. \n" +
-                "                                        Multiple items are separated by ';'. \n" +
-                "                                        Default includes all.\n";
+        return "Usage: transform contextPath type classFilter [-m methodFilter] [-i constructorFilter] " +
+                "[-l[l chainLevel | c chainClassFilter | m chainMethodFilter | i chainConstructorFilter]] -o outputPath\n" +
+                "        type                                           Transform type.\n" +
+                "                                                           traceInvoke:          Trace information of methods and constructors.\n" +
+                "                                                           costTimeStat:       Calculate time costs of methods and constructors.\n" +
+                "        -c   classFilter                            Filter rules for classes. \n" +
+                "        -m  methodFilter                        Filter rules for methods. \n" +
+                "        -i    constructorFilter                 Filter rules for constructors. \n" +
+                "        -l                                                  Enable chain transformation.\n" +
+                "        -ll   chainLevel                            The max level of chain nested hierarchy. It must be > 0.\n" +
+                "        -lc  chainClassFilter                   Filter rules for classes in chain.\n" +
+                "        -lm chainMethodFilter                Filter rules for methods in chain.\n" +
+                "        -li   chainConstructorFilter        Filter rules for constructors in chain.\n" +
+                "        -o   outputPath                            Absolute file path to save data.\n" +
+                "        Filter rules:                                  '+' or no prefix means inclusion, '-' means exclusion. \n" +
+                "                                                             Multiple items are separated by ';'. \n" +
+                "                                                             Default includes all.\n";
     }
 
     private RuntimeException newUsageError() {
@@ -53,9 +59,10 @@ public class TransformCmdParser extends AbstractCmdParser {
         );
     }
 
-    private String getArg(String[] args, int idx) {
+    private String getArg(String[] args, int idx, String errMsg) {
         if (idx < args.length)
             return args[idx];
+        logger.error("{} not found.", errMsg);
         throw newUsageError();
     }
 
@@ -69,32 +76,33 @@ public class TransformCmdParser extends AbstractCmdParser {
     }
 
     private Map<String, Object> newConfigOfTransformer(String outputPath) {
-        return outputPath == null ?
-                null :
+        return Collections.singletonMap(
+                "log",
                 Collections.singletonMap(
-                        "log",
-                        Collections.singletonMap(
-                                "outputPath",
-                                outputPath
-                        )
-                );
+                        "outputPath",
+                        outputPath
+                )
+        );
     }
 
-    private <T extends FilterConfig> T newFilterConfig(String str, Supplier<T> supplier) {
+    private <T extends FilterConfig> T newFilterConfig(String str, Supplier<T> supplier, Function<String, String> convertFunc) {
         Set<String> ss = Utils.splitToSet(str, SEP);
         Set<String> includes = new HashSet<>();
         Set<String> excludes = new HashSet<>();
         for (String s : ss) {
             s = s.trim();
             if (!Utils.isBlank(s)) {
-                if (s.startsWith(EXCLUDE))
+                if (s.startsWith(EXCLUDE)) {
+                    s = s.substring(EXCLUDE_LEN);
                     excludes.add(
-                            s.substring(EXCLUDE.length())
+                            convertFunc == null ? s : convertFunc.apply(s)
                     );
-                else {
+                } else {
                     if (s.startsWith(INCLUDE))
-                        s = s.substring(INCLUDE.length());
-                    includes.add(s);
+                        s = s.substring(INCLUDE_LEN);
+                    includes.add(
+                            convertFunc == null ? s : convertFunc.apply(s)
+                    );
                 }
             }
         }
@@ -109,9 +117,9 @@ public class TransformCmdParser extends AbstractCmdParser {
     @Override
     public Command parse(String[] args) {
         int i = 0;
-        String contextPath = getArg(args, i++);
-        String type = getArg(args, i++);
-        String classStr = getArg(args, i++);
+        String contextPath = getArg(args, i++, "context");
+        String type = getArg(args, i++, "type");
+        String classStr = getArg(args, i++, "classFilter");
         String methodStr = null;
         String constructorStr = null;
         boolean useChain = false;
@@ -123,37 +131,38 @@ public class TransformCmdParser extends AbstractCmdParser {
         for (; i < args.length; ++i) {
             switch (args[i]) {
                 case OPT_METHOD:
-                    methodStr = getArg(args, ++i);
+                    methodStr = getArg(args, ++i, "methodFilter");
                     break;
                 case OPT_CONSTRUCTOR:
-                    constructorStr = getArg(args, ++i);
+                    constructorStr = getArg(args, ++i, "constructorFilter");
                     break;
                 case OPT_CHAIN:
                     useChain = true;
                     break;
                 case OPT_CHAIN_CLASS:
                     useChain = true;
-                    chainClassStr = getArg(args, ++i);
+                    chainClassStr = getArg(args, ++i, "chainClassFilter");
                     break;
                 case OPT_CHAIN_METHOD:
                     useChain = true;
-                    chainMethodStr = getArg(args, ++i);
+                    chainMethodStr = getArg(args, ++i, "chainMethodFilter");
                     break;
                 case OPT_CHAIN_CONSTRUCTOR:
                     useChain = true;
-                    chainConstructorStr = getArg(args, ++i);
+                    chainConstructorStr = getArg(args, ++i, "chainConstructorFilter");
                     break;
                 case OPT_CHAIN_LEVEL:
                     useChain = true;
                     chainLevel = Utils.parseInt(
-                            getArg(args, ++i),
+                            getArg(args, ++i, "chainLevel"),
                             "Invoke chain level"
                     );
                     break;
                 case OPT_OUTPUT:
-                    outputPath = getArg(args, ++i);
+                    outputPath = getArg(args, ++i, "outputPath");
                     break;
                 default:
+                    logger.error("Unknown option: {}", args[i]);
                     throw newUsageError();
             }
         }
@@ -162,65 +171,23 @@ public class TransformCmdParser extends AbstractCmdParser {
         ModuleConfig moduleConfig = new ModuleConfig();
         moduleConfig.setContextPath(contextPath);
 
-        TransformerConfig transformerConfig = new TransformerConfig();
-        transformerConfig.setRef(type);
-        transformerConfig.setConfig(
-                newConfigOfTransformer(outputPath)
-        );
         moduleConfig.setTransformers(
-                Collections.singletonList(transformerConfig)
+                Collections.singletonList(
+                        createTransformerConfig(type, outputPath)
+                )
         );
 
-        TargetConfig targetConfig = new TargetConfig();
-        targetConfig.setClassFilter(
-                newFilterConfig(classStr, ClassFilterConfig::new)
-        );
-        if (Utils.isNotBlank(methodStr))
-            targetConfig.setMethodFilter(
-                    newFilterConfig(methodStr, MethodFilterConfig::new)
+        TargetConfig targetConfig = createTargetConfig(classStr, methodStr, constructorStr);
+        if (useChain)
+            targetConfig.setInvokeChainConfig(
+                    createInvokeChainConfig(chainLevel, chainClassStr, chainMethodStr, chainConstructorStr)
             );
-        if (Utils.isNotBlank(constructorStr))
-            targetConfig.setConstructorFilter(
-                    newFilterConfig(constructorStr, ConstructorFilterConfig::new)
-            );
-        if (useChain) {
-            InvokeChainConfig invokeChainConfig = new InvokeChainConfig();
-            if (chainLevel > 0)
-                invokeChainConfig.setMaxLevel(chainLevel);
-            if (Utils.isNotBlank(chainClassStr))
-                invokeChainConfig.setClassFilter(
-                        newFilterConfig(chainClassStr, ClassFilterConfig::new)
-                );
-            if (Utils.isNotBlank(chainMethodStr))
-                targetConfig.setMethodFilter(
-                        newFilterConfig(chainMethodStr, MethodFilterConfig::new)
-                );
-            if (Utils.isNotBlank(chainConstructorStr))
-                targetConfig.setConstructorFilter(
-                        newFilterConfig(chainConstructorStr, ConstructorFilterConfig::new)
-                );
-            targetConfig.setInvokeChainConfig(invokeChainConfig);
-        }
+
         moduleConfig.setTargets(
                 Collections.singletonList(targetConfig)
         );
 
-//        checkArgs(args, 2, USAGE);
-//        String opt = args[0];
-//        switch (opt) {
-//            case OPT_FILE:
-//                try {
-//                    byte[] bs = IOUtils.readBytes(args[1]);
-//                    return newFileCmd(bs);
-//                } catch (Exception e) {
-//                    throw new RuntimeException("Read config file failed: " + e.getMessage());
-//                }
-//            case OPT_CLASS:
-//                checkArgs(args, 3, USAGE);
-//                return newRuleCmd(args[1], args[2]);
-//            default:
-//                throw new CommandParseException("Invalid option: " + opt);
-//        }
+        logger.debug("{}", JSONUtils.writeAsString(moduleConfig, true));
         return new TransformCommand(
                 JSONUtils.convert(
                         moduleConfig,
@@ -228,6 +195,59 @@ public class TransformCmdParser extends AbstractCmdParser {
                         }
                 )
         );
+    }
+
+    private TransformerConfig createTransformerConfig(String type, String outputPath) {
+        TransformerConfig transformerConfig = new TransformerConfig();
+        transformerConfig.setRef(type);
+        if (outputPath != null)
+            transformerConfig.setConfig(
+                    newConfigOfTransformer(outputPath)
+            );
+        return transformerConfig;
+    }
+
+    private TargetConfig createTargetConfig(String classStr, String methodStr, String constructorStr) {
+        TargetConfig targetConfig = new TargetConfig();
+        targetConfig.setClassFilter(
+                newFilterConfig(classStr, ClassFilterConfig::new, null)
+        );
+        if (Utils.isNotBlank(methodStr))
+            targetConfig.setMethodFilter(
+                    newFilterConfig(methodStr, MethodFilterConfig::new, null)
+            );
+        if (Utils.isNotBlank(constructorStr))
+            targetConfig.setConstructorFilter(
+                    newFilterConfig(
+                            constructorStr,
+                            ConstructorFilterConfig::new,
+                            s -> ReflectionUtils.CONSTRUCTOR_NAME + s
+                    )
+            );
+        return targetConfig;
+    }
+
+    private InvokeChainConfig createInvokeChainConfig(int chainLevel, String chainClassStr, String chainMethodStr, String chainConstructorStr) {
+        InvokeChainConfig invokeChainConfig = new InvokeChainConfig();
+        if (chainLevel > 0)
+            invokeChainConfig.setMaxLevel(chainLevel);
+        if (Utils.isNotBlank(chainClassStr))
+            invokeChainConfig.setClassFilter(
+                    newFilterConfig(chainClassStr, ClassFilterConfig::new, null)
+            );
+        if (Utils.isNotBlank(chainMethodStr))
+            invokeChainConfig.setMethodFilter(
+                    newFilterConfig(chainMethodStr, MethodFilterConfig::new, null)
+            );
+        if (Utils.isNotBlank(chainConstructorStr))
+            invokeChainConfig.setConstructorFilter(
+                    newFilterConfig(
+                            chainConstructorStr,
+                            ConstructorFilterConfig::new,
+                            s -> ReflectionUtils.CONSTRUCTOR_NAME + s
+                    )
+            );
+        return invokeChainConfig;
     }
 
     @Override

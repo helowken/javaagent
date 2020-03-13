@@ -115,7 +115,7 @@ public class ViewMgrTest extends AbstractViewTest {
         ).collect(
                 Collectors.toMap(
                         AsmTestUtils::constructorToString,
-                        method -> newProxyMap("onReturning", "onThrowing", "onAfter")
+                        method -> newProxyMap("onBefore", "onReturning", "onThrowing", "onAfter")
                 )
         );
         Map allResult = new TreeMap(methodResult);

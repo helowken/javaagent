@@ -2,7 +2,6 @@ package agent.server.utils.log.text;
 
 import agent.base.utils.IOUtils;
 import agent.base.utils.LockObject;
-import agent.base.utils.StringParser;
 import agent.server.utils.log.AbstractLogWriter;
 
 import java.io.BufferedWriter;
@@ -11,13 +10,11 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 
 public class TextLogWriter extends AbstractLogWriter<TextLogConfig, TextLogItem> {
-    private StringParser.CompiledStringExpr expr;
     private final LockObject writerLock = new LockObject();
     private volatile Writer writer;
 
     TextLogWriter(String logKey, TextLogConfig logConfig) {
         super(logKey, logConfig);
-        expr = StringParser.compile(logConfig.getOutputFormat());
     }
 
     @Override

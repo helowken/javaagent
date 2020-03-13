@@ -26,7 +26,8 @@ public class FilterUtils {
         if (fs == null)
             throw new IllegalArgumentException("Filter string is null!");
         String filterString = fs.replaceAll(" ", "");
-        return new StringItem(filterString).replaceAll(".", "\\.")
+        return new StringItem(filterString)
+                .replaceAll(".", "\\.")
                 .replaceAll("[", "\\[")
                 .replaceAll("$", "\\$")
                 .replaceAll("*", ".*")
@@ -40,7 +41,10 @@ public class FilterUtils {
     private static String parseForInvoke(String fs) {
         String filterString = parse(fs);
         String result = filterString.contains("(") ?
-                filterString :
+                new StringItem(filterString)
+                        .replaceAll("(", "\\(")
+                        .replaceAll(")", "\\)")
+                        .toString() :
                 filterString + "\\(.*\\)";
         return "^" + result + "$";
     }

@@ -94,7 +94,7 @@ public class AsmProxyMethodTest {
                 new Class[0],
                 newAClass.newInstance()
         );
-        doCheck(count, logList, false, true);
+        doCheck(count, logList, false);
     }
 
     private void callError(String methodName) throws Exception {
@@ -114,7 +114,7 @@ public class AsmProxyMethodTest {
             assertTrue(t instanceof RuntimeException);
             assertEquals(errorMsg, t.getMessage());
         }
-        doCheck(count, logList, true, true);
+        doCheck(count, logList, true);
     }
 
     private void callWithArgs(String methodName) throws Exception {
@@ -135,7 +135,7 @@ public class AsmProxyMethodTest {
                 "sss",
                 (short) 111
         );
-        doCheck(count, logList, false, true);
+        doCheck(count, logList, false);
     }
 
     public static class A {

@@ -21,17 +21,16 @@ import static org.junit.Assert.assertFalse;
 public class AsmTestUtils {
     private static final String DEFAULT_CONTEXT = "defaultContext";
 
-    static void doCheck(int count, List<String> logList, boolean throwError, boolean hasBefore) {
+    static void doCheck(int count, List<String> logList, boolean throwError) {
         assertEquals(
-                newExpectedList(count, throwError, hasBefore),
+                newExpectedList(count, throwError),
                 logList
         );
     }
 
-    private static List<String> newExpectedList(int count, boolean throwError, boolean hasBefore) {
+    private static List<String> newExpectedList(int count, boolean throwError) {
         List<String> prefixList = new ArrayList<>();
-        if (hasBefore)
-            prefixList.add("before");
+        prefixList.add("before");
         prefixList.add(throwError ? "onThrowing" : "onReturning");
         prefixList.add("after");
 

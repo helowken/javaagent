@@ -4,6 +4,7 @@ import agent.base.utils.IOUtils;
 import agent.base.utils.ReflectionUtils;
 import agent.builtin.tools.result.TraceInvokeResultHandler;
 import agent.builtin.transformer.TraceInvokeTransformer;
+import agent.common.config.ConstructorFilterConfig;
 import agent.common.config.InvokeChainConfig;
 import agent.server.transform.search.InvokeChainSearcher;
 import org.junit.Test;
@@ -23,10 +24,13 @@ public class TraceTest extends AbstractTest {
         Map<Class<?>, String> classToMethodFilter = new HashMap<>();
         classToMethodFilter.put(TestFilter3.class, "doFilter");
 
-        doTest(
-                classToMethodFilter,
-                new InvokeChainConfig()
+        InvokeChainConfig invokeChainConfig = new InvokeChainConfig();
+        ConstructorFilterConfig constructorFilterConfig = new ConstructorFilterConfig();
+        constructorFilterConfig.setIncludes(
+                Collections.singleton("*")
         );
+        invokeChainConfig.setConstructorFilter(constructorFilterConfig);
+        doTest(classToMethodFilter, invokeChainConfig);
     }
 
     private void doTest(Map<Class<?>, String> classToMethodFilter, InvokeChainConfig invokeChainConfig) throws Exception {

@@ -5,7 +5,7 @@ import java.util.regex.Pattern;
 
 public class ConfigValidator {
     private static final Pattern classPattern = Pattern.compile("[a-zA-Z0-9_.*\\[$]+");
-    private static final Pattern invokePattern = Pattern.compile("[a-zA-Z0-9_.*<> ]+");
+    private static final Pattern invokePattern = Pattern.compile("[a-zA-Z0-9_.*<>() ]+");
 
     public static void validateClassFilters(Collection<String> includes, Collection<String> excludes) {
         validateFilters(includes, excludes, classPattern);

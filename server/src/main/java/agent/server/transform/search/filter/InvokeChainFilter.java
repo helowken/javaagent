@@ -23,7 +23,7 @@ public class InvokeChainFilter implements AgentFilter<InvokeInfo> {
             if (classFilter == null || classFilter.accept(clazz)) {
                 DestInvoke invoke = info.getInvoke();
                 return info.isConstructor() ?
-                        constructorFilter == null || constructorFilter.accept(invoke) :
+                        constructorFilter != null && constructorFilter.accept(invoke) :
                         methodFilter == null || methodFilter.accept(invoke);
             }
         }

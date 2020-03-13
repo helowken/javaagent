@@ -1,6 +1,5 @@
 package agent.builtin.transformer;
 
-import agent.base.utils.StringParser;
 import agent.base.utils.Utils;
 import agent.builtin.transformer.utils.DefaultValueConverter;
 import agent.builtin.transformer.utils.TraceItem;
@@ -11,25 +10,23 @@ import agent.server.transform.impl.invoke.DestInvoke;
 import agent.server.utils.log.LogMgr;
 
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static agent.server.transform.impl.ProxyAnnotationConfig.ARGS_ON_AFTER;
 
 public class TraceInvokeTransformer extends CallChainTransformer {
     public static final String REG_KEY = "@traceInvoke";
-    private static final String KEY_OUTPUT_FORMAT = "outputFormat";
-    private static final String KEY_CONTENT = "content";
-    private static final String DEFAULT_OUTPUT_FORMAT = StringParser.getKey(KEY_CONTENT);
 
     private ValueConverter valueConverter = new DefaultValueConverter();
 
     @Override
     protected String newLogKey(Map<String, Object> logConf) {
-        Map<String, Object> newLogConf = new HashMap<>(logConf);
-        newLogConf.put(KEY_OUTPUT_FORMAT, DEFAULT_OUTPUT_FORMAT);
         return regLogText(
-                newLogConf,
+                logConf,
                 Collections.emptyMap()
         );
     }

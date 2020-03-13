@@ -9,9 +9,7 @@ import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 import static test.server.asm.AsmTestUtils.doCheck;
 
 public class AsmProxyConstructorTest {
@@ -25,12 +23,12 @@ public class AsmProxyConstructorTest {
 
     @Test
     public void testThrowError() throws Exception {
-        call("(I)V", true, new Class[] {int.class}, 333);
+        call("(I)V", true, new Class[]{int.class}, 333);
     }
 
     @Test
     public void testWithArgs() throws Exception {
-        call("(ILjava/lang/String;)V", false, new Class[] {int.class, String.class}, 111, "xxxx");
+        call("(ILjava/lang/String;)V", false, new Class[]{int.class, String.class}, 111, "xxxx");
     }
 
     private void call(String desc, boolean error, Class[] argTypes, Object... args) throws Exception {
@@ -46,7 +44,7 @@ public class AsmProxyConstructorTest {
             assertTrue(t instanceof RuntimeException);
             assertEquals(errorMsg, t.getMessage());
         }
-        doCheck(count, logList, error, false);
+        doCheck(count, logList, error);
     }
 
     private Class<?> newClass(String desc) throws Exception {
