@@ -138,6 +138,10 @@ public class InvokeChainSearcher {
     }
 
     private void traverseConstructor(InvokeInfo info, InvokeChainFilter filter) throws Exception {
+        if (!info.containsConstructor()) {
+            debug(info, "!!! No constructor found: ");
+            return;
+        }
         if (info.containsInvoke())
             debug(info, "@ Skip traverse existed constructor: ");
         else
@@ -145,9 +149,13 @@ public class InvokeChainSearcher {
     }
 
     private void traverseMethod(InvokeInfo info, InvokeChainFilter filter) throws Exception {
+        if (!info.containsMethod()) {
+            debug(info, "!!! No method found: ");
+            return;
+        }
         if (info.containsInvoke())
             debug(info, "@ Skip traverse existed method: ");
-        else if (info.isAbstractOrNative())
+        else if (info.isAbstractOrNativeOrNotFound())
             debug(info, "@ Skip traverse abstract or native method: ");
         else
             traverseInvoke(info, filter);
@@ -160,7 +168,7 @@ public class InvokeChainSearcher {
                 debug(info, "!!! No class found from: ");
                 return;
             }
-            if (result.canBeOverridden()) {
+            if (result.canBeOverriddenOrNotFound()) {
                 Collection<Class<?>> subTypes = classCache.getSubTypes(
                         info.getInvokeClass(),
                         NotInterfaceFilter.getInstance()
@@ -245,7 +253,7 @@ public class InvokeChainSearcher {
         debug(info, "<= Finish traversing: ");
     }
 
-    private Class<?> loadClass(ClassLoader loader, String invokeOwner) throws Exception {
+    private Class<?> loadClass(ClassLoader loader, String invokeOwner) {
         try {
             Type type = Type.getObjectType(invokeOwner);
             if (type.getSort() == Type.ARRAY) {
@@ -361,57 +369,6 @@ public class InvokeChainSearcher {
             return methodNodeMap.get(invokeKey);
         }
 
-        boolean containsInvoke(String invokeKey) {
-            return invokeMap.containsKey(invokeKey);
-        }
-
-        boolean containsMethod(String invokeKey) {
-            return methodMap.containsKey(invokeKey);
-        }
-
-        boolean isAbstractOrNativeMethod(String invokeKey) {
-            int modifiers = getMethod(invokeKey).getModifiers();
-            return Modifier.isAbstract(modifiers) ||
-                    Modifier.isNative(modifiers);
-        }
-
-        Constructor getConstructor(String invokeKey) {
-            Constructor constructor = constructorMap.get(invokeKey);
-            if (constructor == null)
-                throw new RuntimeException("No constructor found by key: " + invokeKey + " in: " + clazz);
-            return constructor;
-        }
-
-        Method getMethod(String invokeKey) {
-            Method method = methodMap.get(invokeKey);
-            if (method == null)
-                throw new RuntimeException("No method found by key: " + invokeKey + " in: " + clazz);
-            return method;
-        }
-
-        boolean canBeOverridden(String invokeKey) {
-            return ReflectionUtils.canBeOverridden(
-                    clazz.getModifiers(),
-                    getMethod(invokeKey).getModifiers()
-            );
-        }
-
-        DestInvoke getInvoke(String invokeKey) {
-            return isConstructorKey(invokeKey) ?
-                    new ConstructorInvoke(
-                            getConstructor(invokeKey)
-                    ) :
-                    new MethodInvoke(
-                            getMethod(invokeKey)
-                    );
-        }
-
-        void addInvoke(String invokeKey, DestInvoke invoke) {
-            if (invokeMap.containsKey(invokeKey))
-                throw new RuntimeException("Invoke has been added.");
-            invokeMap.put(invokeKey, invoke);
-        }
-
         void collectInvokes(Collection<DestInvoke> invokes) {
             invokes.addAll(
                     invokeMap.values()
@@ -433,12 +390,21 @@ public class InvokeChainSearcher {
         }
 
         private boolean isValid() {
-            return isConstructor() ||
-                    (containsMethod() && !isAbstractOrNative());
+            if (isConstructor())
+                return containsConstructor();
+            return containsMethod() && !isAbstractOrNativeOrNotFound();
         }
 
-        public DestInvoke getInvoke() {
-            return this.item.getInvoke(invokeKey);
+        private boolean containsMethod() {
+            return item.methodMap.containsKey(invokeKey);
+        }
+
+        private boolean containsConstructor() {
+            return item.constructorMap.containsKey(invokeKey);
+        }
+
+        private boolean containsInvoke() {
+            return item.invokeMap.containsKey(invokeKey);
         }
 
         public int getLevel() {
@@ -459,24 +425,49 @@ public class InvokeChainSearcher {
             return isConstructorKey(invokeKey);
         }
 
-        private boolean isAbstractOrNative() {
-            return item.isAbstractOrNativeMethod(invokeKey);
-        }
-
-        private boolean canBeOverridden() {
-            return item.canBeOverridden(invokeKey);
-        }
-
         private String getInvokeKey() {
             return invokeKey;
         }
 
-        private boolean containsMethod() {
-            return item.containsMethod(invokeKey);
+        private boolean isAbstractOrNativeOrNotFound() {
+            if (containsMethod()) {
+                int modifiers = getMethod(invokeKey).getModifiers();
+                return Modifier.isAbstract(modifiers) ||
+                        Modifier.isNative(modifiers);
+            }
+            return true;
         }
 
-        private boolean containsInvoke() {
-            return item.containsInvoke(invokeKey);
+        private Constructor getConstructor(String invokeKey) {
+            Constructor constructor = item.constructorMap.get(invokeKey);
+            if (constructor == null)
+                throw new RuntimeException("No constructor found by key: " + invokeKey + " in: " + clazz);
+            return constructor;
+        }
+
+        private Method getMethod(String invokeKey) {
+            Method method = item.methodMap.get(invokeKey);
+            if (method == null)
+                throw new RuntimeException("No method found by key: " + invokeKey + " in: " + clazz);
+            return method;
+        }
+
+        private boolean canBeOverriddenOrNotFound() {
+            return !containsMethod() ||
+                    ReflectionUtils.canBeOverridden(
+                            clazz.getModifiers(),
+                            getMethod(invokeKey).getModifiers()
+                    );
+        }
+
+        public DestInvoke getInvoke() {
+            return isConstructorKey(invokeKey) ?
+                    new ConstructorInvoke(
+                            getConstructor(invokeKey)
+                    ) :
+                    new MethodInvoke(
+                            getMethod(invokeKey)
+                    );
         }
 
         private boolean markMethodSearch(int searchFlag) {
@@ -488,7 +479,9 @@ public class InvokeChainSearcher {
         }
 
         private void addInvoke() {
-            item.addInvoke(
+            if (item.invokeMap.containsKey(invokeKey))
+                throw new RuntimeException("Invoke has been added.");
+            item.invokeMap.put(
                     invokeKey,
                     getInvoke()
             );
