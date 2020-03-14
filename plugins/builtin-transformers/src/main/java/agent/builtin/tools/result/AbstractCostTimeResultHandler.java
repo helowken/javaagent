@@ -40,11 +40,12 @@ abstract class AbstractCostTimeResultHandler<T> extends AbstractResultHandler<T>
 
     Node<String> newInvokeNode(String invoke, CostTimeStatItem item, Set<Float> rates) {
         return new Node<>(
-                invoke + "\n" +
-                        item.getAvgTimeString() + "\n" +
-                        item.getMaxTimeString() + "\n" +
-                        item.getCountString() + "\n" +
-                        item.getTimeDistributionString(rates) + "\n\n"
+//                invoke + "\n" +
+//                        item.getAvgTimeString() + "\n" +
+//                        item.getMaxTimeString() + "\n" +
+//                        item.getCountString() + "\n" +
+//                        item.getTimeDistributionString(rates) + "\n\n"
+                " [" + item.getAvgTimeString() + ", " + item.getCountString() + "] " + invoke
         );
     }
 

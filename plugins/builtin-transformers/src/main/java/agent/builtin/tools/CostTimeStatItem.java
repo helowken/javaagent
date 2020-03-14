@@ -222,7 +222,7 @@ public class CostTimeStatItem {
     }
 
     public String getAvgTimeString() {
-        return "Avg: " + getAvgTime() + "ms";
+        return "avg=" + getAvgTime() + "ms";
     }
 
     public long getMaxTime() {
@@ -230,7 +230,7 @@ public class CostTimeStatItem {
     }
 
     public String getMaxTimeString() {
-        return "Max: " + getMaxTime() + "ms";
+        return "max=" + getMaxTime() + "ms";
     }
 
     public BigInteger getCount() {
@@ -238,7 +238,7 @@ public class CostTimeStatItem {
     }
 
     public String getCountString() {
-        return "Count: " + getCount();
+        return "count=" + getCount();
     }
 
     public String getTimeDistributionString(Set<Float> rates) {

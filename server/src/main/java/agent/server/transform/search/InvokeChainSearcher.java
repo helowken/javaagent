@@ -119,6 +119,9 @@ public class InvokeChainSearcher {
         if (info.isNativePackage()) {
             debug(info, "@ Skip native package: ");
             return;
+        } else if (info.isLambdaClass()) {
+            debug(info, "@ Skip Lambda: ");
+            return;
         } else if (filter != null && info.isValid() && !filter.accept(info)) {
             debug(info, "@ Skip by filter: ");
             return;
@@ -387,6 +390,10 @@ public class InvokeChainSearcher {
             this.invokeKey = invokeKey;
             this.level = level;
             this.item = getItem(clazz);
+        }
+
+        private boolean isLambdaClass() {
+            return clazz.getName().contains("$$Lambda$");
         }
 
         private boolean isValid() {

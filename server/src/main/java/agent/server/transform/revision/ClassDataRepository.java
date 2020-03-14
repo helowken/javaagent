@@ -1,8 +1,10 @@
 package agent.server.transform.revision;
 
+import agent.base.utils.IOUtils;
 import agent.base.utils.Logger;
 import agent.server.transform.TransformMgr;
 
+import java.io.InputStream;
 import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -27,8 +29,16 @@ public class ClassDataRepository {
 
     public byte[] getClassData(Class<?> clazz) {
         return classToData.computeIfAbsent(clazz, key -> {
+            logger.debug("Try to find class data: {}, classLoader: {}", clazz.getName(), clazz.getClassLoader());
+//            try {
+//                InputStream inputStream = ClassLoader.getSystemResourceAsStream(clazz.getName().replace('.', '/') + ".class");
+//                if (inputStream != null)
+//                    return IOUtils.readBytes(inputStream);
+//            } catch (Exception e) {
+//                logger.error("Get data from code source failed: {}", e, clazz.getName());
+//            }
+
             try {
-                logger.debug("Try to find class data: {}, classLoader: {}", clazz.getName(), clazz.getClassLoader());
                 classDataTransformer.setTargetClass(clazz);
                 TransformMgr.getInstance().reTransformClasses(
                         Collections.singleton(clazz),

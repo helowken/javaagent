@@ -1,5 +1,6 @@
 package agent.server.transform.search;
 
+import agent.base.utils.Logger;
 import agent.base.utils.ReflectionUtils;
 import agent.server.transform.TransformMgr;
 import agent.server.transform.search.filter.ClassFilter;
@@ -10,6 +11,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 public class ClassCache {
+    private static final Logger logger = Logger.getLogger(ClassCache.class);
     private static Collection<String> skipPackages = Collections.unmodifiableList(
             Arrays.asList(
                     "org.objectweb.asm.",

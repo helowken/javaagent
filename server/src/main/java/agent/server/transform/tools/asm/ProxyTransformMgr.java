@@ -108,7 +108,7 @@ public class ProxyTransformMgr {
                     newClassData
             );
         } catch (Exception e) {
-            logger.error("doTransform failed: " + targetClass.getName(), e);
+            logger.error("doTransform failed: {}", e, targetClass.getName());
             return new ProxyResult(item, e);
         }
     }
