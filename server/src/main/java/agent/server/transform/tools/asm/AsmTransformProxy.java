@@ -129,22 +129,26 @@ public class AsmTransformProxy {
                 if (startLabelNode == null)
                     startLabelNode = (LabelNode) node;
             } else if (weaveInnerCalls && isInvoke(opcode)) {
-                methodNode.instructions.insertBefore(
-                        node,
-                        newBeforeInnerCall(
-                                (MethodInsnNode) node,
-                                innerCallLocalIdx,
-                                newLocalIdx
-                        )
-                );
-                methodNode.instructions.insertBefore(
-                        node.getNext(),
-                        newAfterInnerCall(
-                                (MethodInsnNode) node,
-                                innerCallLocalIdx,
-                                newLocalIdx
-                        )
-                );
+                if (isInvokeDynamic(opcode)) {
+                    // TODO
+                } else {
+                    methodNode.instructions.insertBefore(
+                            node,
+                            newBeforeInnerCall(
+                                    (MethodInsnNode) node,
+                                    innerCallLocalIdx,
+                                    newLocalIdx
+                            )
+                    );
+                    methodNode.instructions.insertBefore(
+                            node.getNext(),
+                            newAfterInnerCall(
+                                    (MethodInsnNode) node,
+                                    innerCallLocalIdx,
+                                    newLocalIdx
+                            )
+                    );
+                }
             }
         }
         methodNode.instructions.insert(
@@ -218,7 +222,12 @@ public class AsmTransformProxy {
         return opcode == INVOKEVIRTUAL ||
                 opcode == INVOKESPECIAL ||
                 opcode == INVOKESTATIC ||
-                opcode == INVOKEINTERFACE;
+                opcode == INVOKEINTERFACE ||
+                opcode == INVOKEDYNAMIC;
+    }
+
+    public static boolean isInvokeDynamic(int opcode) {
+        return opcode == INVOKEDYNAMIC;
     }
 
     private static void processTryCatch(boolean isStatic, MethodNode methodNode, LabelNode startLabelNode, int invokeId, int newLocalIdx) {

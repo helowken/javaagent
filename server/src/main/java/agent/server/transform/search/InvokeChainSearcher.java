@@ -12,11 +12,9 @@ import agent.server.transform.search.filter.FilterUtils;
 import agent.server.transform.search.filter.InvokeChainFilter;
 import agent.server.transform.search.filter.NotInterfaceFilter;
 import agent.server.transform.tools.asm.AsmUtils;
+import org.objectweb.asm.Handle;
 import org.objectweb.asm.Type;
-import org.objectweb.asm.tree.AbstractInsnNode;
-import org.objectweb.asm.tree.ClassNode;
-import org.objectweb.asm.tree.MethodInsnNode;
-import org.objectweb.asm.tree.MethodNode;
+import org.objectweb.asm.tree.*;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
@@ -30,6 +28,7 @@ import java.util.stream.Stream;
 import static agent.base.utils.InvokeDescriptorUtils.getDescriptor;
 import static agent.base.utils.ReflectionUtils.CONSTRUCTOR_NAME;
 import static agent.server.transform.tools.asm.AsmTransformProxy.isInvoke;
+import static agent.server.transform.tools.asm.AsmTransformProxy.isInvokeDynamic;
 
 public class InvokeChainSearcher {
     private static final Logger logger = Logger.getLogger(InvokeChainSearcher.class);
@@ -94,17 +93,21 @@ public class InvokeChainSearcher {
         return (searchFlags & SEARCH_DOWNWARD) != 0;
     }
 
-    private void debug(InvokeInfo info, String prefix) {
+    private void debug(String msg) {
         if (debugEnabled)
-            System.out.println(
-                    IndentUtils.getIndent(
-                            info.getLevel()
-                    ) +
-                            prefix +
-                            info.getInvokeClass().getSimpleName() +
-                            "#" +
-                            info.getInvokeKey()
-            );
+            System.out.println(msg);
+    }
+
+    private void debug(InvokeInfo info, String prefix) {
+        debug(
+                IndentUtils.getIndent(
+                        info.getLevel()
+                ) +
+                        prefix +
+                        info.getInvokeClass().getSimpleName() +
+                        "#" +
+                        info.getInvokeKey()
+        );
     }
 
     private ClassItem getItem(Class<?> clazz) {
@@ -234,21 +237,37 @@ public class InvokeChainSearcher {
         if (methodNode == null)
             return;
         for (AbstractInsnNode node : methodNode.instructions) {
-            if (isInvoke(node.getOpcode())) {
-                MethodInsnNode innerInvokeNode = (MethodInsnNode) node;
-                String innerInvokeKey = getInvokeKey(
-                        innerInvokeNode.name,
-                        innerInvokeNode.desc
-                );
-                logger.debug("======== Load class: {}, method node: {}", innerInvokeNode.owner, innerInvokeKey);
-                Class<?> innerInvokeClass = loadClass(loader, innerInvokeNode.owner);
+            int opcode = node.getOpcode();
+            if (isInvoke(opcode)) {
+                String name, desc, owner;
+                if (isInvokeDynamic(opcode)) {
+                    InvokeDynamicInsnNode invokeDynamicNode = (InvokeDynamicInsnNode) node;
+                    Handle handle = (Handle) invokeDynamicNode.bsmArgs[1];
+                    name = handle.getName();
+                    desc = handle.getDesc();
+                    owner = handle.getOwner();
+                } else {
+                    MethodInsnNode innerInvokeNode = (MethodInsnNode) node;
+                    name = innerInvokeNode.name;
+                    desc = innerInvokeNode.desc;
+                    owner = innerInvokeNode.owner;
+                }
+                String innerInvokeKey = getInvokeKey(name, desc);
+                Class<?> innerInvokeClass = loadClass(loader, owner);
                 if (innerInvokeClass != null) {
                     InvokeInfo innerInfo = new InvokeInfo(
                             innerInvokeClass,
                             innerInvokeKey,
                             info.getLevel() + 1
                     );
-                    debug(innerInfo, "## Found in code body: ");
+                    debug(
+                            innerInfo,
+                            "## Found in code body" +
+                                    (isInvokeDynamic(opcode) ?
+                                            "[Dynamic Invoke]" :
+                                            "") +
+                                    ": "
+                    );
                     collectInnerInvokes(innerInfo, SEARCH_UP_AND_DOWN, filter);
                 }
             }
