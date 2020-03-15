@@ -22,6 +22,7 @@ import agent.server.transform.tools.asm.ProxyTransformMgr;
 
 import java.lang.instrument.ClassFileTransformer;
 import java.lang.instrument.Instrumentation;
+import java.lang.instrument.UnmodifiableClassException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -99,49 +100,55 @@ public class TransformMgr implements ServerListener {
     }
 
     public Set<DestInvoke> searchInvokes(ModuleConfig moduleConfig) {
-        moduleConfig.validate();
-        ClassLoader loader = getLoader(
-                moduleConfig.getContextPath()
-        );
-        ClassCache classCache = new ClassCache();
-        Set<DestInvoke> invokeSet = new HashSet<>();
-        moduleConfig.getTargets().forEach(
-                targetConfig -> ClassSearcher.getInstance().search(
-                        loader,
-                        classCache,
-                        targetConfig.getClassFilter()
-                ).forEach(
-                        clazz -> {
-                            Collection<DestInvoke> invokes = InvokeSearcher.getInstance()
-                                    .search(
-                                            clazz,
-                                            targetConfig.getMethodFilter(),
-                                            targetConfig.getConstructorFilter()
-                                    );
-                            invokeSet.addAll(invokes);
+        long st = System.currentTimeMillis();
+        try {
+            moduleConfig.validate();
+            ClassLoader loader = getLoader(
+                    moduleConfig.getContextPath()
+            );
+            ClassCache classCache = new ClassCache();
+            Set<DestInvoke> invokeSet = new HashSet<>();
+            moduleConfig.getTargets().forEach(
+                    targetConfig -> ClassSearcher.getInstance().search(
+                            loader,
+                            classCache,
+                            targetConfig.getClassFilter()
+                    ).forEach(
+                            clazz -> {
+                                Collection<DestInvoke> invokes = InvokeSearcher.getInstance()
+                                        .search(
+                                                clazz,
+                                                targetConfig.getMethodFilter(),
+                                                targetConfig.getConstructorFilter()
+                                        );
+                                invokeSet.addAll(invokes);
 
-                            Optional.ofNullable(
-                                    targetConfig.getInvokeChainConfig()
-                            ).ifPresent(
-                                    invokeChainConfig -> invokeSet.addAll(
-                                            InvokeChainSearcher.search(
-                                                    loader,
-                                                    classCache,
-                                                    ClassDataRepository.getInstance()::getClassData,
-                                                    invokes,
-                                                    invokeChainConfig
-                                            )
-                                    )
-                            );
-                        }
-                )
-        );
-        logger.debug("====== Found invokes: ");
-        invokeSet.forEach(
-                invoke -> logger.debug("{}", invoke.toString())
-        );
-        logger.debug("==================");
-        return invokeSet;
+                                Optional.ofNullable(
+                                        targetConfig.getInvokeChainConfig()
+                                ).ifPresent(
+                                        invokeChainConfig -> invokeSet.addAll(
+                                                InvokeChainSearcher.search(
+                                                        loader,
+                                                        classCache,
+                                                        ClassDataRepository.getInstance()::getClassData,
+                                                        invokes,
+                                                        invokeChainConfig
+                                                )
+                                        )
+                                );
+                            }
+                    )
+            );
+            logger.debug("====== Found invokes: ");
+            invokeSet.forEach(
+                    invoke -> logger.debug("{}", invoke.toString())
+            );
+            logger.debug("==================");
+            return invokeSet;
+        } finally {
+            long et = System.currentTimeMillis();
+            logger.error("searchTime: {}", (et - st));
+        }
     }
 
     private ConfigTransformer newTransformer(TransformerConfig transformerConfig) {
@@ -157,13 +164,18 @@ public class TransformMgr implements ServerListener {
                                                                     ReTransformClassErrorHandler errorHandler) {
         transformers.forEach(transformer -> instrumentation.addTransformer(transformer, true));
         try {
-            classes.forEach(clazz -> {
-                try {
-                    instrumentation.retransformClasses(clazz);
-                } catch (Throwable t) {
-                    errorHandler.handle(clazz, t);
-                }
-            });
+//            classes.forEach(clazz -> {
+//                try {
+//                    instrumentation.retransformClasses(clazz);
+//                } catch (Throwable t) {
+//                    errorHandler.handle(clazz, t);
+//                }
+//            });
+            try {
+                instrumentation.retransformClasses(classes.toArray(new Class[0]));
+            } catch (UnmodifiableClassException e) {
+                e.printStackTrace();
+            }
         } finally {
             transformers.forEach(instrumentation::removeTransformer);
         }
@@ -177,9 +189,16 @@ public class TransformMgr implements ServerListener {
         TransformResult transformResult = new TransformResult(
                 transformContext.getContext()
         );
+        long t1 = System.currentTimeMillis();
         List<ProxyRegInfo> regInfos = prepareRegInfos(transformContext, transformResult);
+        long t2 = System.currentTimeMillis();
+        logger.error("t1: {}", (t2 - t1));
         List<ProxyResult> proxyResults = compile(regInfos, transformResult);
+        long t3 = System.currentTimeMillis();
+        logger.error("t2: {}", (t3 - t2));
         Map<Class<?>, byte[]> classToData = reTransform(transformResult, proxyResults);
+        long t4 = System.currentTimeMillis();
+        logger.error("t3: {}", (t4 - t3));
         Set<Class<?>> validClassSet = new HashSet<>(
                 classToData.keySet()
         );
@@ -193,6 +212,8 @@ public class TransformMgr implements ServerListener {
                         validClassSet
                 )
         );
+        long t5 = System.currentTimeMillis();
+        logger.error("t4: {}", (t5 - t4));
         return transformResult;
     }
 

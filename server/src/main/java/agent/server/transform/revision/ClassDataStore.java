@@ -33,10 +33,16 @@ public class ClassDataStore {
     }
 
     static void save(Class<?> clazz, byte[] data, final int revisionNum) {
-        save(clazz,
-                data,
-                currClass -> getFile(currClass, revisionNum)
-        );
+        long st = System.currentTimeMillis();
+        try {
+            save(clazz,
+                    data,
+                    currClass -> getFile(currClass, revisionNum)
+            );
+        } finally {
+            long et = System.currentTimeMillis();
+            logger.error("SaveClass: {}", (et - st));
+        }
     }
 
     public static byte[] load(Class<?> clazz, int revisionNum) {

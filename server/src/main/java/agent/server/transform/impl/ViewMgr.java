@@ -73,7 +73,9 @@ public class ViewMgr {
                                     return ((Class<?>) value).getName();
                                 case VIEW_INVOKE:
                                     DestInvoke destInvoke = (DestInvoke) value;
-                                    return InvokeDescriptorUtils.descToText(destInvoke.getName() + destInvoke.getDescriptor(), true);
+                                    return InvokeDescriptorUtils.descToText(
+                                            destInvoke.getName() + destInvoke.getDescriptor()
+                                    );
                                 case VIEW_PROXY:
                                     return filterProxy(
                                             (Integer) value,

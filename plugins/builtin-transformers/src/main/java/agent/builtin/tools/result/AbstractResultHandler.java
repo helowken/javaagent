@@ -3,6 +3,7 @@ package agent.builtin.tools.result;
 import agent.base.utils.FileUtils;
 import agent.base.utils.IOUtils;
 import agent.base.utils.InvokeDescriptorUtils;
+import agent.base.utils.InvokeDescriptorUtils.TextConfig;
 import agent.base.utils.Utils;
 import agent.common.utils.JSONUtils;
 
@@ -79,7 +80,14 @@ abstract class AbstractResultHandler<T> {
     }
 
     String formatInvoke(String method) {
-        return InvokeDescriptorUtils.descToText(method, true);
+        TextConfig config = new TextConfig();
+        config.withReturnType = false;
+        config.withPkg = false;
+        return InvokeDescriptorUtils.descToText(method, config);
+    }
+
+    String formatClassName(String className) {
+        return InvokeDescriptorUtils.getSimpleName(className);
     }
 
     void calculateBytesFile(String dataFilePath, CalculateBytesFunc calculateFunc) {
@@ -120,11 +128,11 @@ abstract class AbstractResultHandler<T> {
     String convertInvoke(Integer parentInvokeId, Map<Integer, InvokeMetadata> idToInvoke, InvokeMetadata metadata) {
         String invoke = formatInvoke(metadata.invoke);
         if (parentInvokeId == null)
-            invoke = metadata.clazz + "# " + invoke;
+            invoke = formatClassName(metadata.clazz) + " # " + invoke;
         else {
             InvokeMetadata parentMetadata = getMetadata(idToInvoke, parentInvokeId);
             if (!parentMetadata.clazz.equals(metadata.clazz))
-                invoke = metadata.clazz + "# " + invoke;
+                invoke = formatClassName(metadata.clazz) + " # " + invoke;
         }
         return invoke;
     }

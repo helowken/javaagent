@@ -151,7 +151,7 @@ public class ProxyTransformMgr {
     public void onBeforeInnerCall(long callNum, String methodName, Object[] args) throws Throwable {
         String[] ts = methodName.split("#");
         System.out.println(
-                "Before Inner Call " + callNum + ": " + ts[0] + " # " + InvokeDescriptorUtils.descToText(ts[1], true) +
+                "Before Inner Call " + callNum + ": " + ts[0] + " # " + InvokeDescriptorUtils.descToText(ts[1]) +
                         Arrays.toString(
                                 args == null ? new Object[0] : args
                         )

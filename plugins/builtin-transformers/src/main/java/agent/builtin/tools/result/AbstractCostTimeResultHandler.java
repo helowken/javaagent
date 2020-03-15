@@ -45,7 +45,7 @@ abstract class AbstractCostTimeResultHandler<T> extends AbstractResultHandler<T>
 //                        item.getMaxTimeString() + "\n" +
 //                        item.getCountString() + "\n" +
 //                        item.getTimeDistributionString(rates) + "\n\n"
-                " [" + item.getAvgTimeString() + ", " + item.getCountString() + "] " + invoke
+                "[" + item.getAvgTimeString() + ", " + item.getCountString() + "] " + invoke
         );
     }
 

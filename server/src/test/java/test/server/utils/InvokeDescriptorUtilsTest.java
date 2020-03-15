@@ -1,5 +1,6 @@
 package test.server.utils;
 
+import agent.base.utils.InvokeDescriptorUtils;
 import org.junit.Test;
 import org.objectweb.asm.Type;
 import test.server.AbstractTest;
@@ -58,16 +59,20 @@ public class InvokeDescriptorUtilsTest extends AbstractTest {
     private void checkConstructorText(Class<?> clazz) throws Exception {
         Constructor constructor = getConstructor(clazz);
         String desc = Type.getConstructorDescriptor(constructor);
+        InvokeDescriptorUtils.TextConfig config = new InvokeDescriptorUtils.TextConfig();
+        config.shortForPkgLang = false;
         assertEquals(
                 constructor.toString().replaceAll(".*\\(", "(").replaceAll(",", ", "),
-                descToText(desc).replaceAll(".* \\(", "(")
+                descToText(desc, config).replaceAll(".* \\(", "(")
         );
     }
 
     private void checkText(String name) throws Exception {
         Method method = getMethod(getClass(), name);
         String desc = Type.getMethodDescriptor(method);
-        String text = descToText(name + desc);
+        InvokeDescriptorUtils.TextConfig config = new InvokeDescriptorUtils.TextConfig();
+        config.shortForPkgLang = false;
+        String text = descToText(name + desc, config);
         assertEquals(
                 method.toString().replace(getClass().getName() + ".", "").replaceAll(",", ", "),
                 "private " + text

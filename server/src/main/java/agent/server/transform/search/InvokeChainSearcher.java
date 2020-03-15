@@ -46,11 +46,17 @@ public class InvokeChainSearcher {
 
     public static Collection<DestInvoke> search(ClassLoader loader, ClassCache classCache, Function<Class<?>, byte[]> classDataFunc,
                                                 Collection<DestInvoke> destInvokes, InvokeChainConfig filterConfig) {
-        return new InvokeChainSearcher(loader, classCache, classDataFunc)
-                .doSearch(
-                        destInvokes,
-                        FilterUtils.newInvokeChainFilter(filterConfig)
-                );
+        long st = System.currentTimeMillis();
+        try {
+            return new InvokeChainSearcher(loader, classCache, classDataFunc)
+                    .doSearch(
+                            destInvokes,
+                            FilterUtils.newInvokeChainFilter(filterConfig)
+                    );
+        } finally {
+            long et = System.currentTimeMillis();
+            logger.error("searchInvokeChain: {}", (et - st));
+        }
     }
 
     private InvokeChainSearcher(ClassLoader loader, ClassCache classCache, Function<Class<?>, byte[]> classDataFunc) {

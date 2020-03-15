@@ -8,7 +8,6 @@ import agent.builtin.transformer.TraceInvokeTransformer;
 import agent.common.config.ConstructorFilterConfig;
 import agent.common.config.InvokeChainConfig;
 import agent.server.transform.search.InvokeChainSearcher;
-import agent.server.transform.tools.asm.AsmUtils;
 import org.junit.Test;
 import test.server.AbstractTest;
 
@@ -69,17 +68,6 @@ public class TraceTest extends AbstractTest {
                     TraceInvokeResultHandler.getInstance().printResult(outputPath);
                 }
         );
-//
-//        System.out.println("================================");
-//        AsmUtils.print(
-//                getClassData(TestFilter3.class),
-//                System.out
-//        );
-//        System.out.println("================================");
-//        AsmUtils.print(
-//                getClassData(ParamObject.class),
-//                System.out
-//        );
     }
 
     public static class TestFilter3 {

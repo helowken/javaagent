@@ -20,7 +20,7 @@ public class CostTimeUtils {
         }
         SystemConfig.load(args[0]);
         String inputPath = args[1];
-        boolean skipAvgEq0 = args.length > 2 && args[2].equals("true");
+        boolean skipAvgEq0 = args.length <= 2 || !args[2].equals("true");
         Set<Float> rates = parseRates(args.length > 3 ? args[3] : null);
         resultBuilder.printResult(inputPath, skipAvgEq0, rates);
     }

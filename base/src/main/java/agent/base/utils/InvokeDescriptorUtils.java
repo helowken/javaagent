@@ -91,10 +91,10 @@ public class InvokeDescriptorUtils {
     }
 
     public static String descToText(String desc) {
-        return descToText(desc, false);
+        return descToText(desc, new TextConfig());
     }
 
-    public static String descToText(String desc, boolean pretty) {
+    public static String descToText(String desc, TextConfig config) {
         int pos = desc.indexOf("(");
         int pos2 = desc.indexOf(")");
         if (pos == -1 || pos2 == -1)
@@ -104,11 +104,14 @@ public class InvokeDescriptorUtils {
             name = desc.substring(0, pos);
 
         StringBuilder sb = new StringBuilder();
-        String returnType = desc.substring(pos2 + 1);
-        sb.append(
-                typeDescToText(returnType, pretty)
-        ).append(" ").append(name);
+        if (config.withReturnType) {
+            String returnType = desc.substring(pos2 + 1);
+            sb.append(
+                    typeDescToText(returnType, config)
+            ).append(" ");
+        }
 
+        sb.append(name);
         sb.append("(");
         String paramTypesDesc = desc.substring(pos + 1, pos2);
         String text;
@@ -120,7 +123,7 @@ public class InvokeDescriptorUtils {
             if (i > 0)
                 sb.append(", ");
             if (descToPrimitiveName.containsKey(typeDesc)) {
-                text = typeDescToText(typeDesc, pretty);
+                text = typeDescToText(typeDesc, config);
                 nextIdx = i + 1;
             } else {
                 if (typeDesc.equals("[")) {
@@ -136,7 +139,7 @@ public class InvokeDescriptorUtils {
                     nextIdx = findEndPosOfClass(paramTypesDesc, i + 1) + 1;
                 text = typeDescToText(
                         paramTypesDesc.substring(i, nextIdx),
-                        pretty
+                        config
                 );
             }
             i = nextIdx;
@@ -153,7 +156,7 @@ public class InvokeDescriptorUtils {
         return end;
     }
 
-    private static String typeDescToText(String typeDesc, boolean pretty) {
+    private static String typeDescToText(String typeDesc, TextConfig config) {
         StringBuilder sb = new StringBuilder();
         int pos = typeDesc.lastIndexOf("[");
         String realTypeDesc = typeDesc;
@@ -167,13 +170,34 @@ public class InvokeDescriptorUtils {
             if (!realTypeDesc.startsWith("L") || !realTypeDesc.endsWith(";"))
                 throw new IllegalArgumentException("Invalid desc: " + typeDesc);
             String className = realTypeDesc.substring(1, realTypeDesc.length() - 1).replaceAll("/", ".");
-            if (pretty && className.startsWith(JAVA_LANG_PACKAGE))
-                className = className.substring(JAVA_LANG_PACKAGE_LENGTH);
+            if (!config.withPkg)
+                className = getSimpleName(className);
+            else if (config.shortForPkgLang)
+                className = shortForPkgLang(className);
             sb.append(className);
         }
         for (int i = 0, len = pos + 1; i < len; ++i) {
             sb.append("[]");
         }
         return sb.toString();
+    }
+
+    public static String shortForPkgLang(String className) {
+        return className.startsWith(JAVA_LANG_PACKAGE) ?
+                className.substring(JAVA_LANG_PACKAGE_LENGTH) :
+                className;
+    }
+
+    public static String getSimpleName(String className) {
+        int lastPos = className.lastIndexOf(".");
+        return lastPos > -1 ?
+                className.substring(lastPos + 1) :
+                className;
+    }
+
+    public static class TextConfig {
+        public boolean shortForPkgLang = true;
+        public boolean withPkg = true;
+        public boolean withReturnType = true;
     }
 }

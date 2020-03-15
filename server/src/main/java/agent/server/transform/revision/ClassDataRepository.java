@@ -23,20 +23,22 @@ public class ClassDataRepository {
     }
 
     public void saveClassData(Map<Class<?>, byte[]> classDataMap) {
-        logger.debug("Save class data: {}", classDataMap);
         classToData.putAll(classDataMap);
     }
 
     public byte[] getClassData(Class<?> clazz) {
         return classToData.computeIfAbsent(clazz, key -> {
             logger.debug("Try to find class data: {}, classLoader: {}", clazz.getName(), clazz.getClassLoader());
-//            try {
-//                InputStream inputStream = ClassLoader.getSystemResourceAsStream(clazz.getName().replace('.', '/') + ".class");
-//                if (inputStream != null)
-//                    return IOUtils.readBytes(inputStream);
-//            } catch (Exception e) {
-//                logger.error("Get data from code source failed: {}", e, clazz.getName());
-//            }
+
+            try {
+                InputStream inputStream = clazz.getResourceAsStream("/" + clazz.getName().replace('.', '/') + ".class");
+                if (inputStream != null)
+                    return IOUtils.readBytes(inputStream);
+                else
+                    logger.debug("No resource found for: {}", clazz.getName());
+            } catch (Exception e) {
+                logger.error("Get data from code source failed: {}", e, clazz.getName());
+            }
 
             try {
                 classDataTransformer.setTargetClass(clazz);
@@ -49,7 +51,6 @@ public class ClassDataRepository {
                 );
                 byte[] data = classDataTransformer.getClassData();
                 if (data != null) {
-                    logger.debug("Found data for class: {}, classLoader: {}", clazz.getName(), clazz.getClassLoader());
                     ClassDataStore.save(clazz, data, ClassDataStore.REVISION_0);
                     return data;
                 }

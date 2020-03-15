@@ -1,6 +1,7 @@
 package agent.builtin.tools.result;
 
 import agent.base.utils.IndentUtils;
+import agent.base.utils.InvokeDescriptorUtils;
 import agent.base.utils.TypeObject;
 import agent.builtin.transformer.utils.TraceItem;
 import agent.common.tree.INode;
@@ -11,9 +12,6 @@ import agent.common.utils.JSONUtils;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
-
-import static agent.base.utils.InvokeDescriptorUtils.JAVA_LANG_PACKAGE;
-import static agent.base.utils.InvokeDescriptorUtils.JAVA_LANG_PACKAGE_LENGTH;
 
 
 public class TraceInvokeResultHandler extends AbstractResultHandler<Collection<Tree<TraceItem>>> implements TraceResultHandler {
@@ -108,10 +106,9 @@ public class TraceInvokeResultHandler extends AbstractResultHandler<Collection<T
         return append(sb, map);
     }
 
-    private String formatClassName(String className) {
-        return className.startsWith(JAVA_LANG_PACKAGE) ?
-                className.substring(JAVA_LANG_PACKAGE_LENGTH) :
-                className;
+    @Override
+    String formatClassName(String className) {
+        return InvokeDescriptorUtils.shortForPkgLang(className);
     }
 
     private void appendClassName(StringBuilder sb, Map<String, Object> rsMap) {

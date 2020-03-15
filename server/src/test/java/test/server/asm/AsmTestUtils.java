@@ -143,15 +143,13 @@ public class AsmTestUtils {
 
     public static String methodToString(Method method) {
         return InvokeDescriptorUtils.descToText(
-                method.getName() + InvokeDescriptorUtils.getDescriptor(method),
-                true
+                method.getName() + InvokeDescriptorUtils.getDescriptor(method)
         );
     }
 
     public static String constructorToString(Constructor constructor) {
         return InvokeDescriptorUtils.descToText(
-                "<init>" + InvokeDescriptorUtils.getDescriptor(constructor),
-                true
+                "<init>" + InvokeDescriptorUtils.getDescriptor(constructor)
         );
     }
 }
