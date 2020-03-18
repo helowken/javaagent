@@ -82,7 +82,7 @@ public abstract class AbstractTest {
             if (files.isEmpty())
                 throw new RuntimeException("No .so file found!");
             JvmtiUtils.getInstance().load(
-                    files.get(0).getAbsolutePath()
+                    files.get(0).getCanonicalPath()
             );
             inited = true;
         }
@@ -123,7 +123,6 @@ public abstract class AbstractTest {
         Set<DestInvoke> invokeSet = TransformMgr.getInstance().searchInvokes(
                 newModuleConfig(context, classToMethodFilter, classToConstructorFilter, null)
         );
-        System.out.println("=========: " + invokeSet);
         TransformMgr.getInstance().registerInvokes(context, invokeSet);
         TransformContext transformContext = new TransformContext(
                 context,
@@ -198,11 +197,11 @@ public abstract class AbstractTest {
         return results.stream()
                 .filter(r -> !r.hasError())
                 .collect(
-                Collectors.toMap(
-                        ProxyResult::getTargetClass,
-                        ProxyResult::getClassData
-                )
-        );
+                        Collectors.toMap(
+                                ProxyResult::getTargetClass,
+                                ProxyResult::getClassData
+                        )
+                );
     }
 
     private static TargetConfig newTargetConfig(Map<Class<?>, String> classToFilter, Function<TargetConfig, FilterConfig> filterConfigSupplier,

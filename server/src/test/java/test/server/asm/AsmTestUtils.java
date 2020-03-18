@@ -67,6 +67,9 @@ public class AsmTestUtils {
         ProxyTransformMgr.getInstance().reg(
                 Collections.singleton(item)
         );
+        ProxyTransformMgr.getInstance().reg(
+                Collections.singleton(item)
+        );
         return AsmTestUtils.newClass(
                 item.getTargetClass().getName(),
                 item.getClassData()

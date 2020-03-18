@@ -22,7 +22,6 @@ import agent.server.transform.tools.asm.ProxyTransformMgr;
 
 import java.lang.instrument.ClassFileTransformer;
 import java.lang.instrument.Instrumentation;
-import java.lang.instrument.UnmodifiableClassException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -164,18 +163,15 @@ public class TransformMgr implements ServerListener {
                                                                     ReTransformClassErrorHandler errorHandler) {
         transformers.forEach(transformer -> instrumentation.addTransformer(transformer, true));
         try {
-//            classes.forEach(clazz -> {
-//                try {
-//                    instrumentation.retransformClasses(clazz);
-//                } catch (Throwable t) {
-//                    errorHandler.handle(clazz, t);
-//                }
-//            });
-            try {
-                instrumentation.retransformClasses(classes.toArray(new Class[0]));
-            } catch (UnmodifiableClassException e) {
-                e.printStackTrace();
-            }
+            classes.forEach(
+                    clazz -> {
+                        try {
+                            instrumentation.retransformClasses(clazz);
+                        } catch (Throwable t) {
+                            errorHandler.handle(clazz, t);
+                        }
+                    }
+            );
         } finally {
             transformers.forEach(instrumentation::removeTransformer);
         }

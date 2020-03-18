@@ -22,7 +22,7 @@ class ProxyCallSite {
     }
 
     private DestInvoke destInvoke;
-    private final Map<ProxyPosition, Queue<ProxyCall>> posToQueue = new HashMap<>();
+    private final Map<ProxyPosition, CallQueue> posToQueue = new HashMap<>();
 
     ProxyCallSite(DestInvoke destInvoke) {
         this.destInvoke = destInvoke;
@@ -33,10 +33,10 @@ class ProxyCallSite {
         Map<String, List<String>> rsMap = new TreeMap<>();
         posToQueue.forEach(
                 (pos, queue) -> {
-                    if (!queue.isEmpty())
+                    if (!queue.calls.isEmpty())
                         rsMap.put(
                                 pos.toString(),
-                                queue.stream()
+                                queue.calls.stream()
                                         .map(ProxyCall::getCallInfo)
                                         .map(ProxyCallInfo::getTag)
                                         .collect(
@@ -58,21 +58,19 @@ class ProxyCallSite {
         ).forEach(
                 pos -> posToQueue.put(
                         pos,
-                        new ConcurrentLinkedQueue<>()
+                        new CallQueue()
                 )
         );
     }
 
     void reg(ProxyPosition pos, Collection<ProxyCallInfo> proxyCallInfos) {
-        Queue<ProxyCall> queue = getQueue(pos);
+        CallQueue queue = getQueue(pos);
         proxyCallInfos.forEach(
-                callInfo -> queue.add(
-                        newProxyCall(pos, callInfo)
-                )
+                callInfo -> queue.add(pos, callInfo)
         );
     }
 
-    private Queue<ProxyCall> getQueue(ProxyPosition pos) {
+    private CallQueue getQueue(ProxyPosition pos) {
         return Optional.ofNullable(
                 posToQueue.get(pos)
         ).orElseThrow(
@@ -80,25 +78,8 @@ class ProxyCallSite {
         );
     }
 
-    private ProxyCall newProxyCall(ProxyPosition pos, ProxyCallInfo callInfo) {
-        Class<?> clazz = Optional.ofNullable(
-                posToProxyClass.get(pos)
-        ).orElseThrow(
-                () -> new IllegalArgumentException("Invalid proxy position: " + pos)
-        );
-        return Utils.wrapToRtError(
-                () -> ReflectionUtils.newInstance(
-                        clazz,
-                        new Class[]{
-                                ProxyCallInfo.class
-                        },
-                        callInfo
-                )
-        );
-    }
-
     private void invoke(ProxyPosition pos, Object instanceOrNull, Object pv) {
-        getQueue(pos).forEach(
+        getQueue(pos).calls.forEach(
                 proxyCall -> proxyCall.run(destInvoke, instanceOrNull, pv)
         );
     }
@@ -115,5 +96,39 @@ class ProxyCallSite {
     void invokeOnThrowing(Object instanceOrNull, Object pv) {
         invoke(ON_THROWING, instanceOrNull, pv);
         invoke(ON_AFTER, instanceOrNull, null);
+    }
+
+    private static class CallQueue {
+        private final Queue<ProxyCall> calls = new ConcurrentLinkedQueue<>();
+        private final Set<String> tags = new HashSet<>();
+
+        private void add(ProxyPosition pos, ProxyCallInfo callInfo) {
+            synchronized (this) {
+                String tag = callInfo.getTag();
+                if (tags.contains(tag))
+                    return;
+                tags.add(tag);
+            }
+            calls.add(
+                    newProxyCall(pos, callInfo)
+            );
+        }
+
+        private ProxyCall newProxyCall(ProxyPosition pos, ProxyCallInfo callInfo) {
+            Class<?> clazz = Optional.ofNullable(
+                    posToProxyClass.get(pos)
+            ).orElseThrow(
+                    () -> new IllegalArgumentException("Invalid proxy position: " + pos)
+            );
+            return Utils.wrapToRtError(
+                    () -> ReflectionUtils.newInstance(
+                            clazz,
+                            new Class[]{
+                                    ProxyCallInfo.class
+                            },
+                            callInfo
+                    )
+            );
+        }
     }
 }

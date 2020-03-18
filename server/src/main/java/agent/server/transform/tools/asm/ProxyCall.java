@@ -6,6 +6,4 @@ interface ProxyCall {
     void run(DestInvoke destInvoke, Object instanceOrNull, Object pv);
 
     ProxyCallInfo getCallInfo();
-
-    ProxyPosition getPosition();
 }

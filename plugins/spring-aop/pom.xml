@@ -20,6 +20,11 @@
 
         <!-- test -->
         <dependency>
+            <groupId>javaagent</groupId>
+            <artifactId>server</artifactId>
+            <type>test-jar</type>
+        </dependency>
+        <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
         </dependency>
@@ -41,5 +46,4 @@
             <artifactId>spring-aop</artifactId>
         </dependency>
     </dependencies>
-
 </project>

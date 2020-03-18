@@ -3,23 +3,33 @@ package agent.base.plugin;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 public abstract class AbstractPlugin implements Plugin {
-    private final Map<Class<?>, Object> clazzToInstance = new HashMap<>();
+    private final Map<Class<?>, Supplier<?>> clazzToInstanceFunc = new HashMap<>();
     private transient Optional<PluginInfo> pluginInfoOpt;
 
     protected <T> void reg(Class<T> clazz, T instance) {
-        clazzToInstance.put(clazz, instance);
+        regFunc(clazz, () -> instance);
+    }
+
+    protected <T> void regFunc(Class<T> clazz, Supplier<T> instanceFunc) {
+        clazzToInstanceFunc.put(clazz, instanceFunc);
     }
 
     @Override
     public boolean contains(Class<?> clazz) {
-        return clazzToInstance.containsKey(clazz);
+        return clazzToInstanceFunc.containsKey(clazz);
     }
 
     @Override
     public <T> T find(Class<T> clazz) {
-        return clazz.cast(clazzToInstance.get(clazz));
+        Supplier<?> supplier = clazzToInstanceFunc.get(clazz);
+        if (supplier == null)
+            throw new RuntimeException("No instance func found: " + clazz);
+        return clazz.cast(
+                supplier.get()
+        );
     }
 
     @Override

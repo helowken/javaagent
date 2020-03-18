@@ -102,13 +102,18 @@ public class InvokeDescriptorUtils {
         String name = "";
         if (pos > 0)
             name = desc.substring(0, pos);
+        String returnType = desc.substring(pos2 + 1);
+        String returnTypeText = null;
+
+        boolean withReturnType = config.withReturnType;
+        if (ReflectionUtils.CONSTRUCTOR_NAME.equals(name))
+            withReturnType = false;
 
         StringBuilder sb = new StringBuilder();
-        if (config.withReturnType) {
-            String returnType = desc.substring(pos2 + 1);
-            sb.append(
-                    typeDescToText(returnType, config)
-            ).append(" ");
+        if (withReturnType) {
+            returnTypeText = typeDescToText(returnType, config);
+            if (!config.returnTypeAtTheEnd)
+                sb.append(returnTypeText).append(" ");
         }
 
         sb.append(name);
@@ -146,6 +151,9 @@ public class InvokeDescriptorUtils {
             sb.append(text);
         }
         sb.append(")");
+        if (withReturnType && config.returnTypeAtTheEnd) {
+            sb.append(":").append(returnTypeText);
+        }
         return sb.toString();
     }
 
@@ -199,5 +207,6 @@ public class InvokeDescriptorUtils {
         public boolean shortForPkgLang = true;
         public boolean withPkg = true;
         public boolean withReturnType = true;
+        public boolean returnTypeAtTheEnd = false;
     }
 }

@@ -1,61 +1,46 @@
 package test.aop;
 
-public class AAATest {
-//    private static final JvmtiUtils jvmtiUtils = JvmtiUtils.getInstance();
-//
-//    static {
-//        jvmtiUtils.load(System.getProperty("user.dir") + "/../../packaging/resources/server/native/libagent_jvmti_JvmtiUtils.so");
-//    }
-//
-//    @Test
-//    public void test() throws Exception {
-//        SystemConfig.load(new File(System.getProperty("usr.dir"), "../../packaging/resources/server/conf/server.conf").getAbsolutePath());
-//
-//        ApplicationContext context = new ClassPathXmlApplicationContext("applicationContext.xml");
-//        AAA aaa = (AAA) context.getBean("aaa");
-//
-//
-////        doTest2(aaa);
-////        doTest();
-////        doTest3("testAAA");
-////        doTest3("testBBB");
-//        doTest4("testAAA");
-//        System.out.println("-------------------");
-//        doTest4("testBBB");
-//        System.out.println("-------------------");
-//        aaa.testAAA();
-//        System.out.println("-------------------");
-//        aaa.testBBB();
-//        System.out.println("-------------------");
-//        doTest4("testAAA");
-//        System.out.println("-------------------");
-//        doTest4("testBBB");
-//
-////        Thread.sleep(1000000);
-//    }
-//
-//    private void doTest4(String methodName) {
-//        MethodInfo methodInfo = new MethodInfo(
-//                AAA.class.getName(),
-//                methodName,
-//                "()V",
-//                Modifier.PUBLIC,
-//                Modifier.PUBLIC,
-//                1
-//        );
-//        new SpringAopBytecodeMethodFinder().findBytecodeMethods(
-//                methodInfo,
-//                Thread.currentThread().getContextClassLoader(),
-//                targetMethodInfo -> Utils.wrapToRtError(() ->
-//                        ReflectionUtils.findFirstMethod(
-//                                targetMethodInfo.className,
-//                                targetMethodInfo.methodName,
-//                                targetMethodInfo.signature
-//                        )
-//                )
-//        ).forEach(System.out::println);
-//    }
-//
+import agent.base.utils.ReflectionUtils;
+import agent.spring.aop.SpringAopInvokeFinder;
+import org.junit.Test;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+import test.server.AbstractTest;
+
+public class AAATest extends AbstractTest {
+
+    @Test
+    public void test() throws Exception {
+        ApplicationContext context = new ClassPathXmlApplicationContext("applicationContext.xml");
+        SpringAopInvokeFinder finder = new SpringAopInvokeFinder();
+        doTest4(finder, "testAAA");
+        System.out.println("-------------------");
+        doTest4(finder, "testBBB");
+        System.out.println("-------------------");
+
+        AAA aaa = (AAA) context.getBean("aaa");
+        doTest4(finder, "testAAA");
+        System.out.println("-------------------");
+        doTest4(finder, "testBBB");
+        System.out.println("-------------------");
+        aaa.testAAA();
+        System.out.println("-------------------");
+        aaa.testBBB();
+        System.out.println("-------------------");
+        doTest4(finder, "testAAA");
+        System.out.println("-------------------");
+        doTest4(finder, "testBBB");
+
+//        Thread.sleep(1000000);
+    }
+
+    private void doTest4(SpringAopInvokeFinder finder, String methodName) throws Exception {
+        finder.findMethods(
+                ReflectionUtils.findFirstMethod(AAA.class, methodName),
+                Thread.currentThread().getContextClassLoader()
+        ).forEach(System.out::println);
+    }
+
 //    private void doTest3(String methodName) throws Exception {
 //        System.out.println("=============: " + methodName);
 //        Method aaaMethod = ReflectionUtils.findFirstMethod(AAA.class, methodName);

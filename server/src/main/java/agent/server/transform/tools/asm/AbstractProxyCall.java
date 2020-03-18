@@ -77,8 +77,4 @@ abstract class AbstractProxyCall implements ProxyCall {
         return callInfo;
     }
 
-    @Override
-    public ProxyPosition getPosition() {
-        return position;
-    }
 }

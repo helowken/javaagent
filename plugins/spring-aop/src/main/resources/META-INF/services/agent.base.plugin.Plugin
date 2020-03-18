@@ -1,1 +1,1 @@
-agent.bytecode.spring.aop.SpringAopBytecodePlugin
+agent.spring.aop.SpringAopPlugin

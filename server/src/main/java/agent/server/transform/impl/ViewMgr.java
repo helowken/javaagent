@@ -1,6 +1,7 @@
 package agent.server.transform.impl;
 
 import agent.base.utils.InvokeDescriptorUtils;
+import agent.base.utils.Utils;
 import agent.server.transform.impl.invoke.DestInvoke;
 import agent.server.transform.search.filter.AgentFilter;
 import agent.server.transform.search.filter.ClassFilter;
@@ -16,6 +17,11 @@ public class ViewMgr {
     public static final int VIEW_CLASS = 1;
     public static final int VIEW_INVOKE = 2;
     public static final int VIEW_PROXY = 3;
+    private static final InvokeDescriptorUtils.TextConfig textConfig = new InvokeDescriptorUtils.TextConfig();
+
+    static {
+        textConfig.returnTypeAtTheEnd = true;
+    }
 
     private static Pattern newPattern(String regExp) {
         return regExp == null ?
@@ -74,7 +80,8 @@ public class ViewMgr {
                                 case VIEW_INVOKE:
                                     DestInvoke destInvoke = (DestInvoke) value;
                                     return InvokeDescriptorUtils.descToText(
-                                            destInvoke.getName() + destInvoke.getDescriptor()
+                                            destInvoke.getName() + destInvoke.getDescriptor(),
+                                            textConfig
                                     );
                                 case VIEW_PROXY:
                                     return filterProxy(
@@ -104,36 +111,38 @@ public class ViewMgr {
                         rsMap.put(pos, rsList);
                 }
         );
-        return rsMap;
+        return Utils.convertEmptyToNull(rsMap);
     }
 
     @SuppressWarnings("unchecked")
     private static Object newValue(int currLevel, final int maxLevel, final Object source, final FilterFunc filterFunc, final DisplayFunc displayFunc) {
         if (source instanceof Map) {
-            Map map = (Map) source;
+            Map<?, ?> map = (Map) source;
             if (currLevel == maxLevel)
-                return map.keySet().stream()
-                        .filter(
-                                key -> filterFunc.accept(currLevel, maxLevel, key)
-                        )
-                        .map(
-                                key -> displayFunc.apply(currLevel, maxLevel, key)
-                        )
-                        .collect(
-                                Collectors.toList()
-                        );
+                return Utils.convertEmptyToNull(
+                        map.keySet().stream()
+                                .filter(
+                                        key -> filterFunc.accept(currLevel, maxLevel, key)
+                                )
+                                .map(
+                                        key -> displayFunc.apply(currLevel, maxLevel, key)
+                                )
+                                .filter(Objects::nonNull)
+                                .sorted()
+                                .collect(
+                                        Collectors.toList()
+                                )
+                );
 
             int nextLevel = currLevel + 1;
             if (nextLevel > maxLevel)
                 throw new RuntimeException("Next level > max level");
-            Map<Object, Object> rsMap = new HashMap<>();
+            Map<Object, Object> rsMap = new TreeMap<>();
             map.forEach(
                     (key, value) -> {
                         if (filterFunc.accept(currLevel, maxLevel, key)) {
                             Object rsValue = newValue(nextLevel, maxLevel, value, filterFunc, displayFunc);
-                            if ((rsValue instanceof Map && !((Map) rsValue).isEmpty()) ||
-                                    (rsValue instanceof Collection && !((Collection) rsValue).isEmpty()) ||
-                                    rsValue != null)
+                            if (rsValue != null)
                                 rsMap.put(
                                         displayFunc.apply(currLevel, maxLevel, key),
                                         rsValue
@@ -141,7 +150,7 @@ public class ViewMgr {
                         }
                     }
             );
-            return rsMap;
+            return Utils.convertEmptyToNull(rsMap);
         }
         return displayFunc.apply(currLevel, maxLevel, source);
     }

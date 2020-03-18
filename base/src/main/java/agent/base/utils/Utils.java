@@ -241,6 +241,14 @@ public class Utils {
         return rs;
     }
 
+    public static <T> T convertEmptyToNull(T o) {
+        if (o instanceof Map)
+            return ((Map) o).isEmpty() ? null : o;
+        if (o instanceof Collection)
+            return ((Collection) o).isEmpty() ? null : o;
+        return o;
+    }
+
     public interface WithValueFunc<T> {
         T run() throws Exception;
     }

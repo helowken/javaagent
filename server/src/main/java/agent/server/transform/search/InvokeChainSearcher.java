@@ -1,10 +1,9 @@
 package agent.server.transform.search;
 
-import agent.base.utils.IndentUtils;
-import agent.base.utils.Logger;
-import agent.base.utils.ReflectionUtils;
-import agent.base.utils.Utils;
+import agent.base.plugin.PluginFactory;
+import agent.base.utils.*;
 import agent.common.config.InvokeChainConfig;
+import agent.server.transform.AopMethodFinder;
 import agent.server.transform.impl.invoke.ConstructorInvoke;
 import agent.server.transform.impl.invoke.DestInvoke;
 import agent.server.transform.impl.invoke.MethodInvoke;
@@ -43,6 +42,7 @@ public class InvokeChainSearcher {
     private final ClassLoader loader;
     private final ClassCache classCache;
     private final Function<Class<?>, ClassNode> classNodeFunc;
+    private final AopMethodFinder aopMethodFinder;
 
     public static Collection<DestInvoke> search(ClassLoader loader, ClassCache classCache, Function<Class<?>, byte[]> classDataFunc,
                                                 Collection<DestInvoke> destInvokes, InvokeChainConfig filterConfig) {
@@ -65,6 +65,7 @@ public class InvokeChainSearcher {
         this.classNodeFunc = clazz -> AsmUtils.newClassNode(
                 classDataFunc.apply(clazz)
         );
+        this.aopMethodFinder = PluginFactory.getInstance().find(AopMethodFinder.class, null, null);
     }
 
     private Collection<DestInvoke> doSearch(Collection<DestInvoke> destInvokes, InvokeChainFilter filter) {
@@ -73,7 +74,7 @@ public class InvokeChainSearcher {
                         () -> collectInnerInvokes(
                                 new InvokeInfo(
                                         destInvoke.getDeclaringClass(),
-                                        getInvokeKey(
+                                        newInvokeKey(
                                                 destInvoke.getName(),
                                                 destInvoke.getDescriptor()
                                         ),
@@ -169,8 +170,35 @@ public class InvokeChainSearcher {
             debug(info, "@ Skip traverse existed method: ");
         else if (info.isAbstractOrNativeOrNotFound())
             debug(info, "@ Skip traverse abstract or native method: ");
-        else
-            traverseInvoke(info, filter);
+        else {
+            DestInvoke invoke = traverseInvoke(info, filter);
+            if (invoke != null)
+                searchAopMethods(info, invoke, filter);
+        }
+    }
+
+    private void searchAopMethods(InvokeInfo info, DestInvoke invoke, InvokeChainFilter filter) throws Exception {
+        if (aopMethodFinder == null)
+            return;
+        Collection<Method> aopMethods = aopMethodFinder.findMethods(
+                (Method) invoke.getInvokeEntity(),
+                loader
+        );
+        if (!aopMethods.isEmpty()) {
+            debug(info, "Start to traverse aop methods: ");
+            for (Method aopMethod : aopMethods) {
+                InvokeInfo aopInfo = new InvokeInfo(
+                        aopMethod.getDeclaringClass(),
+                        newInvokeKey(
+                                aopMethod.getName(),
+                                InvokeDescriptorUtils.getDescriptor(aopMethod)
+                        ),
+                        info.getLevel()
+                );
+                collectInnerInvokes(aopInfo, SEARCH_UP_AND_DOWN, filter);
+            }
+            debug(info, "Finish traversing aop methods.");
+        }
     }
 
     private void searchDownward(InvokeInfo info, InvokeChainFilter filter) throws Exception {
@@ -236,12 +264,14 @@ public class InvokeChainSearcher {
         return findItemByMethod(superClassInfo);
     }
 
-    private void traverseInvoke(InvokeInfo info, InvokeChainFilter filter) throws Exception {
-        debug(info, "=> Start to traverse: ");
-        info.addInvoke();
+    private DestInvoke traverseInvoke(InvokeInfo info, InvokeChainFilter filter) throws Exception {
         MethodNode methodNode = info.getMethodNode();
-        if (methodNode == null)
-            return;
+        if (methodNode == null) {
+            debug(info, "!!! No method node found: ");
+            return null;
+        }
+        debug(info, "=> Start to traverse: ");
+        DestInvoke invoke = info.addInvoke();
         for (AbstractInsnNode node : methodNode.instructions) {
             int opcode = node.getOpcode();
             if (isInvoke(opcode)) {
@@ -258,7 +288,7 @@ public class InvokeChainSearcher {
                     desc = innerInvokeNode.desc;
                     owner = innerInvokeNode.owner;
                 }
-                String innerInvokeKey = getInvokeKey(name, desc);
+                String innerInvokeKey = newInvokeKey(name, desc);
                 Class<?> innerInvokeClass = loadClass(loader, owner);
                 if (innerInvokeClass != null) {
                     InvokeInfo innerInfo = new InvokeInfo(
@@ -279,6 +309,7 @@ public class InvokeChainSearcher {
             }
         }
         debug(info, "<= Finish traversing: ");
+        return invoke;
     }
 
     private Class<?> loadClass(ClassLoader loader, String invokeOwner) {
@@ -301,7 +332,7 @@ public class InvokeChainSearcher {
         }
     }
 
-    private static String getInvokeKey(String name, String desc) {
+    private static String newInvokeKey(String name, String desc) {
         return name + desc;
     }
 
@@ -331,7 +362,7 @@ public class InvokeChainSearcher {
                         clazz.getDeclaredMethods()
                 ).collect(
                         Collectors.toMap(
-                                method -> getInvokeKey(
+                                method -> newInvokeKey(
                                         method.getName(),
                                         getDescriptor(method)
                                 ),
@@ -350,7 +381,7 @@ public class InvokeChainSearcher {
                         clazz.getDeclaredConstructors()
                 ).collect(
                         Collectors.toMap(
-                                constructor -> getInvokeKey(
+                                constructor -> newInvokeKey(
                                         CONSTRUCTOR_NAME,
                                         getDescriptor(constructor)
                                 ),
@@ -383,7 +414,7 @@ public class InvokeChainSearcher {
                                 .stream()
                                 .collect(
                                         Collectors.toMap(
-                                                mn -> getInvokeKey(mn.name, mn.desc),
+                                                mn -> newInvokeKey(mn.name, mn.desc),
                                                 mn -> mn
                                         )
                                 );
@@ -510,13 +541,12 @@ public class InvokeChainSearcher {
             return new InvokeInfo(clazz, invokeKey, level);
         }
 
-        private void addInvoke() {
+        private DestInvoke addInvoke() {
             if (item.invokeMap.containsKey(invokeKey))
                 throw new RuntimeException("Invoke has been added.");
-            item.invokeMap.put(
-                    invokeKey,
-                    getInvoke()
-            );
+            DestInvoke invoke = getInvoke();
+            item.invokeMap.put(invokeKey, invoke);
+            return invoke;
         }
 
         private MethodNode getMethodNode() {

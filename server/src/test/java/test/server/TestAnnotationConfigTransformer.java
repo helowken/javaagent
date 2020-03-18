@@ -39,8 +39,8 @@ public class TestAnnotationConfigTransformer extends AbstractAnnotationConfigTra
         return "TestAnnt";
     }
 
-    @Override
-    protected String newTag(DestInvoke destInvoke, Method anntMethod, int mask, int argsHint) {
-        return anntMethod.toString();
-    }
+//    @Override
+//    protected String newTag(DestInvoke destInvoke, Method anntMethod, int mask, int argsHint) {
+//        return anntMethod.toString();
+//    }
 }

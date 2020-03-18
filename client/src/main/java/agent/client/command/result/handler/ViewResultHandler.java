@@ -16,25 +16,28 @@ public class ViewResultHandler extends AbstractContextResultHandler {
     public void handleSuccess(Command command, ExecResult result) {
         Object content = result.getContent();
         StringBuilder sb = new StringBuilder();
-        printContent(sb, 0, content);
+        if (content != null)
+            printContent(sb, 0, content);
+        else
+            sb.append("No content.");
         String msg = "Result of " + ((ViewCommand) command).getCatalog();
         ClientLogger.logger.info("{}: \n{}", msg, sb.toString());
     }
 
     private void printContent(StringBuilder sb, int level, Object content) {
         String indent = IndentUtils.getIndent(level);
-        if (content instanceof Collection) {
+        if (content instanceof Collection)
             ((Collection) content).forEach(
                     el -> printContent(sb, level, el)
             );
-        } else if (content instanceof Map) {
+        else if (content instanceof Map)
             ((Map) content).forEach(
                     (key, value) -> {
                         sb.append(indent).append(key).append(":\n");
                         printContent(sb, level + 1, value);
                     }
             );
-        } else
+        else if (content != null)
             sb.append(indent).append(content).append("\n");
     }
 }
