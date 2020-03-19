@@ -101,7 +101,7 @@ public class TransformMgr implements ServerListener {
     public Set<DestInvoke> searchInvokes(ModuleConfig moduleConfig) {
         long st = System.currentTimeMillis();
         try {
-            moduleConfig.validate();
+            moduleConfig.validateForSearch();
             ClassLoader loader = getLoader(
                     moduleConfig.getContextPath()
             );

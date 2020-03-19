@@ -129,17 +129,16 @@ public class DestInvokeIdRegistry implements ServerListener, AgentEventListener 
                     if (isStd || outputPathToContexts.containsKey(outputPath)) {
                         String path = outputPath + METADATA_FILE;
                         for (String ctx : outputPathToContexts.get(outputPath)) {
-                            String content = JSONUtils.writeAsString(
-                                    convertMetadata(ctx)
-                            );
-                            if (isStd)
-                                System.out.println(content);
-                            else {
-                                try {
+                            try {
+                                String content = JSONUtils.writeAsString(
+                                        convertMetadata(ctx)
+                                );
+                                if (isStd)
+                                    System.out.println(content);
+                                else
                                     IOUtils.writeString(path, content, false);
-                                } catch (Exception e) {
-                                    logger.error("Write metadata of context " + ctx + " to " + path + " is failed.");
-                                }
+                            } catch (Exception e) {
+                                logger.error("Write metadata of context " + ctx + " to " + path + " is failed.");
                             }
                         }
                         logger.debug("Metadata is flushed for log: {}", outputPath);

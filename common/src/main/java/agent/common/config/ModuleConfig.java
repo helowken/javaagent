@@ -9,8 +9,12 @@ public class ModuleConfig extends AbstractAgentConfig {
     private List<TargetConfig> targets;
 
     public void validate() {
-        validate(contextPath, "Context path");
+        validateForSearch();
         validate(transformers, "Transformer configs");
+    }
+
+    public void validateForSearch() {
+        validate(contextPath, "Context path");
         validate(targets, "Target configs");
     }
 
