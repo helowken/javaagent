@@ -100,15 +100,15 @@ class ProxyCallSite {
 
     private static class CallQueue {
         private final Queue<ProxyCall> calls = new ConcurrentLinkedQueue<>();
-        private final Set<String> tags = new HashSet<>();
+//        private final Set<String> tags = new HashSet<>();
 
         private void add(ProxyPosition pos, ProxyCallInfo callInfo) {
-            synchronized (this) {
-                String tag = callInfo.getTag();
-                if (tags.contains(tag))
-                    return;
-                tags.add(tag);
-            }
+//            synchronized (this) {
+//                String tag = callInfo.getTag();
+//                if (tags.contains(tag))
+//                    return;
+//                tags.add(tag);
+//            }
             calls.add(
                     newProxyCall(pos, callInfo)
             );

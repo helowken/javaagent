@@ -11,15 +11,12 @@ public class CmdExecutorMgr {
     private static final Registry<Integer, CommandExecutor> registry = new Registry<>();
 
     static {
-        CommandExecutor transformCmdExecutor = new TransformCmdExecutor();
-        CommandExecutor testConfigCmdExecutor = new TestConfigCmdExecutor();
 
         registry.reg(CMD_RESET, new ResetCmdExecutor());
-        registry.reg(CMD_TRANSFORM_BY_FILE, transformCmdExecutor);
-        registry.reg(CMD_TRANSFORM, transformCmdExecutor);
+        registry.reg(CMD_TRANSFORM, new TransformCmdExecutor());
         registry.reg(CMD_FLUSH_LOG, new FlushLogCmdExecutor());
         registry.reg(CMD_ECHO, new EchoCmdExecutor());
-        registry.reg(CMD_TEST_CONFIG_BY_FILE, testConfigCmdExecutor);
+        registry.reg(CMD_SEARCH, new SearchCmdExecutor());
         registry.reg(CMD_VIEW, new ViewCmdExecutor());
     }
 

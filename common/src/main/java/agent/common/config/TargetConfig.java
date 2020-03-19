@@ -11,11 +11,6 @@ public class TargetConfig extends AbstractAgentConfig {
     @Override
     public void validate() {
         validate(classFilter, "Class filter");
-        validateAnyNotNull(
-                "No method filter or constructor filter found.",
-                methodFilter,
-                constructorFilter
-        );
         validateIfNotNull(methodFilter);
         validateIfNotNull(constructorFilter);
         validateIfNotNull(invokeChainConfig);

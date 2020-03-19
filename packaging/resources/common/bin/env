@@ -14,7 +14,7 @@ fi
 
 export version=1.0
 export base_dir=$AGENT_HOME/$type
-export common_dir=$base_dir/../common
+export common_dir=$AGENT_HOME/common
 export common_lib_base_dir=$common_dir/lib/base
 export common_lib_core_dir=$common_dir/lib/core
 export common_lib_delegate_dir=$common_dir/lib/delegate

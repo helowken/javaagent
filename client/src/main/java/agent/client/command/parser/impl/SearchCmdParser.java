@@ -2,7 +2,7 @@ package agent.client.command.parser.impl;
 
 import agent.common.message.command.Command;
 
-public class TestConfigCmdParser extends AbstractCmdParser {
+public class SearchCmdParser extends AbstractCmdParser {
 
     @Override
     public Command parse(String[] args) {

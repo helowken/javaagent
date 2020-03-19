@@ -207,6 +207,6 @@ public class InvokeDescriptorUtils {
         public boolean shortForPkgLang = true;
         public boolean withPkg = true;
         public boolean withReturnType = true;
-        public boolean returnTypeAtTheEnd = false;
+        public boolean returnTypeAtTheEnd = true;
     }
 }

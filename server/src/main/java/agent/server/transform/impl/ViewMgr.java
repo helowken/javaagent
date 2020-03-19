@@ -17,11 +17,6 @@ public class ViewMgr {
     public static final int VIEW_CLASS = 1;
     public static final int VIEW_INVOKE = 2;
     public static final int VIEW_PROXY = 3;
-    private static final InvokeDescriptorUtils.TextConfig textConfig = new InvokeDescriptorUtils.TextConfig();
-
-    static {
-        textConfig.returnTypeAtTheEnd = true;
-    }
 
     private static Pattern newPattern(String regExp) {
         return regExp == null ?
@@ -80,8 +75,7 @@ public class ViewMgr {
                                 case VIEW_INVOKE:
                                     DestInvoke destInvoke = (DestInvoke) value;
                                     return InvokeDescriptorUtils.descToText(
-                                            destInvoke.getName() + destInvoke.getDescriptor(),
-                                            textConfig
+                                            destInvoke.getFullName()
                                     );
                                 case VIEW_PROXY:
                                     return filterProxy(

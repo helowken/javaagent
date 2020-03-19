@@ -11,9 +11,10 @@ public class CommandParserMgr {
     static {
         reg(new FlushLogCmdParser());
         reg(new ResetCmdParser());
-        reg(new TransformCmdParser());
+        reg(new TraceCmdParser());
+        reg(new CostTimeCmdParser());
         reg(new EchoCmdParser());
-        reg(new TestConfigCmdParser());
+        reg(new SearchCmdParser());
         reg(new ViewCmdParser());
     }
 
@@ -29,7 +30,6 @@ public class CommandParserMgr {
         } catch (CommandParseException e) {
             throw e;
         } catch (Exception e) {
-            e.printStackTrace();
             throw new CommandParseException(e.getMessage());
         }
     }

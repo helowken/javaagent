@@ -3,25 +3,30 @@ package agent.client.command.result.handler;
 import agent.base.utils.IndentUtils;
 import agent.client.utils.ClientLogger;
 import agent.common.message.command.Command;
-import agent.common.message.command.impl.ViewCommand;
 import agent.common.message.result.ExecResult;
 
 import java.util.Collection;
 import java.util.Map;
 
 @SuppressWarnings("unchecked")
-public class ViewResultHandler extends AbstractContextResultHandler {
+class ViewResultHandler extends AbstractExecResultHandler {
 
     @Override
     public void handleSuccess(Command command, ExecResult result) {
-        Object content = result.getContent();
         StringBuilder sb = new StringBuilder();
+        fillContent(result, sb);
+        ClientLogger.logger.info(
+                "Result: \n{}",
+                sb.toString()
+        );
+    }
+
+    void fillContent(ExecResult result, StringBuilder sb) {
+        Object content = result.getContent();
         if (content != null)
             printContent(sb, 0, content);
         else
             sb.append("No content.");
-        String msg = "Result of " + ((ViewCommand) command).getCatalog();
-        ClientLogger.logger.info("{}: \n{}", msg, sb.toString());
     }
 
     private void printContent(StringBuilder sb, int level, Object content) {

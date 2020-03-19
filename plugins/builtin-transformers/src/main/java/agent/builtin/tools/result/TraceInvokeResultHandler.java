@@ -3,6 +3,7 @@ package agent.builtin.tools.result;
 import agent.base.utils.IndentUtils;
 import agent.base.utils.InvokeDescriptorUtils;
 import agent.base.utils.TypeObject;
+import agent.base.utils.Utils;
 import agent.builtin.transformer.utils.TraceItem;
 import agent.common.tree.INode;
 import agent.common.tree.Node;
@@ -165,9 +166,11 @@ public class TraceInvokeResultHandler extends AbstractResultHandler<Collection<T
                 reader -> {
                     String line;
                     while ((line = reader.readLine()) != null) {
-                        trees.add(
-                                processRow(line)
-                        );
+                        line = line.trim();
+                        if (Utils.isNotBlank(line))
+                            trees.add(
+                                    processRow(line)
+                            );
                     }
                 }
         );

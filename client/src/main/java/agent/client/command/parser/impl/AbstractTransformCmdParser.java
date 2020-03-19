@@ -1,9 +1,6 @@
 package agent.client.command.parser.impl;
 
-import agent.base.utils.Logger;
-import agent.base.utils.ReflectionUtils;
-import agent.base.utils.TypeObject;
-import agent.base.utils.Utils;
+import agent.base.utils.*;
 import agent.common.config.*;
 import agent.common.message.command.Command;
 import agent.common.message.command.impl.TransformCommand;
@@ -16,41 +13,48 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public class TransformCmdParser extends AbstractCmdParser {
-    private static final Logger logger = Logger.getLogger(TransformCmdParser.class);
-    private static final String SEP = ";";
+abstract class AbstractTransformCmdParser extends AbstractCmdParser {
+    private static final Logger logger = Logger.getLogger(AbstractTransformCmdParser.class);
+    private static final String OPTIONS_FILE = "options.txt";
+
+    private static final String SEP = ":";
     private static final String INCLUDE = "+";
     private static final String EXCLUDE = "-";
     private static final int INCLUDE_LEN = INCLUDE.length();
     private static final int EXCLUDE_LEN = EXCLUDE.length();
 
-    private static final String OPT_METHOD = "-m";
-    private static final String OPT_CONSTRUCTOR = "-i";
-    private static final String OPT_CHAIN = "-l";
-    private static final String OPT_CHAIN_CLASS = "-lc";
-    private static final String OPT_CHAIN_METHOD = "-lm";
-    private static final String OPT_CHAIN_CONSTRUCTOR = "-li";
-    private static final String OPT_CHAIN_LEVEL = "-ll";
-    private static final String OPT_OUTPUT = "-o";
+    private static final String OPT_CLASS_FILTER = "-c";
+    private static final String OPT_METHOD_FILTER = "-m";
+    private static final String OPT_CONSTRUCTOR_FILTER = "-i";
+    private static final String OPT_CHAIN_ENABLED = "-l";
+    private static final String OPT_CHAIN_CLASS_FILTER = "-lc";
+    private static final String OPT_CHAIN_METHOD_FILTER = "-lm";
+    private static final String OPT_CHAIN_CONSTRUCTOR_FILTER = "-li";
+    private static final String OPT_CHAIN_MAX_LEVEL = "-ll";
 
-    private static String usageError() {
-        return "Usage: transform contextPath type classFilter [-m methodFilter] [-i constructorFilter] " +
-                "[-l[l chainLevel | c chainClassFilter | m chainMethodFilter | i chainConstructorFilter]] -o outputPath\n" +
-                "        type                                           Transform type.\n" +
-                "                                                           traceInvoke:          Trace information of methods and constructors.\n" +
-                "                                                           costTimeStat:       Calculate time costs of methods and constructors.\n" +
-                "        -c   classFilter                            Filter rules for classes. \n" +
-                "        -m  methodFilter                        Filter rules for methods. \n" +
-                "        -i    constructorFilter                 Filter rules for constructors. \n" +
-                "        -l                                                  Enable chain transformation.\n" +
-                "        -ll   chainLevel                            The max level of chain nested hierarchy. It must be > 0.\n" +
-                "        -lc  chainClassFilter                   Filter rules for classes in chain.\n" +
-                "        -lm chainMethodFilter                Filter rules for methods in chain.\n" +
-                "        -li   chainConstructorFilter        Filter rules for constructors in chain.\n" +
-                "        -o   outputPath                            Absolute file path to save data.\n" +
-                "        Filter rules:                                  '+' or no prefix means inclusion, '-' means exclusion. \n" +
-                "                                                             Multiple items are separated by ';'. \n" +
-                "                                                             Default includes all.\n";
+    private volatile String optionsMsg = null;
+
+    abstract String getTransformerKey();
+
+    private String usageError() {
+        return "\nUsage: " +
+                getCmdName() +
+                " contextPath [-options] outputPath\n" +
+                getOptionsMsg();
+    }
+
+    private String getOptionsMsg() {
+        if (optionsMsg == null) {
+            synchronized (this) {
+                if (optionsMsg == null)
+                    optionsMsg = Utils.wrapToRtError(
+                            () -> IOUtils.readToString(
+                                    Thread.currentThread().getContextClassLoader().getResourceAsStream(OPTIONS_FILE)
+                            )
+                    );
+            }
+        }
+        return optionsMsg;
     }
 
     private RuntimeException newUsageError() {
@@ -109,8 +113,10 @@ public class TransformCmdParser extends AbstractCmdParser {
         if (includes.isEmpty() && excludes.isEmpty())
             return null;
         T config = supplier.get();
-        config.setIncludes(includes);
-        config.setExcludes(excludes);
+        if (!includes.isEmpty())
+            config.setIncludes(includes);
+        if (!excludes.isEmpty())
+            config.setExcludes(excludes);
         return config;
     }
 
@@ -118,8 +124,7 @@ public class TransformCmdParser extends AbstractCmdParser {
     public Command parse(String[] args) {
         int i = 0;
         String contextPath = getArg(args, i++, "context");
-        String type = getArg(args, i++, "type");
-        String classStr = getArg(args, i++, "classFilter");
+        String classStr = null;
         String methodStr = null;
         String constructorStr = null;
         boolean useChain = false;
@@ -127,53 +132,55 @@ public class TransformCmdParser extends AbstractCmdParser {
         String chainMethodStr = null;
         String chainConstructorStr = null;
         int chainLevel = -1;
-        String outputPath = null;
-        for (; i < args.length; ++i) {
+        for (; i < args.length - 1; ++i) {
             switch (args[i]) {
-                case OPT_METHOD:
+                case OPT_CLASS_FILTER:
+                    classStr = getArg(args, ++i, "classFilter");
+                    break;
+                case OPT_METHOD_FILTER:
                     methodStr = getArg(args, ++i, "methodFilter");
                     break;
-                case OPT_CONSTRUCTOR:
+                case OPT_CONSTRUCTOR_FILTER:
                     constructorStr = getArg(args, ++i, "constructorFilter");
                     break;
-                case OPT_CHAIN:
+                case OPT_CHAIN_ENABLED:
                     useChain = true;
                     break;
-                case OPT_CHAIN_CLASS:
+                case OPT_CHAIN_CLASS_FILTER:
                     useChain = true;
                     chainClassStr = getArg(args, ++i, "chainClassFilter");
                     break;
-                case OPT_CHAIN_METHOD:
+                case OPT_CHAIN_METHOD_FILTER:
                     useChain = true;
                     chainMethodStr = getArg(args, ++i, "chainMethodFilter");
                     break;
-                case OPT_CHAIN_CONSTRUCTOR:
+                case OPT_CHAIN_CONSTRUCTOR_FILTER:
                     useChain = true;
                     chainConstructorStr = getArg(args, ++i, "chainConstructorFilter");
                     break;
-                case OPT_CHAIN_LEVEL:
+                case OPT_CHAIN_MAX_LEVEL:
                     useChain = true;
                     chainLevel = Utils.parseInt(
                             getArg(args, ++i, "chainLevel"),
                             "Invoke chain level"
                     );
                     break;
-                case OPT_OUTPUT:
-                    outputPath = getArg(args, ++i, "outputPath");
-                    break;
                 default:
-                    logger.error("Unknown option: {}", args[i]);
+                    logger.error("Unknown option: {}, at index: {}", args[i], i);
                     throw newUsageError();
             }
         }
-        checkNotBlank(contextPath, type, classStr);
+        String outputPath = getArg(args, i, "outputPath");
+        String transformerKey = getTransformerKey();
+
+        checkNotBlank(transformerKey, contextPath, classStr, outputPath);
 
         ModuleConfig moduleConfig = new ModuleConfig();
         moduleConfig.setContextPath(contextPath);
 
         moduleConfig.setTransformers(
                 Collections.singletonList(
-                        createTransformerConfig(type, outputPath)
+                        createTransformerConfig(transformerKey, outputPath)
                 )
         );
 
@@ -187,7 +194,7 @@ public class TransformCmdParser extends AbstractCmdParser {
                 Collections.singletonList(targetConfig)
         );
 
-        logger.debug("{}", JSONUtils.writeAsString(moduleConfig, true));
+//        logger.debug("{}", JSONUtils.writeAsString(moduleConfig, true));
         return new TransformCommand(
                 JSONUtils.convert(
                         moduleConfig,
@@ -250,8 +257,4 @@ public class TransformCmdParser extends AbstractCmdParser {
         return invokeChainConfig;
     }
 
-    @Override
-    public String getCmdName() {
-        return "transform";
-    }
 }

@@ -16,9 +16,10 @@ public class CommandResultHandlerMgr {
     private static final LockObject resultHandlerLock = new LockObject();
 
     static {
-        regResultHandlerClass(CMD_TEST_CONFIG_BY_FILE, new TestConfigResultHandler());
-        regResultHandlerClass(CMD_VIEW, new ViewResultHandler());
-        regResultHandlerClass(CMD_TRANSFORM_BY_FILE, new TransformResultHandler());
+        ViewResultHandler viewResultHandler = new ViewResultHandler();
+
+        regResultHandlerClass(CMD_SEARCH, viewResultHandler);
+        regResultHandlerClass(CMD_VIEW, viewResultHandler);
         regResultHandlerClass(CMD_TRANSFORM, new TransformResultHandler());
         regResultHandlerClass(CMD_RESET, new ResetResultHandler());
     }
