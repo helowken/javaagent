@@ -36,7 +36,7 @@ public class InvokeChainSearcher {
     private static final int SEARCH_DOWNWARD = 2;
     private static final int SEARCH_UP_AND_DOWN = SEARCH_UPWARD | SEARCH_DOWNWARD;
     private static final int FIRST_LEVEL = 0;
-    public static boolean debugEnabled = false;
+    public static boolean debugEnabled = true;
 
     private final Map<Class<?>, ClassItem> itemMap = new HashMap<>();
     private final ClassLoader loader;
@@ -112,7 +112,7 @@ public class InvokeChainSearcher {
                 ) +
                         prefix +
                         info.getInvokeClass().getSimpleName() +
-                        "#" +
+                        " # " +
                         info.getInvokeKey()
         );
     }

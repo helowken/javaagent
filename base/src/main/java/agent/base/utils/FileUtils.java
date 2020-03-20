@@ -9,6 +9,13 @@ import java.util.stream.Collectors;
 
 public class FileUtils {
 
+    public static String getPathByRelativePath(String relativePath) {
+        return new File(
+                System.getProperty("user.dir"),
+                relativePath
+        ).getAbsolutePath();
+    }
+
     public static File getValidFile(String path) throws FileNotFoundException {
         return getValidFile(
                 path,
