@@ -180,10 +180,13 @@ public class InvokeChainSearcher {
     private void searchAopMethods(InvokeInfo info, DestInvoke invoke, InvokeChainFilter filter) throws Exception {
         if (aopMethodFinder == null)
             return;
+        long st = System.currentTimeMillis();
         Collection<Method> aopMethods = aopMethodFinder.findMethods(
                 (Method) invoke.getInvokeEntity(),
                 loader
         );
+        long et = System.currentTimeMillis();
+        logger.error("AopMethods: {}", (et - st));
         if (!aopMethods.isEmpty()) {
             debug(info, "Start to traverse aop methods: ");
             for (Method aopMethod : aopMethods) {
@@ -209,10 +212,13 @@ public class InvokeChainSearcher {
                 return;
             }
             if (result.canBeOverriddenOrNotFound()) {
+                long st = System.currentTimeMillis();
                 Collection<Class<?>> subTypes = classCache.getSubTypes(
                         info.getInvokeClass(),
                         NotInterfaceFilter.getInstance()
                 );
+                long et = System.currentTimeMillis();
+                logger.error("getSubTypes: {}", (et - st));
                 for (Class<?> subType : subTypes) {
                     InvokeInfo subTypeInfo = info.newInfo(subType);
                     debug(subTypeInfo, "$$ Try to find subType of " + info.getInvokeClass().getSimpleName() + ": ");
@@ -409,6 +415,7 @@ public class InvokeChainSearcher {
         MethodNode getMethodNode(String invokeKey) {
             if (methodNodeMap == null) {
                 if (!clazz.isArray()) {
+                    long st = System.currentTimeMillis();
                     try {
                         methodNodeMap = classNodeFunc.apply(clazz).methods
                                 .stream()
@@ -420,6 +427,9 @@ public class InvokeChainSearcher {
                                 );
                     } catch (Exception e) {
                         logger.error("Init method node map failed, invokeKey: {}", e, invokeKey);
+                    } finally {
+                        long et = System.currentTimeMillis();
+                        logger.error("InitMethodNodeMap: {} , {}", (et - st), clazz.getName());
                     }
                 }
                 if (methodNodeMap == null)

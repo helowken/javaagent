@@ -19,6 +19,7 @@ public class AAATest extends AbstractTest {
         System.out.println("-------------------");
 
         AAA aaa = (AAA) context.getBean("aaa");
+        finder = new SpringAopInvokeFinder();
         doTest4(finder, "testAAA");
         System.out.println("-------------------");
         doTest4(finder, "testBBB");
@@ -27,9 +28,14 @@ public class AAATest extends AbstractTest {
         System.out.println("-------------------");
         aaa.testBBB();
         System.out.println("-------------------");
-        doTest4(finder, "testAAA");
-        System.out.println("-------------------");
-        doTest4(finder, "testBBB");
+
+        finder = new SpringAopInvokeFinder();
+        for (int i = 0; i < 3; ++i) {
+            doTest4(finder, "testAAA");
+            System.out.println("-------------------");
+            doTest4(finder, "testBBB");
+            System.out.println("-------------------");
+        }
 
 //        Thread.sleep(1000000);
     }

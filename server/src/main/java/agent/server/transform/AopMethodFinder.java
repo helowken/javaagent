@@ -1,10 +1,8 @@
 package agent.server.transform;
 
-import agent.server.transform.impl.invoke.DestInvoke;
-
 import java.lang.reflect.Method;
-import java.util.Set;
+import java.util.Collection;
 
 public interface AopMethodFinder {
-    Set<Method> findMethods(Method targetMethod, ClassLoader classLoader);
+    Collection<Method> findMethods(Method targetMethod, ClassLoader classLoader);
 }
