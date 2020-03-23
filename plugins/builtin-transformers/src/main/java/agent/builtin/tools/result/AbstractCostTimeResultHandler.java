@@ -3,6 +3,7 @@ package agent.builtin.tools.result;
 import agent.builtin.tools.CostTimeStatItem;
 import agent.common.tree.Node;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -49,7 +50,7 @@ abstract class AbstractCostTimeResultHandler<T> extends AbstractResultHandler<T>
         );
     }
 
-    abstract void printTree(Map<String, Map<String, Integer>> classToInvokeToId, T result, boolean skipAvgEq0, Set<Float> rates);
+    abstract void printTree(List<Map<String, Map<String, Integer>>> classToInvokeToId, T result, boolean skipAvgEq0, Set<Float> rates);
 
     interface CostTimeCalculateFunc {
         void exec(int id, int parentId, int invokeId, int costTime, boolean error);

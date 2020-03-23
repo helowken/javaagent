@@ -20,7 +20,7 @@ public class CostTimeUtils {
             System.exit(-1);
         }
         SystemConfig.load(args[0]);
-        String inputPath = FileUtils.getPathByRelativePath(args[1]);
+        String inputPath = FileUtils.getAbsolutePath(args[1]);
         boolean skipAvgEq0 = args.length <= 2 || args[2].equalsIgnoreCase("true");
         Set<Float> rates = parseRates(args.length > 3 ? args[3] : null);
         resultBuilder.printResult(inputPath, skipAvgEq0, rates);

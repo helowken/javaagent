@@ -9,10 +9,12 @@ import java.util.stream.Collectors;
 
 public class FileUtils {
 
-    public static String getPathByRelativePath(String relativePath) {
+    public static String getAbsolutePath(String path) {
+        if (path.startsWith(File.separator))
+            return path;
         return new File(
                 System.getProperty("user.dir"),
-                relativePath
+                path
         ).getAbsolutePath();
     }
 

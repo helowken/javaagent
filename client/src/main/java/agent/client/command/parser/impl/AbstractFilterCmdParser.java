@@ -22,14 +22,14 @@ abstract class AbstractFilterCmdParser<P extends FilterParams> extends AbstractC
     private static final int INCLUDE_LEN = INCLUDE.length();
     private static final int EXCLUDE_LEN = EXCLUDE.length();
 
-    private static final String OPT_CLASS_FILTER = "-c";
-    private static final String OPT_METHOD_FILTER = "-m";
-    private static final String OPT_CONSTRUCTOR_FILTER = "-i";
-    private static final String OPT_CHAIN_ENABLED = "-l";
-    private static final String OPT_CHAIN_CLASS_FILTER = "-lc";
-    private static final String OPT_CHAIN_METHOD_FILTER = "-lm";
-    private static final String OPT_CHAIN_CONSTRUCTOR_FILTER = "-li";
-    private static final String OPT_CHAIN_MAX_LEVEL = "-ll";
+    protected static final String OPT_CLASS_FILTER = "-c";
+    protected static final String OPT_METHOD_FILTER = "-m";
+    protected static final String OPT_CONSTRUCTOR_FILTER = "-i";
+    protected static final String OPT_CHAIN_ENABLED = "-l";
+    protected static final String OPT_CHAIN_CLASS_FILTER = "-lc";
+    protected static final String OPT_CHAIN_METHOD_FILTER = "-lm";
+    protected static final String OPT_CHAIN_CONSTRUCTOR_FILTER = "-li";
+    protected static final String OPT_CHAIN_MAX_LEVEL = "-ll";
 
     private volatile String optionsMsg = null;
 
@@ -41,8 +41,8 @@ abstract class AbstractFilterCmdParser<P extends FilterParams> extends AbstractC
         return "Usage: " + getCmdName() + " contextPath [-options]";
     }
 
-    private String usageError() {
-        return "\n" + getUsageMsg() + "\n" + getOptionsMsg();
+    private String usageError(String errMsg) {
+        return errMsg + "\n" + getUsageMsg() + "\n" + getOptionsMsg();
     }
 
     private String getOptionsMsg() {
@@ -59,26 +59,21 @@ abstract class AbstractFilterCmdParser<P extends FilterParams> extends AbstractC
         return optionsMsg;
     }
 
-    private RuntimeException newUsageError() {
+    private RuntimeException newUsageError(String errMsg) {
         return new RuntimeException(
-                usageError()
+                usageError(errMsg)
         );
     }
 
-    String getArg(String[] args, int idx, String errMsg) {
+    String getArg(String[] args, int idx, String errField) {
         if (idx < args.length)
             return args[idx];
-        logger.error("{} not found.", errMsg);
-        throw newUsageError();
+        throw newUsageError(errField + " not found.");
     }
 
-    void checkNotBlank(String... vs) {
-        if (vs == null)
-            throw new IllegalArgumentException();
-        for (String v : vs) {
-            if (Utils.isBlank(v))
-                throw newUsageError();
-        }
+    void checkNotBlank(String v, String errField) {
+        if (Utils.isBlank(v))
+            throw newUsageError(errField + " is blank.");
     }
 
     private <T extends FilterConfig> T newFilterConfig(String str, Supplier<T> supplier, Function<String, String> convertFunc) {
@@ -150,7 +145,7 @@ abstract class AbstractFilterCmdParser<P extends FilterParams> extends AbstractC
                     break;
                 default:
                     logger.error("Unknown option: {}, at index: {}", args[i], i);
-                    throw newUsageError();
+                    throw newUsageError("Unknown option: " + args[i]);
             }
         }
         opts.nextIdx = i;

@@ -6,14 +6,13 @@ import agent.base.utils.InvokeDescriptorUtils;
 import agent.base.utils.InvokeDescriptorUtils.TextConfig;
 import agent.base.utils.Utils;
 import agent.common.utils.JSONUtils;
+import agent.server.transform.impl.DestInvokeIdRegistry;
 
 import java.io.*;
 import java.util.*;
 import java.util.concurrent.ForkJoinPool;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import static agent.server.transform.impl.DestInvokeIdRegistry.METADATA_FILE;
 
 abstract class AbstractResultHandler<T> {
     private List<String> findDataFiles(String dataFilePath) throws FileNotFoundException {
@@ -31,7 +30,8 @@ abstract class AbstractResultHandler<T> {
                             String tmpPath = filePath;
                             if (pos > -1)
                                 tmpPath = filePath.substring(0, pos);
-                            return tmpPath.equals(dataFilePath) && !filePath.endsWith(METADATA_FILE);
+                            return tmpPath.equals(dataFilePath) &&
+                                    !DestInvokeIdRegistry.isMetadataFile(filePath);
                         })
                         .collect(Collectors.toList());
             }
@@ -56,23 +56,30 @@ abstract class AbstractResultHandler<T> {
         }
     }
 
-    Map<String, Map<String, Integer>> readMetadata(String inputPath) throws IOException {
-        return JSONUtils.read(
-                IOUtils.readToString(
-                        FileUtils.getValidFile(
-                                inputPath + METADATA_FILE
-                        ).getAbsolutePath()
-                )
-        );
+    List<Map<String, Map<String, Integer>>> readMetadata(String inputPath) throws IOException {
+        String[] metadataPaths = DestInvokeIdRegistry.getMetadataFiles(inputPath);
+        List<Map<String, Map<String, Integer>>> metadataList = new ArrayList<>();
+        for (String path : metadataPaths) {
+            metadataList.add(
+                    JSONUtils.read(
+                            IOUtils.readToString(
+                                    FileUtils.getValidFile(path).getAbsolutePath()
+                            )
+                    )
+            );
+        }
+        return metadataList;
     }
 
-    Map<Integer, InvokeMetadata> convertMetadata(Map<String, Map<String, Integer>> classToInvokeToId) {
+    Map<Integer, InvokeMetadata> convertMetadata(List<Map<String, Map<String, Integer>>> classToInvokeToIdList) {
         Map<Integer, InvokeMetadata> rsMap = new HashMap<>();
-        classToInvokeToId.forEach(
-                (clazz, invokeToId) -> invokeToId.forEach(
-                        (invoke, id) -> rsMap.put(
-                                id,
-                                new InvokeMetadata(clazz, invoke)
+        classToInvokeToIdList.forEach(
+                classToInvokeToId -> classToInvokeToId.forEach(
+                        (clazz, invokeToId) -> invokeToId.forEach(
+                                (invoke, id) -> rsMap.put(
+                                        id,
+                                        new InvokeMetadata(clazz, invoke)
+                                )
                         )
                 )
         );

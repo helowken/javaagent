@@ -1,5 +1,6 @@
 package agent.client.command.parser.impl;
 
+import agent.base.utils.FileUtils;
 import agent.common.config.ModuleConfig;
 import agent.common.config.TransformerConfig;
 import agent.common.message.command.Command;
@@ -24,12 +25,24 @@ abstract class AbstractTransformCmdParser extends AbstractFilterCmdParser<Transf
         int i = 0;
         params.contextPath = getContext(args, i++);
         params.filterOptions = parseOptions(args, i, args.length - 1);
-        params.outputPath = getArg(args, params.filterOptions.nextIdx, OUTPUT_PATH);
+        params.outputPath = FileUtils.getAbsolutePath(
+                getArg(args, params.filterOptions.nextIdx, OUTPUT_PATH)
+        );
         checkNotBlank(
                 getTransformerKey(),
+                "transformerKey"
+        );
+        checkNotBlank(
                 params.contextPath,
+                "contextPath"
+        );
+        checkNotBlank(
                 params.filterOptions.classStr,
-                params.outputPath
+                OPT_CLASS_FILTER
+        );
+        checkNotBlank(
+                params.outputPath,
+                OUTPUT_PATH
         );
         return params;
     }

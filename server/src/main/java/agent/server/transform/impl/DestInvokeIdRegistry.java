@@ -19,18 +19,31 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static agent.server.utils.log.LogConfig.STDOUT;
 
 public class DestInvokeIdRegistry implements ServerListener, AgentEventListener {
-    public static final String UNKNOWN_CONTEXT = "@unknownContext@";
-    public static final String METADATA_FILE = ".metadata";
+    private static final String UNKNOWN_CONTEXT = "@unknownContext@";
+    private static final String METADATA_FILE = ".metadata";
+    private static final String UNKNOWN_CONTEXT_METADATA_FILE = ".metadata_unctx";
     private static final Logger logger = Logger.getLogger(DestInvokeIdRegistry.class);
     private static final DestInvokeIdRegistry instance = new DestInvokeIdRegistry();
 
     private final LockObject lo = new LockObject();
     private final Map<String, Map<Class<?>, Map<DestInvoke, Integer>>> contextToClassToInvokeToId = new HashMap<>();
     private final AtomicInteger idGen = new AtomicInteger(0);
-    private final Map<String, Set<String>> outputPathToContexts = new HashMap<>();
+    private final Map<String, String> outputPathToContext = new HashMap<>();
 
     public static DestInvokeIdRegistry getInstance() {
         return instance;
+    }
+
+    public static boolean isMetadataFile(String path) {
+        return path.endsWith(METADATA_FILE) ||
+                path.endsWith(UNKNOWN_CONTEXT_METADATA_FILE);
+    }
+
+    public static String[] getMetadataFiles(String inputPath) {
+        return new String[]{
+                inputPath + METADATA_FILE,
+                inputPath + UNKNOWN_CONTEXT_METADATA_FILE
+        };
     }
 
     private DestInvokeIdRegistry() {
@@ -71,16 +84,15 @@ public class DestInvokeIdRegistry implements ServerListener, AgentEventListener 
                     throw new RuntimeException("No id found for destInvoke: " + destInvoke);
                 }
         );
-
     }
 
-    public void regOutputPath(String sContext, String outputPath) {
+    void regOutputPath(String sContext, String outputPath) {
         lo.sync(
                 lock -> {
-                    outputPathToContexts.computeIfAbsent(
+                    if (outputPathToContext.containsKey(outputPath))
+                        throw new RuntimeException("Output path is registered: " + outputPath);
+                    outputPathToContext.put(
                             outputPath,
-                            key -> new HashSet<>()
-                    ).add(
                             convertNullToUnknown(sContext)
                     );
                 }
@@ -102,20 +114,21 @@ public class DestInvokeIdRegistry implements ServerListener, AgentEventListener 
         lo.sync(
                 lock -> {
                     if (event.isAllReset()) {
-                        outputPathToContexts.clear();
+                        outputPathToContext.clear();
                         logger.debug("Clear all.");
                     } else {
                         String context = convertNullToUnknown(
                                 event.getContext()
                         );
                         Set<String> delKeys = new HashSet<>();
-                        outputPathToContexts.forEach((outputPath, ctxs) -> {
-                            ctxs.remove(context);
-                            if (ctxs.isEmpty())
-                                delKeys.add(outputPath);
-                        });
-                        delKeys.forEach(outputPathToContexts::remove);
-                        logger.debug("After remove context: {}, outputPathToContexts: {}", context, outputPathToContexts);
+                        outputPathToContext.forEach(
+                                (outputPath, ctx) -> {
+                                    if (Objects.equals(ctx, context))
+                                        delKeys.add(outputPath);
+                                }
+                        );
+                        delKeys.forEach(outputPathToContext::remove);
+                        logger.debug("After remove context: {}, outputPathToContext: {}", context, outputPathToContext);
                     }
                 }
         );
@@ -126,24 +139,34 @@ public class DestInvokeIdRegistry implements ServerListener, AgentEventListener 
         lo.sync(
                 lock -> {
                     boolean isStd = STDOUT.equals(outputPath);
-                    if (isStd || outputPathToContexts.containsKey(outputPath)) {
-                        String path = outputPath + METADATA_FILE;
-                        for (String ctx : outputPathToContexts.get(outputPath)) {
-                            try {
-                                String content = JSONUtils.writeAsString(
-                                        convertMetadata(ctx)
-                                );
-                                if (isStd)
-                                    System.out.println(content);
-                                else
-                                    IOUtils.writeString(path, content, false);
-                            } catch (Exception e) {
-                                logger.error("Write metadata of context " + ctx + " to " + path + " is failed.");
-                            }
-                        }
-                        logger.debug("Metadata is flushed for log: {}", outputPath);
-                        EventListenerMgr.fireEvent(
-                                new DestInvokeMetadataFlushedEvent(path)
+                    if (isStd || outputPathToContext.containsKey(outputPath)) {
+                        Map<String, String> contextToPath = new HashMap<>();
+                        contextToPath.put(
+                                outputPathToContext.get(outputPath),
+                                outputPath + METADATA_FILE
+                        );
+                        contextToPath.put(
+                                UNKNOWN_CONTEXT,
+                                outputPath + UNKNOWN_CONTEXT_METADATA_FILE
+                        );
+                        contextToPath.forEach(
+                                (ctx, path) -> {
+                                    try {
+                                        String content = JSONUtils.writeAsString(
+                                                convertMetadata(ctx)
+                                        );
+                                        if (isStd)
+                                            System.out.println(content);
+                                        else
+                                            IOUtils.writeString(path, content, false);
+                                        logger.debug("Metadata is flushed for log: {}, context: {}", outputPath, ctx);
+                                    } catch (Throwable e) {
+                                        logger.error("Write metadata of context " + ctx + " to " + path + " is failed.");
+                                    }
+                                    EventListenerMgr.fireEvent(
+                                            new DestInvokeMetadataFlushedEvent(path)
+                                    );
+                                }
                         );
                     }
                 }
@@ -153,8 +176,8 @@ public class DestInvokeIdRegistry implements ServerListener, AgentEventListener 
     private Map<Class<?>, Map<DestInvoke, Integer>> getClassToInvokeToId(String context) {
         return Optional.ofNullable(
                 contextToClassToInvokeToId.get(context)
-        ).orElseThrow(
-                () -> new RuntimeException("Invalid context: " + context)
+        ).orElse(
+                Collections.emptyMap()
         );
     }
 
@@ -187,7 +210,7 @@ public class DestInvokeIdRegistry implements ServerListener, AgentEventListener 
         lo.sync(
                 lock -> {
                     contextToClassToInvokeToId.clear();
-                    outputPathToContexts.clear();
+                    outputPathToContext.clear();
                 }
         );
     }

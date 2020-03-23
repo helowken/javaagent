@@ -36,7 +36,7 @@ public class InvokeChainSearcher {
     private static final int SEARCH_DOWNWARD = 2;
     private static final int SEARCH_UP_AND_DOWN = SEARCH_UPWARD | SEARCH_DOWNWARD;
     private static final int FIRST_LEVEL = 0;
-    public static boolean debugEnabled = true;
+    public static boolean debugEnabled = false;
 
     private final Map<Class<?>, ClassItem> itemMap = new HashMap<>();
     private final ClassLoader loader;
@@ -106,15 +106,20 @@ public class InvokeChainSearcher {
     }
 
     private void debug(InvokeInfo info, String prefix) {
-        debug(
-                IndentUtils.getIndent(
-                        info.getLevel()
-                ) +
-                        prefix +
-                        info.getInvokeClass().getSimpleName() +
-                        " # " +
-                        info.getInvokeKey()
-        );
+        try {
+            if (debugEnabled)
+                debug(
+                        IndentUtils.getIndent(
+                                info.getLevel()
+                        ) +
+                                prefix +
+                                info.getInvokeClass().getName() +
+                                " # " +
+                                info.getInvokeKey()
+                );
+        } catch (Throwable t) {
+            logger.error("Debug failed.", t);
+        }
     }
 
     private ClassItem getItem(Class<?> clazz) {

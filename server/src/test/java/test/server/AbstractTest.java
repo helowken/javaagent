@@ -32,6 +32,7 @@ import java.nio.file.Path;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static agent.server.transform.TransformContext.ACTION_MODIFY;
 import static org.junit.Assert.assertFalse;
@@ -292,7 +293,10 @@ public abstract class AbstractTest {
             runFileFunc.run(outputPath, config);
         } finally {
             Files.delete(path);
-            new File(outputPath + DestInvokeIdRegistry.METADATA_FILE).delete();
+            Stream.of(
+                    DestInvokeIdRegistry.getMetadataFiles(outputPath)
+            ).map(File::new)
+                    .forEach(File::delete);
         }
     }
 

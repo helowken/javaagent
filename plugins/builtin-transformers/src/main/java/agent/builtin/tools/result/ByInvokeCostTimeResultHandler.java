@@ -10,25 +10,29 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class ByInvokeCostTimeResultHandler extends AbstractCostTimeResultHandler<Map<Integer, CostTimeStatItem>> {
     @Override
-    void printTree(Map<String, Map<String, Integer>> classToInvokeToId, Map<Integer, CostTimeStatItem> result, boolean skipAvgEq0, Set<Float> rates) {
+    void printTree(List<Map<String, Map<String, Integer>>> classToInvokeToIdList, Map<Integer, CostTimeStatItem> result, boolean skipAvgEq0, Set<Float> rates) {
         Tree<String> tree = new Tree<>();
-        classToInvokeToId.forEach((className, invokeToId) -> {
-            Map<String, CostTimeStatItem> invokeToItem = newInvokeToItem(result, invokeToId, skipAvgEq0);
-            if (!invokeToItem.isEmpty()) {
-                Node<String> classNode = tree.appendChild(
-                        new Node<>("Class: " + className)
-                );
-                invokeToItem.forEach(
-                        (destInvoke, item) -> classNode.appendChild(
-                                newInvokeNode(
-                                        formatInvoke(destInvoke),
-                                        item,
-                                        rates
-                                )
-                        )
-                );
-            }
-        });
+        classToInvokeToIdList.forEach(
+                classToInvokeToId -> classToInvokeToId.forEach(
+                        (className, invokeToId) -> {
+                            Map<String, CostTimeStatItem> invokeToItem = newInvokeToItem(result, invokeToId, skipAvgEq0);
+                            if (!invokeToItem.isEmpty()) {
+                                Node<String> classNode = tree.appendChild(
+                                        new Node<>("Class: " + className)
+                                );
+                                invokeToItem.forEach(
+                                        (destInvoke, item) -> classNode.appendChild(
+                                                newInvokeNode(
+                                                        formatInvoke(destInvoke),
+                                                        item,
+                                                        rates
+                                                )
+                                        )
+                                );
+                            }
+                        }
+                )
+        );
 
         TreeUtils.printTree(
                 tree,

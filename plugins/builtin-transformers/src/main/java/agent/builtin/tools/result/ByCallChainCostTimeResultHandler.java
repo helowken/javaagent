@@ -12,7 +12,7 @@ import static agent.builtin.tools.result.ByCallChainCostTimeResultHandler.NodeDa
 
 public class ByCallChainCostTimeResultHandler extends AbstractCostTimeResultHandler<Tree<NodeData>> {
     @Override
-    void printTree(Map<String, Map<String, Integer>> classToInvokeToId, Tree<NodeData> tree, boolean skipAvgEq0, Set<Float> rates) {
+    void printTree(List<Map<String, Map<String, Integer>>> classToInvokeToId, Tree<NodeData> tree, boolean skipAvgEq0, Set<Float> rates) {
         Map<Integer, InvokeMetadata> idToInvoke = convertMetadata(classToInvokeToId);
         TreeUtils.printTree(
                 convertTree(tree, idToInvoke, skipAvgEq0, rates),
