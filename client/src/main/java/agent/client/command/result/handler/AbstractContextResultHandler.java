@@ -29,7 +29,7 @@ abstract class AbstractContextResultHandler extends AbstractExecResultHandler {
                 func.write(sb, valueObject);
             });
         }
-        ClientLogger.logger.info("{}: \n{}", msg, sb.toString());
+        ClientLogger.info(msg + ":\n" + sb.toString());
     }
 
     protected interface WriteFunc<T> {

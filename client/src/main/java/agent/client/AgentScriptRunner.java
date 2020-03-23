@@ -2,6 +2,7 @@ package agent.client;
 
 import agent.base.utils.IOUtils;
 import agent.base.utils.Utils;
+import agent.client.utils.ClientLogger;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -13,11 +14,11 @@ public class AgentScriptRunner extends AbstractClientRunner {
     @Override
     public void startup(Object... args) throws Exception {
         String filePath = Utils.getArgValue(args, 0);
-        getClientLogger().info("Execute script file: {}", new File(filePath).getCanonicalPath());
+        ClientLogger.info("Execute script file: " + new File(filePath).getCanonicalPath());
         try {
             reader = new BufferedReader(new FileReader(filePath));
         } catch (Exception e) {
-            getClientLogger().error("Failed. Error Cause: " + e.getMessage());
+            ClientLogger.error("Failed. Error Cause: " + e.getMessage());
             return;
         }
         connectTo();
@@ -38,7 +39,7 @@ public class AgentScriptRunner extends AbstractClientRunner {
                     if (line == null)
                         IOUtils.close(reader);
                     else
-                        getClientLogger().info("{}", line);
+                        ClientLogger.info(line);
                     return line;
                 }
         );

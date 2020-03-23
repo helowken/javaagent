@@ -15,13 +15,12 @@ class ViewResultHandler extends AbstractExecResultHandler {
     public void handleSuccess(Command command, ExecResult result) {
         StringBuilder sb = new StringBuilder();
         fillContent(result, sb);
-        ClientLogger.logger.info(
-                "Result: \n{}",
-                sb.toString()
+        ClientLogger.info(
+                "Result: \n" + sb.toString()
         );
     }
 
-    void fillContent(ExecResult result, StringBuilder sb) {
+    private void fillContent(ExecResult result, StringBuilder sb) {
         Object content = result.getContent();
         if (content != null)
             printContent(sb, 0, content);

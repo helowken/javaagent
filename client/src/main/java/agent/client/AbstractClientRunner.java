@@ -58,7 +58,7 @@ abstract class AbstractClientRunner implements Runner {
         int port = SystemConfig.getInt(KEY_PORT);
         try (Socket socket = new Socket()) {
             socket.connect(new InetSocketAddress(host, port));
-            getClientLogger().info("Agent Server connected.");
+            ClientLogger.info("Agent Server connected.");
             try (MessageIO io = MessageIO.create(socket)) {
                 while (true) {
                     try {
@@ -69,10 +69,10 @@ abstract class AbstractClientRunner implements Runner {
                             return true;
                         sendAndReceive(io, cmdItem.cmd);
                     } catch (CommandParseException e) {
-                        getClientLogger().error(e.getMessage());
+                        ClientLogger.error(e.getMessage());
                     } catch (Exception e) {
                         if (MessageIO.isNetworkException(e))
-                            getClientLogger().error("Disconnected from Agent Server.");
+                            ClientLogger.error("Disconnected from Agent Server.");
                         else {
                             logError("Error occurred.", e);
                         }
@@ -88,9 +88,8 @@ abstract class AbstractClientRunner implements Runner {
 
     private void logError(String msg, Exception e) {
         logger.error(msg, e);
-        getClientLogger().error(
-                msg,
-                "\n" + Utils.getMergedErrorMessage(e)
+        ClientLogger.error(
+                msg + "\n" + Utils.getMergedErrorMessage(e)
         );
     }
 
@@ -98,10 +97,6 @@ abstract class AbstractClientRunner implements Runner {
         io.send(cmd);
         ExecResult result = MessageMgr.parseResult(io.receive());
         CommandResultHandlerMgr.handleResult(cmd, result);
-    }
-
-    Logger getClientLogger() {
-        return ClientLogger.logger;
     }
 
     static class CmdItem {

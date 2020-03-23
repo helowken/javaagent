@@ -7,6 +7,7 @@ import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Map;
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static agent.base.utils.Logger.LoggerLevel.*;
@@ -19,19 +20,46 @@ public class Logger {
     private static final String PREFIX_FORMAT = "[{0}] [{1}] [Agent] <{2}> ";
     private static final String PLACE_HOLDER = "{}";
     private static final int PLACE_HOLDER_LEN = PLACE_HOLDER.length();
-    private static final LockObject streamLock = new LockObject();
-    private static final LockObject levelLock = new LockObject();
-    private static volatile PrintStream outputStream;
-    private static volatile LoggerLevel defaultLevel = DEBUG;
+    private static final LockObject lo = new LockObject();
+    private static PrintStream outputStream;
+    private static volatile LoggerLevel level = DEBUG;
     private static final Map<String, String> patternToFormat = new ConcurrentHashMap<>();
+    private static final DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+    private static final Date date = new Date();
+    private static final ArrayBlockingQueue<LogItem> itemQueue = new ArrayBlockingQueue<>(10000);
+    private static Thread logThread;
+    private static volatile boolean shutdown = false;
 
-    private final LockObject selfLock = new LockObject();
     private final Class<?> clazz;
-    private final DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
-    private final Date date = new Date();
-    private String selfPrefix = null;
-    private LoggerLevel selfLevel = null;
-    private PrintStream selfStream = null;
+
+    static {
+        logThread = new Thread(Logger::asyncWrite);
+        logThread.setDaemon(true);
+        logThread.start();
+        Runtime.getRuntime().addShutdownHook(
+                new Thread(
+                        () -> {
+                            shutdown = true;
+                            logThread.interrupt();
+                        }
+                )
+        );
+    }
+
+    private static void asyncWrite() {
+        while (!shutdown) {
+            try {
+                write(
+                        itemQueue.take()
+                );
+            } catch (InterruptedException e) {
+            } catch (Throwable t) {
+                t.printStackTrace(
+                        getOutputStream()
+                );
+            }
+        }
+    }
 
     public static Logger getLogger(Class<?> clazz) {
         return new Logger(clazz);
@@ -42,45 +70,31 @@ public class Logger {
     }
 
     public static void setOutputFile(String outputPath) {
-        if (outputStream == null) {
-            streamLock.sync(lock -> {
-                if (outputStream == null) {
-                    FileUtils.mkdirsByFile(outputPath);
-                    outputStream = new PrintStream(new FileOutputStream(outputPath, true));
-                }
-            });
-        }
+        lo.sync(lock -> {
+            if (outputStream == null) {
+                FileUtils.mkdirsByFile(outputPath);
+                outputStream = new PrintStream(new FileOutputStream(outputPath, true));
+            }
+        });
     }
 
-    public static void setDefaultLevel(LoggerLevel newLevel) {
-        levelLock.sync(lock -> defaultLevel = newLevel);
-    }
-
-    public void setLevel(LoggerLevel newLevel) {
-        selfLock.sync(lock -> selfLevel = newLevel);
-    }
-
-    public void setPrefix(String prefix) {
-        selfLock.sync(lock -> selfPrefix = prefix);
-    }
-
-    public void setStream(PrintStream stream) {
-        selfLock.sync(lock -> selfStream = stream);
+    public static void setLevel(LoggerLevel newLevel) {
+        level = newLevel;
     }
 
     public void info(String pattern, Object... pvs) {
         if (needToLog(INFO))
-            println(getPrefix(PREFIX_INFO) + formatMsg(pattern, pvs));
+            println(PREFIX_INFO, pattern, null, pvs);
     }
 
     public void debug(String pattern, Object... pvs) {
         if (needToLog(DEBUG))
-            println(getPrefix(PREFIX_DEBUG) + formatMsg(pattern, pvs));
+            println(PREFIX_DEBUG, pattern, null, pvs);
     }
 
     public void warn(String pattern, Object... pvs) {
         if (needToLog(WARN))
-            println(getPrefix(PREFIX_WARN) + formatMsg(pattern, pvs));
+            println(PREFIX_WARN, pattern, null, pvs);
     }
 
     public void error(String pattern, Object... pvs) {
@@ -88,17 +102,12 @@ public class Logger {
     }
 
     public void error(String pattern, Throwable t, Object... pvs) {
-        if (needToLog(ERROR)) {
-            String s = getPrefix(PREFIX_ERROR) + formatMsg(pattern, pvs);
-            if (t != null)
-                s += "\n" + Utils.getErrorStackStrace(t);
-            println(s);
-        }
+        if (needToLog(ERROR))
+            println(PREFIX_ERROR, pattern, t, pvs);
     }
 
     private boolean needToLog(LoggerLevel reqLevel) {
-        return selfLock.syncValue(lock -> selfLevel != null && reqLevel.value >= selfLevel.value)
-                || levelLock.syncValue(lock -> reqLevel.value >= defaultLevel.value);
+        return reqLevel.value >= level.value;
     }
 
     private static String formatMsg(String pattern, Object... pvs) {
@@ -126,24 +135,26 @@ public class Logger {
         );
     }
 
-    private void println(String s) {
+    private void println(String prefix, String pattern, Throwable t, Object... pvs) {
+        itemQueue.add(
+                new LogItem(clazz, prefix, pattern, t, pvs)
+        );
+    }
+
+    private static void write(LogItem item) {
+        String s = getPrefix(item) + formatMsg(item.pattern, item.pvs);
+        if (item.error != null)
+            s += "\n" + Utils.getErrorStackStrace(item.error);
         getOutputStream().println(s);
     }
 
-    private PrintStream getOutputStream() {
-        PrintStream out = selfLock.syncValue(lock -> selfStream);
-        if (out == null)
-            out = streamLock.syncValue(lock -> outputStream);
-        return out == null ? System.out : out;
+    private static PrintStream getOutputStream() {
+        return outputStream == null ? System.out : outputStream;
     }
 
-    private String getPrefix(String levelPrefix) {
-        return selfLock.syncValue(lock -> {
-            if (selfPrefix != null)
-                return selfPrefix;
-            date.setTime(System.currentTimeMillis());
-            return MessageFormat.format(PREFIX_FORMAT, df.format(date), levelPrefix, clazz.getName());
-        });
+    private static String getPrefix(LogItem item) {
+        date.setTime(System.currentTimeMillis());
+        return MessageFormat.format(PREFIX_FORMAT, df.format(date), item.prefix, item.clazz.getName());
     }
 
     public enum LoggerLevel {
@@ -155,4 +166,21 @@ public class Logger {
             this.value = value;
         }
     }
+
+    private static class LogItem {
+        final Class<?> clazz;
+        final String prefix;
+        final String pattern;
+        final Throwable error;
+        final Object[] pvs;
+
+        private LogItem(Class<?> clazz, String prefix, String pattern, Throwable error, Object[] pvs) {
+            this.clazz = clazz;
+            this.prefix = prefix;
+            this.pattern = pattern;
+            this.error = error;
+            this.pvs = pvs;
+        }
+    }
+
 }

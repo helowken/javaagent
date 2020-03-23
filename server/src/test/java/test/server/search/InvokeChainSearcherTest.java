@@ -23,6 +23,8 @@ public class InvokeChainSearcherTest extends AbstractTest {
 
     static {
         InvokeChainSearcher.debugEnabled = debugEnabled;
+        new Invoker();
+        new Invoker2();
     }
 
     @Test

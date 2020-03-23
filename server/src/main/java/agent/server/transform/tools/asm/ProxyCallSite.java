@@ -5,9 +5,9 @@ import agent.base.utils.Utils;
 import agent.server.transform.impl.invoke.DestInvoke;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static agent.server.transform.tools.asm.ProxyPosition.*;
 
@@ -22,11 +22,10 @@ class ProxyCallSite {
     }
 
     private DestInvoke destInvoke;
-    private final Map<ProxyPosition, CallQueue> posToQueue = new HashMap<>();
+    private final Map<ProxyPosition, CallQueue> posToQueue = new ConcurrentHashMap<>();
 
     ProxyCallSite(DestInvoke destInvoke) {
         this.destInvoke = destInvoke;
-        this.init();
     }
 
     Map<String, List<String>> getPosToDisplayStrings() {
@@ -52,17 +51,6 @@ class ProxyCallSite {
         return destInvoke;
     }
 
-    private void init() {
-        Stream.of(
-                ProxyPosition.values()
-        ).forEach(
-                pos -> posToQueue.put(
-                        pos,
-                        new CallQueue()
-                )
-        );
-    }
-
     void reg(ProxyPosition pos, Collection<ProxyCallInfo> proxyCallInfos) {
         CallQueue queue = getQueue(pos);
         proxyCallInfos.forEach(
@@ -71,10 +59,9 @@ class ProxyCallSite {
     }
 
     private CallQueue getQueue(ProxyPosition pos) {
-        return Optional.ofNullable(
-                posToQueue.get(pos)
-        ).orElseThrow(
-                () -> new IllegalArgumentException("Invalid proxy position: " + pos)
+        return posToQueue.computeIfAbsent(
+                pos,
+                key -> new CallQueue()
         );
     }
 

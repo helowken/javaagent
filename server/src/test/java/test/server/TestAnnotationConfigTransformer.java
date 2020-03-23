@@ -9,6 +9,7 @@ import java.util.Collections;
 import java.util.Set;
 
 public class TestAnnotationConfigTransformer extends AbstractAnnotationConfigTransformer {
+    public static final String REG_KEY = "TestAnnt";
     private final Object instance;
     private final Set<Class<?>> anntClasses;
 
@@ -36,7 +37,7 @@ public class TestAnnotationConfigTransformer extends AbstractAnnotationConfigTra
 
     @Override
     public String getRegKey() {
-        return "TestAnnt";
+        return REG_KEY;
     }
 
 //    @Override

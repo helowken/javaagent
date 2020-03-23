@@ -1,6 +1,7 @@
 package agent.client;
 
 import agent.base.utils.Utils;
+import agent.client.utils.ClientLogger;
 
 public class AgentCmdRunner extends AbstractClientRunner {
     private String cmdLine;
@@ -8,7 +9,7 @@ public class AgentCmdRunner extends AbstractClientRunner {
     @Override
     public void startup(Object... args) {
         cmdLine = Utils.getArgValue(args, 0);
-        getClientLogger().info("{}", cmdLine);
+        ClientLogger.info(cmdLine);
         connectTo();
     }
 

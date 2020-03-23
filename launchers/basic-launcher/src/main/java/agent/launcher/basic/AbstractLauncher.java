@@ -42,8 +42,9 @@ public abstract class AbstractLauncher {
                             outputPath
                     ).getAbsolutePath();
             Logger.setOutputFile(path);
-        } else if (level != null)
-            Logger.setDefaultLevel(LoggerLevel.valueOf(level));
+        }
+        if (level != null)
+            Logger.setLevel(LoggerLevel.valueOf(level));
     }
 
     protected void startRunner(String runnerType, Object... args) {

@@ -23,20 +23,20 @@ public abstract class AbstractExecResultHandler implements ExecResultHandler {
         }
     }
 
-    private void handleFatal(Command command, ExecResult result) throws Exception {
+    private void handleFatal(Command command, ExecResult result) {
         String message = result.getMessage();
         logger.error("{} failed! Error: {}", command.getClass().getName(), message);
-        ClientLogger.logger.error("Failed: {}", message);
+        ClientLogger.error("Failed: " + message);
     }
 
     protected void handleFail(Command command, ExecResult result) throws Exception {
     }
 
-    protected void handleSuccess(Command command, ExecResult result) throws Exception {
+    protected void handleSuccess(Command command, ExecResult result) {
         String message = result.getMessage();
         if (message == null)
             message = "success.";
         logger.debug("{}: {}", command.getClass().getName(), message);
-        ClientLogger.logger.info(message);
+        ClientLogger.info(message);
     }
 }

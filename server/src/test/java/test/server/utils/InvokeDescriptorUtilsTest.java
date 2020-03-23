@@ -61,6 +61,7 @@ public class InvokeDescriptorUtilsTest extends AbstractTest {
         String desc = Type.getConstructorDescriptor(constructor);
         InvokeDescriptorUtils.TextConfig config = new InvokeDescriptorUtils.TextConfig();
         config.shortForPkgLang = false;
+        config.withReturnType = false;
         assertEquals(
                 constructor.toString().replaceAll(".*\\(", "(").replaceAll(",", ", "),
                 descToText(desc, config).replaceAll(".* \\(", "(")
@@ -72,6 +73,7 @@ public class InvokeDescriptorUtilsTest extends AbstractTest {
         String desc = Type.getMethodDescriptor(method);
         InvokeDescriptorUtils.TextConfig config = new InvokeDescriptorUtils.TextConfig();
         config.shortForPkgLang = false;
+        config.returnTypeAtTheEnd = false;
         String text = descToText(name + desc, config);
         assertEquals(
                 method.toString().replace(getClass().getName() + ".", "").replaceAll(",", ", "),

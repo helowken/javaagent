@@ -1,12 +1,8 @@
 package test.server.transform;
 
-import agent.base.utils.ReflectionUtils;
-import agent.base.utils.Utils;
-import agent.server.transform.impl.DestInvokeIdRegistry;
 import agent.server.transform.impl.ViewMgr;
-import org.junit.BeforeClass;
 import org.junit.Test;
-import test.server.TestProxy;
+import test.server.TestAnnotationConfigTransformer;
 import test.server.asm.AsmTestUtils;
 
 import java.util.*;
@@ -141,10 +137,13 @@ public class ViewMgrTest extends AbstractViewTest {
                         Collectors.toMap(
                                 key -> key,
                                 key -> Collections.singletonList(
-                                        Utils.wrapToRtError(
-                                                () -> ReflectionUtils.findFirstMethod(TestProxy.class, key).toString()
-                                        )
+                                        TestAnnotationConfigTransformer.REG_KEY
                                 )
+//                                key -> Collections.singletonList(
+//                                        Utils.wrapToRtError(
+//                                                () -> ReflectionUtils.findFirstMethod(TestProxy.class, key).toString()
+//                                        )
+//                                )
                         )
                 )
         );
