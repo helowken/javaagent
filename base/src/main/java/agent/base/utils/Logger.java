@@ -136,9 +136,13 @@ public class Logger {
     }
 
     private void println(String prefix, String pattern, Throwable t, Object... pvs) {
-        itemQueue.add(
-                new LogItem(clazz, prefix, pattern, t, pvs)
-        );
+        try {
+            itemQueue.put(
+                    new LogItem(clazz, prefix, pattern, t, pvs)
+            );
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     private static void write(LogItem item) {

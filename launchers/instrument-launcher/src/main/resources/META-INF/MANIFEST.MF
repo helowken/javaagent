@@ -1,0 +1,4 @@
+Premain-Class: agent.launcher.instrument.InstrumentSupplyLauncher
+Agent-Class: agent.launcher.instrument.InstrumentSupplyLauncher
+Can-Redefine-Classes: true
+Can-Retransform-Classes: true

@@ -2,6 +2,7 @@ package agent.server.transform.search;
 
 import agent.base.utils.Logger;
 import agent.base.utils.ReflectionUtils;
+import agent.server.transform.InstrumentationMgr;
 import agent.server.transform.TransformMgr;
 import agent.server.transform.search.filter.ClassFilter;
 
@@ -32,7 +33,7 @@ public class ClassCache {
             synchronized (this) {
                 if (loadedClasses == null)
                     loadedClasses = Arrays.stream(
-                            TransformMgr.getInstance().getAllLoadedClasses()
+                            InstrumentationMgr.getInstance().getAllLoadedClasses()
                     )
                             .filter(
                                     clazz -> !isNativePackage(

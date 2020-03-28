@@ -2,17 +2,16 @@ package agent.server.transform.revision;
 
 import agent.base.utils.IOUtils;
 import agent.base.utils.Logger;
-import agent.server.transform.TransformMgr;
+import agent.server.transform.InstrumentationMgr;
+import agent.server.transform.InstrumentationMgr.RetransformItem;
 
 import java.io.InputStream;
-import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class ClassDataRepository {
     private static final Logger logger = Logger.getLogger(ClassDataRepository.class);
     private static final ClassDataRepository instance = new ClassDataRepository();
-    private static final GetClassDataTransformer classDataTransformer = new GetClassDataTransformer();
     private Map<Class<?>, byte[]> classToData = new ConcurrentHashMap<>();
 
     public static ClassDataRepository getInstance() {
@@ -26,39 +25,66 @@ public class ClassDataRepository {
         classToData.putAll(classDataMap);
     }
 
-    public byte[] getClassData(Class<?> clazz) {
-        return classToData.computeIfAbsent(clazz, key -> {
-            logger.debug("Try to find class data: {}, classLoader: {}", clazz.getName(), clazz.getClassLoader());
+    private byte[] loadClassDataFromResource(Class<?> clazz) {
+        long st = System.currentTimeMillis();
+        try {
+            InputStream inputStream = clazz.getResourceAsStream("/" + clazz.getName().replace('.', '/') + ".class");
+            if (inputStream != null)
+                return IOUtils.readBytes(inputStream);
+            else
+                logger.debug("No resource found for: {}", clazz.getName());
+        } catch (Exception e) {
+            logger.error("Get data from code source failed: {}", e, clazz.getName());
+        } finally {
+            long et = System.currentTimeMillis();
+            logger.debug("loadClassDataFromResource: {} , {}", (et - st), clazz.getName());
+        }
+        return null;
+    }
 
-            try {
-                InputStream inputStream = clazz.getResourceAsStream("/" + clazz.getName().replace('.', '/') + ".class");
-                if (inputStream != null)
-                    return IOUtils.readBytes(inputStream);
-                else
-                    logger.debug("No resource found for: {}", clazz.getName());
-            } catch (Exception e) {
-                logger.error("Get data from code source failed: {}", e, clazz.getName());
-            }
-
-            try {
-                classDataTransformer.setTargetClass(clazz);
-                TransformMgr.getInstance().reTransformClasses(
-                        Collections.singleton(clazz),
-                        Collections.singleton(classDataTransformer),
-                        (transformClass, error) -> {
-                            throw new RuntimeException("Get class data failed: " + clazz.getName(), error);
-                        }
-                );
-                byte[] data = classDataTransformer.getClassData();
-                if (data != null) {
+    private byte[] getClassDataFromInstrumentation(Class<?> clazz) {
+        long st = System.currentTimeMillis();
+        try {
+            logger.debug("Get class data from memory: {}", clazz.getName());
+            GetClassDataTransformer transformer = new GetClassDataTransformer(clazz);
+            InstrumentationMgr.getInstance().retransform(
+                    new RetransformItem(
+                            clazz,
+                            transformer,
+                            true,
+                            (cls, t) -> logger.error("Get class data from memory failed: {}", t, cls.getName()),
+                            "getClassData"
+                    )
+            );
+            byte[] data = transformer.getData();
+            if (data != null) {
+                try {
                     ClassDataStore.save(clazz, data, ClassDataStore.REVISION_0);
-                    return data;
+                } catch (Throwable t) {
+                    logger.error("save class data failed: {}", t, clazz.getName());
+                    return null;
                 }
-                throw new RuntimeException("No data found for class: " + clazz);
-            } finally {
-                classDataTransformer.reset();
             }
-        });
+            return data;
+        } finally {
+            long et = System.currentTimeMillis();
+            logger.debug("getClassDataFromInstrumentation: {} , {}", (et - st), clazz.getName());
+        }
+    }
+
+    public byte[] getClassData(Class<?> clazz) {
+        return classToData.computeIfAbsent(
+                clazz,
+                key -> {
+                    logger.debug("Try to find class data: {}, classLoader: {}", clazz.getName(), clazz.getClassLoader());
+                    byte[] data = loadClassDataFromResource(clazz);
+                    if (data == null)
+                        data = getClassDataFromInstrumentation(clazz);
+                    if (data != null)
+                        return data;
+                    throw new RuntimeException("No data found for class: " + clazz);
+                }
+        );
     }
 
 }

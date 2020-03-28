@@ -6,21 +6,15 @@ import java.security.ProtectionDomain;
 import java.util.Arrays;
 
 class GetClassDataTransformer implements ClassFileTransformer {
-    private Class<?> targetClass;
+    private final Class<?> targetClass;
     private byte[] classData;
 
-    void setTargetClass(Class<?> targetClass) {
+    GetClassDataTransformer(Class<?> targetClass) {
         this.targetClass = targetClass;
-        classData = null;
     }
 
-    byte[] getClassData() {
+    byte[] getData() {
         return classData;
-    }
-
-    void reset() {
-        this.targetClass = null;
-        this.classData = null;
     }
 
     @Override
@@ -28,6 +22,6 @@ class GetClassDataTransformer implements ClassFileTransformer {
                             byte[] classfileBuffer) throws IllegalClassFormatException {
         if (classBeingRedefined.equals(targetClass))
             this.classData = Arrays.copyOf(classfileBuffer, classfileBuffer.length);
-        return classfileBuffer;
+        return null;
     }
 }

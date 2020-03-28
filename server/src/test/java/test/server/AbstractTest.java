@@ -68,7 +68,7 @@ public abstract class AbstractTest {
                         return null;
                     }
             );
-            TransformMgr.getInstance().onStartup(new Object[]{instrumentation});
+            InstrumentationMgr.getInstance().onStartup(new Object[]{instrumentation});
             DestInvokeIdRegistry.getInstance().onStartup(new Object[0]);
             String dir = System.getProperty("user.dir");
             String s = "javaagent";

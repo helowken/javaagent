@@ -41,7 +41,7 @@ public class ClassDataStore {
             );
         } finally {
             long et = System.currentTimeMillis();
-            logger.error("SaveClass: {}", (et - st));
+            logger.debug("SaveClass: {}", (et - st));
         }
     }
 

@@ -15,9 +15,6 @@ public class UpdateClassDataTransformer implements ClassFileTransformer {
     @Override
     public byte[] transform(ClassLoader loader, String className, Class<?> classBeingRedefined,
                             ProtectionDomain protectionDomain, byte[] classfileBuffer) throws IllegalClassFormatException {
-        byte[] data = classToData.get(classBeingRedefined);
-        if (data != null)
-            return data;
-        return classfileBuffer;
+        return classToData.get(classBeingRedefined);
     }
 }

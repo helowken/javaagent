@@ -3,6 +3,7 @@ package agent.server;
 import agent.base.utils.IndentUtils;
 import agent.base.utils.ReflectionUtils;
 import agent.jvmti.JvmtiUtils;
+import agent.server.transform.InstrumentationMgr;
 import agent.server.transform.TransformMgr;
 
 import java.util.*;
@@ -13,7 +14,7 @@ public class TestClassLoaderCascade {
         List<Class<? extends ClassLoader>> loaderClassList = (List) ReflectionUtils.findSubTypes(
                 ClassLoader.class,
                 Arrays.asList(
-                        TransformMgr.getInstance().getAllLoadedClasses()
+                        InstrumentationMgr.getInstance().getAllLoadedClasses()
                 )
         );
 
@@ -45,7 +46,7 @@ public class TestClassLoaderCascade {
     }
 
     private static void printLoaderTree(int level, ClassLoader loader, Map<ClassLoader, List<ClassLoader>> parentToChildren) {
-        Class<?>[] classes = TransformMgr.getInstance().getInitiatedClasses(loader);
+        Class<?>[] classes = InstrumentationMgr.getInstance().getInitiatedClasses(loader);
         int count = classes.length;
         System.out.println(IndentUtils.getIndent(level) + loader.getClass().getName() + System.identityHashCode(loader) + ", Loaded Class Count: " + count);
         Optional.ofNullable(

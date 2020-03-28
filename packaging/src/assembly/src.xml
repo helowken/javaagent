@@ -52,6 +52,7 @@
             <outputDirectory>server/lib/launcher</outputDirectory>
             <includes>
                 <include>javaagent:agent-launcher</include>
+                <include>javaagent:instrument-launcher</include>
             </includes>
         </dependencySet>
         <dependencySet>

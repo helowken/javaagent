@@ -11,6 +11,7 @@ import agent.server.transform.search.filter.FilterUtils;
 import agent.server.transform.search.filter.InvokeChainFilter;
 import agent.server.transform.search.filter.NotInterfaceFilter;
 import agent.server.transform.tools.asm.AsmUtils;
+import agent.server.utils.TaskRunner;
 import org.objectweb.asm.Handle;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.*;
@@ -20,6 +21,10 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -37,12 +42,22 @@ public class InvokeChainSearcher {
     private static final int SEARCH_UP_AND_DOWN = SEARCH_UPWARD | SEARCH_DOWNWARD;
     private static final int FIRST_LEVEL = 0;
     public static boolean debugEnabled = false;
+    private static final ThreadPoolExecutor executor = new ThreadPoolExecutor(
+            10,
+            100,
+            5,
+            TimeUnit.MINUTES,
+            new LinkedBlockingQueue<>()
+    );
 
-    private final Map<Class<?>, ClassItem> itemMap = new HashMap<>();
+    private final Map<Class<?>, ClassItem> itemMap = new ConcurrentHashMap<>();
     private final ClassLoader loader;
     private final ClassCache classCache;
     private final Function<Class<?>, ClassNode> classNodeFunc;
     private final AopMethodFinder aopMethodFinder;
+    private final ConcurrentSet<String> invokeKeySet = new ConcurrentSet<>();
+    private final TaskRunner taskRunner = new TaskRunner(executor);
+    private final Map<String, Class<?>> nameToArrayClass = new ConcurrentHashMap<>();
 
     public static Collection<DestInvoke> search(ClassLoader loader, ClassCache classCache, Function<Class<?>, byte[]> classDataFunc,
                                                 Collection<DestInvoke> destInvokes, InvokeChainConfig filterConfig) {
@@ -55,7 +70,7 @@ public class InvokeChainSearcher {
                     );
         } finally {
             long et = System.currentTimeMillis();
-            logger.error("searchInvokeChain: {}", (et - st));
+            logger.debug("searchInvokeChain: {}", (et - st));
         }
     }
 
@@ -70,21 +85,20 @@ public class InvokeChainSearcher {
 
     private Collection<DestInvoke> doSearch(Collection<DestInvoke> destInvokes, InvokeChainFilter filter) {
         destInvokes.forEach(
-                destInvoke -> Utils.wrapToRtError(
-                        () -> collectInnerInvokes(
-                                new InvokeInfo(
-                                        destInvoke.getDeclaringClass(),
-                                        newInvokeKey(
-                                                destInvoke.getName(),
-                                                destInvoke.getDescriptor()
-                                        ),
-                                        FIRST_LEVEL
+                destInvoke -> addJob(
+                        new InvokeInfo(
+                                destInvoke.getDeclaringClass(),
+                                newInvokeKey(
+                                        destInvoke.getName(),
+                                        destInvoke.getDescriptor()
                                 ),
-                                SEARCH_UP_AND_DOWN,
-                                filter
-                        )
+                                FIRST_LEVEL
+                        ),
+                        SEARCH_UP_AND_DOWN,
+                        filter
                 )
         );
+        taskRunner.await();
         List<DestInvoke> rsList = new ArrayList<>();
         itemMap.values().forEach(
                 item -> item.collectInvokes(rsList)
@@ -129,7 +143,16 @@ public class InvokeChainSearcher {
         );
     }
 
-    private void collectInnerInvokes(InvokeInfo info, int searchFlags, InvokeChainFilter filter) throws Exception {
+    private void addJob(InvokeInfo info, int searchFlags, InvokeChainFilter filter) {
+        invokeKeySet.computeIfAbsent(
+                info.getFullKey(),
+                () -> taskRunner.run(
+                        () -> collectInnerInvokes(info, searchFlags, filter)
+                )
+        );
+    }
+
+    private void collectInnerInvokes(InvokeInfo info, int searchFlags, InvokeChainFilter filter) {
         debug(info, "Collect ");
         if (info.isNativePackage()) {
             debug(info, "@ Skip native package: ");
@@ -155,7 +178,7 @@ public class InvokeChainSearcher {
             debug(info, "@ Skip not declared method and search none: ");
     }
 
-    private void traverseConstructor(InvokeInfo info, InvokeChainFilter filter) throws Exception {
+    private void traverseConstructor(InvokeInfo info, InvokeChainFilter filter) {
         if (!info.containsConstructor()) {
             debug(info, "!!! No constructor found: ");
             return;
@@ -166,7 +189,7 @@ public class InvokeChainSearcher {
             traverseInvoke(info, filter);
     }
 
-    private void traverseMethod(InvokeInfo info, InvokeChainFilter filter) throws Exception {
+    private void traverseMethod(InvokeInfo info, InvokeChainFilter filter) {
         if (!info.containsMethod()) {
             debug(info, "!!! No method found: ");
             return;
@@ -182,7 +205,7 @@ public class InvokeChainSearcher {
         }
     }
 
-    private void searchAopMethods(InvokeInfo info, DestInvoke invoke, InvokeChainFilter filter) throws Exception {
+    private void searchAopMethods(InvokeInfo info, DestInvoke invoke, InvokeChainFilter filter) {
         if (aopMethodFinder == null)
             return;
         long st = System.currentTimeMillis();
@@ -191,7 +214,7 @@ public class InvokeChainSearcher {
                 loader
         );
         long et = System.currentTimeMillis();
-        logger.error("AopMethods: {}", (et - st));
+        logger.debug("AopMethods: {}", (et - st));
         if (!aopMethods.isEmpty()) {
             debug(info, "Start to traverse aop methods: ");
             for (Method aopMethod : aopMethods) {
@@ -203,13 +226,13 @@ public class InvokeChainSearcher {
                         ),
                         info.getLevel()
                 );
-                collectInnerInvokes(aopInfo, SEARCH_UP_AND_DOWN, filter);
+                addJob(aopInfo, SEARCH_UP_AND_DOWN, filter);
             }
             debug(info, "Finish traversing aop methods.");
         }
     }
 
-    private void searchDownward(InvokeInfo info, InvokeChainFilter filter) throws Exception {
+    private void searchDownward(InvokeInfo info, InvokeChainFilter filter) {
         if (info.markMethodSearch(SEARCH_DOWNWARD)) {
             InvokeInfo result = findItemByMethod(info);
             if (result == null) {
@@ -223,11 +246,11 @@ public class InvokeChainSearcher {
                         NotInterfaceFilter.getInstance()
                 );
                 long et = System.currentTimeMillis();
-                logger.error("getSubTypes: {}", (et - st));
+                logger.debug("getSubTypes: {}", (et - st));
                 for (Class<?> subType : subTypes) {
                     InvokeInfo subTypeInfo = info.newInfo(subType);
                     debug(subTypeInfo, "$$ Try to find subType of " + info.getInvokeClass().getSimpleName() + ": ");
-                    collectInnerInvokes(subTypeInfo, SEARCH_NONE, filter);
+                    addJob(subTypeInfo, SEARCH_NONE, filter);
                 }
             } else
                 debug(result, "Can't be overridden: ");
@@ -235,20 +258,20 @@ public class InvokeChainSearcher {
             debug(info, "@ Skip search existed method down: ");
     }
 
-    private void searchUpward(InvokeInfo info, InvokeChainFilter filter) throws Exception {
+    private void searchUpward(InvokeInfo info, InvokeChainFilter filter) {
         if (info.markMethodSearch(SEARCH_UPWARD)) {
             debug(info, "!!! Not found: ");
             Class<?>[] interfaces = info.getInvokeClass().getInterfaces();
             for (Class<?> intf : interfaces) {
                 InvokeInfo intfInfo = info.newInfo(intf);
                 debug(intfInfo, "$$ Try to find interface: ");
-                collectInnerInvokes(intfInfo, SEARCH_UPWARD, filter);
+                addJob(intfInfo, SEARCH_UPWARD, filter);
             }
             Class<?> superClass = info.getInvokeClass().getSuperclass();
             if (superClass != null) {
                 InvokeInfo superClassInfo = info.newInfo(superClass);
                 debug(superClassInfo, "$$ Try to find superClass: ");
-                collectInnerInvokes(superClassInfo, SEARCH_UPWARD, filter);
+                addJob(superClassInfo, SEARCH_UPWARD, filter);
             }
         } else
             debug(info, "@ Skip search existed method up: ");
@@ -275,7 +298,7 @@ public class InvokeChainSearcher {
         return findItemByMethod(superClassInfo);
     }
 
-    private DestInvoke traverseInvoke(InvokeInfo info, InvokeChainFilter filter) throws Exception {
+    private DestInvoke traverseInvoke(InvokeInfo info, InvokeChainFilter filter) {
         MethodNode methodNode = info.getMethodNode();
         if (methodNode == null) {
             debug(info, "!!! No method node found: ");
@@ -315,7 +338,7 @@ public class InvokeChainSearcher {
                                             "") +
                                     ": "
                     );
-                    collectInnerInvokes(innerInfo, SEARCH_UP_AND_DOWN, filter);
+                    addJob(innerInfo, SEARCH_UP_AND_DOWN, filter);
                 }
             }
         }
@@ -326,17 +349,21 @@ public class InvokeChainSearcher {
     private Class<?> loadClass(ClassLoader loader, String invokeOwner) {
         try {
             Type type = Type.getObjectType(invokeOwner);
-            if (type.getSort() == Type.ARRAY) {
-                return Array.newInstance(
-                        loader.loadClass(
-                                type.getElementType().getClassName()
-                        ),
-                        new int[type.getDimensions()]
-                ).getClass();
-            }
-            return loader.loadClass(
-                    type.getClassName()
-            );
+            return type.getSort() == Type.ARRAY ?
+                    nameToArrayClass.computeIfAbsent(
+                            invokeOwner,
+                            key -> Utils.wrapToRtError(
+                                    () -> Array.newInstance(
+                                            loader.loadClass(
+                                                    type.getElementType().getClassName()
+                                            ),
+                                            new int[type.getDimensions()]
+                                    ).getClass()
+                            )
+                    ) :
+                    loader.loadClass(
+                            type.getClassName()
+                    );
         } catch (Throwable t) {
             logger.error("Load class failed: {}", t, invokeOwner);
             return null;
@@ -434,7 +461,7 @@ public class InvokeChainSearcher {
                         logger.error("Init method node map failed, invokeKey: {}", e, invokeKey);
                     } finally {
                         long et = System.currentTimeMillis();
-                        logger.error("InitMethodNodeMap: {} , {}", (et - st), clazz.getName());
+                        logger.debug("InitMethodNodeMap: {} , {}", (et - st), clazz.getName());
                     }
                 }
                 if (methodNodeMap == null)
@@ -505,6 +532,10 @@ public class InvokeChainSearcher {
 
         private String getInvokeKey() {
             return invokeKey;
+        }
+
+        private String getFullKey() {
+            return clazz.getName() + "#" + getInvokeKey();
         }
 
         private boolean isAbstractOrNativeOrNotFound() {

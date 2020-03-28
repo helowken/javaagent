@@ -24,6 +24,7 @@
                 <module>launchers/client-launcher</module>
                 <module>launchers/server-launcher</module>
                 <module>launchers/agent-launcher</module>
+                <module>launchers/instrument-launcher</module>
                 <module>server</module>
                 <module>client</module>
                 <module>plugins/jetty-runner-hook</module>
@@ -76,6 +77,7 @@
                 <module>launchers/client-launcher</module>
                 <module>launchers/server-launcher</module>
                 <module>launchers/agent-launcher</module>
+                <module>launchers/instrument-launcher</module>
             </modules>
         </profile>
 

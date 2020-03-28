@@ -1,11 +1,11 @@
 package agent.server.transform;
 
 import agent.base.utils.ClassLoaderUtils;
+import agent.base.utils.ConcurrentSet;
 import agent.base.utils.Logger;
 import agent.base.utils.Utils;
 import agent.common.config.ModuleConfig;
 import agent.common.config.TransformerConfig;
-import agent.server.ServerListener;
 import agent.server.event.EventListenerMgr;
 import agent.server.event.impl.TransformClassEvent;
 import agent.server.transform.impl.DestInvokeIdRegistry;
@@ -20,41 +20,22 @@ import agent.server.transform.tools.asm.ProxyRegInfo;
 import agent.server.transform.tools.asm.ProxyResult;
 import agent.server.transform.tools.asm.ProxyTransformMgr;
 
-import java.lang.instrument.ClassFileTransformer;
-import java.lang.instrument.Instrumentation;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 import static agent.hook.utils.App.getLoader;
 import static agent.server.transform.TransformContext.ACTION_MODIFY;
 
-public class TransformMgr implements ServerListener {
+public class TransformMgr {
     private static final Logger logger = Logger.getLogger(TransformMgr.class);
     private static TransformMgr instance = new TransformMgr();
-    private Instrumentation instrumentation;
 
     public static TransformMgr getInstance() {
         return instance;
     }
 
     private TransformMgr() {
-    }
-
-    @Override
-    public void onStartup(Object[] args) {
-        this.instrumentation = Utils.getArgValue(args, 0);
-    }
-
-    @Override
-    public void onShutdown() {
-    }
-
-    public Class<?>[] getInitiatedClasses(ClassLoader classLoader) {
-        return instrumentation.getInitiatedClasses(classLoader);
-    }
-
-    public Class<?>[] getAllLoadedClasses() {
-        return instrumentation.getAllLoadedClasses();
     }
 
     public void registerInvokes(String context, Collection<DestInvoke> invokes) {
@@ -146,7 +127,7 @@ public class TransformMgr implements ServerListener {
             return invokeSet;
         } finally {
             long et = System.currentTimeMillis();
-            logger.error("searchTime: {}", (et - st));
+            logger.debug("searchTime: {}", (et - st));
         }
     }
 
@@ -159,28 +140,6 @@ public class TransformMgr implements ServerListener {
         );
     }
 
-    public <T extends ClassFileTransformer> void reTransformClasses(Collection<Class<?>> classes, Collection<T> transformers,
-                                                                    ReTransformClassErrorHandler errorHandler) {
-        transformers.forEach(transformer -> instrumentation.addTransformer(transformer, true));
-        try {
-            classes.forEach(
-                    clazz -> {
-                        try {
-                            instrumentation.retransformClasses(clazz);
-                        } catch (Throwable t) {
-                            errorHandler.handle(clazz, t);
-                        }
-                    }
-            );
-        } finally {
-            transformers.forEach(instrumentation::removeTransformer);
-        }
-    }
-
-    public interface ReTransformClassErrorHandler {
-        void handle(Class<?> clazz, Throwable e);
-    }
-
     public TransformResult transform(TransformContext transformContext) {
         TransformResult transformResult = new TransformResult(
                 transformContext.getContext()
@@ -188,13 +147,13 @@ public class TransformMgr implements ServerListener {
         long t1 = System.currentTimeMillis();
         List<ProxyRegInfo> regInfos = prepareRegInfos(transformContext, transformResult);
         long t2 = System.currentTimeMillis();
-        logger.error("t1: {}", (t2 - t1));
+        logger.debug("t1: {}", (t2 - t1));
         List<ProxyResult> proxyResults = compile(regInfos, transformResult);
         long t3 = System.currentTimeMillis();
-        logger.error("t2: {}", (t3 - t2));
+        logger.debug("t2: {}", (t3 - t2));
         Map<Class<?>, byte[]> classToData = reTransform(transformResult, proxyResults);
         long t4 = System.currentTimeMillis();
-        logger.error("t3: {}", (t4 - t3));
+        logger.debug("t3: {}", (t4 - t3));
         Set<Class<?>> validClassSet = new HashSet<>(
                 classToData.keySet()
         );
@@ -209,7 +168,7 @@ public class TransformMgr implements ServerListener {
                 )
         );
         long t5 = System.currentTimeMillis();
-        logger.error("t4: {}", (t5 - t4));
+        logger.debug("t4: {}", (t5 - t4));
         return transformResult;
     }
 
@@ -251,25 +210,33 @@ public class TransformMgr implements ServerListener {
     }
 
     private Map<Class<?>, byte[]> reTransform(TransformResult transformResult, List<ProxyResult> proxyResults) {
-        Map<Class<?>, byte[]> classToData = new HashMap<>();
+        Map<Class<?>, byte[]> classToData = new ConcurrentHashMap<>();
         proxyResults.forEach(
                 proxyResult -> classToData.put(
                         proxyResult.getTargetClass(),
                         proxyResult.getClassData()
                 )
         );
-        Set<Class<?>> failedClasses = new HashSet<>();
-        reTransformClasses(
-                new HashSet<>(
-                        classToData.keySet()
-                ),
-                Collections.singleton(
-                        new UpdateClassDataTransformer(classToData)
-                ),
-                (clazz, error) -> {
-                    failedClasses.add(clazz);
-                    transformResult.addReTransformError(clazz, error);
-                }
+        UpdateClassDataTransformer transformer = new UpdateClassDataTransformer(classToData);
+        Set<Class<?>> failedClasses = new ConcurrentSet<>();
+        InstrumentationMgr.RetransformClassErrorHandler errorHandler = (clazz, error) -> {
+            failedClasses.add(clazz);
+            transformResult.addReTransformError(clazz, error);
+        };
+        InstrumentationMgr.getInstance().retransform(
+                classToData.keySet().stream()
+                        .map(
+                                clazz -> new InstrumentationMgr.RetransformItem(
+                                        clazz,
+                                        transformer,
+                                        true,
+                                        errorHandler,
+                                        "updateClassData"
+                                )
+                        )
+                        .collect(
+                                Collectors.toList()
+                        )
         );
         failedClasses.forEach(classToData::remove);
         return classToData;

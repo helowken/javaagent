@@ -44,6 +44,10 @@
             <groupId>javaagent</groupId>
             <artifactId>native</artifactId>
         </dependency>
+        <dependency>
+            <groupId>javaagent</groupId>
+            <artifactId>instrument-launcher</artifactId>
+        </dependency>
 
         <!-- test -->
         <dependency>
