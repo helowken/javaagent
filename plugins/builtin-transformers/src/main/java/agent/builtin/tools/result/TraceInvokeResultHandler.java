@@ -61,14 +61,14 @@ public class TraceInvokeResultHandler extends AbstractResultHandler<Collection<T
                 item.getInvokeId()
         );
         StringBuilder sb = new StringBuilder();
-        sb.append(
-                convertInvoke(
-                        item.getParentId() == -1 ? null : node.getParent().getData().getInvokeId(),
-                        idToInvoke,
-                        metadata
-                )
-        ).append("\n");
-        sb.append("Cost Time: ").append(item.costTime()).append("ms").append("\n");
+        sb.append("[").append(item.costTime()).append("ms] ")
+                .append(
+                        convertInvoke(
+                                item.getParentId() == -1 ? null : node.getParent().getData().getInvokeId(),
+                                idToInvoke,
+                                metadata
+                        )
+                ).append("\n");
         if (item.hasArgs()) {
             sb.append("Args: \n");
             item.getArgs().forEach(

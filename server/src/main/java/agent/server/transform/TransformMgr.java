@@ -1,7 +1,6 @@
 package agent.server.transform;
 
 import agent.base.utils.ClassLoaderUtils;
-import agent.base.utils.ConcurrentSet;
 import agent.base.utils.Logger;
 import agent.base.utils.Utils;
 import agent.common.config.ModuleConfig;
@@ -217,29 +216,17 @@ public class TransformMgr {
                         proxyResult.getClassData()
                 )
         );
-        UpdateClassDataTransformer transformer = new UpdateClassDataTransformer(classToData);
-        Set<Class<?>> failedClasses = new ConcurrentSet<>();
-        InstrumentationMgr.RetransformClassErrorHandler errorHandler = (clazz, error) -> {
-            failedClasses.add(clazz);
-            transformResult.addReTransformError(clazz, error);
-        };
-        InstrumentationMgr.getInstance().retransform(
-                classToData.keySet().stream()
-                        .map(
-                                clazz -> new InstrumentationMgr.RetransformItem(
-                                        clazz,
-                                        transformer,
-                                        true,
-                                        errorHandler,
-                                        "updateClassData"
-                                )
-                        )
-                        .collect(
-                                Collectors.toList()
-                        )
-        );
-        failedClasses.forEach(classToData::remove);
-        return classToData;
+        try {
+            InstrumentationMgr.getInstance().retransform(
+                    new UpdateClassDataTransformer(classToData),
+                    classToData.keySet().toArray(new Class[0])
+            );
+            return classToData;
+        } catch (Throwable t) {
+            transformResult.addReTransformError(Object.class, t);
+            logger.error("Update class data failed.", t);
+            return Collections.emptyMap();
+        }
     }
 
     private void regValidProxyResults(List<ProxyResult> originalProxyResults, Set<Class<?>> validClassSet) {

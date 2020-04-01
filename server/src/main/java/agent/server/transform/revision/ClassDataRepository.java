@@ -3,7 +3,6 @@ package agent.server.transform.revision;
 import agent.base.utils.IOUtils;
 import agent.base.utils.Logger;
 import agent.server.transform.InstrumentationMgr;
-import agent.server.transform.InstrumentationMgr.RetransformItem;
 
 import java.io.InputStream;
 import java.util.Map;
@@ -47,15 +46,7 @@ public class ClassDataRepository {
         try {
             logger.debug("Get class data from memory: {}", clazz.getName());
             GetClassDataTransformer transformer = new GetClassDataTransformer(clazz);
-            InstrumentationMgr.getInstance().retransform(
-                    new RetransformItem(
-                            clazz,
-                            transformer,
-                            true,
-                            (cls, t) -> logger.error("Get class data from memory failed: {}", t, cls.getName()),
-                            "getClassData"
-                    )
-            );
+            InstrumentationMgr.getInstance().retransform(transformer, clazz);
             byte[] data = transformer.getData();
             if (data != null) {
                 try {
@@ -66,6 +57,9 @@ public class ClassDataRepository {
                 }
             }
             return data;
+        } catch (Throwable t) {
+            logger.error("Get class data failed.", t);
+            return null;
         } finally {
             long et = System.currentTimeMillis();
             logger.debug("getClassDataFromInstrumentation: {} , {}", (et - st), clazz.getName());

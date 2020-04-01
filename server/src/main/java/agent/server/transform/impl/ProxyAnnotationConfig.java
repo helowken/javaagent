@@ -18,11 +18,26 @@ public abstract class ProxyAnnotationConfig<T, R> {
     public static final int ARGS_ON_THROWING = 3;
     public static final int ARGS_ON_AFTER = 4;
     private static final Logger logger = Logger.getLogger(ProxyAnnotationConfig.class);
+    private final static Object dummy = new Object();
 
     private final ThreadLocal<AroundItem<T, R>> local = new ThreadLocal<>();
+    private final ThreadLocal<Object> banningLocal = new ThreadLocal<>();
+
+    private boolean isBanning() {
+        return banningLocal.get() != null;
+    }
+
+    private void setBanning(boolean v) {
+        if (v)
+            banningLocal.set(dummy);
+        else
+            banningLocal.remove();
+    }
 
     @OnBefore(mask = DEFAULT_BEFORE | MASK_INVOKE, argsHint = ARGS_ON_BEFORE)
     public void onBefore(Object[] args, Class<?>[] argTypes, DestInvoke destInvoke, Object... otherArgs) {
+        if (isBanning())
+            return;
         AroundItem<T, R> currAroundItem = local.get();
         if (currAroundItem == null) {
             currAroundItem = new AroundItem<>();
@@ -35,6 +50,8 @@ public abstract class ProxyAnnotationConfig<T, R> {
 
     @OnReturning(mask = DEFAULT_ON_RETURNING | MASK_INVOKE, argsHint = ARGS_ON_RETURNING)
     public void onReturning(Object returnValue, Class<?> returnType, DestInvoke destInvoke, Object... otherArgs) {
+        if (isBanning())
+            return;
         AroundItem<T, R> currAroundItem = getAroundItem("returning", destInvoke);
         if (currAroundItem != null)
             currAroundItem.complete(
@@ -45,6 +62,8 @@ public abstract class ProxyAnnotationConfig<T, R> {
 
     @OnThrowing(mask = DEFAULT_ON_THROWING | MASK_INVOKE, argsHint = ARGS_ON_THROWING)
     public void onThrowing(Throwable error, DestInvoke destInvoke, Object... otherArgs) {
+        if (isBanning())
+            return;
         AroundItem<T, R> currAroundItem = getAroundItem("throwing", destInvoke);
         if (currAroundItem != null)
             currAroundItem.complete(
@@ -55,12 +74,19 @@ public abstract class ProxyAnnotationConfig<T, R> {
 
     @OnAfter(mask = MASK_INVOKE, argsHint = ARGS_ON_AFTER)
     private void onAfter(DestInvoke destInvoke, Object... args) {
+        if (isBanning())
+            return;
         AroundItem<T, R> currAroundItem = getAroundItem("after", destInvoke);
         if (currAroundItem != null) {
             processOnAfter(destInvoke, args);
             if (currAroundItem.isCompleted()) {
                 local.remove();
-                processOnCompleted(currAroundItem.getCompleted(), destInvoke, args);
+                try {
+                    setBanning(true);
+                    processOnCompleted(currAroundItem.getCompleted(), destInvoke, args);
+                } finally {
+                    setBanning(false);
+                }
             }
         }
     }

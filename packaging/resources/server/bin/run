@@ -4,7 +4,6 @@ export type=server
 source $(dirname $0)/../../common/bin/env
 
 server_launcher_jar=$lib_dir/agent/server-launcher-$version.jar
-instrument_launcher_jar=$lib_dir/launcher/instrument-launcher-$version.jar
 tools_jar=$JAVA_HOME/lib/tools.jar
 
 if [ ! -f $tools_jar ]
@@ -19,14 +18,5 @@ classpath=$common_lib_base_dir/*:$launcher_dir/*:$tools_jar
 $JAVA_HOME/bin/java -cp $classpath \
 	agent.dynamic.attach.AgentLoader \
 	$jvm_display_name \
-	$instrument_launcher_jar=1 \
-	$instrument_launcher_jar=1 \
-	$instrument_launcher_jar=1 \
-	$instrument_launcher_jar=1 \
-	$instrument_launcher_jar=1 \
-	$instrument_launcher_jar=1 \
-	$instrument_launcher_jar=1 \
-	$instrument_launcher_jar=1 \
-	$instrument_launcher_jar=1 \
 	$server_launcher_jar=$conf_file
 

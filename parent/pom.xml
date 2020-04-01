@@ -118,11 +118,6 @@
             </dependency>
             <dependency>
                 <groupId>javaagent</groupId>
-                <artifactId>instrument-launcher</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>javaagent</groupId>
                 <artifactId>jetty-runner-hook</artifactId>
                 <version>${project.version}</version>
             </dependency>

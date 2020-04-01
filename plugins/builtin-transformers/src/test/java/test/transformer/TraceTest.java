@@ -7,7 +7,6 @@ import agent.builtin.tools.result.TraceInvokeResultHandler;
 import agent.builtin.transformer.TraceInvokeTransformer;
 import agent.common.config.ConstructorFilterConfig;
 import agent.common.config.InvokeChainConfig;
-import agent.server.transform.search.InvokeChainSearcher;
 import org.junit.Test;
 import test.server.AbstractTest;
 
@@ -21,7 +20,6 @@ public class TraceTest extends AbstractTest {
 
     @Test
     public void test() throws Exception {
-        InvokeChainSearcher.debugEnabled = true;
         Map<Class<?>, String> classToMethodFilter = new HashMap<>();
         classToMethodFilter.put(TestFilter3.class, "doFilter");
 
@@ -82,9 +80,11 @@ public class TraceTest extends AbstractTest {
             bs[1] = new Impl();
             po.test3(bs);
 
-            po.test4(
-                    () -> System.out.println(
-                            Format.parse("AAA")
+            System.out.println(
+                    po.test4(
+                            () -> System.out.println(
+                                    Format.parse("AAA")
+                            )
                     )
             );
         }
@@ -129,20 +129,32 @@ public class TraceTest extends AbstractTest {
             Stream.of(bs).forEach(Base::doIt);
         }
 
-        public void test4(Help help) {
+        public String test4(Help help) {
             help.call();
+            return null;
         }
     }
 
     public static abstract class Base {
         public abstract void doIt();
+
+        public String toString(Base v) {
+            return "1\"1\"1-" + System.identityHashCode(v);
+        }
     }
 
     public static class Impl extends Base {
 
         @Override
         public void doIt() {
-            System.out.println(111);
+            System.out.println(
+                    this.toString()
+            );
+        }
+
+        @Override
+        public String toString() {
+            return super.toString(this);
         }
     }
 

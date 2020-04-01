@@ -1,5 +1,7 @@
 package agent.builtin.transformer.utils;
 
+import agent.base.utils.StringItem;
+
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -44,13 +46,13 @@ public class DefaultValueConverter implements ValueConverter {
     }
 
     private Map<String, Object> convert(Class<?> clazz, Object value) {
+        String rv = value == null ? "null" : valueToString(value);
+        if (clazz.equals(String.class))
+            rv = "\"" + new StringItem(rv).replaceAll("\"", "\\\"").toString() + "\"";
+
         Map<String, Object> rsMap = new HashMap<>();
         rsMap.put(KEY_CLASS, clazz.getName());
-        if (value != null)
-            rsMap.put(
-                    KEY_VALUE,
-                    valueToString(value)
-            );
+        rsMap.put(KEY_VALUE, rv);
         return rsMap;
     }
 
