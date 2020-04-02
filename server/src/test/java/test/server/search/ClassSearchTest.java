@@ -16,8 +16,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 public class ClassSearchTest extends AbstractTest {
-    private static final ClassLoader loader = Thread.currentThread().getContextClassLoader();
-    private static final ClassCache classCache = new ClassCache();
+    private static final ClassCache classCache = new ClassCache(contextLoader);
 
     @BeforeClass
     public static void beforeClassClassSearchTest() {
@@ -153,7 +152,7 @@ public class ClassSearchTest extends AbstractTest {
             config.setExcludes(
                     new HashSet<>(excludes)
             );
-        Collection<Class<?>> classes = ClassSearcher.getInstance().search(loader, classCache, config);
+        Collection<Class<?>> classes = ClassSearcher.getInstance().search(contextLoader, classCache, config);
         if (expectedIncludes != null)
             expectedIncludes.forEach(
                     clazz -> assertTrue(

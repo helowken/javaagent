@@ -1,0 +1,6 @@
+Where options include:
+    -t  <transformationId>
+                   Specified an id of transformer which is used to do the transformation.
+                   If no transformer is found by this id, a new transformer will be created with it.
+                   Without this option, the default transformer is used to do the transformation.
+    ${options.txt}

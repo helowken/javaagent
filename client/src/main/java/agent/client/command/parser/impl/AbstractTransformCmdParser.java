@@ -1,6 +1,7 @@
 package agent.client.command.parser.impl;
 
 import agent.base.utils.FileUtils;
+import agent.base.utils.Utils;
 import agent.common.config.ModuleConfig;
 import agent.common.config.TransformerConfig;
 import agent.common.message.command.Command;
@@ -9,10 +10,21 @@ import agent.common.message.command.impl.TransformCommand;
 import java.util.Collections;
 import java.util.Map;
 
-abstract class AbstractTransformCmdParser extends AbstractFilterCmdParser<TransformParams> {
+abstract class AbstractTransformCmdParser extends AbstractFilterCmdParser<TransformFilterOptions, TransformParams> {
+    private static final String SEP = ":";
     private static final String OUTPUT_PATH = "outputPath";
+    private static final String OPT_TRANSFORMER_ID = "-t";
 
     abstract String getTransformerKey();
+
+    TransformFilterOptions createFilterOptions() {
+        return new TransformFilterOptions();
+    }
+
+    @Override
+    String getMsgFile() {
+        return "transform.txt";
+    }
 
     @Override
     String getUsageMsg() {
@@ -20,13 +32,24 @@ abstract class AbstractTransformCmdParser extends AbstractFilterCmdParser<Transf
     }
 
     @Override
+    boolean parseOtherOptions(TransformFilterOptions opts, String[] args, int currIdx, int endIdx) {
+        int i = currIdx;
+        if (args[i].equals(OPT_TRANSFORMER_ID)) {
+            opts.transformerId = getArg(args, ++i, "transformerId");
+            opts.nextIdx = i;
+            return true;
+        }
+        return false;
+    }
+
+    @Override
     TransformParams createParams(String[] args) {
         TransformParams params = new TransformParams();
-        int i = 0;
+        params.filterOptions = parseOptions(args, 0, args.length - 2);
+        int i = params.filterOptions.nextIdx;
         params.contextPath = getContext(args, i++);
-        params.filterOptions = parseOptions(args, i, args.length - 1);
         params.outputPath = FileUtils.getAbsolutePath(
-                getArg(args, params.filterOptions.nextIdx, OUTPUT_PATH)
+                getArg(args, i, OUTPUT_PATH)
         );
         checkNotBlank(
                 getTransformerKey(),
@@ -59,6 +82,7 @@ abstract class AbstractTransformCmdParser extends AbstractFilterCmdParser<Transf
                 Collections.singletonList(
                         createTransformerConfig(
                                 getTransformerKey(),
+                                params.filterOptions.transformerId,
                                 params.outputPath
                         )
                 )
@@ -66,9 +90,18 @@ abstract class AbstractTransformCmdParser extends AbstractFilterCmdParser<Transf
         return moduleConfig;
     }
 
-    private TransformerConfig createTransformerConfig(String type, String outputPath) {
+    private String newRef(String type, String transformerId) {
+        String ref = type;
+        if (Utils.isNotBlank(transformerId))
+            ref += SEP + transformerId;
+        return ref;
+    }
+
+    private TransformerConfig createTransformerConfig(String type, String transformerId, String outputPath) {
         TransformerConfig transformerConfig = new TransformerConfig();
-        transformerConfig.setRef(type);
+        transformerConfig.setRef(
+                newRef(type, transformerId)
+        );
         if (outputPath != null)
             transformerConfig.setConfig(
                     newConfigOfTransformer(outputPath)
@@ -87,6 +120,10 @@ abstract class AbstractTransformCmdParser extends AbstractFilterCmdParser<Transf
     }
 }
 
-class TransformParams extends FilterParams {
+class TransformParams extends FilterParams<TransformFilterOptions> {
     String outputPath;
+}
+
+class TransformFilterOptions extends FilterOptions {
+    String transformerId;
 }

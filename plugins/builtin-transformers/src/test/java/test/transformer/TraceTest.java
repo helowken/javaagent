@@ -39,6 +39,9 @@ public class TraceTest extends AbstractTest {
                     new TestFilter3().doFilter();
 
                     TraceInvokeTransformer transformer = new TraceInvokeTransformer();
+                    transformer.setInstanceKey(
+                            newTransformerKey()
+                    );
                     String context = "test";
                     doTransform(transformer, context, config, classToMethodFilter, invokeChainConfig);
 
@@ -87,6 +90,8 @@ public class TraceTest extends AbstractTest {
                             )
                     )
             );
+
+            po.test5(new NewMap(), "newKey");
         }
 
     }
@@ -132,6 +137,10 @@ public class TraceTest extends AbstractTest {
         public String test4(Help help) {
             help.call();
             return null;
+        }
+
+        public void test5(Map<String, Object> map, String key) {
+            System.out.println(key + ": " + map.get(key));
         }
     }
 
@@ -183,6 +192,13 @@ public class TraceTest extends AbstractTest {
 
     public interface Help {
         void call();
+    }
+
+    public static class NewMap extends HashMap<String, Object> {
+        @Override
+        public Object get(Object key) {
+            return "valueFromNewMap";
+        }
     }
 }
 

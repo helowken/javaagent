@@ -9,6 +9,8 @@ import agent.server.transform.impl.invoke.DestInvoke;
 
 import java.lang.reflect.Method;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -18,7 +20,27 @@ import static agent.server.transform.impl.ProxyAnnotationConfig.ARGS_NONE;
 
 public abstract class ProxyAnnotationConfigTransformer extends AbstractAnnotationConfigTransformer {
     private static final Registry<Class<? extends AnnotationConfigTransformer>, MetadataCacheItem> metadataCache = new Registry<>();
-    private volatile Object config;
+    private static final String KEY_LOG = "log";
+
+    protected String logKey;
+
+    protected abstract String newLogKey(Map<String, Object> config);
+
+    protected abstract Object[] newOtherArgs(DestInvoke destInvoke, Method anntMethod, int argsHint);
+
+    @Override
+    @SuppressWarnings("unchecked")
+    protected void doSetConfig(Map<String, Object> config) throws Exception {
+        logKey = getCacheItem().getLogKey(
+                getInstanceKey(),
+                () -> newLogKey(
+                        (Map) config.getOrDefault(
+                                KEY_LOG,
+                                Collections.emptyMap()
+                        )
+                )
+        );
+    }
 
     @Override
     protected Object[] getOtherArgs(DestInvoke destInvoke, Method anntMethod, int argsHint) {
@@ -34,14 +56,10 @@ public abstract class ProxyAnnotationConfigTransformer extends AbstractAnnotatio
 
     @Override
     protected Object getInstanceForAnntMethod(Class<?> anntClass, Method anntMethod) {
-        if (config == null) {
-            synchronized (this) {
-                if (config == null) {
-                    config = newInstanceForClass(anntClass);
-                }
-            }
-        }
-        return config;
+        return getCacheItem().getAnntInstance(
+                getInstanceKey(),
+                () -> newInstanceForClass(anntClass)
+        );
     }
 
     protected Object newInstanceForClass(Class<?> clazz) {
@@ -75,11 +93,11 @@ public abstract class ProxyAnnotationConfigTransformer extends AbstractAnnotatio
         );
     }
 
-    protected abstract Object[] newOtherArgs(DestInvoke destInvoke, Method anntMethod, int argsHint);
-
 
     private static class MetadataCacheItem {
         private volatile Map<Class<?>, Collection<Method>> anntClassToMethods;
+        private final Map<String, Object> keyToInstance = new HashMap<>();
+        private final Map<String, String> keyToLogKey = new HashMap<>();
         private final LockObject lo = new LockObject();
 
         private MetadataCacheItem() {
@@ -96,6 +114,23 @@ public abstract class ProxyAnnotationConfigTransformer extends AbstractAnnotatio
             }
             return anntClassToMethods;
         }
-    }
 
+        private Object getAnntInstance(String key, Supplier<Object> newInstanceFunc) {
+            return lo.syncValue(
+                    lock -> keyToInstance.computeIfAbsent(
+                            key,
+                            instanceKey -> newInstanceFunc.get()
+                    )
+            );
+        }
+
+        private String getLogKey(String key, Supplier<String> newLogKeyFunc) {
+            return lo.syncValue(
+                    lock -> keyToLogKey.computeIfAbsent(
+                            key,
+                            instanceKey -> newLogKeyFunc.get()
+                    )
+            );
+        }
+    }
 }

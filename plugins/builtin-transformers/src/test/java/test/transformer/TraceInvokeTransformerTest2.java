@@ -24,13 +24,22 @@ public class TraceInvokeTransformerTest2 extends AbstractTest {
         runWithFile(
                 (outputPath, config) -> runWithFile(
                         (outputPath2, config2) -> {
+                            TraceInvokeTransformer traceTransformer = new TraceInvokeTransformer();
+                            traceTransformer.setInstanceKey(
+                                    newTransformerKey()
+                            );
+                            CostTimeStatisticsTransformer costTimeTransformer = new CostTimeStatisticsTransformer();
+                            costTimeTransformer.setInstanceKey(
+                                    newTransformerKey()
+                            );
+
                             Map<ConfigTransformer, Map<String, Object>> transformerToConfig = new HashMap<>();
                             transformerToConfig.put(
-                                    new TraceInvokeTransformer(),
+                                    traceTransformer,
                                     config
                             );
                             transformerToConfig.put(
-                                    new CostTimeStatisticsTransformer(),
+                                    costTimeTransformer,
                                     config2
                             );
                             String context = "test";

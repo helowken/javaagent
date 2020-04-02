@@ -10,6 +10,7 @@ import test.server.AbstractTest;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 import static agent.builtin.tools.CostTimeUtils.DEFAULT_RATES;
 
@@ -36,6 +37,9 @@ public class CostTimeStatisticsTransformerTest extends AbstractTest {
         runWithFile(
                 (outputPath, config) -> {
                     CostTimeStatisticsTransformer transformer = new CostTimeStatisticsTransformer();
+                    transformer.setInstanceKey(
+                            newTransformerKey()
+                    );
 
                     String context = "test";
                     doTransform(transformer, context, config, classToMethodFilter, invokeChainConfig);

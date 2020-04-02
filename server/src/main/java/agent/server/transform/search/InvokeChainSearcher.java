@@ -154,8 +154,10 @@ public class InvokeChainSearcher {
 
     private void collectInnerInvokes(InvokeInfo info, int searchFlags, InvokeChainFilter filter) {
         debug(info, "Collect ");
-        if (info.isNativePackage()) {
+        boolean isNative = info.isNativePackage();
+        if (isNative) {
             debug(info, "@ Skip native package: ");
+            searchDownward(info, filter);
             return;
         } else if (info.isLambdaClass()) {
             debug(info, "@ Skip Lambda: ");

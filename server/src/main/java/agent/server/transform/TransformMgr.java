@@ -85,7 +85,7 @@ public class TransformMgr {
             ClassLoader loader = getLoader(
                     moduleConfig.getContextPath()
             );
-            ClassCache classCache = new ClassCache();
+            ClassCache classCache = new ClassCache(loader);
             Set<DestInvoke> invokeSet = new HashSet<>();
             moduleConfig.getTargets().forEach(
                     targetConfig -> ClassSearcher.getInstance().search(
@@ -132,9 +132,9 @@ public class TransformMgr {
 
     private ConfigTransformer newTransformer(TransformerConfig transformerConfig) {
         return Utils.wrapToRtError(
-                () -> TransformerClassRegistry.get(
+                () -> TransformerClassRegistry.newTransformer(
                         transformerConfig.getRef()
-                ).newInstance(),
+                ),
                 () -> "Create transformer failed."
         );
     }
@@ -150,24 +150,28 @@ public class TransformMgr {
         List<ProxyResult> proxyResults = compile(regInfos, transformResult);
         long t3 = System.currentTimeMillis();
         logger.debug("t2: {}", (t3 - t2));
-        Map<Class<?>, byte[]> classToData = reTransform(transformResult, proxyResults);
-        long t4 = System.currentTimeMillis();
-        logger.debug("t3: {}", (t4 - t3));
-        Set<Class<?>> validClassSet = new HashSet<>(
-                classToData.keySet()
-        );
-        regValidProxyResults(proxyResults, validClassSet);
+        if (!proxyResults.isEmpty()) {
+            Map<Class<?>, byte[]> classToData = reTransform(transformResult, proxyResults);
+            long t4 = System.currentTimeMillis();
+            logger.debug("t3: {}", (t4 - t3));
+            Set<Class<?>> validClassSet = new HashSet<>(
+                    classToData.keySet()
+            );
+            regValidProxyResults(proxyResults, validClassSet);
 
-        ClassDataRepository.getInstance().saveClassData(classToData);
-        EventListenerMgr.fireEvent(
-                new TransformClassEvent(
-                        transformContext.getContext(),
-                        transformContext.getAction(),
-                        validClassSet
-                )
-        );
-        long t5 = System.currentTimeMillis();
-        logger.debug("t4: {}", (t5 - t4));
+            ClassDataRepository.getInstance().saveClassData(classToData);
+            EventListenerMgr.fireEvent(
+                    new TransformClassEvent(
+                            transformContext.getContext(),
+                            transformContext.getAction(),
+                            validClassSet
+                    )
+            );
+            long t5 = System.currentTimeMillis();
+            logger.debug("t4: {}", (t5 - t4));
+        } else {
+            logger.debug("No class need to be retransformed.");
+        }
         return transformResult;
     }
 

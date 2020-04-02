@@ -11,11 +11,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
-abstract class AbstractFilterCmdParser<P extends FilterParams> extends AbstractCmdParser {
+abstract class AbstractFilterCmdParser<F extends FilterOptions, P extends FilterParams<F>> extends AbstractCmdParser {
     private static final Logger logger = Logger.getLogger(AbstractFilterCmdParser.class);
-    private static final String OPTIONS_FILE = "options.txt";
-
     private static final String SEP = ":";
     private static final String INCLUDE = "+";
     private static final String EXCLUDE = "-";
@@ -35,10 +34,14 @@ abstract class AbstractFilterCmdParser<P extends FilterParams> extends AbstractC
 
     abstract P createParams(String[] args);
 
+    abstract F createFilterOptions();
+
     abstract Command createCommand(Map<String, Object> data);
 
+    abstract String getMsgFile();
+
     String getUsageMsg() {
-        return "Usage: " + getCmdName() + " contextPath [-options]";
+        return "Usage: " + getCmdName() + " [-options] contextPath";
     }
 
     private String usageError(String errMsg) {
@@ -48,15 +51,33 @@ abstract class AbstractFilterCmdParser<P extends FilterParams> extends AbstractC
     private String getOptionsMsg() {
         if (optionsMsg == null) {
             synchronized (this) {
-                if (optionsMsg == null)
-                    optionsMsg = Utils.wrapToRtError(
-                            () -> IOUtils.readToString(
-                                    Thread.currentThread().getContextClassLoader().getResourceAsStream(OPTIONS_FILE)
-                            )
+                if (optionsMsg == null) {
+                    String msg = readMsgFile(
+                            getMsgFile()
                     );
+                    StringParser.CompiledStringExpr expr = StringParser.compile(msg);
+                    Map<String, Object> pvs = expr.getKeys()
+                            .stream()
+                            .map(StringParser.ExprItem::getContent)
+                            .collect(
+                                    Collectors.toMap(
+                                            key -> key,
+                                            this::readMsgFile
+                                    )
+                            );
+                    return expr.eval(pvs);
+                }
             }
         }
         return optionsMsg;
+    }
+
+    private String readMsgFile(String file) {
+        return Utils.wrapToRtError(
+                () -> IOUtils.readToString(
+                        Thread.currentThread().getContextClassLoader().getResourceAsStream(file)
+                )
+        );
     }
 
     private RuntimeException newUsageError(String errMsg) {
@@ -107,9 +128,9 @@ abstract class AbstractFilterCmdParser<P extends FilterParams> extends AbstractC
         return config;
     }
 
-    FilterOptions parseOptions(String[] args, int startIdx, int endIdx) {
+    F parseOptions(String[] args, int startIdx, int endIdx) {
         int i = startIdx;
-        FilterOptions opts = new FilterOptions();
+        F opts = createFilterOptions();
         for (; i < endIdx; ++i) {
             switch (args[i]) {
                 case OPT_CLASS_FILTER:
@@ -144,12 +165,20 @@ abstract class AbstractFilterCmdParser<P extends FilterParams> extends AbstractC
                     );
                     break;
                 default:
-                    logger.error("Unknown option: {}, at index: {}", args[i], i);
-                    throw newUsageError("Unknown option: " + args[i]);
+                    if (parseOtherOptions(opts, args, i, endIdx))
+                        i = opts.nextIdx;
+                    else {
+                        logger.error("Unknown option: {}, at index: {}", args[i], i);
+                        throw newUsageError("Unknown option: " + args[i]);
+                    }
             }
         }
         opts.nextIdx = i;
         return opts;
+    }
+
+    boolean parseOtherOptions(F opts, String[] args, int currIdx, int endIdx) {
+        return false;
     }
 
     String getContext(String[] args, int i) {
@@ -173,7 +202,7 @@ abstract class AbstractFilterCmdParser<P extends FilterParams> extends AbstractC
         ModuleConfig moduleConfig = new ModuleConfig();
         moduleConfig.setContextPath(params.contextPath);
 
-        FilterOptions opts = params.filterOptions;
+        F opts = params.filterOptions;
         TargetConfig targetConfig = createTargetConfig(
                 opts.classStr,
                 opts.methodStr,
@@ -240,9 +269,9 @@ abstract class AbstractFilterCmdParser<P extends FilterParams> extends AbstractC
 
 }
 
-class FilterParams {
+class FilterParams<F extends FilterOptions> {
     String contextPath;
-    FilterOptions filterOptions;
+    F filterOptions;
 }
 
 class FilterOptions {

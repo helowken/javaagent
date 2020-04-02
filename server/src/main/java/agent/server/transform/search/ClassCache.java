@@ -1,9 +1,8 @@
 package agent.server.transform.search;
 
-import agent.base.utils.Logger;
+import agent.base.utils.ClassLoaderUtils;
 import agent.base.utils.ReflectionUtils;
 import agent.server.transform.InstrumentationMgr;
-import agent.server.transform.TransformMgr;
 import agent.server.transform.search.filter.ClassFilter;
 
 import java.lang.reflect.Modifier;
@@ -12,7 +11,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 public class ClassCache {
-    private static final Logger logger = Logger.getLogger(ClassCache.class);
     private static Collection<String> skipPackages = Collections.unmodifiableList(
             Arrays.asList(
                     "org.objectweb.asm.",
@@ -20,6 +18,7 @@ public class ClassCache {
             )
     );
 
+    private final ClassLoader loader;
     private final Map<Class<?>, List<Class<?>>> classToSubTypes = new ConcurrentHashMap<>();
     private volatile List<Class<?>> loadedClasses;
 
@@ -28,21 +27,25 @@ public class ClassCache {
                 || skipPackages.stream().anyMatch(namePath::startsWith);
     }
 
+    public ClassCache(ClassLoader loader) {
+        this.loader = loader;
+    }
+
     private Collection<Class<?>> getLoadedClasses() {
         if (loadedClasses == null) {
             synchronized (this) {
                 if (loadedClasses == null)
                     loadedClasses = Arrays.stream(
                             InstrumentationMgr.getInstance().getAllLoadedClasses()
-                    )
-                            .filter(
-                                    clazz -> !isNativePackage(
-                                            clazz.getName()
+                    ).filter(
+                            clazz -> !isNativePackage(clazz.getName()) &&
+                                    ClassLoaderUtils.isSelfOrDescendant(
+                                            loader,
+                                            clazz.getClassLoader()
                                     )
-                            )
-                            .collect(
-                                    Collectors.toList()
-                            );
+                    ).collect(
+                            Collectors.toList()
+                    );
             }
         }
         return loadedClasses;

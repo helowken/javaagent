@@ -13,13 +13,24 @@ import java.util.Map;
 
 public abstract class AbstractConfigTransformer extends AbstractTransformer implements ConfigTransformer {
     private String context;
+    private String instanceKey;
 
+    @Override
     public void setContext(String context) {
         this.context = context;
     }
 
     protected String getContext() {
         return context;
+    }
+
+    @Override
+    public void setInstanceKey(String instanceKey) {
+        this.instanceKey = instanceKey;
+    }
+
+    protected String getInstanceKey() {
+        return instanceKey == null ? getRegKey() : instanceKey;
     }
 
     @Override

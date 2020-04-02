@@ -10,6 +10,7 @@ import test.server.AbstractTest;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 public class TraceInvokeTransformerTest extends AbstractTest {
     @Test
@@ -33,6 +34,9 @@ public class TraceInvokeTransformerTest extends AbstractTest {
         runWithFile(
                 (outputPath, config) -> {
                     TraceInvokeTransformer transformer = new TraceInvokeTransformer();
+                    transformer.setInstanceKey(
+                            newTransformerKey()
+                    );
                     String context = "test";
                     doTransform(transformer, context, config, classToMethodFilter, invokeChainConfig);
 

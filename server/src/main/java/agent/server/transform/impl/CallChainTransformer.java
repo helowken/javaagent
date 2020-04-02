@@ -4,26 +4,11 @@ import agent.base.utils.Utils;
 import agent.server.transform.impl.invoke.DestInvoke;
 
 import java.lang.reflect.Method;
-import java.util.Collections;
-import java.util.Map;
 
 import static agent.server.transform.impl.ProxyAnnotationConfig.ARGS_ON_AFTER;
 import static agent.server.transform.impl.ProxyAnnotationConfig.ARGS_ON_BEFORE;
 
 public abstract class CallChainTransformer extends ProxyAnnotationConfigTransformer {
-    private static final String KEY_LOG = "log";
-    protected String logKey;
-
-    @Override
-    @SuppressWarnings("unchecked")
-    protected void doSetConfig(Map<String, Object> config) throws Exception {
-        logKey = newLogKey(
-                (Map) config.getOrDefault(
-                        KEY_LOG,
-                        Collections.emptyMap()
-                )
-        );
-    }
 
     @Override
     protected Object[] newOtherArgs(DestInvoke destInvoke, Method anntMethod, int argsHint) {
@@ -39,8 +24,6 @@ public abstract class CallChainTransformer extends ProxyAnnotationConfigTransfor
         }
         return null;
     }
-
-    protected abstract String newLogKey(Map<String, Object> config);
 
     public abstract static class CallChainConfig<T extends InvokeItem> extends ProxyAnnotationConfig<T, T> {
 

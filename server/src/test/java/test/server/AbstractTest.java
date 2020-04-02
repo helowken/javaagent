@@ -38,6 +38,7 @@ import static agent.server.transform.TransformContext.ACTION_MODIFY;
 import static org.junit.Assert.assertFalse;
 
 public abstract class AbstractTest {
+    protected static final ClassLoader contextLoader = Thread.currentThread().getContextClassLoader();
     protected static final TestClassLoader loader = new TestClassLoader();
     private static final TestClassFinder classFinder = new TestClassFinder();
     private static boolean inited = false;
@@ -87,6 +88,10 @@ public abstract class AbstractTest {
             );
             inited = true;
         }
+    }
+
+    protected String newTransformerKey() {
+        return UUID.randomUUID().toString();
     }
 
     protected void doTransform(ConfigTransformer transformer, String context, Map<String, Object> config,

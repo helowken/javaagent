@@ -53,17 +53,17 @@ public class StringParser {
     }
 
     public static class CompiledStringExpr {
-        private final List<StringItem> itemList = new ArrayList<>();
+        private final List<ExprItem> itemList = new ArrayList<>();
 
         private void add(String content) {
             this.add(content, false);
         }
 
         private void add(String content, boolean isKey) {
-            itemList.add(new StringItem(content, isKey));
+            itemList.add(new ExprItem(content, isKey));
         }
 
-        public List<StringItem> getKeys() {
+        public List<ExprItem> getKeys() {
             return itemList.stream().filter(item -> item.isKey).collect(Collectors.toList());
         }
 
@@ -88,13 +88,17 @@ public class StringParser {
         }
     }
 
-    public static class StringItem {
+    public static class ExprItem {
         final String content;
         final boolean isKey;
 
-        private StringItem(String content, boolean isKey) {
+        private ExprItem(String content, boolean isKey) {
             this.content = content;
             this.isKey = isKey;
+        }
+
+        public String getContent() {
+            return content;
         }
     }
 

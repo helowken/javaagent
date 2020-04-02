@@ -1,20 +1,19 @@
-Where options include:
-    -c <classFilter>
-                       Filter rules for classes.
+-c <classFilter>
+                   Filter rules for classes.
     -m <methodFilter>
-                       Filter rules for methods.
+                   Filter rules for methods.
     -i <constructorFilter>
-                       Filter rules for constructors.
-    -l                 Enable chain transformation.
+                   Filter rules for constructors.
+    -l             Enable chain transformation.
     -ll <chainLevel>
-                       The max level of chain nested hierarchy. It must be > 0.
+                   The max level of chain nested hierarchy. It must be > 0.
     -lc <chainClassFilter>
-                       Filter rules for classes in chain.
+                   Filter rules for classes in chain.
     -lm <chainMethodFilter>
-                       Filter rules for methods in chain.
+                   Filter rules for methods in chain.
     -li <chainConstructorFilter>
-                       Filter rules for constructors in chain.
+                   Filter rules for constructors in chain.
     Filter rules: '+' or no prefix means inclusion,
-                       '-' means exclusion,
-                       Multiple items are separated by ':' ,
-                       Default includes all.
+                   '-' means exclusion,
+                   Multiple items are separated by ':' ,
+                   Default includes all.
