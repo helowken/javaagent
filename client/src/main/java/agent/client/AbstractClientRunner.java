@@ -6,7 +6,7 @@ import agent.base.utils.SystemConfig;
 import agent.base.utils.Utils;
 import agent.client.command.parser.CommandParserMgr;
 import agent.client.command.parser.exception.CommandParseException;
-import agent.client.command.result.handler.CommandResultHandlerMgr;
+import agent.client.command.result.CommandResultHandlerMgr;
 import agent.client.utils.ClientLogger;
 import agent.common.message.MessageMgr;
 import agent.common.message.command.Command;

@@ -45,29 +45,26 @@ abstract class AbstractTransformCmdParser extends AbstractFilterCmdParser<Transf
     @Override
     TransformParams createParams(String[] args) {
         TransformParams params = new TransformParams();
-        params.filterOptions = parseOptions(args, 0, args.length - 2);
+        params.filterOptions = parseOptions(args, args.length - 2);
         int i = params.filterOptions.nextIdx;
         params.contextPath = getContext(args, i++);
         params.outputPath = FileUtils.getAbsolutePath(
                 getArg(args, i, OUTPUT_PATH)
         );
+        return params;
+    }
+
+    @Override
+    void checkParams(TransformParams params) {
+        super.checkParams(params);
         checkNotBlank(
                 getTransformerKey(),
                 "transformerKey"
         );
         checkNotBlank(
-                params.contextPath,
-                "contextPath"
-        );
-        checkNotBlank(
-                params.filterOptions.classStr,
-                OPT_CLASS_FILTER
-        );
-        checkNotBlank(
                 params.outputPath,
                 OUTPUT_PATH
         );
-        return params;
     }
 
     @Override

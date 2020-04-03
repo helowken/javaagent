@@ -8,11 +8,10 @@ import java.util.Map;
 public class SearchCmdParser extends AbstractFilterCmdParser<FilterOptions, FilterParams<FilterOptions>> {
 
     @Override
-    FilterParams createParams(String[] args) {
-        FilterParams params = new FilterParams();
-        int i = 0;
-        params.contextPath = getContext(args, i++);
-        params.filterOptions = parseOptions(args, i, args.length);
+    FilterParams<FilterOptions> createParams(String[] args) {
+        FilterParams<FilterOptions> params = new FilterParams<>();
+        params.filterOptions = parseOptions(args, args.length - 1);
+        params.contextPath = getContext(args, params.filterOptions.nextIdx);
         return params;
     }
 

@@ -1,6 +1,6 @@
 package test.integration;
 
-import agent.client.command.result.handler.CommandResultHandlerMgr;
+import agent.client.command.result.CommandResultHandlerMgr;
 import agent.common.message.command.impl.ViewCommand;
 import agent.common.message.result.ExecResult;
 import agent.server.command.executor.CmdExecutorMgr;

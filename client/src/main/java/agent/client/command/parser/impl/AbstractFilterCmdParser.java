@@ -21,14 +21,14 @@ abstract class AbstractFilterCmdParser<F extends FilterOptions, P extends Filter
     private static final int INCLUDE_LEN = INCLUDE.length();
     private static final int EXCLUDE_LEN = EXCLUDE.length();
 
-    protected static final String OPT_CLASS_FILTER = "-c";
-    protected static final String OPT_METHOD_FILTER = "-m";
-    protected static final String OPT_CONSTRUCTOR_FILTER = "-i";
-    protected static final String OPT_CHAIN_ENABLED = "-l";
-    protected static final String OPT_CHAIN_CLASS_FILTER = "-lc";
-    protected static final String OPT_CHAIN_METHOD_FILTER = "-lm";
-    protected static final String OPT_CHAIN_CONSTRUCTOR_FILTER = "-li";
-    protected static final String OPT_CHAIN_MAX_LEVEL = "-ll";
+    private static final String OPT_CLASS_FILTER = "-c";
+    private static final String OPT_METHOD_FILTER = "-m";
+    private static final String OPT_CONSTRUCTOR_FILTER = "-i";
+    private static final String OPT_CHAIN_ENABLED = "-l";
+    private static final String OPT_CHAIN_CLASS_FILTER = "-lc";
+    private static final String OPT_CHAIN_METHOD_FILTER = "-lm";
+    private static final String OPT_CHAIN_CONSTRUCTOR_FILTER = "-li";
+    private static final String OPT_CHAIN_MAX_LEVEL = "-ll";
 
     private volatile String optionsMsg = null;
 
@@ -97,6 +97,17 @@ abstract class AbstractFilterCmdParser<F extends FilterOptions, P extends Filter
             throw newUsageError(errField + " is blank.");
     }
 
+    void checkParams(P params) {
+        checkNotBlank(
+                params.contextPath,
+                "contextPath"
+        );
+        checkNotBlank(
+                params.filterOptions.classStr,
+                "classFilter"
+        );
+    }
+
     private <T extends FilterConfig> T newFilterConfig(String str, Supplier<T> supplier, Function<String, String> convertFunc) {
         Set<String> ss = Utils.splitToSet(str, SEP);
         Set<String> includes = new HashSet<>();
@@ -128,9 +139,9 @@ abstract class AbstractFilterCmdParser<F extends FilterOptions, P extends Filter
         return config;
     }
 
-    F parseOptions(String[] args, int startIdx, int endIdx) {
-        int i = startIdx;
+    F parseOptions(String[] args, int endIdx) {
         F opts = createFilterOptions();
+        int i = 0;
         for (; i < endIdx; ++i) {
             switch (args[i]) {
                 case OPT_CLASS_FILTER:
@@ -187,11 +198,11 @@ abstract class AbstractFilterCmdParser<F extends FilterOptions, P extends Filter
 
     @Override
     public Command parse(String[] args) {
+        P params = createParams(args);
+        checkParams(params);
         return createCommand(
                 JSONUtils.convert(
-                        createModuleConfig(
-                                createParams(args)
-                        ),
+                        createModuleConfig(params),
                         new TypeObject<Map<String, Object>>() {
                         }
                 )

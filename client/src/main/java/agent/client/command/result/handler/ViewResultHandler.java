@@ -9,7 +9,7 @@ import java.util.Collection;
 import java.util.Map;
 
 @SuppressWarnings("unchecked")
-class ViewResultHandler extends AbstractExecResultHandler {
+public class ViewResultHandler extends AbstractExecResultHandler {
 
     @Override
     public void handleSuccess(Command command, ExecResult result) {
