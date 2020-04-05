@@ -53,7 +53,7 @@ public class TraceInvokeTransformerTest extends AbstractTest {
 
     static class A {
         void service() {
-            test(false, (byte) 2, 'a', (short) 4, 5, (long) 6);
+            test(false, (byte) 2, '\'', (short) 4, 5, (long) 6);
         }
 
         String test(boolean a1, byte a2, char a3, short a4, int a5, long a6) {

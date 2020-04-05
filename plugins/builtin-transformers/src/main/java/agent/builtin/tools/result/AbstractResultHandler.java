@@ -23,22 +23,27 @@ abstract class AbstractResultHandler<T> {
             if (files != null) {
                 dataFiles = Stream.of(files)
                         .map(File::getAbsolutePath)
-                        .filter(filePath -> {
-                            if (filePath.equals(dataFilePath))
-                                return true;
-                            int pos = filePath.lastIndexOf(".");
-                            String tmpPath = filePath;
-                            if (pos > -1)
-                                tmpPath = filePath.substring(0, pos);
-                            return tmpPath.equals(dataFilePath) &&
-                                    !DestInvokeIdRegistry.isMetadataFile(filePath);
-                        })
+                        .filter(
+                                filePath -> {
+                                    if (filePath.equals(dataFilePath))
+                                        return true;
+                                    int pos = filePath.lastIndexOf(".");
+                                    String tmpPath = filePath;
+                                    if (pos > -1)
+                                        tmpPath = filePath.substring(0, pos);
+                                    return tmpPath.equals(dataFilePath) && acceptFile(filePath);
+                                }
+                        )
                         .collect(Collectors.toList());
             }
         }
         if (dataFiles == null || dataFiles.isEmpty())
             throw new FileNotFoundException("No data files found in dir of file: " + dataFilePath);
         return dataFiles;
+    }
+
+    protected boolean acceptFile(String filePath) {
+        return !DestInvokeIdRegistry.isMetadataFile(filePath);
     }
 
     T calculateStats(String inputPath) throws Exception {

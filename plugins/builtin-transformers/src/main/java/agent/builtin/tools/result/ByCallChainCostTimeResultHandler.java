@@ -2,8 +2,10 @@ package agent.builtin.tools.result;
 
 import agent.builtin.tools.CostTimeStatItem;
 import agent.common.tree.Node;
+import agent.common.tree.NodeMapper;
 import agent.common.tree.Tree;
 import agent.common.tree.TreeUtils;
+import agent.common.utils.JSONUtils;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
@@ -11,13 +13,37 @@ import java.util.concurrent.atomic.AtomicReference;
 import static agent.builtin.tools.result.ByCallChainCostTimeResultHandler.NodeData;
 
 public class ByCallChainCostTimeResultHandler extends AbstractCostTimeResultHandler<Tree<NodeData>> {
+    private static final String CACHE_TYPE = "chain";
+
     @Override
-    void printTree(List<Map<String, Map<String, Integer>>> classToInvokeToId, Tree<NodeData> tree, boolean skipAvgEq0, Set<Float> rates) {
+    void doPrint(List<Map<String, Map<String, Integer>>> classToInvokeToId, Tree<NodeData> tree, boolean skipAvgEq0, Set<Float> rates) {
         Map<Integer, InvokeMetadata> idToInvoke = convertMetadata(classToInvokeToId);
         TreeUtils.printTree(
                 convertTree(tree, idToInvoke, skipAvgEq0, rates),
                 new TreeUtils.PrintConfig(false),
                 (node, config) -> node.getData()
+        );
+    }
+
+    @Override
+    String getCacheType() {
+        return CACHE_TYPE;
+    }
+
+    @Override
+    String serializeResult(Tree<NodeData> tree) {
+        return JSONUtils.writeAsString(
+                NodeMapper.serialize(tree, NodeDataConverter::serialize)
+        );
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    Tree<NodeData> deserializeResult(String content) {
+        return (Tree) NodeMapper.deserialize(
+                null,
+                JSONUtils.read(content),
+                NodeDataConverter::deserialize
         );
     }
 
@@ -35,7 +61,6 @@ public class ByCallChainCostTimeResultHandler extends AbstractCostTimeResultHand
                                      boolean skipAvgEq0, final Set<Float> rates) {
         final NodeData data = node.getData();
         InvokeMetadata metadata = getMetadata(idToInvoke, data.invokeId);
-        data.item.freeze();
 
         if (data.item.getAvgTime() == 0 && skipAvgEq0)
             return null;
@@ -154,6 +179,35 @@ public class ByCallChainCostTimeResultHandler extends AbstractCostTimeResultHand
             this.id = id;
             this.invokeId = invokeId;
             this.item = item;
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static class NodeDataConverter {
+        private static final String KEY_ID = "id";
+        private static final String KEY_INVOKE_ID = "invokeId";
+        private static final String KEY_ITEM = "item";
+
+        private static Map<String, Object> serialize(NodeData data) {
+            data.item.freeze();
+            Map<String, Object> rsMap = new HashMap<>();
+            rsMap.put(KEY_ID, data.id);
+            rsMap.put(KEY_INVOKE_ID, data.invokeId);
+            rsMap.put(
+                    KEY_ITEM,
+                    CostTimeStatItem.CostTimeItemConverter.serialize(data.item)
+            );
+            return rsMap;
+        }
+
+        private static NodeData deserialize(Map<String, Object> map) {
+            return new NodeData(
+                    Integer.parseInt(map.get(KEY_ID).toString()),
+                    Integer.parseInt(map.get(KEY_INVOKE_ID).toString()),
+                    CostTimeStatItem.CostTimeItemConverter.deserialize(
+                            (Map) map.get(KEY_ITEM)
+                    )
+            );
         }
     }
 

@@ -47,8 +47,11 @@ public class DefaultValueConverter implements ValueConverter {
 
     private Map<String, Object> convert(Class<?> clazz, Object value) {
         String rv = value == null ? "null" : valueToString(value);
-        if (clazz.equals(String.class))
+        if (clazz.equals(String.class) || Throwable.class.isAssignableFrom(clazz))
             rv = "\"" + new StringItem(rv).replaceAll("\"", "\\\"").toString() + "\"";
+        else if (clazz.equals(char.class) || clazz.equals(Character.class))
+            rv = "'" + rv.replace("'", "\\'") + "'";
+
 
         Map<String, Object> rsMap = new HashMap<>();
         rsMap.put(KEY_CLASS, clazz.getName());

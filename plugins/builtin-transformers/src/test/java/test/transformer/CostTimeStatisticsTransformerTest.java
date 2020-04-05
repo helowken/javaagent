@@ -10,7 +10,6 @@ import test.server.AbstractTest;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 
 import static agent.builtin.tools.CostTimeUtils.DEFAULT_RATES;
 
@@ -50,11 +49,17 @@ public class CostTimeStatisticsTransformerTest extends AbstractTest {
 
                     flushAndWaitMetadata(outputPath);
 
-                    new ByCallChainCostTimeResultHandler().printResult(outputPath, false, DEFAULT_RATES);
+                    ByCallChainCostTimeResultHandler chainHandler = new ByCallChainCostTimeResultHandler();
+                    chainHandler.printResult(outputPath, false, DEFAULT_RATES);
+                    System.out.println("======= Use cache =======");
+                    chainHandler.printResult(outputPath, false, DEFAULT_RATES);
 
                     System.out.println("====================");
 
-                    new ByInvokeCostTimeResultHandler().printResult(outputPath, false, DEFAULT_RATES);
+                    ByInvokeCostTimeResultHandler invokeHandler = new ByInvokeCostTimeResultHandler();
+                    invokeHandler.printResult(outputPath, false, DEFAULT_RATES);
+                    System.out.println("======= Use cache =======");
+                    invokeHandler.printResult(outputPath, false, DEFAULT_RATES);
                 }
         );
     }

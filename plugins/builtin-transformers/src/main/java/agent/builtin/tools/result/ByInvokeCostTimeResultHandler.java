@@ -4,13 +4,35 @@ import agent.builtin.tools.CostTimeStatItem;
 import agent.common.tree.Node;
 import agent.common.tree.Tree;
 import agent.common.tree.TreeUtils;
+import agent.common.utils.JSONUtils;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class ByInvokeCostTimeResultHandler extends AbstractCostTimeResultHandler<Map<Integer, CostTimeStatItem>> {
+    private static final String CACHE_TYPE = "invoke";
+
     @Override
-    void printTree(List<Map<String, Map<String, Integer>>> classToInvokeToIdList, Map<Integer, CostTimeStatItem> result, boolean skipAvgEq0, Set<Float> rates) {
+    String getCacheType() {
+        return CACHE_TYPE;
+    }
+
+    @Override
+    String serializeResult(Map<Integer, CostTimeStatItem> result) {
+        return JSONUtils.writeAsString(
+                ResultConverter.serialize(result)
+        );
+    }
+
+    @Override
+    Map<Integer, CostTimeStatItem> deserializeResult(String content) {
+        return ResultConverter.deserialize(
+                JSONUtils.read(content)
+        );
+    }
+
+    @Override
+    void doPrint(List<Map<String, Map<String, Integer>>> classToInvokeToIdList, Map<Integer, CostTimeStatItem> result, boolean skipAvgEq0, Set<Float> rates) {
         Tree<String> tree = new Tree<>();
         classToInvokeToIdList.forEach(
                 classToInvokeToId -> classToInvokeToId.forEach(
@@ -75,7 +97,6 @@ public class ByInvokeCostTimeResultHandler extends AbstractCostTimeResultHandler
         for (Map.Entry<String, Integer> entry : invokeToId.entrySet()) {
             CostTimeStatItem item = idToCostTimeItem.get(entry.getValue());
             if (item != null) {
-                item.freeze();
                 if (item.getAvgTime() > 0 || !skipAvgEq0)
                     invokeToItem.put(entry.getKey(), item);
             }
@@ -83,4 +104,30 @@ public class ByInvokeCostTimeResultHandler extends AbstractCostTimeResultHandler
         return invokeToItem;
     }
 
+    private static class ResultConverter {
+        private static Map<Integer, Map<String, Object>> serialize(Map<Integer, CostTimeStatItem> data) {
+            Map<Integer, Map<String, Object>> rsMap = new HashMap<>();
+            data.forEach(
+                    (key, value) -> {
+                        value.freeze();
+                        rsMap.put(
+                                key,
+                                CostTimeStatItem.CostTimeItemConverter.serialize(value)
+                        );
+                    }
+            );
+            return rsMap;
+        }
+
+        private static Map<Integer, CostTimeStatItem> deserialize(Map<Object, Map<String, Object>> map) {
+            Map<Integer, CostTimeStatItem> rsMap = new HashMap<>();
+            map.forEach(
+                    (key, value) -> rsMap.put(
+                            Integer.parseInt(key.toString()),
+                            CostTimeStatItem.CostTimeItemConverter.deserialize(value)
+                    )
+            );
+            return rsMap;
+        }
+    }
 }

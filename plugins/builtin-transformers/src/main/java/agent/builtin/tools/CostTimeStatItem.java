@@ -3,20 +3,19 @@ package agent.builtin.tools;
 import agent.base.utils.Pair;
 
 import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.util.*;
 
 public class CostTimeStatItem {
     private static final DecimalFormat df = new DecimalFormat("#");
-    private BigInteger totalTime = BigInteger.ZERO;
-    private BigInteger count = BigInteger.ZERO;
+    private BigDecimal totalTime = BigDecimal.ZERO;
+    private BigDecimal count = BigDecimal.ZERO;
     private long currTotalTime = 0;
     private long currCount = 0;
     private long maxTime = 0;
     private Map<Long, Long> timeToCount = new TreeMap<>();
-    private Map<Long, BigInteger> timeToBigCount = new TreeMap<>();
+    private Map<Long, BigDecimal> timeToBigCount = new TreeMap<>();
     private boolean frozen = false;
 
     private void checkFrozen() {
@@ -24,15 +23,15 @@ public class CostTimeStatItem {
             throw new RuntimeException("Frozen!!!");
     }
 
-    private BigInteger wrap(long t) {
-        return BigInteger.valueOf(t);
+    private BigDecimal wrap(long t) {
+        return BigDecimal.valueOf(t);
     }
 
     private void updateTotalTime(long v) {
         updateTotalTime(wrap(v));
     }
 
-    private void updateTotalTime(BigInteger v) {
+    private void updateTotalTime(BigDecimal v) {
         totalTime = totalTime.add(v);
     }
 
@@ -40,7 +39,7 @@ public class CostTimeStatItem {
         updateCount(wrap(v));
     }
 
-    private void updateCount(BigInteger v) {
+    private void updateCount(BigDecimal v) {
         count = count.add(v);
     }
 
@@ -77,11 +76,10 @@ public class CostTimeStatItem {
     private void updateTimeToBigCount(long costTime, long timeCount) {
         timeToBigCount.compute(costTime,
                 (key, oldValue) -> {
-                    BigInteger v = wrap(timeCount);
-                    if (oldValue == null)
-                        return v;
-                    else
-                        return oldValue.add(v);
+                    BigDecimal v = wrap(timeCount);
+                    return oldValue == null ?
+                            v :
+                            oldValue.add(v);
                 }
         );
     }
@@ -111,11 +109,9 @@ public class CostTimeStatItem {
                 (costTime, bigCount) ->
                         this.timeToBigCount.compute(
                                 costTime,
-                                (key, oldValue) -> {
-                                    if (oldValue == null)
-                                        return bigCount;
-                                    return oldValue.add(bigCount);
-                                }
+                                (key, oldValue) -> oldValue == null ?
+                                        bigCount :
+                                        oldValue.add(bigCount)
                         )
         );
 
@@ -152,7 +148,7 @@ public class CostTimeStatItem {
         timeToCount.clear();
         timeToBigCount.values()
                 .stream()
-                .reduce(BigInteger::add)
+                .reduce(BigDecimal::add)
                 .ifPresent(v -> {
                     if (v.compareTo(count) != 0)
                         throw new RuntimeException("Invalid calculation: " + v + ", " + count);
@@ -162,43 +158,32 @@ public class CostTimeStatItem {
     private Map<Float, Long> calculateTimeDistribution(Set<Float> rates) {
         if (rates.isEmpty())
             return Collections.emptyMap();
-        List<Pair<BigInteger, Float>> boundaryToRateList = new ArrayList<>();
+        List<Pair<BigDecimal, Float>> boundaryToRateList = new ArrayList<>();
         rates.forEach(
                 rate -> {
                     if (rate <= 0)
                         throw new IllegalArgumentException("Rate must be > 0");
-                    BigInteger boundary = new BigDecimal(count)
-                            .multiply(
-                                    BigDecimal.valueOf(rate)
-                            )
-                            .setScale(2, RoundingMode.CEILING)
-                            .toBigInteger();
+                    BigDecimal boundary = count.multiply(
+                            BigDecimal.valueOf(rate)
+                    ).setScale(0, RoundingMode.CEILING);
                     boundaryToRateList.add(
                             new Pair<>(boundary, rate)
                     );
                 }
         );
         Map<Float, Long> rateToCostTime = new TreeMap<>();
-        List<Map.Entry<Long, BigInteger>> timeToBigCountList = new LinkedList<>(
+        List<Map.Entry<Long, BigDecimal>> timeToBigCountList = new LinkedList<>(
                 timeToBigCount.entrySet()
         );
         Long time = 0L;
-        BigInteger sumCount = BigInteger.ZERO;
+        BigDecimal sumCount = BigDecimal.ZERO;
         while (!boundaryToRateList.isEmpty()) {
-            Pair<BigInteger, Float> boundaryToRate = boundaryToRateList.remove(0);
-            BigInteger boundary = boundaryToRate.left;
+            Pair<BigDecimal, Float> boundaryToRate = boundaryToRateList.remove(0);
+            BigDecimal boundary = boundaryToRate.left;
             Float rate = boundaryToRate.right;
             if (sumCount.compareTo(boundary) <= 0) {
                 while (!timeToBigCountList.isEmpty()) {
-//                    Map.Entry<Long, BigInteger> entry = timeToBigCountList.get(0);
-//                    BigInteger newCount = sumCount.add(entry.getValue());
-//                    if (newCount.compareTo(boundary) > 0)
-//                        break;
-//                    timeToBigCountList.remove(0);
-//                    sumCount = newCount;
-//                    time = entry.getKey();
-
-                    Map.Entry<Long, BigInteger> entry = timeToBigCountList.remove(0);
+                    Map.Entry<Long, BigDecimal> entry = timeToBigCountList.remove(0);
                     sumCount = sumCount.add(entry.getValue());
                     time = entry.getKey();
                     if (sumCount.compareTo(boundary) >= 0)
@@ -214,15 +199,21 @@ public class CostTimeStatItem {
         return df.format(rate * 100) + "%";
     }
 
-    public long getAvgTime() {
-        long avgTime = 0;
-        if (count.compareTo(BigInteger.ZERO) > 0)
-            avgTime = totalTime.divide(count).longValue();
+    public double getAvgTime() {
+        double avgTime = 0;
+        if (count.compareTo(BigDecimal.ZERO) > 0)
+            avgTime = totalTime.setScale(3, RoundingMode.CEILING)
+                    .divide(count, RoundingMode.CEILING)
+                    .doubleValue();
         return avgTime;
     }
 
     public String getAvgTimeString() {
-        return "avg=" + getAvgTime() + "ms";
+        double avgTime = getAvgTime();
+        String s = String.valueOf(avgTime);
+        if (avgTime % 1 == 0)
+            s = String.valueOf((long) avgTime);
+        return "avg=" + s + "ms";
     }
 
     public long getMaxTime() {
@@ -233,7 +224,7 @@ public class CostTimeStatItem {
         return "max=" + getMaxTime() + "ms";
     }
 
-    public BigInteger getCount() {
+    public BigDecimal getCount() {
         return count;
     }
 
@@ -260,4 +251,56 @@ public class CostTimeStatItem {
         sb.append("]");
         return sb.toString();
     }
+
+    @SuppressWarnings("unchecked")
+    public static class CostTimeItemConverter {
+        private static final String KEY_TOTAL_TIME = "totalTme";
+        private static final String KEY_COUNT = "count";
+        private static final String KEY_MAX_TIME = "maxTime";
+        private static final String KEY_TIME_TO_BIG_COUNT = "timeToBigCount";
+
+        public static Map<String, Object> serialize(CostTimeStatItem item) {
+            Map<String, Object> map = new HashMap<>();
+            map.put(KEY_TOTAL_TIME, item.totalTime.toString());
+            map.put(KEY_COUNT, item.count.toString());
+            map.put(KEY_MAX_TIME, item.maxTime);
+            map.put(
+                    KEY_TIME_TO_BIG_COUNT,
+                    convertToString(item.timeToBigCount)
+            );
+            return map;
+        }
+
+        public static CostTimeStatItem deserialize(Map<String, Object> map) {
+            CostTimeStatItem item = new CostTimeStatItem();
+            item.totalTime = new BigDecimal((String) map.get(KEY_TOTAL_TIME));
+            item.count = new BigDecimal((String) map.get(KEY_COUNT));
+            item.maxTime = Long.parseLong(map.get(KEY_MAX_TIME).toString());
+            item.timeToBigCount = convertToDecimal((Map) map.get(KEY_TIME_TO_BIG_COUNT));
+            return item;
+        }
+
+        private static Map<Long, String> convertToString(Map<Long, BigDecimal> map) {
+            Map<Long, String> rsMap = new HashMap<>();
+            map.forEach(
+                    (key, value) -> rsMap.put(
+                            key,
+                            value.toString()
+                    )
+            );
+            return rsMap;
+        }
+
+        private static Map<Long, BigDecimal> convertToDecimal(Map<Object, String> map) {
+            Map<Long, BigDecimal> rsMap = new HashMap<>();
+            map.forEach(
+                    (key, value) -> rsMap.put(
+                            Long.parseLong(key.toString()),
+                            new BigDecimal(value)
+                    )
+            );
+            return rsMap;
+        }
+    }
+
 }
