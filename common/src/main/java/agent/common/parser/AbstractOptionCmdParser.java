@@ -27,8 +27,8 @@ public abstract class AbstractOptionCmdParser<F extends BasicOptions, P extends 
     public P run(String[] args) throws Exception {
         P params = createParams();
         int idx = parseBeforeOptions(params, args);
-        F opts = createFilterOptions();
-        idx = parseOptions(opts, args, idx);
+        params.opts = createFilterOptions();
+        idx = parseOptions(params.opts, args, idx);
         parseAfterOptions(params, args, idx);
         return params;
     }

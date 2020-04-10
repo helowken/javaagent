@@ -3,7 +3,7 @@ package test.transformer;
 import agent.base.utils.ReflectionUtils;
 import agent.builtin.tools.result.ByCallChainCostTimeResultHandler;
 import agent.builtin.tools.result.ByInvokeCostTimeResultHandler;
-import agent.builtin.tools.result.CostTimeResultFilterOptions;
+import agent.builtin.tools.result.CostTimeResultOptions;
 import agent.builtin.tools.result.CostTimeResultParams;
 import agent.builtin.transformer.CostTimeStatisticsTransformer;
 import agent.common.config.InvokeChainConfig;
@@ -49,7 +49,7 @@ public class CostTimeStatisticsTransformerTest extends AbstractTest {
 
                     flushAndWaitMetadata(outputPath);
 
-                    CostTimeResultFilterOptions opts = new CostTimeResultFilterOptions();
+                    CostTimeResultOptions opts = new CostTimeResultOptions();
                     CostTimeResultParams params = new CostTimeResultParams();
                     params.inputPath = outputPath;
                     params.opts = opts;
@@ -57,7 +57,7 @@ public class CostTimeStatisticsTransformerTest extends AbstractTest {
                     chainHandler.exec(params);
 
                     System.out.println("\n======= Use cache =======");
-                    opts = new CostTimeResultFilterOptions();
+                    opts = new CostTimeResultOptions();
                     opts.methodStr = "runApi4:service";
                     opts.filterExpr = "avgTime > 20";
                     params.opts = opts;
@@ -65,13 +65,13 @@ public class CostTimeStatisticsTransformerTest extends AbstractTest {
 
                     System.out.println("====================\n");
                     ByInvokeCostTimeResultHandler invokeHandler = new ByInvokeCostTimeResultHandler();
-                    opts = new CostTimeResultFilterOptions();
+                    opts = new CostTimeResultOptions();
                     opts.methodStr = "runApi*:service";
                     params.opts = opts;
                     invokeHandler.exec(params);
 
                     System.out.println("\n======= Use cache =======");
-                    opts = new CostTimeResultFilterOptions();
+                    opts = new CostTimeResultOptions();
                     opts.filterExpr = "avgTime > 20";
                     params.opts = opts;
                     invokeHandler.exec(params);

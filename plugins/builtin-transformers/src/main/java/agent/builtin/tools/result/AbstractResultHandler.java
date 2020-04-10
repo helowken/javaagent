@@ -1,15 +1,16 @@
 package agent.builtin.tools.result;
 
-import agent.base.utils.*;
+import agent.base.utils.FileUtils;
+import agent.base.utils.IOUtils;
+import agent.base.utils.InvokeDescriptorUtils;
 import agent.base.utils.InvokeDescriptorUtils.TextConfig;
-import agent.builtin.tools.CostTimeStatItem;
+import agent.base.utils.Utils;
 import agent.common.config.ClassFilterConfig;
 import agent.common.config.ConstructorFilterConfig;
 import agent.common.config.MethodFilterConfig;
 import agent.common.config.TargetConfig;
 import agent.common.utils.JSONUtils;
 import agent.server.transform.impl.DestInvokeIdRegistry;
-import agent.server.transform.search.filter.AgentFilter;
 import agent.server.transform.search.filter.FilterUtils;
 import agent.server.transform.search.filter.ScriptFilter;
 
@@ -21,7 +22,11 @@ import java.util.stream.Stream;
 
 import static agent.common.parser.FilterOptionUtils.createTargetConfig;
 
-abstract class AbstractResultHandler<T> {
+abstract class AbstractResultHandler<T, D, F extends ResultFilter<D>> {
+    abstract T calculate(Collection<String> dataFiles);
+
+    abstract F createFilter();
+
     private List<String> findDataFiles(String dataFilePath) throws FileNotFoundException {
         File dir = FileUtils.getValidFile(dataFilePath).getParentFile();
         List<String> dataFiles = null;
@@ -169,37 +174,39 @@ abstract class AbstractResultHandler<T> {
         }
     }
 
-    CostTimeResultFilter newFilter(ResultFilterOptions opts) {
+    F newFilter(ResultOptions opts) {
         TargetConfig targetConfig = createTargetConfig(opts);
         ClassFilterConfig classFilterConfig = targetConfig.getClassFilter();
         MethodFilterConfig methodFilterConfig = targetConfig.getMethodFilter();
         ConstructorFilterConfig constructorFilterConfig = targetConfig.getConstructorFilter();
-        return new CostTimeResultFilter(
-                classFilterConfig == null ?
-                        null :
-                        FilterUtils.newClassStringFilter(
-                                classFilterConfig.getIncludes(),
-                                classFilterConfig.getExcludes()
-                        ),
-                methodFilterConfig == null ?
-                        null :
-                        FilterUtils.newInvokeStringFilter(
-                                methodFilterConfig.getIncludes(),
-                                methodFilterConfig.getExcludes()
-                        ),
-                constructorFilterConfig == null ?
-                        null :
-                        FilterUtils.newInvokeStringFilter(
-                                constructorFilterConfig.getIncludes(),
-                                constructorFilterConfig.getExcludes()
-                        ),
-                opts.filterExpr == null ?
-                        null :
-                        new ScriptFilter(opts.filterExpr)
-        );
+        F filter = createFilter();
+        if (classFilterConfig != null)
+            filter.setClassFilter(
+                    FilterUtils.newClassStringFilter(
+                            classFilterConfig.getIncludes(),
+                            classFilterConfig.getExcludes()
+                    )
+            );
+        if (methodFilterConfig != null)
+            filter.setMethodFilter(
+                    FilterUtils.newInvokeStringFilter(
+                            methodFilterConfig.getIncludes(),
+                            methodFilterConfig.getExcludes()
+                    )
+            );
+        if (constructorFilterConfig != null)
+            filter.setConstructorFilter(
+                    FilterUtils.newInvokeStringFilter(
+                            constructorFilterConfig.getIncludes(),
+                            constructorFilterConfig.getExcludes()
+                    )
+            );
+        if (opts.filterExpr != null)
+            filter.setScriptFilter(
+                    new ScriptFilter(opts.filterExpr)
+            );
+        return filter;
     }
-
-    abstract T calculate(Collection<String> dataFiles);
 
     private interface ProcessFileFunc {
         void process(File dataFilePath) throws Exception;
@@ -213,69 +220,15 @@ abstract class AbstractResultHandler<T> {
         void exec(BufferedReader reader) throws Exception;
     }
 
-    static class InvokeMetadata {
-        final String clazz;
-        final String invoke;
+}
 
-        InvokeMetadata(String clazz, String invoke) {
-            this.clazz = clazz;
-            this.invoke = invoke;
-        }
-    }
+class InvokeMetadata {
+    final String clazz;
+    final String invoke;
 
-    static class CostTimeResultFilter implements AgentFilter<Pair<InvokeMetadata, CostTimeStatItem>> {
-        private static final String PARAM_COUNT = "count";
-        private static final String PARAM_MAX_TIME = "maxTime";
-        private static final String PARAM_AVG_TIME = "avgTime";
-        private static final TextConfig textConfig = new TextConfig();
-
-        static {
-            textConfig.withReturnType = false;
-            textConfig.withPkg = true;
-            textConfig.shortForPkgLang = false;
-        }
-
-        private final AgentFilter<String> classFilter;
-        private final AgentFilter<String> methodFilter;
-        private final AgentFilter<String> constructorFilter;
-        private final ScriptFilter scriptFilter;
-
-        private CostTimeResultFilter(AgentFilter<String> classFilter, AgentFilter<String> methodFilter, AgentFilter<String> constructorFilter, ScriptFilter scriptFilter) {
-            this.classFilter = classFilter;
-            this.methodFilter = methodFilter;
-            this.constructorFilter = constructorFilter;
-            this.scriptFilter = scriptFilter;
-        }
-
-        @Override
-        public boolean accept(Pair<InvokeMetadata, CostTimeStatItem> pair) {
-            InvokeMetadata metadata = pair.left;
-            CostTimeStatItem item = pair.right;
-            if (classFilter == null || classFilter.accept(metadata.clazz)) {
-                boolean v = isConstructor(metadata.invoke) ?
-                        constructorFilter == null || constructorFilter.accept(
-                                getInvokeText(metadata.invoke)
-                        ) :
-                        methodFilter == null || methodFilter.accept(
-                                getInvokeText(metadata.invoke)
-                        );
-                if (v) {
-                    Map<String, Object> pvs = new HashMap<>();
-                    pvs.put(PARAM_COUNT, item.getCount());
-                    pvs.put(PARAM_AVG_TIME, item.getAvgTime());
-                    pvs.put(PARAM_MAX_TIME, item.getMaxTime());
-                    return scriptFilter == null || scriptFilter.accept(pvs);
-                }
-            }
-            return false;
-        }
-
-        private String getInvokeText(String invoke) {
-            return InvokeDescriptorUtils.descToText(invoke, textConfig);
-        }
-
-        private boolean isConstructor(String invoke) {
-            return invoke.startsWith("(");
-        }
+    InvokeMetadata(String clazz, String invoke) {
+        this.clazz = clazz;
+        this.invoke = invoke;
     }
 }
+

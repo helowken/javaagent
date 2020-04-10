@@ -5,8 +5,8 @@ import java.util.Collections;
 import java.util.Set;
 import java.util.TreeSet;
 
-public class CostTimeResultFilterOptions extends ResultFilterOptions {
-    public static final Set<Float> DEFAULT_RATES = Collections.unmodifiableSet(
+public class CostTimeResultOptions extends ResultOptions {
+    static final Set<Float> DEFAULT_RATES = Collections.unmodifiableSet(
             new TreeSet<>(
                     Arrays.asList(0.9F, 0.95F, 0.99F)
             )

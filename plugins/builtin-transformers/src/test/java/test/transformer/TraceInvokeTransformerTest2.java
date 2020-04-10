@@ -1,10 +1,7 @@
 package test.transformer;
 
 import agent.base.utils.ReflectionUtils;
-import agent.builtin.tools.result.ByCallChainCostTimeResultHandler;
-import agent.builtin.tools.result.CostTimeResultFilterOptions;
-import agent.builtin.tools.result.CostTimeResultParams;
-import agent.builtin.tools.result.TraceInvokeResultHandler;
+import agent.builtin.tools.result.*;
 import agent.builtin.transformer.CostTimeStatisticsTransformer;
 import agent.builtin.transformer.TraceInvokeTransformer;
 import agent.common.utils.JSONUtils;
@@ -69,13 +66,16 @@ public class TraceInvokeTransformerTest2 extends AbstractTest {
                             flushAndWaitMetadata(outputPath);
                             flushAndWaitMetadata(outputPath2);
 
-                            TraceInvokeResultHandler.getInstance().printResult(outputPath);
+                            TraceResultParams traceParams = new TraceResultParams();
+                            traceParams.inputPath = outputPath;
+                            traceParams.opts = new TraceResultOptions();
+                            new TraceInvokeResultHandler().exec(traceParams);
                             System.out.println("=================");
 
-                            CostTimeResultParams params = new CostTimeResultParams();
-                            params.inputPath = outputPath2;
-                            params.opts = new CostTimeResultFilterOptions();
-                            new ByCallChainCostTimeResultHandler().exec(params);
+                            CostTimeResultParams costTimeParams = new CostTimeResultParams();
+                            costTimeParams.inputPath = outputPath2;
+                            costTimeParams.opts = new CostTimeResultOptions();
+                            new ByCallChainCostTimeResultHandler().exec(costTimeParams);
                             System.out.println("=================");
 
                             System.out.println(

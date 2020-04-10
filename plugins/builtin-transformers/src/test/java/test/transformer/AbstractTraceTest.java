@@ -4,6 +4,8 @@ import agent.base.utils.IOUtils;
 import agent.base.utils.ReflectionUtils;
 import agent.base.utils.Utils;
 import agent.builtin.tools.result.TraceInvokeResultHandler;
+import agent.builtin.tools.result.TraceResultOptions;
+import agent.builtin.tools.result.TraceResultParams;
 import agent.builtin.transformer.TraceInvokeTransformer;
 import agent.common.config.ConstructorFilterConfig;
 import agent.common.config.InvokeChainConfig;
@@ -74,7 +76,16 @@ abstract class AbstractTraceTest extends AbstractTest {
                     flushAndWaitMetadata(outputPath);
                     System.out.println(IOUtils.readToString(outputPath));
 
-                    TraceInvokeResultHandler.getInstance().printResult(outputPath);
+                    TraceResultParams params = new TraceResultParams();
+                    params.inputPath = outputPath;
+                    params.opts = new TraceResultOptions();
+                    new TraceInvokeResultHandler().exec(params);
+
+                    System.out.println("\n==============================");
+                    TraceResultOptions opts = new TraceResultOptions();
+                    opts.showError = opts.showArgs = opts.showReturnValue = opts.showTime = false;
+                    params.opts = opts;
+                    new TraceInvokeResultHandler().exec(params);
                 }
         );
     }

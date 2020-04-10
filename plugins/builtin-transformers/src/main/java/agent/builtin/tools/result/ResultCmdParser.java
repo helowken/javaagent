@@ -1,9 +1,10 @@
 package agent.builtin.tools.result;
 
+import agent.base.utils.FileUtils;
 import agent.base.utils.SystemConfig;
 import agent.common.parser.AbstractOptionCmdParser;
 
-abstract class ResultCmdParser<F extends ResultFilterOptions, P extends ResultParams<F>> extends AbstractOptionCmdParser<F, P> {
+abstract class ResultCmdParser<F extends ResultOptions, P extends ResultParams<F>> extends AbstractOptionCmdParser<F, P> {
     private static final String OPT_FILTER_EXPR = "-e";
 
     @Override
@@ -30,7 +31,9 @@ abstract class ResultCmdParser<F extends ResultFilterOptions, P extends ResultPa
 
     @Override
     protected void parseAfterOptions(P params, String[] args, int idx) {
-        params.inputPath = getArg(args, idx, "inputPath");
+        params.inputPath = FileUtils.getAbsolutePath(
+                getArg(args, idx, "inputPath")
+        );
     }
 
 

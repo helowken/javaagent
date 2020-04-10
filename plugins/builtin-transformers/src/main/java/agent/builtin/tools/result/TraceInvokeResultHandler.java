@@ -1,10 +1,8 @@
 package agent.builtin.tools.result;
 
-import agent.base.utils.IndentUtils;
-import agent.base.utils.InvokeDescriptorUtils;
-import agent.base.utils.TypeObject;
-import agent.base.utils.Utils;
+import agent.base.utils.*;
 import agent.builtin.transformer.utils.TraceItem;
+import agent.common.parser.CmdRunner;
 import agent.common.tree.INode;
 import agent.common.tree.Node;
 import agent.common.tree.Tree;
@@ -15,33 +13,28 @@ import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 
-public class TraceInvokeResultHandler extends AbstractResultHandler<Collection<Tree<TraceItem>>> implements TraceResultHandler {
-    private static final TraceInvokeResultHandler instance = new TraceInvokeResultHandler();
+public class TraceInvokeResultHandler extends AbstractResultHandler<Collection<Tree<TraceItem>>, TraceItem, TraceResultFilter>
+        implements CmdRunner<TraceResultOptions, TraceResultParams> {
     private static final String indent = IndentUtils.getIndent(1);
     private static final String KEY_CLASS = "class";
     private static final String KEY_INDEX = "index";
     private static final String KEY_VALUE = "value";
 
-    public static TraceInvokeResultHandler getInstance() {
-        return instance;
-    }
-
-    private TraceInvokeResultHandler() {
-    }
-
     @Override
-    public void printResult(String inputPath) throws Exception {
+    public void exec(TraceResultParams params) throws Exception {
+        String inputPath = params.inputPath;
         Map<Integer, InvokeMetadata> idToInvoke = convertMetadata(
                 readMetadata(inputPath)
         );
         calculateStats(inputPath).forEach(
                 tree -> TreeUtils.printTree(
-                        transform(tree),
-                        new TreeUtils.PrintConfig(false),
-                        (node, config) -> convert(
+                        convertTree(
+                                transform(tree),
                                 idToInvoke,
-                                node
-                        )
+                                params
+                        ),
+                        new TreeUtils.PrintConfig(false),
+                        (node, config) -> node.getData()
                 )
         );
     }
@@ -54,23 +47,50 @@ public class TraceInvokeResultHandler extends AbstractResultHandler<Collection<T
         return tree;
     }
 
-    private String convert(Map<Integer, InvokeMetadata> idToInvoke, Node<TraceItem> node) {
+    private Tree<String> convertTree(Tree<TraceItem> tree, Map<Integer, InvokeMetadata> idToInvoke, TraceResultParams params) {
+        Tree<String> rsTree = new Tree<>();
+        TraceResultFilter filter = newFilter(params.opts);
+        tree.getChildren().forEach(
+                child -> Optional.ofNullable(
+                        convertNode(child, idToInvoke, filter, params.opts)
+                ).ifPresent(rsTree::appendChild)
+        );
+        return rsTree;
+    }
+
+    private Node<String> convertNode(Node<TraceItem> node, Map<Integer, InvokeMetadata> idToInvoke, TraceResultFilter filter, TraceResultOptions opts) {
         TraceItem item = node.getData();
         InvokeMetadata metadata = getMetadata(
                 idToInvoke,
                 item.getInvokeId()
         );
+        if (!filter.accept(new Pair<>(metadata, item)))
+            return null;
+
+        Node<String> rsNode = newNode(node, idToInvoke, metadata, opts);
+        node.getChildren().forEach(
+                child -> Optional.ofNullable(
+                        convertNode(child, idToInvoke, filter, opts)
+                ).ifPresent(rsNode::appendChild)
+        );
+        return rsNode;
+    }
+
+    private Node<String> newNode(Node<TraceItem> node, Map<Integer, InvokeMetadata> idToInvoke, InvokeMetadata metadata, TraceResultOptions opts) {
         StringBuilder sb = new StringBuilder();
-        sb.append("[").append(item.costTime()).append("ms] ")
-                .append(
-                        convertInvoke(
-                                item.getParentId() == -1 ? null : node.getParent().getData().getInvokeId(),
-                                idToInvoke,
-                                metadata
-                        )
-                ).append("\n");
-        if (item.hasArgs()) {
-            sb.append("Args: \n");
+        TraceItem item = node.getData();
+        if (opts.showTime)
+            sb.append("[").append(item.costTime()).append("ms] ");
+
+        sb.append(
+                convertInvoke(
+                        item.getParentId() == -1 ? null : node.getParent().getData().getInvokeId(),
+                        idToInvoke,
+                        metadata
+                )
+        );
+        if (item.hasArgs() && opts.showArgs) {
+            sb.append("\nArgs: \n");
             item.getArgs().forEach(
                     arg -> appendArg(
                             sb.append(indent),
@@ -78,24 +98,35 @@ public class TraceInvokeResultHandler extends AbstractResultHandler<Collection<T
                     )
             );
         }
-        if (item.hasReturnValue()) {
+        if (item.hasReturnValue() && opts.showReturnValue) {
             String className = (String) item.getReturnValue().get(KEY_CLASS);
-            if (className == null || !className.equals(void.class.getName()))
+            if (className == null || !className.equals(void.class.getName())) {
+                addWrapIfNeeded(sb);
                 append(
                         sb.append("Return: \n").append(indent),
                         new TreeMap<>(
                                 item.getReturnValue()
                         )
                 );
+            }
         }
-        if (item.hasError())
+        if (item.hasError() && opts.showError) {
+            addWrapIfNeeded(sb);
             append(
                     sb.append("Error: \n").append(indent),
                     new TreeMap<>(
                             item.getError()
                     )
             );
-        return sb.toString();
+        }
+        return new Node<>(
+                sb.toString()
+        );
+    }
+
+    private void addWrapIfNeeded(StringBuilder sb) {
+        if (sb.charAt(sb.length() - 1) != '\n')
+            sb.append('\n');
     }
 
     private StringBuilder appendArg(StringBuilder sb, Map<String, Object> map) {
@@ -159,6 +190,11 @@ public class TraceInvokeResultHandler extends AbstractResultHandler<Collection<T
         return rsList;
     }
 
+    @Override
+    TraceResultFilter createFilter() {
+        return new TraceResultFilter();
+    }
+
     private List<Tree<TraceItem>> doCalculate(String dataFilePath) {
         List<Tree<TraceItem>> trees = new ArrayList<>();
         calculateTextFile(
@@ -214,5 +250,11 @@ public class TraceInvokeResultHandler extends AbstractResultHandler<Collection<T
         );
         return tree;
     }
+}
 
+class TraceResultFilter extends ResultFilter<TraceItem> {
+    @Override
+    Map<String, Object> convertTo(TraceItem value) {
+        return new HashMap<>();
+    }
 }

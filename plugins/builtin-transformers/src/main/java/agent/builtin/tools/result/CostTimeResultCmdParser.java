@@ -3,16 +3,16 @@ package agent.builtin.tools.result;
 import java.util.Set;
 import java.util.TreeSet;
 
-import static agent.builtin.tools.result.CostTimeResultFilterOptions.DEFAULT_RATES;
+import static agent.builtin.tools.result.CostTimeResultOptions.DEFAULT_RATES;
 
 
-public class CostTimeResultCmdParser extends ResultCmdParser<CostTimeResultFilterOptions, CostTimeResultParams> {
+public class CostTimeResultCmdParser extends ResultCmdParser<CostTimeResultOptions, CostTimeResultParams> {
     private static final String OPT_RATES = "-r";
     private static final String RATE_SEP = ",";
 
     @Override
-    protected CostTimeResultFilterOptions createFilterOptions() {
-        return new CostTimeResultFilterOptions();
+    protected CostTimeResultOptions createFilterOptions() {
+        return new CostTimeResultOptions();
     }
 
     @Override
@@ -26,7 +26,7 @@ public class CostTimeResultCmdParser extends ResultCmdParser<CostTimeResultFilte
     }
 
     @Override
-    protected int parseOption(CostTimeResultFilterOptions opts, String[] args, int currIdx) {
+    protected int parseOption(CostTimeResultOptions opts, String[] args, int currIdx) {
         int i = currIdx;
         switch (args[i]) {
             case OPT_RATES:
