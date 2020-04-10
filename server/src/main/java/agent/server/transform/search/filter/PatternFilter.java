@@ -4,7 +4,7 @@ import java.util.Collection;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-abstract class PatternFilter implements AgentFilter<String> {
+public abstract class PatternFilter implements AgentFilter<String> {
     final Collection<Pattern> patterns;
 
     private PatternFilter(Collection<String> strings) {
@@ -19,7 +19,7 @@ abstract class PatternFilter implements AgentFilter<String> {
         return new Include(strings);
     }
 
-    static PatternFilter exclude(Collection<String> strings) {
+    public static PatternFilter exclude(Collection<String> strings) {
         return new Exclude(strings);
     }
 

@@ -1,5 +1,6 @@
 package agent.builtin.tools.result;
 
+import agent.base.utils.Pair;
 import agent.builtin.tools.CostTimeStatItem;
 import agent.common.tree.Node;
 import agent.common.tree.Tree;
@@ -32,12 +33,13 @@ public class ByInvokeCostTimeResultHandler extends AbstractCostTimeResultHandler
     }
 
     @Override
-    void doPrint(List<Map<String, Map<String, Integer>>> classToInvokeToIdList, Map<Integer, CostTimeStatItem> result, boolean skipAvgEq0, Set<Float> rates) {
+    void doPrint(List<Map<String, Map<String, Integer>>> classToInvokeToIdList, Map<Integer, CostTimeStatItem> result, CostTimeResultParams params) {
         Tree<String> tree = new Tree<>();
+        CostTimeResultFilter filter = newFilter(params.opts);
         classToInvokeToIdList.forEach(
                 classToInvokeToId -> classToInvokeToId.forEach(
                         (className, invokeToId) -> {
-                            Map<String, CostTimeStatItem> invokeToItem = newInvokeToItem(result, invokeToId, skipAvgEq0);
+                            Map<String, CostTimeStatItem> invokeToItem = newInvokeToItem(result, className, invokeToId, filter);
                             if (!invokeToItem.isEmpty()) {
                                 Node<String> classNode = tree.appendChild(
                                         new Node<>("Class: " + className)
@@ -47,7 +49,7 @@ public class ByInvokeCostTimeResultHandler extends AbstractCostTimeResultHandler
                                                 newInvokeNode(
                                                         formatInvoke(destInvoke),
                                                         item,
-                                                        rates
+                                                        params.opts.rates
                                                 )
                                         )
                                 );
@@ -91,16 +93,17 @@ public class ByInvokeCostTimeResultHandler extends AbstractCostTimeResultHandler
         return idToItem;
     }
 
-    private Map<String, CostTimeStatItem> newInvokeToItem(Map<Integer, CostTimeStatItem> idToCostTimeItem,
-                                                          Map<String, Integer> invokeToId, boolean skipAvgEq0) {
+    private Map<String, CostTimeStatItem> newInvokeToItem(Map<Integer, CostTimeStatItem> idToCostTimeItem, String className,
+                                                          Map<String, Integer> invokeToId, CostTimeResultFilter filter) {
         Map<String, CostTimeStatItem> invokeToItem = new TreeMap<>();
-        for (Map.Entry<String, Integer> entry : invokeToId.entrySet()) {
-            CostTimeStatItem item = idToCostTimeItem.get(entry.getValue());
-            if (item != null) {
-                if (item.getAvgTime() > 0 || !skipAvgEq0)
-                    invokeToItem.put(entry.getKey(), item);
-            }
-        }
+        invokeToId.forEach(
+                (invoke, id) -> {
+                    InvokeMetadata metadata = new InvokeMetadata(className, invoke);
+                    CostTimeStatItem item = idToCostTimeItem.get(id);
+                    if (item != null && filter.accept(new Pair<>(metadata, item)))
+                        invokeToItem.put(invoke, item);
+                }
+        );
         return invokeToItem;
     }
 

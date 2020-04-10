@@ -2,12 +2,19 @@ package agent.builtin.tools;
 
 
 import agent.builtin.tools.result.ByInvokeCostTimeResultHandler;
-import agent.builtin.tools.result.CostTimeResultHandler;
+import agent.builtin.tools.result.CostTimeResultCmdParser;
 
 public class CostTimeByInvoke {
-    private static final CostTimeResultHandler handler = new ByInvokeCostTimeResultHandler();
 
-    public static void main(String[] args) throws Exception {
-        CostTimeUtils.run(args, handler);
+    public static void main(String[] args) {
+
+        try {
+            new ByInvokeCostTimeResultHandler().exec(
+                    new CostTimeResultCmdParser().run(args)
+            );
+        } catch (Throwable t) {
+            System.err.println(t.getMessage());
+            System.exit(-1);
+        }
     }
 }

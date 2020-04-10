@@ -2,6 +2,8 @@ package test.transformer;
 
 import agent.base.utils.ReflectionUtils;
 import agent.builtin.tools.result.ByCallChainCostTimeResultHandler;
+import agent.builtin.tools.result.CostTimeResultFilterOptions;
+import agent.builtin.tools.result.CostTimeResultParams;
 import agent.builtin.tools.result.TraceInvokeResultHandler;
 import agent.builtin.transformer.CostTimeStatisticsTransformer;
 import agent.builtin.transformer.TraceInvokeTransformer;
@@ -15,7 +17,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-import static agent.builtin.tools.CostTimeUtils.DEFAULT_RATES;
 
 public class TraceInvokeTransformerTest2 extends AbstractTest {
 
@@ -70,7 +71,11 @@ public class TraceInvokeTransformerTest2 extends AbstractTest {
 
                             TraceInvokeResultHandler.getInstance().printResult(outputPath);
                             System.out.println("=================");
-                            new ByCallChainCostTimeResultHandler().printResult(outputPath2, false, DEFAULT_RATES);
+
+                            CostTimeResultParams params = new CostTimeResultParams();
+                            params.inputPath = outputPath2;
+                            params.opts = new CostTimeResultFilterOptions();
+                            new ByCallChainCostTimeResultHandler().exec(params);
                             System.out.println("=================");
 
                             System.out.println(

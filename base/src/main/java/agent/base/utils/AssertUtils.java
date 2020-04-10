@@ -23,4 +23,8 @@ public class AssertUtils {
         if (!v)
             throw new RuntimeException(msg);
     }
+
+    public static void assertFalse(boolean v, String msg) {
+        assertTrue(!v, msg);
+    }
 }

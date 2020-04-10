@@ -1,4 +1,4 @@
 #!/bin/bash
 
 export main_class=agent.builtin.tools.InvokeResultTracer
-$(dirname "$0")/run $*
+$(dirname "$0")/calculate_result $*

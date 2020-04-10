@@ -1,5 +1,6 @@
 package agent.builtin.tools.result;
 
+import agent.base.utils.Pair;
 import agent.builtin.tools.CostTimeStatItem;
 import agent.common.tree.Node;
 import agent.common.tree.NodeMapper;
@@ -16,14 +17,15 @@ public class ByCallChainCostTimeResultHandler extends AbstractCostTimeResultHand
     private static final String CACHE_TYPE = "chain";
 
     @Override
-    void doPrint(List<Map<String, Map<String, Integer>>> classToInvokeToId, Tree<NodeData> tree, boolean skipAvgEq0, Set<Float> rates) {
+    void doPrint(List<Map<String, Map<String, Integer>>> classToInvokeToId, Tree<NodeData> tree, CostTimeResultParams params) {
         Map<Integer, InvokeMetadata> idToInvoke = convertMetadata(classToInvokeToId);
         TreeUtils.printTree(
-                convertTree(tree, idToInvoke, skipAvgEq0, rates),
+                convertTree(tree, idToInvoke, params),
                 new TreeUtils.PrintConfig(false),
                 (node, config) -> node.getData()
         );
     }
+
 
     @Override
     String getCacheType() {
@@ -47,22 +49,22 @@ public class ByCallChainCostTimeResultHandler extends AbstractCostTimeResultHand
         );
     }
 
-    private Tree<String> convertTree(Tree<NodeData> tree, final Map<Integer, InvokeMetadata> idToInvoke, boolean skipAvgEq0, final Set<Float> rates) {
+    private Tree<String> convertTree(Tree<NodeData> tree, final Map<Integer, InvokeMetadata> idToInvoke, CostTimeResultParams params) {
         Tree<String> rsTree = new Tree<>();
+        CostTimeResultFilter filter = newFilter(params.opts);
         tree.getChildren().forEach(
                 child -> Optional.ofNullable(
-                        convertNode(null, child, idToInvoke, skipAvgEq0, rates)
+                        convertNode(null, child, idToInvoke, filter, params.opts.rates)
                 ).ifPresent(rsTree::appendChild)
         );
         return rsTree;
     }
 
     private Node<String> convertNode(Integer parentInvokeId, Node<NodeData> node, final Map<Integer, InvokeMetadata> idToInvoke,
-                                     boolean skipAvgEq0, final Set<Float> rates) {
+                                     CostTimeResultFilter filter, final Set<Float> rates) {
         final NodeData data = node.getData();
         InvokeMetadata metadata = getMetadata(idToInvoke, data.invokeId);
-
-        if (data.item.getAvgTime() == 0 && skipAvgEq0)
+        if (!filter.accept(new Pair<>(metadata, data.item)))
             return null;
 
         Node<String> rsNode = newInvokeNode(
@@ -73,7 +75,7 @@ public class ByCallChainCostTimeResultHandler extends AbstractCostTimeResultHand
 
         node.getChildren().forEach(
                 child -> Optional.ofNullable(
-                        convertNode(data.invokeId, child, idToInvoke, skipAvgEq0, rates)
+                        convertNode(data.invokeId, child, idToInvoke, filter, rates)
                 ).ifPresent(rsNode::appendChild)
         );
         return rsNode;

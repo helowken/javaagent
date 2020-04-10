@@ -14,48 +14,56 @@ abstract class AbstractTransformCmdParser extends AbstractFilterCmdParser<Transf
     private static final String SEP = ":";
     private static final String OUTPUT_PATH = "outputPath";
     private static final String OPT_TRANSFORMER_ID = "-t";
+    private static final String PARAM_CMD = "cmd";
 
     abstract String getTransformerKey();
 
-    TransformFilterOptions createFilterOptions() {
+    @Override
+    protected TransformFilterOptions createFilterOptions() {
         return new TransformFilterOptions();
     }
 
     @Override
-    String getMsgFile() {
+    protected TransformParams createParams() {
+        return new TransformParams();
+    }
+
+    @Override
+    protected String getMsgFile() {
         return "transform.txt";
     }
 
     @Override
-    String getUsageMsg() {
-        return super.getUsageMsg() + " " + OUTPUT_PATH;
+    protected String getUsageParamValue(String param) {
+        return PARAM_CMD.equals(param) ?
+                getCmdName() :
+                super.getUsageParamValue(param);
     }
 
     @Override
-    boolean parseOtherOptions(TransformFilterOptions opts, String[] args, int currIdx, int endIdx) {
+    protected int parseOption(TransformFilterOptions opts, String[] args, int currIdx) {
         int i = currIdx;
-        if (args[i].equals(OPT_TRANSFORMER_ID)) {
-            opts.transformerId = getArg(args, ++i, "transformerId");
-            opts.nextIdx = i;
-            return true;
+        switch (args[i]) {
+            case OPT_TRANSFORMER_ID:
+                opts.transformerId = getArg(args, ++i, "transformerId");
+                break;
+            default:
+                return super.parseOption(opts, args, currIdx);
         }
-        return false;
+        return i;
     }
 
     @Override
-    TransformParams createParams(String[] args) {
-        TransformParams params = new TransformParams();
-        params.filterOptions = parseOptions(args, args.length - 2);
-        int i = params.filterOptions.nextIdx;
+    protected void parseAfterOptions(TransformParams params, String[] args, int startIdx) {
+        int i = startIdx;
         params.contextPath = getContext(args, i++);
         params.outputPath = FileUtils.getAbsolutePath(
                 getArg(args, i, OUTPUT_PATH)
         );
-        return params;
     }
 
     @Override
-    void checkParams(TransformParams params) {
+    protected void checkParams(TransformParams params) {
         super.checkParams(params);
         checkNotBlank(
                 getTransformerKey(),
@@ -79,7 +87,7 @@ abstract class AbstractTransformCmdParser extends AbstractFilterCmdParser<Transf
                 Collections.singletonList(
                         createTransformerConfig(
                                 getTransformerKey(),
-                                params.filterOptions.transformerId,
+                                params.opts.transformerId,
                                 params.outputPath
                         )
                 )

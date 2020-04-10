@@ -50,7 +50,7 @@ public class FilterUtils {
     }
 
     private static <T extends AgentFilter> void collectFilters(Collection<T> filters, Collection<String> input,
-                                                               Function<String, String> parseFunc, Function<Collection<String>, T> regexpFunc) {
+                                                               Function<String, String> parseFunc, Function<Collection<String>, T> filterFunc) {
         if (input != null) {
             Collection<String> regexps = input.stream()
                     .map(parseFunc)
@@ -59,12 +59,12 @@ public class FilterUtils {
                     );
             if (!regexps.isEmpty())
                 filters.add(
-                        regexpFunc.apply(regexps)
+                        filterFunc.apply(regexps)
                 );
         }
     }
 
-    static ClassFilter newClassFilter(ClassFilterConfig classFilterConfig, boolean includeInterface) {
+    public static ClassFilter newClassFilter(ClassFilterConfig classFilterConfig, boolean includeInterface) {
         return classFilterConfig == null ?
                 null :
                 newClassFilter(
@@ -77,23 +77,19 @@ public class FilterUtils {
     public static ClassFilter newClassFilter(Collection<String> includes, Collection<String> excludes, boolean includeInterface) {
         validateClassFilters(includes, excludes);
         List<ClassFilter> filters = new ArrayList<>();
-        collectFilters(
-                filters,
-                includes,
-                FilterUtils::parseForClass,
-                AbstractClassFilter::include
-        );
-        collectFilters(
-                filters,
-                excludes,
-                FilterUtils::parseForClass,
-                AbstractClassFilter::exclude
-        );
         if (!includeInterface)
             filters.add(
                     NotInterfaceFilter.getInstance()
             );
-        return mergeFilter(filters, ClassCompoundFilter::new);
+        return newFilter(
+                filters,
+                includes,
+                excludes,
+                FilterUtils::parseForClass,
+                AbstractClassFilter::include,
+                AbstractClassFilter::exclude,
+                ClassCompoundFilter::new
+        );
     }
 
     public static InvokeFilter newInvokeFilter(FilterConfig filterConfig) {
@@ -107,20 +103,60 @@ public class FilterUtils {
 
     public static InvokeFilter newInvokeFilter(Collection<String> includes, Collection<String> excludes) {
         validateInvokeFilters(includes, excludes);
-        List<InvokeFilter> filters = new ArrayList<>();
-        collectFilters(
-                filters,
+        return newFilter(
+                new ArrayList<>(),
                 includes,
-                FilterUtils::parseForInvoke,
-                AbstractInvokeFilter::include
-        );
-        collectFilters(
-                filters,
                 excludes,
                 FilterUtils::parseForInvoke,
-                AbstractInvokeFilter::exclude
+                AbstractInvokeFilter::include,
+                AbstractInvokeFilter::exclude,
+                InvokeCompoundFilter::new
         );
-        return mergeFilter(filters, InvokeCompoundFilter::new);
+    }
+
+    public static AgentFilter<String> newClassStringFilter(Collection<String> includes, Collection<String> excludes) {
+        return newClassStringFilter(
+                new ArrayList<>(),
+                includes,
+                excludes
+        );
+    }
+
+    public static AgentFilter<String> newClassStringFilter(List<AgentFilter<String>> filters, Collection<String> includes, Collection<String> excludes) {
+        return newStringFilter(filters, includes, excludes, FilterUtils::parseForClass);
+    }
+
+    public static AgentFilter<String> newInvokeStringFilter(Collection<String> includes, Collection<String> excludes) {
+        return newInvokeStringFilter(
+                new ArrayList<>(),
+                includes,
+                excludes
+        );
+    }
+
+    public static AgentFilter<String> newInvokeStringFilter(List<AgentFilter<String>> filters, Collection<String> includes, Collection<String> excludes) {
+        return newStringFilter(filters, includes, excludes, FilterUtils::parseForInvoke);
+    }
+
+    public static AgentFilter<String> newStringFilter(List<AgentFilter<String>> filters, Collection<String> includes, Collection<String> excludes,
+                                                      Function<String, String> parseFunc) {
+        return newFilter(
+                filters,
+                includes,
+                excludes,
+                parseFunc,
+                PatternFilter::include,
+                PatternFilter::exclude,
+                CompoundFilter::new
+        );
+    }
+
+    public static <T, F extends AgentFilter<T>> F newFilter(List<F> filters, Collection<String> includes, Collection<String> excludes, Function<String, String> parseFunc,
+                                                            Function<Collection<String>, F> includeFilterFunc, Function<Collection<String>, F> excludeFilterFunc,
+                                                            Function<List<F>, F> mergeFilterFunc) {
+        collectFilters(filters, includes, parseFunc, includeFilterFunc);
+        collectFilters(filters, excludes, parseFunc, excludeFilterFunc);
+        return mergeFilter(filters, mergeFilterFunc);
     }
 
     public static InvokeChainFilter newInvokeChainFilter(InvokeChainConfig config) {
@@ -141,11 +177,11 @@ public class FilterUtils {
                 );
     }
 
-    private static <T, F extends AgentFilter<T>> F mergeFilter(List<F> filters, Function<List<F>, F> mergeFunc) {
+    private static <T, F extends AgentFilter<T>> F mergeFilter(List<F> filters, Function<List<F>, F> mergeFilterFunc) {
         int size = filters.size();
         if (size > 0) {
             if (size > 1)
-                return mergeFunc.apply(filters);
+                return mergeFilterFunc.apply(filters);
             return filters.get(0);
         }
         return null;

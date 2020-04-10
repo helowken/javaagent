@@ -3,14 +3,14 @@ package agent.builtin.tools.result;
 import agent.base.utils.IOUtils;
 import agent.base.utils.Logger;
 import agent.builtin.tools.CostTimeStatItem;
+import agent.common.parser.CmdRunner;
 import agent.common.tree.Node;
 
 import java.io.File;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
-abstract class AbstractCostTimeResultHandler<T> extends AbstractResultHandler<T> implements CostTimeResultHandler {
+abstract class AbstractCostTimeResultHandler<T>
+        extends AbstractResultHandler<T> implements CmdRunner<CostTimeResultFilterOptions, CostTimeResultParams> {
     private static final Logger logger = Logger.getLogger(AbstractCostTimeResultHandler.class);
     private static final String CACHE_FILE_SUFFIX = "_cache";
 
@@ -25,7 +25,8 @@ abstract class AbstractCostTimeResultHandler<T> extends AbstractResultHandler<T>
     }
 
     @Override
-    public void printResult(String inputPath, boolean skipAvgEq0, Set<Float> rates) throws Exception {
+    public void exec(CostTimeResultParams params) throws Exception {
+        String inputPath = params.inputPath;
         String cacheFilePath = getCacheFilePath(inputPath);
         T result = readCache(cacheFilePath);
         if (result == null) {
@@ -35,8 +36,7 @@ abstract class AbstractCostTimeResultHandler<T> extends AbstractResultHandler<T>
         doPrint(
                 readMetadata(inputPath),
                 result,
-                skipAvgEq0,
-                rates
+                params
         );
     }
 
@@ -105,9 +105,12 @@ abstract class AbstractCostTimeResultHandler<T> extends AbstractResultHandler<T>
 
     abstract T deserializeResult(String content);
 
-    abstract void doPrint(List<Map<String, Map<String, Integer>>> classToInvokeToId, T result, boolean skipAvgEq0, Set<Float> rates);
+    abstract void doPrint(List<Map<String, Map<String, Integer>>> classToInvokeToId, T result, CostTimeResultParams params);
 
     interface CostTimeCalculateFunc {
         void exec(int id, int parentId, int invokeId, int costTime, boolean error);
     }
+
 }
+
+

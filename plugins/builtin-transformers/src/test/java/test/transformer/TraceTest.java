@@ -1,14 +1,6 @@
 package test.transformer;
 
-import agent.base.utils.IOUtils;
-import agent.base.utils.ReflectionUtils;
-import agent.base.utils.Utils;
-import agent.builtin.tools.result.TraceInvokeResultHandler;
-import agent.builtin.transformer.TraceInvokeTransformer;
-import agent.common.config.ConstructorFilterConfig;
-import agent.common.config.InvokeChainConfig;
 import org.junit.Test;
-import test.server.AbstractTest;
 
 import java.util.Collections;
 import java.util.Date;
@@ -16,59 +8,11 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Stream;
 
-public class TraceTest extends AbstractTest {
+public class TraceTest extends AbstractTraceTest {
 
     @Test
     public void test() throws Exception {
-        Map<Class<?>, String> classToMethodFilter = new HashMap<>();
-        classToMethodFilter.put(TestFilter3.class, "doFilter");
-
-        InvokeChainConfig invokeChainConfig = new InvokeChainConfig();
-        ConstructorFilterConfig constructorFilterConfig = new ConstructorFilterConfig();
-        constructorFilterConfig.setIncludes(
-                Collections.singleton("*")
-        );
-        invokeChainConfig.setConstructorFilter(constructorFilterConfig);
-        doTest(classToMethodFilter, invokeChainConfig);
-    }
-
-    private void doTest(Map<Class<?>, String> classToMethodFilter, InvokeChainConfig invokeChainConfig) throws Exception {
-        runWithFile(
-                (outputPath, config) -> {
-                    // load all classes including lamda class
-                    new TestFilter3().doFilter();
-
-                    TraceInvokeTransformer transformer = new TraceInvokeTransformer();
-                    transformer.setInstanceKey(
-                            newTransformerKey()
-                    );
-                    String context = "test";
-                    doTransform(transformer, context, config, classToMethodFilter, invokeChainConfig);
-
-                    Map<Class<?>, byte[]> classToData = getClassToData(transformer);
-                    Map<String, Class<?>> nameToClass = new HashMap<>();
-                    classToData.forEach(
-                            (clazz, data) -> Utils.wrapToRtError(
-                                    () -> nameToClass.put(
-                                            clazz.getName(),
-                                            loader.loadClass(
-                                                    clazz.getName(),
-                                                    data
-                                            )
-                                    )
-                            )
-                    );
-                    Object a = nameToClass.get(
-                            TestFilter3.class.getName()
-                    ).newInstance();
-                    ReflectionUtils.invoke("doFilter", a);
-
-                    flushAndWaitMetadata(outputPath);
-                    System.out.println(IOUtils.readToString(outputPath));
-
-                    TraceInvokeResultHandler.getInstance().printResult(outputPath);
-                }
-        );
+        test(TestFilter3.class, "doFilter", true);
     }
 
     public static class TestFilter3 {

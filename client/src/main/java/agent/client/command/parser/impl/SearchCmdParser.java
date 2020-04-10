@@ -5,19 +5,20 @@ import agent.common.message.command.impl.SearchCommand;
 
 import java.util.Map;
 
-public class SearchCmdParser extends AbstractFilterCmdParser<FilterOptions, FilterParams<FilterOptions>> {
-
+public class SearchCmdParser extends AbstractFilterCmdParser<FilterOptions, SearchParams> {
     @Override
-    FilterParams<FilterOptions> createParams(String[] args) {
-        FilterParams<FilterOptions> params = new FilterParams<>();
-        params.filterOptions = parseOptions(args, args.length - 1);
-        params.contextPath = getContext(args, params.filterOptions.nextIdx);
-        return params;
+    protected SearchParams createParams() {
+        return new SearchParams();
     }
 
     @Override
-    FilterOptions createFilterOptions() {
+    protected FilterOptions createFilterOptions() {
         return new FilterOptions();
+    }
+
+    @Override
+    protected void parseAfterOptions(SearchParams params, String[] args, int startIdx) throws Exception {
+        params.contextPath = getContext(args, startIdx);
     }
 
     @Override
@@ -26,7 +27,7 @@ public class SearchCmdParser extends AbstractFilterCmdParser<FilterOptions, Filt
     }
 
     @Override
-    String getMsgFile() {
+    protected String getMsgFile() {
         return "search.txt";
     }
 
@@ -34,5 +35,7 @@ public class SearchCmdParser extends AbstractFilterCmdParser<FilterOptions, Filt
     public String getCmdName() {
         return "search";
     }
+}
 
+class SearchParams extends FilterParams<FilterOptions> {
 }

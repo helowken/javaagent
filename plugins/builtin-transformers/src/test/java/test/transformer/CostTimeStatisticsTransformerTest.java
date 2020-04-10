@@ -3,6 +3,8 @@ package test.transformer;
 import agent.base.utils.ReflectionUtils;
 import agent.builtin.tools.result.ByCallChainCostTimeResultHandler;
 import agent.builtin.tools.result.ByInvokeCostTimeResultHandler;
+import agent.builtin.tools.result.CostTimeResultFilterOptions;
+import agent.builtin.tools.result.CostTimeResultParams;
 import agent.builtin.transformer.CostTimeStatisticsTransformer;
 import agent.common.config.InvokeChainConfig;
 import org.junit.Test;
@@ -10,8 +12,6 @@ import test.server.AbstractTest;
 
 import java.util.HashMap;
 import java.util.Map;
-
-import static agent.builtin.tools.CostTimeUtils.DEFAULT_RATES;
 
 public class CostTimeStatisticsTransformerTest extends AbstractTest {
 
@@ -49,17 +49,32 @@ public class CostTimeStatisticsTransformerTest extends AbstractTest {
 
                     flushAndWaitMetadata(outputPath);
 
+                    CostTimeResultFilterOptions opts = new CostTimeResultFilterOptions();
+                    CostTimeResultParams params = new CostTimeResultParams();
+                    params.inputPath = outputPath;
+                    params.opts = opts;
                     ByCallChainCostTimeResultHandler chainHandler = new ByCallChainCostTimeResultHandler();
-                    chainHandler.printResult(outputPath, false, DEFAULT_RATES);
-                    System.out.println("======= Use cache =======");
-                    chainHandler.printResult(outputPath, false, DEFAULT_RATES);
+                    chainHandler.exec(params);
 
-                    System.out.println("====================");
+                    System.out.println("\n======= Use cache =======");
+                    opts = new CostTimeResultFilterOptions();
+                    opts.methodStr = "runApi4:service";
+                    opts.filterExpr = "avgTime > 20";
+                    params.opts = opts;
+                    chainHandler.exec(params);
 
+                    System.out.println("====================\n");
                     ByInvokeCostTimeResultHandler invokeHandler = new ByInvokeCostTimeResultHandler();
-                    invokeHandler.printResult(outputPath, false, DEFAULT_RATES);
-                    System.out.println("======= Use cache =======");
-                    invokeHandler.printResult(outputPath, false, DEFAULT_RATES);
+                    opts = new CostTimeResultFilterOptions();
+                    opts.methodStr = "runApi*:service";
+                    params.opts = opts;
+                    invokeHandler.exec(params);
+
+                    System.out.println("\n======= Use cache =======");
+                    opts = new CostTimeResultFilterOptions();
+                    opts.filterExpr = "avgTime > 20";
+                    params.opts = opts;
+                    invokeHandler.exec(params);
                 }
         );
     }

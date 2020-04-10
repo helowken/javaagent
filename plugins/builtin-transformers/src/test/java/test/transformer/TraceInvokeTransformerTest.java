@@ -1,23 +1,24 @@
 package test.transformer;
 
-import agent.base.utils.ReflectionUtils;
-import agent.builtin.tools.result.TraceInvokeResultHandler;
-import agent.builtin.transformer.TraceInvokeTransformer;
 import agent.common.config.InvokeChainConfig;
 import org.junit.Test;
-import test.server.AbstractTest;
 
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 
-public class TraceInvokeTransformerTest extends AbstractTest {
+public class TraceInvokeTransformerTest extends AbstractTraceTest {
+
     @Test
     public void test() throws Exception {
         Map<Class<?>, String> classToMethodFilter = new HashMap<>();
         classToMethodFilter.put(A.class, "*");
-        doTest(classToMethodFilter, null);
+        doTest(
+                A.class,
+                "service",
+                classToMethodFilter, null,
+                true
+        );
     }
 
     @Test
@@ -25,33 +26,15 @@ public class TraceInvokeTransformerTest extends AbstractTest {
         Map<Class<?>, String> classToMethodFilter = new HashMap<>();
         classToMethodFilter.put(A.class, "service");
         doTest(
+                A.class,
+                "service",
                 classToMethodFilter,
-                new InvokeChainConfig()
+                new InvokeChainConfig(),
+                true
         );
     }
 
-    private void doTest(Map<Class<?>, String> classToMethodFilter, InvokeChainConfig invokeChainConfig) throws Exception {
-        runWithFile(
-                (outputPath, config) -> {
-                    TraceInvokeTransformer transformer = new TraceInvokeTransformer();
-                    transformer.setInstanceKey(
-                            newTransformerKey()
-                    );
-                    String context = "test";
-                    doTransform(transformer, context, config, classToMethodFilter, invokeChainConfig);
-
-                    Map<Class<?>, byte[]> classToData = getClassToData(transformer);
-                    Object a = newInstance(classToData, A.class);
-                    ReflectionUtils.invoke("service", a);
-
-                    flushAndWaitMetadata(outputPath);
-
-                    TraceInvokeResultHandler.getInstance().printResult(outputPath);
-                }
-        );
-    }
-
-    static class A {
+    public static class A {
         void service() {
             test(false, (byte) 2, '\'', (short) 4, 5, (long) 6);
         }

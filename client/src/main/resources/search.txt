@@ -1,2 +1,3 @@
+Usage: search [-options] contextPath
 Where options include:
     ${options.txt}

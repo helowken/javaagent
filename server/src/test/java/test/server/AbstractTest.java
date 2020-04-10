@@ -22,6 +22,7 @@ import agent.server.transform.impl.invoke.MethodInvoke;
 import agent.server.transform.tools.asm.ProxyRegInfo;
 import agent.server.transform.tools.asm.ProxyResult;
 import agent.server.transform.tools.asm.ProxyTransformMgr;
+import org.junit.Before;
 import org.junit.BeforeClass;
 
 import java.io.File;

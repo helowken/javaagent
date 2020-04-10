@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-public class CompoundFilter<T, F extends AgentFilter<T>> implements AgentFilter<T> {
+class CompoundFilter<T, F extends AgentFilter<T>> implements AgentFilter<T> {
     private final List<F> filters;
 
     CompoundFilter(Collection<F> filters) {
