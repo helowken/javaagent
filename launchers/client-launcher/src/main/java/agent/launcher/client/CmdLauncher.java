@@ -1,6 +1,5 @@
 package agent.launcher.client;
 
-import agent.base.utils.Utils;
 import agent.launcher.basic.AbstractLauncher;
 
 import java.util.Arrays;
@@ -16,7 +15,9 @@ public class CmdLauncher extends AbstractLauncher {
         }
         instance.init(args[0]);
         String[] cmdArgs = Arrays.copyOfRange(args, 1, args.length);
-        String cmdLine = Utils.join(" ", cmdArgs);
-        instance.startRunner(RUNNER_TYPE, cmdLine);
+        instance.startRunner(
+                RUNNER_TYPE,
+                new Object[]{cmdArgs}
+        );
     }
 }

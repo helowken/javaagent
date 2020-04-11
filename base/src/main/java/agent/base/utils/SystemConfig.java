@@ -1,6 +1,7 @@
 package agent.base.utils;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -18,7 +19,10 @@ public class SystemConfig {
     }
 
     public static void load(String path) throws Exception {
-        baseDir = new File(path).getParentFile().getParent();
+        File file = new File(path);
+        if (!file.exists())
+            throw new FileNotFoundException(path);
+        baseDir = file.getParentFile().getParent();
         load(
                 Utils.loadProperties(path)
         );

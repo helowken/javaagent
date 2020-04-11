@@ -4,6 +4,7 @@ package agent.base.utils;
 import agent.base.exception.StringParseException;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -11,12 +12,6 @@ import java.util.stream.Collectors;
 public class StringParser {
     private static final String PREFIX = "${";
     private static final String SUFFIX = "}";
-    private static final int PREFIX_LEN = PREFIX.length();
-    private static final int SUFFIX_LEN = SUFFIX.length();
-
-    public static String getKey(String key) {
-        return PREFIX + key + SUFFIX;
-    }
 
     public static String eval(String pattern, Map<String, Object> paramValues) {
         return eval(pattern, paramValues, null);
@@ -27,22 +22,30 @@ public class StringParser {
     }
 
     public static CompiledStringExpr compile(String pattern) {
+        return compile(pattern, PREFIX, SUFFIX);
+    }
+
+    public static CompiledStringExpr compile(String pattern, String prefix, String suffix) {
+        int prefixLen = prefix.length();
+        int suffixLen = suffix.length();
         int patternLen = pattern.length();
         CompiledStringExpr expr = new CompiledStringExpr();
         int start = 0;
         while (start < patternLen) {
-            int pos = pattern.indexOf(PREFIX, start);
+            int pos = pattern.indexOf(prefix, start);
             if (pos > -1) {
                 if (pos > start)
                     expr.add(pattern.substring(start, pos));
-                int end = pattern.indexOf(SUFFIX, pos + PREFIX_LEN);
+                int end = pattern.indexOf(suffix, pos + prefixLen);
                 if (end > -1) {
-                    String key = pattern.substring(pos + PREFIX_LEN, end).trim();
+                    String key = pattern.substring(pos + prefixLen, end).trim();
                     expr.add(key, true);
-                    start = end + SUFFIX_LEN;
+                    start = end + suffixLen;
                 } else {
-                    expr.add(pattern.substring(pos));
-                    break;
+                    String s = pattern.substring(pos);
+                    throw new RuntimeException("No suffix found for placeholder pattern: " + s);
+//                    expr.add(s);
+//                    break;
                 }
             } else {
                 expr.add(pattern.substring(start));
@@ -65,6 +68,10 @@ public class StringParser {
 
         public List<ExprItem> getKeys() {
             return itemList.stream().filter(item -> item.isKey).collect(Collectors.toList());
+        }
+
+        public List<ExprItem> getAllItems() {
+            return Collections.unmodifiableList(itemList);
         }
 
         public String eval(Map<String, Object> paramValues) {
@@ -99,6 +106,10 @@ public class StringParser {
 
         public String getContent() {
             return content;
+        }
+
+        public boolean isKey() {
+            return isKey;
         }
     }
 

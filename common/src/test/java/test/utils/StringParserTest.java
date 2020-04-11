@@ -27,14 +27,14 @@ public class StringParserTest {
         pvs.put("a4", a4);
 
         check(a0, "${a0}", pvs);
-        check(a0 + "${", "${a0}${", pvs);
         check(a0 + "}", "${a0}}", pvs);
         check(a0 + a1, "${a0}${a1}", pvs);
-        check(a0 + "-${aaa", "${a0}-${aaa", pvs);
         check(a0 + "-" + a1 + " " + a2, "${a0}-${a1} ${a2}", pvs);
         check("aa" + a3 + " bb}}}", "aa${a3} bb}}}", pvs);
-        check("$ {a}a}bb" + a4 + "}}" + a4 + "${${", "$ {a}a}bb${a4}}}${a4}${${", pvs);
+        check("$ {a}a}bb" + a4 + "}}" + a4, "$ {a}a}bb${a4}}}${a4}", pvs);
 
+        checkError("${a0}${", pvs, "${");
+        checkError("${a0}-${aaa", pvs, "${aaa");
         checkFail("${${a1}", pvs, "${a1");
         checkFail("${a999}", pvs, "a999");
         checkFail("${}", pvs, "");
@@ -48,6 +48,15 @@ public class StringParserTest {
             fail();
         } catch (StringParseException e) {
             assertEquals("No value found by key: \"" + errKey + "\"", e.getMessage());
+        }
+    }
+
+    private void checkError(String pattern, Map<String, Object> pvs, String errKey) {
+        try {
+            StringParser.eval(pattern, pvs);
+            fail();
+        } catch (RuntimeException e) {
+            assertEquals("No suffix found for placeholder pattern: " + errKey, e.getMessage());
         }
     }
 

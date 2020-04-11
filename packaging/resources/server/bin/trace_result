@@ -1,4 +1,4 @@
 #!/bin/bash
 
 export main_class="agent.builtin.tools.ResultCalculator\$InvokeResultTracer"
-$(dirname "$0")/calculate_result $*
+$(dirname "$0")/calculate_result "$@"

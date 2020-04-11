@@ -3,20 +3,27 @@ package agent.client;
 import agent.base.utils.Utils;
 import agent.client.utils.ClientLogger;
 
+import java.util.Arrays;
+import java.util.List;
+
 public class AgentCmdRunner extends AbstractClientRunner {
-    private String cmdLine;
+    private String[] cmdArgs;
 
     @Override
     public void startup(Object... args) {
-        cmdLine = Utils.getArgValue(args, 0);
-        ClientLogger.info(cmdLine);
+        cmdArgs = Utils.getArgValue(args, 0);
+        ClientLogger.info(
+                Arrays.toString(cmdArgs)
+        );
         connectTo();
     }
 
     @Override
-    String readCmdLine() {
-        String tmp = cmdLine;
-        cmdLine = null;
-        return tmp;
+    List<String> readCmdArgs() {
+        if (cmdArgs == null)
+            return null;
+        String[] tmp = cmdArgs;
+        cmdArgs = null;
+        return Arrays.asList(tmp);
     }
 }

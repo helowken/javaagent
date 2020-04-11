@@ -2,6 +2,7 @@ package agent.client;
 
 import agent.base.runner.Runner;
 import agent.base.utils.Logger;
+import agent.base.utils.StringParser;
 import agent.base.utils.SystemConfig;
 import agent.base.utils.Utils;
 import agent.client.command.parser.CommandParserMgr;
@@ -15,10 +16,7 @@ import agent.common.network.MessageIO;
 
 import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 abstract class AbstractClientRunner implements Runner {
     private static final Logger logger = Logger.getLogger(AbstractClientRunner.class);
@@ -27,28 +25,50 @@ abstract class AbstractClientRunner implements Runner {
     private static final Set<String> quitCmds = new HashSet<>(Arrays.asList("quit", "exit", "byte"));
     private static final CmdItem QUIT_ITEM = new CmdItem(null, true);
 
-    abstract String readCmdLine() throws Exception;
+    abstract List<String> readCmdArgs() throws Exception;
 
     @Override
     public void shutdown() {
     }
 
-    private CmdItem parseCommand(String cmdLine) {
-        String line = cmdLine;
-        if (line != null &&
-                !(line = line.trim()).isEmpty() &&
-                !quitCmds.contains(line)) {
-            String[] args = line.split("\\s+");
-            String cmdName = args[0];
-            args = args.length > 1 ?
-                    Arrays.copyOfRange(args, 1, args.length) :
-                    new String[0];
-            return new CmdItem(
-                    CommandParserMgr.parse(cmdName, args),
-                    false
+    private CmdItem parseCommand(List<String> argList) {
+        if (argList == null || argList.isEmpty())
+            return QUIT_ITEM;
+        List<String> restArgList = new ArrayList<>(argList);
+        String cmdName = restArgList.remove(0);
+        if (quitCmds.contains(cmdName))
+            return QUIT_ITEM;
+        String[] args = restArgList.isEmpty() ?
+                new String[0] :
+                restArgList.toArray(new String[0]);
+        return new CmdItem(
+                CommandParserMgr.parse(cmdName, args),
+                false
+        );
+    }
+
+    List<String> splitStringToArgs(String line) {
+        try {
+            StringParser.CompiledStringExpr expr = StringParser.compile(line, "\"", "\"");
+            List<String> rsList = new ArrayList<>();
+            expr.getAllItems().forEach(
+                    item -> {
+                        String content = item.getContent().trim();
+                        if (item.isKey())
+                            rsList.add(content);
+                        else
+                            Collections.addAll(
+                                    rsList,
+                                    content.split("\\s+")
+                            );
+                    }
+            );
+            return rsList;
+        } catch (Exception e) {
+            throw new CommandParseException(
+                    e.getMessage()
             );
         }
-        return QUIT_ITEM;
     }
 
     boolean connectTo() {
@@ -63,7 +83,7 @@ abstract class AbstractClientRunner implements Runner {
                 while (true) {
                     try {
                         CmdItem cmdItem = parseCommand(
-                                readCmdLine()
+                                readCmdArgs()
                         );
                         if (cmdItem.quit)
                             return true;

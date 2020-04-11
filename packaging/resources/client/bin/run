@@ -29,5 +29,5 @@ fi
 
 classpath=$common_lib_base_dir/*:$launcher_dir/*
 
-$JAVA_HOME/bin/java -cp $classpath agent.launcher.client.$main_class $conf_file $*
+$JAVA_HOME/bin/java -cp $classpath agent.launcher.client.$main_class $conf_file "$@"
 

@@ -7,6 +7,7 @@ import agent.client.utils.ClientLogger;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.util.List;
 
 public class AgentScriptRunner extends AbstractClientRunner {
     private BufferedReader reader;
@@ -32,7 +33,7 @@ public class AgentScriptRunner extends AbstractClientRunner {
     }
 
     @Override
-    String readCmdLine() {
+    List<String> readCmdArgs() {
         return Utils.wrapToRtError(
                 () -> {
                     String line = readLineFromFile();
@@ -40,7 +41,7 @@ public class AgentScriptRunner extends AbstractClientRunner {
                         IOUtils.close(reader);
                     else
                         ClientLogger.info(line);
-                    return line;
+                    return splitStringToArgs(line);
                 }
         );
     }
