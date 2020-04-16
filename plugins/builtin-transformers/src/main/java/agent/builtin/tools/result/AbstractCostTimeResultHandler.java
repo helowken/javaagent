@@ -2,7 +2,6 @@ package agent.builtin.tools.result;
 
 import agent.base.utils.IOUtils;
 import agent.base.utils.Logger;
-import agent.common.parser.CmdRunner;
 import agent.common.tree.Node;
 
 import java.io.File;
@@ -12,8 +11,7 @@ import java.util.Map;
 import java.util.Set;
 
 abstract class AbstractCostTimeResultHandler<T>
-        extends AbstractResultHandler<T, CostTimeStatItem, CostTimeResultFilter>
-        implements CmdRunner<CostTimeResultOptions, CostTimeResultParams> {
+        extends AbstractResultHandler<T, CostTimeStatItem, CostTimeResultFilter, CostTimeResultOptions, CostTimeResultParams> {
     private static final Logger logger = Logger.getLogger(AbstractCostTimeResultHandler.class);
     private static final String CACHE_FILE_SUFFIX = "_cache";
 
@@ -38,7 +36,7 @@ abstract class AbstractCostTimeResultHandler<T>
         String cacheFilePath = getCacheFilePath(inputPath);
         T result = readCache(cacheFilePath);
         if (result == null) {
-            result = calculateStats(inputPath);
+            result = calculateStats(inputPath, params);
             cacheResult(cacheFilePath, result);
         }
         doPrint(

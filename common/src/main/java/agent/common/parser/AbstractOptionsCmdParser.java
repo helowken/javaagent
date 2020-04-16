@@ -8,8 +8,8 @@ import agent.base.utils.Utils;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public abstract class AbstractOptionCmdParser<F extends BasicOptions, P extends BasicParams<F>> implements ArgsCmdParser<F, P> {
-    private static final Logger logger = Logger.getLogger(AbstractOptionCmdParser.class);
+public abstract class AbstractOptionsCmdParser<F extends BasicOptions, P extends BasicParams<F>> implements ArgsCmdParser<F, P> {
+    private static final Logger logger = Logger.getLogger(AbstractOptionsCmdParser.class);
     private static final String OPT_PREFIX = "-";
     private static final String OPT_CLASS_FILTER = "-c";
     private static final String OPT_METHOD_FILTER = "-m";

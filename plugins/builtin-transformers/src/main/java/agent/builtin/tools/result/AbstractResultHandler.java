@@ -9,6 +9,9 @@ import agent.common.config.ClassFilterConfig;
 import agent.common.config.ConstructorFilterConfig;
 import agent.common.config.MethodFilterConfig;
 import agent.common.config.TargetConfig;
+import agent.common.parser.BasicOptions;
+import agent.common.parser.BasicParams;
+import agent.common.parser.CmdRunner;
 import agent.common.utils.JSONUtils;
 import agent.server.transform.impl.DestInvokeIdRegistry;
 import agent.server.transform.search.filter.FilterUtils;
@@ -22,8 +25,11 @@ import java.util.stream.Stream;
 
 import static agent.common.parser.FilterOptionUtils.createTargetConfig;
 
-abstract class AbstractResultHandler<T, D, F extends ResultFilter<D>> {
-    abstract T calculate(Collection<String> dataFiles);
+abstract class AbstractResultHandler<T, D, F
+        extends ResultFilter<D>, O extends BasicOptions, P extends BasicParams<O>>
+        implements CmdRunner<O, P> {
+
+    abstract T calculate(Collection<String> dataFiles, P params);
 
     abstract F createFilter();
 
@@ -58,13 +64,13 @@ abstract class AbstractResultHandler<T, D, F extends ResultFilter<D>> {
         return !DestInvokeIdRegistry.isMetadataFile(filePath);
     }
 
-    T calculateStats(String inputPath) throws Exception {
+    T calculateStats(String inputPath, P params) throws Exception {
         List<String> dataFilePaths = findDataFiles(inputPath);
         long st = System.currentTimeMillis();
         ForkJoinPool pool = new ForkJoinPool(Runtime.getRuntime().availableProcessors() - 1);
         try {
             return pool.submit(
-                    () -> calculate(dataFilePaths)
+                    () -> calculate(dataFilePaths, params)
             ).get();
         } finally {
             long et = System.currentTimeMillis();

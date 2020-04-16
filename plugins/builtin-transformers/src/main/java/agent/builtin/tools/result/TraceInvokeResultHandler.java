@@ -2,7 +2,6 @@ package agent.builtin.tools.result;
 
 import agent.base.utils.*;
 import agent.builtin.transformer.utils.TraceItem;
-import agent.common.parser.CmdRunner;
 import agent.common.tree.INode;
 import agent.common.tree.Node;
 import agent.common.tree.Tree;
@@ -13,8 +12,8 @@ import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 
-public class TraceInvokeResultHandler extends AbstractResultHandler<Collection<Tree<TraceItem>>, TraceItem, TraceResultFilter>
-        implements CmdRunner<TraceResultOptions, TraceResultParams> {
+public class TraceInvokeResultHandler
+        extends AbstractResultHandler<Collection<Tree<TraceItem>>, TraceItem, TraceResultFilter, TraceResultOptions, TraceResultParams> {
     private static final String indent = IndentUtils.getIndent(1);
     private static final String KEY_CLASS = "class";
     private static final String KEY_INDEX = "index";
@@ -26,7 +25,7 @@ public class TraceInvokeResultHandler extends AbstractResultHandler<Collection<T
         Map<Integer, InvokeMetadata> idToInvoke = convertMetadata(
                 readMetadata(inputPath)
         );
-        calculateStats(inputPath).forEach(
+        calculateStats(inputPath, params).forEach(
                 tree -> TreeUtils.printTree(
                         convertTree(
                                 transform(tree),
@@ -182,10 +181,12 @@ public class TraceInvokeResultHandler extends AbstractResultHandler<Collection<T
     }
 
     @Override
-    Collection<Tree<TraceItem>> calculate(Collection<String> dataFiles) {
+    Collection<Tree<TraceItem>> calculate(Collection<String> dataFiles, TraceResultParams params) {
         Collection<Tree<TraceItem>> rsList = new ConcurrentLinkedQueue<>();
         dataFiles.parallelStream()
-                .map(this::doCalculate)
+                .map(
+                        dataFile -> doCalculate(dataFile, params)
+                )
                 .forEach(rsList::addAll);
         return rsList;
     }
@@ -195,7 +196,7 @@ public class TraceInvokeResultHandler extends AbstractResultHandler<Collection<T
         return new TraceResultFilter();
     }
 
-    private List<Tree<TraceItem>> doCalculate(String dataFilePath) {
+    private List<Tree<TraceItem>> doCalculate(String dataFilePath, TraceResultParams params) {
         List<Tree<TraceItem>> trees = new ArrayList<>();
         calculateTextFile(
                 dataFilePath,

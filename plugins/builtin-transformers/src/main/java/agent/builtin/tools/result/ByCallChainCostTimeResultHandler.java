@@ -81,7 +81,7 @@ public class ByCallChainCostTimeResultHandler extends AbstractCostTimeResultHand
     }
 
     @Override
-    Tree<NodeData> calculate(Collection<String> dataFiles) {
+    Tree<NodeData> calculate(Collection<String> dataFiles, CostTimeResultParams params) {
         AtomicReference<Tree<NodeData>> ref = new AtomicReference<>();
         dataFiles.parallelStream()
                 .map(this::doCalculate)

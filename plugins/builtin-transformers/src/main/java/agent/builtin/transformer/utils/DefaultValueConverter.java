@@ -52,7 +52,6 @@ public class DefaultValueConverter implements ValueConverter {
         else if (clazz.equals(char.class) || clazz.equals(Character.class))
             rv = "'" + rv.replace("'", "\\'") + "'";
 
-
         Map<String, Object> rsMap = new HashMap<>();
         rsMap.put(KEY_CLASS, clazz.getName());
         rsMap.put(KEY_VALUE, rv);

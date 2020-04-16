@@ -1,7 +1,7 @@
 package agent.builtin.tools.result;
 
-import agent.common.parser.BasicOptions;
+import agent.common.parser.ChainOptions;
 
-class ResultOptions extends BasicOptions {
+class ResultOptions extends ChainOptions {
     public String filterExpr;
 }

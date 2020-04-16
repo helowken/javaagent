@@ -2,9 +2,9 @@ package agent.builtin.tools.result;
 
 import agent.base.utils.FileUtils;
 import agent.base.utils.SystemConfig;
-import agent.common.parser.AbstractOptionCmdParser;
+import agent.common.parser.AbstractOptionsCmdParser;
 
-abstract class ResultCmdParser<F extends ResultOptions, P extends ResultParams<F>> extends AbstractOptionCmdParser<F, P> {
+abstract class ResultCmdParser<F extends ResultOptions, P extends ResultParams<F>> extends AbstractOptionsCmdParser<F, P> {
     private static final String OPT_FILTER_EXPR = "-e";
 
     @Override

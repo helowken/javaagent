@@ -65,7 +65,7 @@ public class ByInvokeCostTimeResultHandler extends AbstractCostTimeResultHandler
     }
 
     @Override
-    Map<Integer, CostTimeStatItem> calculate(Collection<String> dataFiles) {
+    Map<Integer, CostTimeStatItem> calculate(Collection<String> dataFiles, CostTimeResultParams params) {
         Map<Integer, CostTimeStatItem> sumMap = new ConcurrentHashMap<>();
         dataFiles.parallelStream()
                 .map(this::doCalculate)
