@@ -38,7 +38,7 @@ public class ClassDataRepository {
                     logger.error("Get data from code source failed: {}", e, clazz.getName());
                     return null;
                 },
-                "loadClassDataFromResource: {} , {}",
+                "loadClassDataFromResource: {}, {}",
                 clazz.getName()
         );
     }
@@ -64,7 +64,7 @@ public class ClassDataRepository {
                     logger.error("Get class data failed.", t);
                     return null;
                 },
-                "getClassDataFromInstrumentation: {} , {}",
+                "getClassDataFromInstrumentation: {}, {}",
                 clazz.getName()
         );
     }

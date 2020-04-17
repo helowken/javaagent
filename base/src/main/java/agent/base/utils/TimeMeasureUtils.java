@@ -40,7 +40,7 @@ public class TimeMeasureUtils {
         } else
             args = new Object[1];
 
-        long st = System.currentTimeMillis();
+        long st = System.nanoTime();
         try {
             return func.run();
         } catch (Throwable e) {
@@ -48,8 +48,8 @@ public class TimeMeasureUtils {
                 return errorHandler.apply(e);
             throw new RuntimeException(e);
         } finally {
-            long et = System.currentTimeMillis();
-            args[args.length - 1] = et - st;
+            long et = System.nanoTime();
+            args[args.length - 1] = ((double) et - st) / (1000 * 1000);
             logger.debug(pattern, args);
         }
     }

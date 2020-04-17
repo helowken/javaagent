@@ -459,7 +459,7 @@ public class InvokeChainSearcher {
                                         );
                             },
                             e -> logger.error("Init method node map failed, invokeKey: {}", e, invokeKey),
-                            "InitMethodNodeMap: {} , {}",
+                            "InitMethodNodeMap: {}, {}",
                             clazz.getName()
                     );
                 }
