@@ -36,7 +36,6 @@ public class ViewCmdExecutorTest extends AbstractTest {
 
     private void reg(String context, Class<?> clazz, String methodName) throws Exception {
         DestInvokeIdRegistry.getInstance().reg(
-                context,
                 newMethodInvoke(clazz, methodName)
         );
     }
@@ -44,7 +43,6 @@ public class ViewCmdExecutorTest extends AbstractTest {
     private void reg(String context, Class<?> clazz) throws Exception {
         for (Method method : clazz.getDeclaredMethods()) {
             DestInvokeIdRegistry.getInstance().reg(
-                    context,
                     new MethodInvoke(method)
             );
         }

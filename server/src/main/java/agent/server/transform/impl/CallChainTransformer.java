@@ -50,7 +50,7 @@ public abstract class CallChainTransformer extends ProxyAnnotationConfigTransfor
 
         @Override
         protected T newDataOnBefore(Object[] args, Class<?>[] argTypes, DestInvoke destInvoke, Object[] otherArgs) {
-            long st = System.currentTimeMillis();
+            long st = System.nanoTime();
             T data = super.newDataOnBefore(args, argTypes, destInvoke, otherArgs);
             data.startTime = st;
             return data;
@@ -58,13 +58,13 @@ public abstract class CallChainTransformer extends ProxyAnnotationConfigTransfor
 
         @Override
         protected T processOnReturning(T data, Object returnValue, Class<?> returnType, DestInvoke destInvoke, Object[] otherArgs) {
-            data.endTime = System.currentTimeMillis();
+            data.endTime = System.nanoTime();
             return data;
         }
 
         @Override
         protected T processOnThrowing(T data, Throwable error, DestInvoke destInvoke, Object[] otherArgs) {
-            data.endTime = System.currentTimeMillis();
+            data.endTime = System.nanoTime();
             data.error = error;
             return data;
         }

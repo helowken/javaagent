@@ -5,18 +5,9 @@ import java.util.Collections;
 import java.util.List;
 
 public class TransformResult {
-    private final String context;
     private final List<ErrorItem> transformErrorList = new ArrayList<>();
     private final List<ErrorItem> compileErrorList = new ArrayList<>();
     private final List<ErrorItem> reTransformErrorItemList = new ArrayList<>();
-
-    TransformResult(String context) {
-        this.context = context;
-    }
-
-    public String getContext() {
-        return context;
-    }
 
     void addTransformError(Throwable error, AgentTransformer transformer) {
         this.transformErrorList.add(

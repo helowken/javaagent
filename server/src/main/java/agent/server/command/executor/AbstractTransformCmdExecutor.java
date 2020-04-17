@@ -18,7 +18,6 @@ abstract class AbstractTransformCmdExecutor extends AbstractCmdExecutor {
         if (result.hasError())
             failed = true;
         TransformResultEntity entity = new TransformResultEntity();
-        entity.setContext(result.getContext());
         if (result.hasTransformError())
             addErrorList(
                     entity,

@@ -6,6 +6,7 @@ import agent.common.config.ModuleConfig;
 import agent.common.config.TransformerConfig;
 import agent.common.message.command.Command;
 import agent.common.message.command.impl.TransformCommand;
+import agent.common.parser.BasicParams;
 import agent.common.parser.ChainOptions;
 
 import java.util.Collections;
@@ -57,7 +58,6 @@ abstract class AbstractTransformCmdParser extends AbstractFilterCmdParser<Transf
     @Override
     protected void parseAfterOptions(TransformParams params, String[] args, int startIdx) {
         int i = startIdx;
-        params.contextPath = getContext(args, i++);
         params.outputPath = FileUtils.getAbsolutePath(
                 getArg(args, i, OUTPUT_PATH)
         );
@@ -126,7 +126,7 @@ abstract class AbstractTransformCmdParser extends AbstractFilterCmdParser<Transf
     }
 }
 
-class TransformParams extends FilterParams<TransformFilterOptions> {
+class TransformParams extends BasicParams<TransformFilterOptions> {
     String outputPath;
 }
 

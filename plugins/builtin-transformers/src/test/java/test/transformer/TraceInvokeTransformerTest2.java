@@ -40,12 +40,11 @@ public class TraceInvokeTransformerTest2 extends AbstractTest {
                                     costTimeTransformer,
                                     config2
                             );
-                            String context = "test";
                             Map<Class<?>, String> classToMethodFilter = new HashMap<>();
                             classToMethodFilter.put(A.class, "test*");
                             classToMethodFilter.put(B.class, "*oad");
 
-                            doTransform(transformerToConfig, context, classToMethodFilter, null);
+                            doTransform(transformerToConfig, classToMethodFilter, null);
 
                             Map<Class<?>, byte[]> classToData = getClassToData(
                                     new ArrayList<>(
@@ -80,7 +79,7 @@ public class TraceInvokeTransformerTest2 extends AbstractTest {
 
                             System.out.println(
                                     JSONUtils.writeAsString(
-                                            ViewMgr.create(ViewMgr.VIEW_PROXY, null, null, null, null),
+                                            ViewMgr.create(ViewMgr.VIEW_PROXY, null, null, null),
                                             true
                                     )
                             );

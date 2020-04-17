@@ -21,9 +21,6 @@ class ViewCmdExecutor extends AbstractCmdExecutor {
         Map<String, String> filterMap = viewCmd.getFilterMap();
         int maxLevel;
         switch (catalog) {
-            case CATALOG_CONTEXT:
-                maxLevel = VIEW_CONTEXT;
-                break;
             case CATALOG_CLASS:
                 maxLevel = VIEW_CLASS;
                 break;
@@ -41,7 +38,6 @@ class ViewCmdExecutor extends AbstractCmdExecutor {
                 null,
                 ViewMgr.create(
                         maxLevel,
-                        filterMap.get(CATALOG_CONTEXT),
                         filterMap.get(CATALOG_CLASS),
                         filterMap.get(CATALOG_INVOKE),
                         filterMap.get(CATALOG_PROXY)

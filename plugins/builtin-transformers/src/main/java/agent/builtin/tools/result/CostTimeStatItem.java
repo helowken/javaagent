@@ -9,6 +9,7 @@ import java.util.*;
 
 public class CostTimeStatItem {
     private static final DecimalFormat df = new DecimalFormat("#");
+    private static final BigDecimal millisecondUnit = new BigDecimal(1000 * 1000);
     private BigDecimal totalTime = BigDecimal.ZERO;
     private BigDecimal count = BigDecimal.ZERO;
     private long currTotalTime = 0;
@@ -204,6 +205,7 @@ public class CostTimeStatItem {
         if (count.compareTo(BigDecimal.ZERO) > 0)
             avgTime = totalTime.setScale(3, RoundingMode.CEILING)
                     .divide(count, RoundingMode.CEILING)
+                    .divide(millisecondUnit, RoundingMode.CEILING)
                     .doubleValue();
         return avgTime;
     }

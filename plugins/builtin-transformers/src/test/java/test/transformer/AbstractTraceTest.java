@@ -44,8 +44,7 @@ abstract class AbstractTraceTest extends AbstractTest {
                     transformer.setInstanceKey(
                             newTransformerKey()
                     );
-                    String context = "test";
-                    doTransform(transformer, context, config, classToMethodFilter, invokeChainConfig);
+                    doTransform(transformer, config, classToMethodFilter, invokeChainConfig);
 
                     classToData.putAll(
                             getClassToData(transformer)

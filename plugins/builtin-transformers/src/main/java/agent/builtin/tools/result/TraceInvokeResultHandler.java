@@ -7,6 +7,7 @@ import agent.common.tree.Node;
 import agent.common.tree.Tree;
 import agent.common.tree.TreeUtils;
 import agent.common.utils.JSONUtils;
+import agent.server.transform.impl.DestInvokeIdRegistry.InvokeMetadata;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -22,9 +23,7 @@ public class TraceInvokeResultHandler
     @Override
     public void exec(TraceResultParams params) throws Exception {
         String inputPath = params.inputPath;
-        Map<Integer, InvokeMetadata> idToInvoke = convertMetadata(
-                readMetadata(inputPath)
-        );
+        Map<Integer, InvokeMetadata> idToInvoke = readMetadata(inputPath);
         calculateStats(inputPath, params).forEach(
                 tree -> TreeUtils.printTree(
                         convertTree(
@@ -79,7 +78,9 @@ public class TraceInvokeResultHandler
         StringBuilder sb = new StringBuilder();
         TraceItem item = node.getData();
         if (opts.showTime)
-            sb.append("[").append(item.costTime()).append("ms] ");
+            sb.append("[").append(
+                    item.costTimeString()
+            ).append("ms] ");
 
         sb.append(
                 convertInvoke(

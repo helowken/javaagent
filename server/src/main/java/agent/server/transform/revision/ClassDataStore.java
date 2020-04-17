@@ -2,6 +2,7 @@ package agent.server.transform.revision;
 
 import agent.base.utils.IOUtils;
 import agent.base.utils.Logger;
+import agent.base.utils.TimeMeasureUtils;
 import agent.base.utils.Utils;
 
 import java.io.File;
@@ -33,16 +34,13 @@ public class ClassDataStore {
     }
 
     static void save(Class<?> clazz, byte[] data, final int revisionNum) {
-        long st = System.currentTimeMillis();
-        try {
-            save(clazz,
-                    data,
-                    currClass -> getFile(currClass, revisionNum)
-            );
-        } finally {
-            long et = System.currentTimeMillis();
-            logger.debug("SaveClass: {}", (et - st));
-        }
+        TimeMeasureUtils.run(
+                () -> save(clazz,
+                        data,
+                        currClass -> getFile(currClass, revisionNum)
+                ),
+                "SaveClass: {}"
+        );
     }
 
     public static byte[] load(Class<?> clazz, int revisionNum) {

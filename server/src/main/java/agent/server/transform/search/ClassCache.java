@@ -1,9 +1,9 @@
 package agent.server.transform.search;
 
-import agent.base.utils.ClassLoaderUtils;
 import agent.base.utils.ReflectionUtils;
 import agent.server.transform.InstrumentationMgr;
 import agent.server.transform.search.filter.ClassFilter;
+import agent.server.transform.search.filter.FilterUtils;
 
 import java.lang.reflect.Modifier;
 import java.util.*;
@@ -18,17 +18,12 @@ public class ClassCache {
             )
     );
 
-    private final ClassLoader loader;
     private final Map<Class<?>, List<Class<?>>> classToSubTypes = new ConcurrentHashMap<>();
     private volatile List<Class<?>> loadedClasses;
 
     static boolean isNativePackage(String namePath) {
         return ReflectionUtils.isJavaNativePackage(namePath)
                 || skipPackages.stream().anyMatch(namePath::startsWith);
-    }
-
-    public ClassCache(ClassLoader loader) {
-        this.loader = loader;
     }
 
     private Collection<Class<?>> getLoadedClasses() {
@@ -38,11 +33,7 @@ public class ClassCache {
                     loadedClasses = Arrays.stream(
                             InstrumentationMgr.getInstance().getAllLoadedClasses()
                     ).filter(
-                            clazz -> !isNativePackage(clazz.getName()) &&
-                                    ClassLoaderUtils.isSelfOrDescendant(
-                                            loader,
-                                            clazz.getClassLoader()
-                                    )
+                            clazz -> !isNativePackage(clazz.getName())
                     ).collect(
                             Collectors.toList()
                     );

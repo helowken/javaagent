@@ -79,11 +79,6 @@
             </dependency>
             <dependency>
                 <groupId>javaagent</groupId>
-                <artifactId>hook</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>javaagent</groupId>
                 <artifactId>basic-launcher</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -115,16 +110,6 @@
             <dependency>
                 <groupId>javaagent</groupId>
                 <artifactId>agent-launcher</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>javaagent</groupId>
-                <artifactId>jetty-runner-hook</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>javaagent</groupId>
-                <artifactId>tomcat-hook</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

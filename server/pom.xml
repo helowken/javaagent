@@ -38,10 +38,6 @@
         </dependency>
         <dependency>
             <groupId>javaagent</groupId>
-            <artifactId>hook</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>javaagent</groupId>
             <artifactId>native</artifactId>
         </dependency>
 

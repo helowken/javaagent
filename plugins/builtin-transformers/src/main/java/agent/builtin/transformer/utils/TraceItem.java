@@ -2,6 +2,9 @@ package agent.builtin.transformer.utils;
 
 import agent.base.utils.Utils;
 
+import java.math.RoundingMode;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.List;
 import java.util.Map;
 
@@ -91,7 +94,12 @@ public class TraceItem {
         return error != null;
     }
 
-    public long costTime() {
-        return endTime - startTime;
+    public String costTimeString() {
+        NumberFormat df = DecimalFormat.getInstance();
+        df .setRoundingMode(RoundingMode.CEILING);
+        df.setMaximumFractionDigits(3);
+        return df.format(
+                ((double) (endTime - startTime)) / (1000 * 1000)
+        );
     }
 }

@@ -2,6 +2,7 @@ package agent.server.transform.revision;
 
 import agent.base.utils.IOUtils;
 import agent.base.utils.Logger;
+import agent.base.utils.TimeMeasureUtils;
 import agent.server.transform.InstrumentationMgr;
 
 import java.io.InputStream;
@@ -25,45 +26,47 @@ public class ClassDataRepository {
     }
 
     private byte[] loadClassDataFromResource(Class<?> clazz) {
-        long st = System.currentTimeMillis();
-        try {
-            InputStream inputStream = clazz.getResourceAsStream("/" + clazz.getName().replace('.', '/') + ".class");
-            if (inputStream != null)
-                return IOUtils.readBytes(inputStream);
-            else
-                logger.debug("No resource found for: {}", clazz.getName());
-        } catch (Exception e) {
-            logger.error("Get data from code source failed: {}", e, clazz.getName());
-        } finally {
-            long et = System.currentTimeMillis();
-            logger.debug("loadClassDataFromResource: {} , {}", (et - st), clazz.getName());
-        }
-        return null;
+        return TimeMeasureUtils.run(
+                () -> {
+                    InputStream inputStream = clazz.getResourceAsStream("/" + clazz.getName().replace('.', '/') + ".class");
+                    if (inputStream != null)
+                        return IOUtils.readBytes(inputStream);
+                    logger.debug("No resource found for: {}", clazz.getName());
+                    return null;
+                },
+                e -> {
+                    logger.error("Get data from code source failed: {}", e, clazz.getName());
+                    return null;
+                },
+                "loadClassDataFromResource: {} , {}",
+                clazz.getName()
+        );
     }
 
     private byte[] getClassDataFromInstrumentation(Class<?> clazz) {
-        long st = System.currentTimeMillis();
-        try {
-            logger.debug("Get class data from memory: {}", clazz.getName());
-            GetClassDataTransformer transformer = new GetClassDataTransformer(clazz);
-            InstrumentationMgr.getInstance().retransform(transformer, clazz);
-            byte[] data = transformer.getData();
-            if (data != null) {
-                try {
-                    ClassDataStore.save(clazz, data, ClassDataStore.REVISION_0);
-                } catch (Throwable t) {
-                    logger.error("save class data failed: {}", t, clazz.getName());
+        return TimeMeasureUtils.run(
+                () -> {
+                    logger.debug("Get class data from memory: {}", clazz.getName());
+                    GetClassDataTransformer transformer = new GetClassDataTransformer(clazz);
+                    InstrumentationMgr.getInstance().retransform(transformer, clazz);
+                    byte[] data = transformer.getData();
+                    if (data != null) {
+                        try {
+                            ClassDataStore.save(clazz, data, ClassDataStore.REVISION_0);
+                        } catch (Throwable t) {
+                            logger.error("save class data failed: {}", t, clazz.getName());
+                            return null;
+                        }
+                    }
+                    return data;
+                },
+                t -> {
+                    logger.error("Get class data failed.", t);
                     return null;
-                }
-            }
-            return data;
-        } catch (Throwable t) {
-            logger.error("Get class data failed.", t);
-            return null;
-        } finally {
-            long et = System.currentTimeMillis();
-            logger.debug("getClassDataFromInstrumentation: {} , {}", (et - st), clazz.getName());
-        }
+                },
+                "getClassDataFromInstrumentation: {} , {}",
+                clazz.getName()
+        );
     }
 
     public byte[] getClassData(Class<?> clazz) {

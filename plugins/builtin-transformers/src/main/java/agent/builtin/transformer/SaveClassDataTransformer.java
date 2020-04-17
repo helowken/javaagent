@@ -1,18 +1,13 @@
 package agent.builtin.transformer;
 
 import agent.base.utils.Utils;
-import agent.hook.plugin.ClassFinder;
 import agent.server.transform.TransformContext;
-import agent.server.transform.search.ClassCache;
 import agent.server.transform.impl.AbstractConfigTransformer;
 import agent.server.transform.impl.invoke.DestInvoke;
-import agent.server.transform.revision.ClassDataRepository;
-import agent.server.transform.revision.ClassDataStore;
 
-import java.io.File;
-import java.util.*;
-
-import static agent.hook.utils.App.getClassFinder;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 
 public class SaveClassDataTransformer extends AbstractConfigTransformer {
     public static final String REG_KEY = "@saveClassData";

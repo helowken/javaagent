@@ -43,8 +43,6 @@ public class ConfigParserTest extends AbstractTest {
 
     private ModuleConfig createModuleConfig() {
         ModuleConfig moduleConfig = new ModuleConfig();
-        moduleConfig.setContextPath("/test");
-
         TransformerConfig transformerConfig = new TransformerConfig();
         transformerConfig.setRef("timeMeasure");
         Map<String, Object> config = new HashMap<>();

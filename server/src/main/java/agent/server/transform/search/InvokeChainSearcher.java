@@ -51,7 +51,6 @@ public class InvokeChainSearcher {
     );
 
     private final Map<Class<?>, ClassItem> itemMap = new ConcurrentHashMap<>();
-    private final ClassLoader loader;
     private final ClassCache classCache;
     private final Function<Class<?>, ClassNode> classNodeFunc;
     private final AopMethodFinder aopMethodFinder;
@@ -59,23 +58,19 @@ public class InvokeChainSearcher {
     private final TaskRunner taskRunner = new TaskRunner(executor);
     private final Map<String, Class<?>> nameToArrayClass = new ConcurrentHashMap<>();
 
-    public static Collection<DestInvoke> search(ClassLoader loader, ClassCache classCache, Function<Class<?>, byte[]> classDataFunc,
+    public static Collection<DestInvoke> search(ClassCache classCache, Function<Class<?>, byte[]> classDataFunc,
                                                 Collection<DestInvoke> destInvokes, InvokeChainConfig filterConfig) {
-        long st = System.currentTimeMillis();
-        try {
-            return new InvokeChainSearcher(loader, classCache, classDataFunc)
-                    .doSearch(
-                            destInvokes,
-                            FilterUtils.newInvokeChainFilter(filterConfig)
-                    );
-        } finally {
-            long et = System.currentTimeMillis();
-            logger.debug("searchInvokeChain: {}", (et - st));
-        }
+        return TimeMeasureUtils.run(
+                () -> new InvokeChainSearcher(classCache, classDataFunc)
+                        .doSearch(
+                                destInvokes,
+                                FilterUtils.newInvokeChainFilter(filterConfig)
+                        ),
+                "searchInvokeChain: {}"
+        );
     }
 
-    private InvokeChainSearcher(ClassLoader loader, ClassCache classCache, Function<Class<?>, byte[]> classDataFunc) {
-        this.loader = loader;
+    private InvokeChainSearcher(ClassCache classCache, Function<Class<?>, byte[]> classDataFunc) {
         this.classCache = classCache;
         this.classNodeFunc = clazz -> AsmUtils.newClassNode(
                 classDataFunc.apply(clazz)
@@ -210,13 +205,13 @@ public class InvokeChainSearcher {
     private void searchAopMethods(InvokeInfo info, DestInvoke invoke, InvokeChainFilter filter) {
         if (aopMethodFinder == null)
             return;
-        long st = System.currentTimeMillis();
-        Collection<Method> aopMethods = aopMethodFinder.findMethods(
-                (Method) invoke.getInvokeEntity(),
-                loader
+        Collection<Method> aopMethods = TimeMeasureUtils.run(
+                () -> aopMethodFinder.findMethods(
+                        (Method) invoke.getInvokeEntity(),
+                        invoke.getDeclaringClass().getClassLoader()
+                ),
+                "AopMethods: {}"
         );
-        long et = System.currentTimeMillis();
-        logger.debug("AopMethods: {}", (et - st));
         if (!aopMethods.isEmpty()) {
             debug(info, "Start to traverse aop methods: ");
             for (Method aopMethod : aopMethods) {
@@ -242,13 +237,13 @@ public class InvokeChainSearcher {
                 return;
             }
             if (result.canBeOverriddenOrNotFound()) {
-                long st = System.currentTimeMillis();
-                Collection<Class<?>> subTypes = classCache.getSubTypes(
-                        info.getInvokeClass(),
-                        NotInterfaceFilter.getInstance()
+                Collection<Class<?>> subTypes = TimeMeasureUtils.run(
+                        () -> classCache.getSubTypes(
+                                info.getInvokeClass(),
+                                NotInterfaceFilter.getInstance()
+                        ),
+                        "getSubTypes: {}"
                 );
-                long et = System.currentTimeMillis();
-                logger.debug("getSubTypes: {}", (et - st));
                 for (Class<?> subType : subTypes) {
                     InvokeInfo subTypeInfo = info.newInfo(subType);
                     debug(subTypeInfo, "$$ Try to find subType of " + info.getInvokeClass().getSimpleName() + ": ");
@@ -325,7 +320,10 @@ public class InvokeChainSearcher {
                     owner = innerInvokeNode.owner;
                 }
                 String innerInvokeKey = newInvokeKey(name, desc);
-                Class<?> innerInvokeClass = loadClass(loader, owner);
+                Class<?> innerInvokeClass = loadClass(
+                        info.clazz.getClassLoader(),
+                        owner
+                );
                 if (innerInvokeClass != null) {
                     InvokeInfo innerInfo = new InvokeInfo(
                             innerInvokeClass,
@@ -449,22 +447,21 @@ public class InvokeChainSearcher {
         MethodNode getMethodNode(String invokeKey) {
             if (methodNodeMap == null) {
                 if (!clazz.isArray()) {
-                    long st = System.currentTimeMillis();
-                    try {
-                        methodNodeMap = classNodeFunc.apply(clazz).methods
-                                .stream()
-                                .collect(
-                                        Collectors.toMap(
-                                                mn -> newInvokeKey(mn.name, mn.desc),
-                                                mn -> mn
-                                        )
-                                );
-                    } catch (Exception e) {
-                        logger.error("Init method node map failed, invokeKey: {}", e, invokeKey);
-                    } finally {
-                        long et = System.currentTimeMillis();
-                        logger.debug("InitMethodNodeMap: {} , {}", (et - st), clazz.getName());
-                    }
+                    TimeMeasureUtils.run(
+                            () -> {
+                                methodNodeMap = classNodeFunc.apply(clazz).methods
+                                        .stream()
+                                        .collect(
+                                                Collectors.toMap(
+                                                        mn -> newInvokeKey(mn.name, mn.desc),
+                                                        mn -> mn
+                                                )
+                                        );
+                            },
+                            e -> logger.error("Init method node map failed, invokeKey: {}", e, invokeKey),
+                            "InitMethodNodeMap: {} , {}",
+                            clazz.getName()
+                    );
                 }
                 if (methodNodeMap == null)
                     methodNodeMap = Collections.emptyMap();

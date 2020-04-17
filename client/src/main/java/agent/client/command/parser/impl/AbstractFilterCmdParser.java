@@ -14,7 +14,7 @@ import java.util.Map;
 
 import static agent.common.parser.FilterOptionUtils.createTargetConfig;
 
-abstract class AbstractFilterCmdParser<F extends ChainOptions, P extends FilterParams<F>>
+abstract class AbstractFilterCmdParser<F extends ChainOptions, P extends BasicParams<F>>
         extends AbstractChainOptionsCmdParser<F, P> implements CommandParser {
     private static final String OPT_CHAIN_ENABLED = "-l";
 
@@ -31,10 +31,6 @@ abstract class AbstractFilterCmdParser<F extends ChainOptions, P extends FilterP
                 return super.parseOption(opts, args, currIdx);
         }
         return i;
-    }
-
-    String getContext(String[] args, int i) {
-        return getArg(args, i, "contextPath");
     }
 
     @Override
@@ -59,7 +55,6 @@ abstract class AbstractFilterCmdParser<F extends ChainOptions, P extends FilterP
 
     ModuleConfig createModuleConfig(P params) {
         ModuleConfig moduleConfig = new ModuleConfig();
-        moduleConfig.setContextPath(params.contextPath);
         moduleConfig.setTargets(
                 Collections.singletonList(
                         createTargetConfig(params.opts)
@@ -69,9 +64,5 @@ abstract class AbstractFilterCmdParser<F extends ChainOptions, P extends FilterP
     }
 
 
-}
-
-class FilterParams<F extends ChainOptions> extends BasicParams<F> {
-    String contextPath;
 }
 

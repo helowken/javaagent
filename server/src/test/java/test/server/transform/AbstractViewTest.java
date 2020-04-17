@@ -10,9 +10,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 public abstract class AbstractViewTest extends AbstractTest {
-    protected static final String contextA = "testA";
-    protected static final String contextB = "testB";
-
     @BeforeClass
     public static void prepare() {
         DestInvokeIdRegistry.getInstance().reset();
@@ -22,12 +19,12 @@ public abstract class AbstractViewTest extends AbstractTest {
         Map<Class<?>, String> constructorFilterMap = new HashMap<>();
         constructorFilterMap.put(A.class, "*");
         constructorFilterMap.put(A2.class, "*");
-        transformByAnnt(contextA, methodFilterMap, constructorFilterMap, proxy);
+        transformByAnnt(methodFilterMap, constructorFilterMap, proxy);
 
         constructorFilterMap = new HashMap<>();
         constructorFilterMap.put(B2.class, "*");
         constructorFilterMap.put(B.class, "<init>*");
-        transformByAnnt(contextB, null, constructorFilterMap, proxy);
+        transformByAnnt(null, constructorFilterMap, proxy);
     }
 
     protected static class A {

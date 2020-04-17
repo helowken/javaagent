@@ -18,7 +18,6 @@
                 <module>delegate-lib</module>
                 <module>base</module>
                 <module>common</module>
-                <module>hook</module>
                 <module>native</module>
                 <module>launchers/basic-launcher</module>
                 <module>launchers/client-launcher</module>
@@ -26,9 +25,7 @@
                 <module>launchers/agent-launcher</module>
                 <module>server</module>
                 <module>client</module>
-                <module>plugins/jetty-runner-hook</module>
                 <module>plugins/builtin-transformers</module>
-                <module>plugins/tomcat-hook</module>
                 <module>plugins/spring-aop</module>
                 <module>packaging</module>
             </modules>
@@ -83,8 +80,6 @@
             <id>plugins</id>
             <modules>
                 <module>plugins/builtin-transformers</module>
-                <module>plugins/jetty-runner-hook</module>
-                <module>plugins/tomcat-hook</module>
                 <module>plugins/spring-aop</module>
             </modules>
         </profile>

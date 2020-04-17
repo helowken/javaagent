@@ -1,4 +1,4 @@
-Usage: ${cmd} [-options] contextPath outputPath
+Usage: ${cmd} [-options] outputPath
     ${options.txt}
     ${chainOptions.txt}
     -t  <transformationId>

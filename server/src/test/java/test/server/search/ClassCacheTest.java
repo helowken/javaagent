@@ -22,7 +22,7 @@ public class ClassCacheTest extends AbstractTest {
 
     @Test
     public void testSubClassesAndSubTypes() {
-        ClassCache classCache = newClassCache(null);
+        ClassCache classCache = new ClassCache();
         assertEquals(
                 Collections.singletonList(A2.class),
                 getSubClasses(classCache, A.class, true)
@@ -86,7 +86,7 @@ public class ClassCacheTest extends AbstractTest {
     @Test
     public void test() throws Exception {
         ClassLoader loader = Thread.currentThread().getContextClassLoader();
-        ClassCache classCache = newClassCache(loader);
+        ClassCache classCache = new ClassCache();
 
         Class<?> newA2Class = newClass(A2.class, loader);
         Class<?> newA3Class = newClass(A3.class, newA2Class.getClassLoader());
@@ -126,7 +126,7 @@ public class ClassCacheTest extends AbstractTest {
 
     @Test
     public void testClasses() {
-        ClassCache classCache = newClassCache(null);
+        ClassCache classCache = new ClassCache();
 
         String prefix = getClass().getName() + "$";
         checkFindClasses(
@@ -210,12 +210,6 @@ public class ClassCacheTest extends AbstractTest {
     private Class<?> newClass(Class<?> clazz, ClassLoader loader) throws Exception {
         TestClassLoader subLoader = new TestClassLoader(loader);
         return newClasses(subLoader, clazz).get(0);
-    }
-
-    private ClassCache newClassCache(ClassLoader loader) {
-        return new ClassCache(
-                loader == null ? contextLoader : loader
-        );
     }
 
     public interface Intf {

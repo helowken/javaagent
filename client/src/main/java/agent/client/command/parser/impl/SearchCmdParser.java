@@ -2,23 +2,20 @@ package agent.client.command.parser.impl;
 
 import agent.common.message.command.Command;
 import agent.common.message.command.impl.SearchCommand;
+import agent.common.parser.BasicParams;
+import agent.common.parser.ChainOptions;
 
 import java.util.Map;
 
-public class SearchCmdParser extends AbstractFilterCmdParser<FilterOptions, SearchParams> {
+public class SearchCmdParser extends AbstractFilterCmdParser<ChainOptions, SearchParams> {
     @Override
     protected SearchParams createParams() {
         return new SearchParams();
     }
 
     @Override
-    protected FilterOptions createFilterOptions() {
-        return new FilterOptions();
-    }
-
-    @Override
-    protected void parseAfterOptions(SearchParams params, String[] args, int startIdx) throws Exception {
-        params.contextPath = getContext(args, startIdx);
+    protected ChainOptions createFilterOptions() {
+        return new ChainOptions();
     }
 
     @Override
@@ -37,5 +34,5 @@ public class SearchCmdParser extends AbstractFilterCmdParser<FilterOptions, Sear
     }
 }
 
-class SearchParams extends FilterParams<FilterOptions> {
+class SearchParams extends BasicParams<ChainOptions> {
 }

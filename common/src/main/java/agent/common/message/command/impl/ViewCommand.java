@@ -13,14 +13,12 @@ import static agent.common.message.MessageType.CMD_VIEW;
 
 public class ViewCommand extends AbstractCommand<DefaultStruct> {
     public static final String SEP = "=";
-    public static final String CATALOG_CONTEXT = "context";
     public static final String CATALOG_CLASS = "class";
     public static final String CATALOG_INVOKE = "invoke";
     public static final String CATALOG_PROXY = "proxy";
     private static final Set<String> catalogSet = new HashSet<>();
 
     static {
-        catalogSet.add(CATALOG_CONTEXT);
         catalogSet.add(CATALOG_CLASS);
         catalogSet.add(CATALOG_INVOKE);
         catalogSet.add(CATALOG_PROXY);

@@ -19,10 +19,6 @@
             <groupId>javaagent</groupId>
             <artifactId>basic-launcher</artifactId>
         </dependency>
-        <dependency>
-            <groupId>javaagent</groupId>
-            <artifactId>hook</artifactId>
-        </dependency>
     </dependencies>
 
     <build>

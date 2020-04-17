@@ -18,7 +18,7 @@ import static org.junit.Assert.*;
 
 public class InvokeChainSearcherTest extends AbstractTest {
     private static final boolean debugEnabled = true;
-    private static final ClassCache classCache = new ClassCache(contextLoader);
+    private static final ClassCache classCache = new ClassCache();
 
     static {
         InvokeChainSearcher.debugEnabled = debugEnabled;
@@ -168,7 +168,6 @@ public class InvokeChainSearcherTest extends AbstractTest {
         assertNotNull(expectation);
         assertTrue(expectation.length > 0);
         Collection<DestInvoke> rsList = InvokeChainSearcher.search(
-                contextLoader,
                 classCache,
                 this::getClassData,
                 Collections.singletonList(

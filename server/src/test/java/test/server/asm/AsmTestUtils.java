@@ -19,7 +19,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
 public class AsmTestUtils {
-    private static final String DEFAULT_CONTEXT = "defaultContext";
 
     static void doCheck(int count, List<String> logList, boolean throwError) {
         assertEquals(
@@ -57,7 +56,6 @@ public class AsmTestUtils {
 
     static Class<?> prepareClass(int count, List<String> logList, ProxyRegInfo regInfo) throws Exception {
         DestInvokeIdRegistry.getInstance().reg(
-                DEFAULT_CONTEXT,
                 regInfo.getDestInvoke()
         );
         ProxyResult item = prepareData(count, logList, regInfo);

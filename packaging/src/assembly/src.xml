@@ -41,8 +41,6 @@
             <useStrictFiltering>true</useStrictFiltering>
             <outputDirectory>server/lib/plugin</outputDirectory>
             <includes>
-                <include>javaagent:jetty-runner-hook</include>
-                <include>javaagent:tomcat-hook</include>
                 <include>javaagent:builtin-transformers</include>
                 <include>javaagent:spring-aop</include>
             </includes>

@@ -1,10 +1,7 @@
 package agent.builtin.tools.result;
 
-import agent.base.utils.FileUtils;
-import agent.base.utils.IOUtils;
-import agent.base.utils.InvokeDescriptorUtils;
+import agent.base.utils.*;
 import agent.base.utils.InvokeDescriptorUtils.TextConfig;
-import agent.base.utils.Utils;
 import agent.common.config.ClassFilterConfig;
 import agent.common.config.ConstructorFilterConfig;
 import agent.common.config.MethodFilterConfig;
@@ -14,6 +11,7 @@ import agent.common.parser.BasicParams;
 import agent.common.parser.CmdRunner;
 import agent.common.utils.JSONUtils;
 import agent.server.transform.impl.DestInvokeIdRegistry;
+import agent.server.transform.impl.DestInvokeIdRegistry.InvokeMetadata;
 import agent.server.transform.search.filter.FilterUtils;
 import agent.server.transform.search.filter.ScriptFilter;
 
@@ -66,50 +64,46 @@ abstract class AbstractResultHandler<T, D, F
 
     T calculateStats(String inputPath, P params) throws Exception {
         List<String> dataFilePaths = findDataFiles(inputPath);
-        long st = System.currentTimeMillis();
-        ForkJoinPool pool = new ForkJoinPool(Runtime.getRuntime().availableProcessors() - 1);
-        try {
-            return pool.submit(
-                    () -> calculate(dataFilePaths, params)
-            ).get();
-        } finally {
-            long et = System.currentTimeMillis();
-            System.out.println("Result calculation used time: " + (et - st) + "ms");
-            pool.shutdown();
-        }
-    }
-
-    List<Map<String, Map<String, Integer>>> readMetadata(String inputPath) throws IOException {
-        String[] metadataPaths = DestInvokeIdRegistry.getMetadataFiles(inputPath);
-        List<Map<String, Map<String, Integer>>> metadataList = new ArrayList<>();
-        for (String path : metadataPaths) {
-            metadataList.add(
-                    JSONUtils.read(
-                            IOUtils.readToString(
-                                    FileUtils.getValidFile(path).getAbsolutePath()
+        return TimeMeasureUtils.run(
+                () -> {
+                    ForkJoinPool pool = new ForkJoinPool(
+                            Math.max(1,
+                                    Runtime.getRuntime().availableProcessors() - 1
                             )
-                    )
-            );
-        }
-        return metadataList;
+                    );
+                    try {
+                        return pool.submit(
+                                () -> calculate(dataFilePaths, params)
+                        ).get();
+                    } finally {
+                        pool.shutdown();
+                    }
+                },
+                "Result calculation used time: {}ms"
+        );
     }
 
-    Map<Integer, InvokeMetadata> convertMetadata(List<Map<String, Map<String, Integer>>> classToInvokeToIdList) {
+    Map<Integer, InvokeMetadata> readMetadata(String inputPath) throws IOException {
+        Map<Integer, String> idToClassInvoke = JSONUtils.read(
+                IOUtils.readToString(
+                        FileUtils.getValidFile(
+                                DestInvokeIdRegistry.getMetadataFile(inputPath)
+                        ).getAbsolutePath()
+                ),
+                new TypeObject<Map<Integer, String>>() {
+                }
+        );
         Map<Integer, InvokeMetadata> rsMap = new HashMap<>();
-        classToInvokeToIdList.forEach(
-                classToInvokeToId -> classToInvokeToId.forEach(
-                        (clazz, invokeToId) -> invokeToId.forEach(
-                                (invoke, id) -> rsMap.put(
-                                        id,
-                                        new InvokeMetadata(clazz, invoke)
-                                )
-                        )
+        idToClassInvoke.forEach(
+                (id, classInvoke) -> rsMap.put(
+                        id,
+                        DestInvokeIdRegistry.parse(classInvoke)
                 )
         );
         return rsMap;
     }
 
-    String formatInvoke(String method) {
+    private String formatInvoke(String method) {
         TextConfig config = new TextConfig();
         config.withReturnType = false;
         config.withPkg = false;
@@ -168,16 +162,14 @@ abstract class AbstractResultHandler<T, D, F
     }
 
     private void calculateFile(String dataFilePath, ProcessFileFunc processFileFunc) {
-        try {
-            long st = System.currentTimeMillis();
-            processFileFunc.process(
-                    new File(dataFilePath)
-            );
-            long et = System.currentTimeMillis();
-            System.out.println("Calculate " + dataFilePath + " used time: " + (et - st) + "ms");
-        } catch (Exception e) {
-            System.err.println("Read data file failed: " + dataFilePath + "\n" + Utils.getErrorStackStrace(e));
-        }
+        TimeMeasureUtils.run(
+                () -> processFileFunc.process(
+                        new File(dataFilePath)
+                ),
+                e -> System.err.println("Read data file failed: " + dataFilePath + "\n" + Utils.getErrorStackStrace(e)),
+                "Calculate {} used time: {}ms",
+                dataFilePath
+        );
     }
 
     F newFilter(ResultOptions opts) {
@@ -228,13 +220,4 @@ abstract class AbstractResultHandler<T, D, F
 
 }
 
-class InvokeMetadata {
-    final String clazz;
-    final String invoke;
-
-    InvokeMetadata(String clazz, String invoke) {
-        this.clazz = clazz;
-        this.invoke = invoke;
-    }
-}
 

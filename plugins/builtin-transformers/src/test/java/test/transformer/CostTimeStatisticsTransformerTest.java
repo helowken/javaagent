@@ -40,8 +40,7 @@ public class CostTimeStatisticsTransformerTest extends AbstractTest {
                             newTransformerKey()
                     );
 
-                    String context = "test";
-                    doTransform(transformer, context, config, classToMethodFilter, invokeChainConfig);
+                    doTransform(transformer, config, classToMethodFilter, invokeChainConfig);
 
                     Map<Class<?>, byte[]> classToData = getClassToData(transformer);
                     Object a = newInstance(classToData, A.class);

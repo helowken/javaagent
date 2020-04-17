@@ -6,6 +6,7 @@ import agent.common.tree.NodeMapper;
 import agent.common.tree.Tree;
 import agent.common.tree.TreeUtils;
 import agent.common.utils.JSONUtils;
+import agent.server.transform.impl.DestInvokeIdRegistry.InvokeMetadata;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
@@ -16,10 +17,9 @@ public class ByCallChainCostTimeResultHandler extends AbstractCostTimeResultHand
     private static final String CACHE_TYPE = "chain";
 
     @Override
-    void doPrint(List<Map<String, Map<String, Integer>>> classToInvokeToId, Tree<NodeData> tree, CostTimeResultParams params) {
-        Map<Integer, InvokeMetadata> idToInvoke = convertMetadata(classToInvokeToId);
+    void doPrint(Map<Integer, InvokeMetadata> metadata, Tree<NodeData> tree, CostTimeResultParams params) {
         TreeUtils.printTree(
-                convertTree(tree, idToInvoke, params),
+                convertTree(tree, metadata, params),
                 new TreeUtils.PrintConfig(false),
                 (node, config) -> node.getData()
         );

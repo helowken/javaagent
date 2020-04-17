@@ -9,16 +9,7 @@ public class TransformResultEntity {
     public static final int TRANSFORM_ERROR = 0;
     public static final int COMPILE_ERROR = 1;
     public static final int RETRANSFORM_ERROR = 2;
-    private String context;
     private Map<Integer, List<ErrorEntity>> typeToErrorList = new HashMap<>();
-
-    public String getContext() {
-        return context;
-    }
-
-    public void setContext(String context) {
-        this.context = context;
-    }
 
     public Map<Integer, List<ErrorEntity>> getTypeToErrorList() {
         return typeToErrorList;
@@ -42,8 +33,7 @@ public class TransformResultEntity {
     @Override
     public String toString() {
         return "TransformResultEntity{" +
-                "context='" + context + '\'' +
-                ", typeToErrorList=" + typeToErrorList +
+                "typeToErrorList=" + typeToErrorList +
                 '}';
     }
 }

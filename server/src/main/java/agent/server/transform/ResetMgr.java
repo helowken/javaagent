@@ -6,7 +6,6 @@ import agent.server.ServerListener;
 import agent.server.event.AgentEvent;
 import agent.server.event.AgentEventListener;
 import agent.server.event.EventListenerMgr;
-import agent.server.event.impl.ResetEvent;
 import agent.server.event.impl.TransformClassEvent;
 
 import java.util.*;
@@ -18,7 +17,7 @@ public class ResetMgr implements ServerListener, AgentEventListener {
     private static final Logger logger = Logger.getLogger(ResetMgr.class);
     private static final LockObject classLock = new LockObject();
     private static ResetMgr instance = new ResetMgr();
-    private Map<String, Set<Class<?>>> contextToTransformedClassSet = new HashMap<>();
+    private Set<Class<?>> transformedClassSet = new HashSet<>();
 
     public static ResetMgr getInstance() {
         return instance;
@@ -34,13 +33,11 @@ public class ResetMgr implements ServerListener, AgentEventListener {
         switch (action) {
             case ACTION_MODIFY:
                 addToCache(
-                        tcEvent.getContext(),
                         tcEvent.getTransformedClassSet()
                 );
                 break;
             case ACTION_RESET:
                 removeFromCache(
-                        tcEvent.getContext(),
                         tcEvent.getTransformedClassSet()
                 );
                 break;
@@ -49,28 +46,25 @@ public class ResetMgr implements ServerListener, AgentEventListener {
         }
     }
 
-    private void addToCache(String context, Set<Class<?>> classSet) {
-        classLock.sync(lock ->
-                contextToTransformedClassSet.computeIfAbsent(
-                        context,
-                        key -> new HashSet<>()
-                ).addAll(classSet)
+    private void addToCache(Set<Class<?>> classSet) {
+        classLock.sync(
+                lock -> transformedClassSet.addAll(classSet)
         );
     }
 
-    private void removeFromCache(String context, Set<Class<?>> classSet) {
-        boolean allReset = classLock.syncValue(lock -> {
-            Set<Class<?>> transformedClassSet = contextToTransformedClassSet.get(context);
-            if (transformedClassSet != null) {
-                transformedClassSet.removeAll(classSet);
-                if (transformedClassSet.isEmpty())
-                    contextToTransformedClassSet.remove(context);
-            }
-            return contextToTransformedClassSet.isEmpty();
-        });
-        EventListenerMgr.fireEvent(
-                new ResetEvent(context, allReset)
-        );
+    private void removeFromCache(Set<Class<?>> classSet) {
+//        boolean allReset = classLock.syncValue(lock -> {
+//            Set<Class<?>> transformedClassSet = contextToTransformedClassSet.get(context);
+//            if (transformedClassSet != null) {
+//                transformedClassSet.removeAll(classSet);
+//                if (transformedClassSet.isEmpty())
+//                    contextToTransformedClassSet.remove(context);
+//            }
+//            return contextToTransformedClassSet.isEmpty();
+//        });
+//        EventListenerMgr.fireEvent(
+//                new ResetEvent(context, allReset)
+//        );
     }
 
     private List<TransformContext> newResetContexts(String contextExpr, Set<String> classExprSet) {
@@ -130,9 +124,9 @@ public class ResetMgr implements ServerListener, AgentEventListener {
     public Map<String, Set<Class<?>>> getContextToTransformedClassSet() {
         return classLock.syncValue(lock -> {
             Map<String, Set<Class<?>>> rsMap = new HashMap<>();
-            contextToTransformedClassSet.forEach((context, classSet) ->
-                    rsMap.put(context, new HashSet<>(classSet))
-            );
+//            contextToTransformedClassSet.forEach((context, classSet) ->
+//                    rsMap.put(context, new HashSet<>(classSet))
+//            );
             return rsMap;
         });
     }

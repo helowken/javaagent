@@ -12,19 +12,16 @@ public class ResetCommand extends AbstractCommand<DefaultStruct> {
         this(null);
     }
 
-    public ResetCommand(String contextExpr, String... classExprSet) {
+    public ResetCommand(String... classExprSet) {
         super(MessageType.CMD_RESET, Structs.newStringArray());
         List<String> args = new ArrayList<>();
-        if (contextExpr != null) {
-            args.add(contextExpr);
-            if (classExprSet != null)
-                args.addAll(
-                        Arrays.stream(classExprSet)
-                                .map(String::trim)
-                                .filter(s -> !s.isEmpty())
-                                .collect(Collectors.toSet())
-                );
-        }
+        if (classExprSet != null)
+            args.addAll(
+                    Arrays.stream(classExprSet)
+                            .map(String::trim)
+                            .filter(s -> !s.isEmpty())
+                            .collect(Collectors.toSet())
+            );
         getBody().set(args.toArray(new String[0]));
     }
 

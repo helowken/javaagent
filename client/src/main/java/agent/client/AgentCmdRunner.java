@@ -12,9 +12,6 @@ public class AgentCmdRunner extends AbstractClientRunner {
     @Override
     public void startup(Object... args) {
         cmdArgs = Utils.getArgValue(args, 0);
-        ClientLogger.info(
-                Arrays.toString(cmdArgs)
-        );
         connectTo();
     }
 

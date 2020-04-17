@@ -3,10 +3,10 @@ package agent.builtin.tools.result;
 import agent.base.utils.IOUtils;
 import agent.base.utils.Logger;
 import agent.common.tree.Node;
+import agent.server.transform.impl.DestInvokeIdRegistry;
 
 import java.io.File;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -111,7 +111,7 @@ abstract class AbstractCostTimeResultHandler<T>
 
     abstract T deserializeResult(String content);
 
-    abstract void doPrint(List<Map<String, Map<String, Integer>>> classToInvokeToId, T result, CostTimeResultParams params);
+    abstract void doPrint(Map<Integer, DestInvokeIdRegistry.InvokeMetadata> idToClassInvoke, T result, CostTimeResultParams params);
 
     interface CostTimeCalculateFunc {
         void exec(int id, int parentId, int invokeId, int costTime, boolean error);

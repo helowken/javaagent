@@ -5,8 +5,12 @@ import agent.common.tree.Node;
 import agent.common.tree.Tree;
 import agent.common.tree.TreeUtils;
 import agent.common.utils.JSONUtils;
+import agent.server.transform.impl.DestInvokeIdRegistry.InvokeMetadata;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class ByInvokeCostTimeResultHandler extends AbstractCostTimeResultHandler<Map<Integer, CostTimeStatItem>> {
@@ -32,36 +36,41 @@ public class ByInvokeCostTimeResultHandler extends AbstractCostTimeResultHandler
     }
 
     @Override
-    void doPrint(List<Map<String, Map<String, Integer>>> classToInvokeToIdList, Map<Integer, CostTimeStatItem> result, CostTimeResultParams params) {
+    void doPrint(Map<Integer, InvokeMetadata> metadata, Map<Integer, CostTimeStatItem> result, CostTimeResultParams params) {
         Tree<String> tree = new Tree<>();
         CostTimeResultFilter filter = newFilter(params.opts);
-        classToInvokeToIdList.forEach(
-                classToInvokeToId -> classToInvokeToId.forEach(
-                        (className, invokeToId) -> {
-                            Map<String, CostTimeStatItem> invokeToItem = newInvokeToItem(result, className, invokeToId, filter);
-                            if (!invokeToItem.isEmpty()) {
-                                Node<String> classNode = tree.appendChild(
-                                        new Node<>("Class: " + className)
-                                );
-                                invokeToItem.forEach(
-                                        (destInvoke, item) -> classNode.appendChild(
-                                                newInvokeNode(
-                                                        formatInvoke(destInvoke),
-                                                        item,
-                                                        params.opts.rates
-                                                )
-                                        )
-                                );
-                            }
-                        }
-                )
-        );
 
-        TreeUtils.printTree(
-                tree,
-                new TreeUtils.PrintConfig(true),
-                (node, config) -> node.isRoot() ? "ALL" : node.getData()
-        );
+//        metadata.forEach(
+//                (id, invokeMetdata) -> {
+//
+//                }
+//        );
+//
+//        classToInvokeToId.forEach(
+//                (className, invokeToId) -> {
+//                    Map<String, CostTimeStatItem> invokeToItem = newInvokeToItem(result, className, invokeToId, filter);
+//                    if (!invokeToItem.isEmpty()) {
+//                        Node<String> classNode = tree.appendChild(
+//                                new Node<>("Class: " + className)
+//                        );
+//                        invokeToItem.forEach(
+//                                (destInvoke, item) -> classNode.appendChild(
+//                                        newInvokeNode(
+//                                                formatInvoke(destInvoke),
+//                                                item,
+//                                                params.opts.rates
+//                                        )
+//                                )
+//                        );
+//                    }
+//                }
+//        );
+//
+//        TreeUtils.printTree(
+//                tree,
+//                new TreeUtils.PrintConfig(true),
+//                (node, config) -> node.isRoot() ? "ALL" : node.getData()
+//        );
     }
 
     @Override
@@ -95,14 +104,14 @@ public class ByInvokeCostTimeResultHandler extends AbstractCostTimeResultHandler
     private Map<String, CostTimeStatItem> newInvokeToItem(Map<Integer, CostTimeStatItem> idToCostTimeItem, String className,
                                                           Map<String, Integer> invokeToId, CostTimeResultFilter filter) {
         Map<String, CostTimeStatItem> invokeToItem = new TreeMap<>();
-        invokeToId.forEach(
-                (invoke, id) -> {
-                    InvokeMetadata metadata = new InvokeMetadata(className, invoke);
-                    CostTimeStatItem item = idToCostTimeItem.get(id);
-                    if (item != null && filter.accept(new Pair<>(metadata, item)))
-                        invokeToItem.put(invoke, item);
-                }
-        );
+//        invokeToId.forEach(
+//                (invoke, id) -> {
+//                    InvokeMetadata metadata = new InvokeMetadata(className, invoke);
+//                    CostTimeStatItem item = idToCostTimeItem.get(id);
+//                    if (item != null && filter.accept(new Pair<>(metadata, item)))
+//                        invokeToItem.put(invoke, item);
+//                }
+//        );
         return invokeToItem;
     }
 

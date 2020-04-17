@@ -12,17 +12,7 @@ import java.util.Collections;
 import java.util.Map;
 
 public abstract class AbstractConfigTransformer extends AbstractTransformer implements ConfigTransformer {
-    private String context;
     private String instanceKey;
-
-    @Override
-    public void setContext(String context) {
-        this.context = context;
-    }
-
-    protected String getContext() {
-        return context;
-    }
 
     @Override
     public void setInstanceKey(String instanceKey) {
@@ -56,7 +46,6 @@ public abstract class AbstractConfigTransformer extends AbstractTransformer impl
         String logKey = LogMgr.reg(loggerType, config, defaultValueMap);
         LogConfig logConfig = LogMgr.getLogConfig(loggerType, logKey);
         DestInvokeIdRegistry.getInstance().regOutputPath(
-                getContext(),
                 logConfig.getOutputPath()
         );
         return logKey;

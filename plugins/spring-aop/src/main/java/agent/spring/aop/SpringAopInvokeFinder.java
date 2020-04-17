@@ -11,61 +11,78 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class SpringAopInvokeFinder implements AopMethodFinder {
     private static final Logger logger = Logger.getLogger(SpringAopInvokeFinder.class);
-    private final Map<Method, Collection<Method>> targetToAopMethods = new ConcurrentHashMap<>();
-    private boolean inited = false;
+    private final Map<ClassLoader, Map<Method, Collection<Method>>> loaderToTargetToAopMethods = new ConcurrentHashMap<>();
 
     @Override
     public Collection<Method> findMethods(Method targetMethod, ClassLoader classLoader) {
-        init(classLoader);
+        Map<Method, Collection<Method>> targetToAopMethods = getTargetToAopMethodsByLoader(classLoader);
         Collection<Method> aopMethods = targetToAopMethods.get(targetMethod);
         return aopMethods == null ? Collections.emptyList() : aopMethods;
     }
 
-    private synchronized void init(ClassLoader loader) {
-        if (!inited) {
-            try {
-                Map<Method, Set<Method>> rsMap = new ConcurrentHashMap<>();
-                getProxyFactoryList(loader)
-                        .stream()
-                        .map(this::createAopMethodsMap)
-                        .forEach(
-                                aopMethodsMap -> aopMethodsMap.forEach(
-                                        (sourceMethod, aopMethods) -> {
-                                            rsMap.computeIfAbsent(
-                                                    sourceMethod,
-                                                    key -> new HashSet<>()
-                                            ).addAll(aopMethods);
-                                        }
+    private synchronized Map<Method, Collection<Method>> getTargetToAopMethodsByLoader(ClassLoader classLoader) {
+        return loaderToTargetToAopMethods.computeIfAbsent(
+                classLoader,
+                loader -> {
+                    try {
+                        return filterEmpty(
+                                findTargetToAopMethods(
+                                        loadProxyFactoryClass(loader)
                                 )
                         );
-                rsMap.forEach(
-                        (sourceMethod, aopMethods) -> {
-                            if (!aopMethods.isEmpty()) {
-                                targetToAopMethods.put(
-                                        sourceMethod,
-                                        Collections.unmodifiableCollection(aopMethods)
-                                );
-                                logger.debug("======================");
-                                logger.debug("Source Method: {}: ", sourceMethod);
-                                aopMethods.forEach(
-                                        aopMethod -> logger.debug("AOP Method: {}", aopMethod)
-                                );
-                                logger.debug("======================");
-                            }
-                        }
-                );
-            } catch (Exception e) {
-                logger.error("SpringAopFinder init failed.", e);
-            }
-            inited = true;
-        }
+                    } catch (Exception e) {
+                        logger.error("SpringAopFinder init failed.", e);
+                        return Collections.emptyMap();
+                    }
+                }
+        );
     }
 
-    private List<?> getProxyFactoryList(ClassLoader classLoader) throws Exception {
-        return JvmtiUtils.getInstance().findObjectsByClass(
-                classLoader.loadClass("org.springframework.aop.framework.ProxyFactory"),
-                Integer.MAX_VALUE
+    private Map<Method, Collection<Method>> filterEmpty(Map<Method, Set<Method>> rsMap) {
+        Map<Method, Collection<Method>> targetToAopMethods = new ConcurrentHashMap<>();
+        rsMap.forEach(
+                (sourceMethod, aopMethods) -> {
+                    if (!aopMethods.isEmpty()) {
+                        targetToAopMethods.put(
+                                sourceMethod,
+                                Collections.unmodifiableCollection(aopMethods)
+                        );
+                        logger.debug("======================");
+                        logger.debug("Source Method: {}: ", sourceMethod);
+                        aopMethods.forEach(
+                                aopMethod -> logger.debug("AOP Method: {}", aopMethod)
+                        );
+                        logger.debug("======================");
+                    }
+                }
         );
+        return targetToAopMethods;
+    }
+
+    private Map<Method, Set<Method>> findTargetToAopMethods(Class<?> proxyFactoryClass) {
+        Map<Method, Set<Method>> rsMap = new ConcurrentHashMap<>();
+        getProxyFactoryList(proxyFactoryClass)
+                .stream()
+                .map(this::createAopMethodsMap)
+                .forEach(
+                        aopMethodsMap -> aopMethodsMap.forEach(
+                                (sourceMethod, aopMethods) -> {
+                                    rsMap.computeIfAbsent(
+                                            sourceMethod,
+                                            key -> new HashSet<>()
+                                    ).addAll(aopMethods);
+                                }
+                        )
+                );
+        return rsMap;
+    }
+
+    private Class<?> loadProxyFactoryClass(ClassLoader loader) throws Exception {
+        return loader.loadClass("org.springframework.aop.framework.ProxyFactory");
+    }
+
+    private List<?> getProxyFactoryList(Class<?> proxyFactoryClass) {
+        return JvmtiUtils.getInstance().findObjectsByClass(proxyFactoryClass, Integer.MAX_VALUE);
     }
 
     @SuppressWarnings("unchecked")

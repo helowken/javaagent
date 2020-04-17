@@ -3,6 +3,7 @@ package agent.builtin.tools.result;
 import agent.base.utils.InvokeDescriptorUtils;
 import agent.base.utils.InvokeDescriptorUtils.TextConfig;
 import agent.base.utils.Pair;
+import agent.server.transform.impl.DestInvokeIdRegistry.InvokeMetadata;
 import agent.server.transform.search.filter.AgentFilter;
 import agent.server.transform.search.filter.ScriptFilter;
 

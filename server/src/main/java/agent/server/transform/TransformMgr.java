@@ -1,7 +1,7 @@
 package agent.server.transform;
 
-import agent.base.utils.ClassLoaderUtils;
 import agent.base.utils.Logger;
+import agent.base.utils.TimeMeasureUtils;
 import agent.base.utils.Utils;
 import agent.common.config.ModuleConfig;
 import agent.common.config.TransformerConfig;
@@ -23,7 +23,6 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
-import static agent.hook.utils.App.getLoader;
 import static agent.server.transform.TransformContext.ACTION_MODIFY;
 
 public class TransformMgr {
@@ -37,32 +36,16 @@ public class TransformMgr {
     private TransformMgr() {
     }
 
-    public void registerInvokes(String context, Collection<DestInvoke> invokes) {
-        ClassLoader contextLoader = getLoader(context);
-        Map<ClassLoader, String> loaderToContext = new HashMap<>();
-        invokes.forEach(
-                invoke -> DestInvokeIdRegistry.getInstance().reg(
-                        loaderToContext.computeIfAbsent(
-                                invoke.getDeclaringClass().getClassLoader(),
-                                loader -> ClassLoaderUtils.isSelfOrDescendant(contextLoader, loader) ? context : null
-                        ),
-                        invoke
-                )
-        );
-    }
-
     public TransformResult transformByConfig(ModuleConfig moduleConfig) {
         moduleConfig.validate();
-        String context = moduleConfig.getContextPath();
         Set<DestInvoke> invokeSet = searchInvokes(moduleConfig);
-        registerInvokes(context, invokeSet);
+        invokeSet.forEach(DestInvokeIdRegistry.getInstance()::reg);
 
         List<AgentTransformer> transformerList = moduleConfig.getTransformers()
                 .stream()
                 .map(
                         transformerConfig -> {
                             ConfigTransformer transformer = newTransformer(transformerConfig);
-                            transformer.setContext(context);
                             transformer.setConfig(
                                     transformerConfig.getConfig()
                             );
@@ -74,60 +57,49 @@ public class TransformMgr {
                 );
 
         return transform(
-                new TransformContext(context, invokeSet, transformerList, ACTION_MODIFY)
+                new TransformContext(invokeSet, transformerList, ACTION_MODIFY)
         );
     }
 
     public Set<DestInvoke> searchInvokes(ModuleConfig moduleConfig) {
-        long st = System.currentTimeMillis();
-        try {
-            moduleConfig.validateForSearch();
-            ClassLoader loader = getLoader(
-                    moduleConfig.getContextPath()
-            );
-            ClassCache classCache = new ClassCache(loader);
-            Set<DestInvoke> invokeSet = new HashSet<>();
-            moduleConfig.getTargets().forEach(
-                    targetConfig -> ClassSearcher.getInstance().search(
-                            loader,
-                            classCache,
-                            targetConfig.getClassFilter()
-                    ).forEach(
-                            clazz -> {
-                                Collection<DestInvoke> invokes = InvokeSearcher.getInstance()
-                                        .search(
-                                                clazz,
-                                                targetConfig.getMethodFilter(),
-                                                targetConfig.getConstructorFilter()
-                                        );
-                                invokeSet.addAll(invokes);
+        return TimeMeasureUtils.run(
+                () -> {
+                    moduleConfig.validateForSearch();
+                    ClassCache classCache = new ClassCache();
+                    Set<DestInvoke> invokeSet = new HashSet<>();
+                    moduleConfig.getTargets().forEach(
+                            targetConfig -> ClassSearcher.getInstance().search(
+                                    classCache,
+                                    targetConfig.getClassFilter()
+                            ).forEach(
+                                    clazz -> {
+                                        Collection<DestInvoke> invokes = InvokeSearcher.getInstance()
+                                                .search(
+                                                        clazz,
+                                                        targetConfig.getMethodFilter(),
+                                                        targetConfig.getConstructorFilter()
+                                                );
+                                        invokeSet.addAll(invokes);
 
-                                Optional.ofNullable(
-                                        targetConfig.getInvokeChainConfig()
-                                ).ifPresent(
-                                        invokeChainConfig -> invokeSet.addAll(
-                                                InvokeChainSearcher.search(
-                                                        loader,
-                                                        classCache,
-                                                        ClassDataRepository.getInstance()::getClassData,
-                                                        invokes,
-                                                        invokeChainConfig
+                                        Optional.ofNullable(
+                                                targetConfig.getInvokeChainConfig()
+                                        ).ifPresent(
+                                                invokeChainConfig -> invokeSet.addAll(
+                                                        InvokeChainSearcher.search(
+                                                                classCache,
+                                                                ClassDataRepository.getInstance()::getClassData,
+                                                                invokes,
+                                                                invokeChainConfig
+                                                        )
                                                 )
-                                        )
-                                );
-                            }
-                    )
-            );
-            logger.debug("====== Found invokes: ");
-            invokeSet.forEach(
-                    invoke -> logger.debug("{}", invoke.toString())
-            );
-            logger.debug("==================");
-            return invokeSet;
-        } finally {
-            long et = System.currentTimeMillis();
-            logger.debug("searchTime: {}", (et - st));
-        }
+                                        );
+                                    }
+                            )
+                    );
+                    return invokeSet;
+                },
+                "searchTime: {}"
+        );
     }
 
     private ConfigTransformer newTransformer(TransformerConfig transformerConfig) {
@@ -140,35 +112,37 @@ public class TransformMgr {
     }
 
     public TransformResult transform(TransformContext transformContext) {
-        TransformResult transformResult = new TransformResult(
-                transformContext.getContext()
+        TransformResult transformResult = new TransformResult();
+        List<ProxyRegInfo> regInfos = TimeMeasureUtils.run(
+                () -> prepareRegInfos(transformContext, transformResult),
+                "t1: {}ms"
         );
-        long t1 = System.currentTimeMillis();
-        List<ProxyRegInfo> regInfos = prepareRegInfos(transformContext, transformResult);
-        long t2 = System.currentTimeMillis();
-        logger.debug("t1: {}", (t2 - t1));
-        List<ProxyResult> proxyResults = compile(regInfos, transformResult);
-        long t3 = System.currentTimeMillis();
-        logger.debug("t2: {}", (t3 - t2));
+        List<ProxyResult> proxyResults = TimeMeasureUtils.run(
+                () -> compile(regInfos, transformResult),
+                "t2: {}ms"
+        );
         if (!proxyResults.isEmpty()) {
-            Map<Class<?>, byte[]> classToData = reTransform(transformResult, proxyResults);
-            long t4 = System.currentTimeMillis();
-            logger.debug("t3: {}", (t4 - t3));
-            Set<Class<?>> validClassSet = new HashSet<>(
-                    classToData.keySet()
+            Map<Class<?>, byte[]> classToData = TimeMeasureUtils.run(
+                    () -> reTransform(transformResult, proxyResults),
+                    "t3: {}ms"
             );
-            regValidProxyResults(proxyResults, validClassSet);
+            TimeMeasureUtils.run(
+                    () -> {
+                        Set<Class<?>> validClassSet = new HashSet<>(
+                                classToData.keySet()
+                        );
+                        regValidProxyResults(proxyResults, validClassSet);
 
-            ClassDataRepository.getInstance().saveClassData(classToData);
-            EventListenerMgr.fireEvent(
-                    new TransformClassEvent(
-                            transformContext.getContext(),
-                            transformContext.getAction(),
-                            validClassSet
-                    )
+                        ClassDataRepository.getInstance().saveClassData(classToData);
+                        EventListenerMgr.fireEvent(
+                                new TransformClassEvent(
+                                        transformContext.getAction(),
+                                        validClassSet
+                                )
+                        );
+                    },
+                    "t4: {}ms"
             );
-            long t5 = System.currentTimeMillis();
-            logger.debug("t4: {}", (t5 - t4));
         } else {
             logger.debug("No class need to be retransformed.");
         }

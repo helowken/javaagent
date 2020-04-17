@@ -1,12 +1,9 @@
 package test.server;
 
-import agent.base.plugin.PluginFactory;
 import agent.base.utils.*;
 import agent.common.config.*;
 import agent.common.utils.JSONUtils;
 import agent.delegate.JSONDelegate;
-import agent.hook.plugin.ClassFinder;
-import agent.hook.utils.App;
 import agent.jvmti.JvmtiUtils;
 import agent.server.event.AgentEvent;
 import agent.server.event.AgentEventListener;
@@ -22,7 +19,6 @@ import agent.server.transform.impl.invoke.MethodInvoke;
 import agent.server.transform.tools.asm.ProxyRegInfo;
 import agent.server.transform.tools.asm.ProxyResult;
 import agent.server.transform.tools.asm.ProxyTransformMgr;
-import org.junit.Before;
 import org.junit.BeforeClass;
 
 import java.io.File;
@@ -39,9 +35,7 @@ import static agent.server.transform.TransformContext.ACTION_MODIFY;
 import static org.junit.Assert.assertFalse;
 
 public abstract class AbstractTest {
-    protected static final ClassLoader contextLoader = Thread.currentThread().getContextClassLoader();
     protected static final TestClassLoader loader = new TestClassLoader();
-    private static final TestClassFinder classFinder = new TestClassFinder();
     private static boolean inited = false;
     private static final TestInstrumentation instrumentation = new TestInstrumentation();
     private static final WaitFlushingListener waitMetadataListener = new WaitFlushingListener(DestInvokeMetadataFlushedEvent.class);
@@ -59,9 +53,7 @@ public abstract class AbstractTest {
 
     private static synchronized void init() throws Exception {
         if (!inited) {
-            App.instance = new Object();
             SystemConfig.load(new Properties());
-            PluginFactory.setMock(ClassFinder.class, classFinder);
             ReflectionUtils.useField(
                     JSONUtils.class,
                     "delegateClass",
@@ -95,20 +87,18 @@ public abstract class AbstractTest {
         return UUID.randomUUID().toString();
     }
 
-    protected void doTransform(ConfigTransformer transformer, String context, Map<String, Object> config,
+    protected void doTransform(ConfigTransformer transformer, Map<String, Object> config,
                                Map<Class<?>, String> classToMethodFilter, InvokeChainConfig invokeChainConfig) throws Exception {
         doTransform(
                 Collections.singletonMap(transformer, config),
-                context,
                 classToMethodFilter,
                 invokeChainConfig
         );
     }
 
-    protected void doTransform(Map<ConfigTransformer, Map<String, Object>> transformerToConfig, String context,
+    protected void doTransform(Map<ConfigTransformer, Map<String, Object>> transformerToConfig,
                                Map<Class<?>, String> classToMethodFilter, InvokeChainConfig invokeChainConfig) throws Exception {
         TransformContext transformContext = newTransformContext(
-                context,
                 new ArrayList<>(
                         transformerToConfig.keySet()
                 ),
@@ -118,21 +108,19 @@ public abstract class AbstractTest {
         for (Map.Entry<ConfigTransformer, Map<String, Object>> entry : transformerToConfig.entrySet()) {
             ConfigTransformer transformer = entry.getKey();
             Map<String, Object> config = entry.getValue();
-            transformer.setContext(context);
             transformer.setConfig(config);
             transformer.transform(transformContext);
         }
     }
 
-    protected static void transformByAnnt(String context, Map<Class<?>, String> classToMethodFilter,
+    protected static void transformByAnnt(Map<Class<?>, String> classToMethodFilter,
                                           Map<Class<?>, String> classToConstructorFilter, Object instance) {
         TestAnnotationConfigTransformer transformer = new TestAnnotationConfigTransformer(instance);
         Set<DestInvoke> invokeSet = TransformMgr.getInstance().searchInvokes(
-                newModuleConfig(context, classToMethodFilter, classToConstructorFilter, null)
+                newModuleConfig(classToMethodFilter, classToConstructorFilter, null)
         );
-        TransformMgr.getInstance().registerInvokes(context, invokeSet);
+        invokeSet.forEach(DestInvokeIdRegistry.getInstance()::reg);
         TransformContext transformContext = new TransformContext(
-                context,
                 invokeSet,
                 Collections.singletonList(transformer),
                 ACTION_MODIFY
@@ -169,9 +157,9 @@ public abstract class AbstractTest {
         waitMetadataListener.await();
     }
 
-    protected void resetAll(String context) throws Exception {
+    protected void resetAll() throws Exception {
         EventListenerMgr.fireEvent(
-                new ResetEvent(context, true)
+                new ResetEvent(true)
         );
     }
 
@@ -235,10 +223,9 @@ public abstract class AbstractTest {
         return targetConfig;
     }
 
-    private static ModuleConfig newModuleConfig(String context, Map<Class<?>, String> classToMethodFilter,
+    private static ModuleConfig newModuleConfig(Map<Class<?>, String> classToMethodFilter,
                                                 Map<Class<?>, String> classToConstructorFilter, InvokeChainConfig invokeChainConfig) {
         ModuleConfig moduleConfig = new ModuleConfig();
-        moduleConfig.setContextPath(context);
         List<TargetConfig> targetConfigList = new ArrayList<>();
         if (classToConstructorFilter != null)
             targetConfigList.add(
@@ -274,14 +261,13 @@ public abstract class AbstractTest {
         return moduleConfig;
     }
 
-    private TransformContext newTransformContext(String context, List<AgentTransformer> transformers, Map<Class<?>, String> classToMethodFilter,
+    private TransformContext newTransformContext(List<AgentTransformer> transformers, Map<Class<?>, String> classToMethodFilter,
                                                  InvokeChainConfig invokeChainConfig) {
         Set<DestInvoke> invokeSet = TransformMgr.getInstance().searchInvokes(
-                newModuleConfig(context, classToMethodFilter, null, invokeChainConfig)
+                newModuleConfig(classToMethodFilter, null, invokeChainConfig)
         );
-        TransformMgr.getInstance().registerInvokes(context, invokeSet);
+        invokeSet.forEach(DestInvokeIdRegistry.getInstance()::reg);
         return new TransformContext(
-                context,
                 invokeSet,
                 transformers,
                 ACTION_MODIFY
@@ -300,7 +286,7 @@ public abstract class AbstractTest {
         } finally {
             Files.delete(path);
             Stream.of(
-                    DestInvokeIdRegistry.getMetadataFiles(outputPath)
+                    DestInvokeIdRegistry.getMetadataFile(outputPath)
             ).map(File::new)
                     .forEach(File::delete);
         }

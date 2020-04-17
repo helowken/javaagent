@@ -23,7 +23,7 @@ public class Utils {
     public static void wrapToRtError(WithoutValueFunc func, Supplier<String> errMsgSupplier) {
         try {
             func.run();
-        } catch (Exception e) {
+        } catch (Throwable e) {
             throw toRtError(e, errMsgSupplier);
         }
     }
@@ -250,10 +250,10 @@ public class Utils {
     }
 
     public interface WithValueFunc<T> {
-        T run() throws Exception;
+        T run() throws Throwable;
     }
 
     public interface WithoutValueFunc {
-        void run() throws Exception;
+        void run() throws Throwable;
     }
 }

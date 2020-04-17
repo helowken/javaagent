@@ -2,10 +2,7 @@ package agent.launcher.server;
 
 import agent.base.utils.ClassLoaderUtils;
 import agent.base.utils.Logger;
-import agent.base.utils.SystemConfig;
 import agent.base.utils.Utils;
-import agent.hook.utils.AttachType;
-import agent.hook.utils.HookConstants;
 import agent.launcher.basic.AbstractLauncher;
 
 import java.lang.instrument.Instrumentation;
@@ -31,7 +28,6 @@ public class ServerLauncher extends AbstractLauncher {
         if (Utils.isBlank(agentArgs))
             throw new IllegalArgumentException("Agent arguments can not be empty.");
         instance.init(agentArgs);
-        SystemConfig.set(HookConstants.KEY_ATTACH_TYPE, attachType.name());
         instance.startRunner(RUNNER_TYPE, instrumentation);
     }
 
@@ -47,4 +43,7 @@ public class ServerLauncher extends AbstractLauncher {
             throw new RuntimeException("Unknown attach type: " + attachType);
     }
 
+    enum AttachType {
+        STATIC, DYNAMIC
+    }
 }

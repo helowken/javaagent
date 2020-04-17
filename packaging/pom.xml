@@ -56,14 +56,6 @@
         </dependency>
         <dependency>
             <groupId>javaagent</groupId>
-            <artifactId>jetty-runner-hook</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>javaagent</groupId>
-            <artifactId>tomcat-hook</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>javaagent</groupId>
             <artifactId>builtin-transformers</artifactId>
         </dependency>
         <dependency>

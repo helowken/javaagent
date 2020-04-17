@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Objects;
 
 public class ModuleConfig extends AbstractAgentConfig {
-    private String contextPath;
     private List<TransformerConfig> transformers;
     private List<TargetConfig> targets;
 
@@ -14,16 +13,7 @@ public class ModuleConfig extends AbstractAgentConfig {
     }
 
     public void validateForSearch() {
-        validate(contextPath, "Context path");
         validate(targets, "Target configs");
-    }
-
-    public String getContextPath() {
-        return contextPath;
-    }
-
-    public void setContextPath(String contextPath) {
-        this.contextPath = contextPath;
     }
 
     public List<TransformerConfig> getTransformers() {
@@ -47,22 +37,19 @@ public class ModuleConfig extends AbstractAgentConfig {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ModuleConfig that = (ModuleConfig) o;
-        return Objects.equals(contextPath, that.contextPath) &&
-                Objects.equals(transformers, that.transformers) &&
+        return Objects.equals(transformers, that.transformers) &&
                 Objects.equals(targets, that.targets);
     }
 
     @Override
     public int hashCode() {
-
-        return Objects.hash(contextPath, transformers, targets);
+        return Objects.hash(transformers, targets);
     }
 
     @Override
     public String toString() {
         return "ModuleConfig{" +
-                "contextPath='" + contextPath + '\'' +
-                ", transformers=" + transformers +
+                "transformers=" + transformers +
                 ", targets=" + targets +
                 '}';
     }

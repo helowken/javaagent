@@ -7,7 +7,6 @@ import agent.server.event.impl.ResetEvent;
 import agent.server.utils.log.LogMgr;
 import agent.server.utils.log.binary.BinaryLogItem;
 import agent.server.utils.log.binary.BinaryLogItemPool;
-import org.junit.Test;
 
 import java.io.File;
 import java.nio.file.Files;
@@ -15,7 +14,7 @@ import java.util.*;
 import java.util.concurrent.CountDownLatch;
 
 public class BinaryLogWriterTest {
-//    @Test
+    //    @Test
     public void test() throws Exception {
         List<Long> usedTimes = new ArrayList<>();
         for (int i = 0; i < 20; ++i) {
@@ -46,7 +45,7 @@ public class BinaryLogWriterTest {
         CountDownLatch startLatch = new CountDownLatch(1);
         CountDownLatch endLatch = new CountDownLatch(count);
         try {
-            long st = System.currentTimeMillis();
+            long st = System.nanoTime();
             for (int i = 0; i < count; ++i) {
                 new Thread(() -> {
                     try {
@@ -73,9 +72,9 @@ public class BinaryLogWriterTest {
             }
             startLatch.countDown();
             endLatch.await();
-            long et = System.currentTimeMillis();
+            long et = System.nanoTime();
             EventListenerMgr.fireEvent(new FlushLogEvent(logFile.getAbsolutePath()));
-            EventListenerMgr.fireEvent(new ResetEvent("", true));
+            EventListenerMgr.fireEvent(new ResetEvent(true));
             return et - st;
         } finally {
             FileUtils.removeFileOrDir(tmpDir);

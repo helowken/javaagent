@@ -13,10 +13,9 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class ViewMgr {
-    public static final int VIEW_CONTEXT = 0;
-    public static final int VIEW_CLASS = 1;
-    public static final int VIEW_INVOKE = 2;
-    public static final int VIEW_PROXY = 3;
+    public static final int VIEW_CLASS = 0;
+    public static final int VIEW_INVOKE = 1;
+    public static final int VIEW_PROXY = 2;
 
     private static Pattern newPattern(String regExp) {
         return regExp == null ?
@@ -30,8 +29,7 @@ public class ViewMgr {
         return pattern == null || pattern.matcher(value).matches();
     }
 
-    public static Object create(int maxLevel, String contextRegexp, String classRegExp, String invokeRegExp, String proxyRegExp) {
-        final Pattern contextPattern = newPattern(contextRegexp);
+    public static Object create(int maxLevel, String classRegExp, String invokeRegExp, String proxyRegExp) {
         final ClassFilter classFilter = FilterUtils.newClassFilter(
                 classRegExp == null ? null : Collections.singleton(classRegExp),
                 null,
@@ -43,14 +41,12 @@ public class ViewMgr {
         );
         final Pattern proxyPattern = newPattern(proxyRegExp);
         return DestInvokeIdRegistry.getInstance().run(
-                contextToClassToInvokeToId -> newValue(
-                        VIEW_CONTEXT,
+                classToInvokeToId -> newValue(
+                        VIEW_CLASS,
                         maxLevel,
-                        contextToClassToInvokeToId,
+                        classToInvokeToId,
                         (currLevel, mLevel, value) -> {
                             switch (currLevel) {
-                                case VIEW_CONTEXT:
-                                    return match(contextPattern, (String) value);
                                 case VIEW_CLASS:
                                     return FilterUtils.isAccept(
                                             classFilter,
@@ -68,8 +64,6 @@ public class ViewMgr {
                         },
                         (currLevel, mLevel, value) -> {
                             switch (currLevel) {
-                                case VIEW_CONTEXT:
-                                    return value;
                                 case VIEW_CLASS:
                                     return ((Class<?>) value).getName();
                                 case VIEW_INVOKE:
