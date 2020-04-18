@@ -9,6 +9,7 @@ import agent.common.tree.TreeUtils;
 import agent.common.utils.JSONUtils;
 import agent.server.transform.impl.DestInvokeIdRegistry.InvokeMetadata;
 
+import java.io.File;
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -23,12 +24,13 @@ public class TraceInvokeResultHandler
     @Override
     public void exec(TraceResultParams params) throws Exception {
         String inputPath = params.inputPath;
-        Map<Integer, InvokeMetadata> idToInvoke = readMetadata(inputPath);
-        calculateStats(inputPath, params).forEach(
+        Map<Integer, InvokeMetadata> idToMetadata = readMetadata(inputPath);
+        List<File> dataFiles = findDataFiles(inputPath);
+        calculateStats(dataFiles, params).forEach(
                 tree -> TreeUtils.printTree(
                         convertTree(
                                 transform(tree),
-                                idToInvoke,
+                                idToMetadata,
                                 params
                         ),
                         new TreeUtils.PrintConfig(false),
@@ -45,36 +47,36 @@ public class TraceInvokeResultHandler
         return tree;
     }
 
-    private Tree<String> convertTree(Tree<TraceItem> tree, Map<Integer, InvokeMetadata> idToInvoke, TraceResultParams params) {
+    private Tree<String> convertTree(Tree<TraceItem> tree, Map<Integer, InvokeMetadata> idToMetadata, TraceResultParams params) {
         Tree<String> rsTree = new Tree<>();
         TraceResultFilter filter = newFilter(params.opts);
         tree.getChildren().forEach(
                 child -> Optional.ofNullable(
-                        convertNode(child, idToInvoke, filter, params.opts)
+                        convertNode(child, idToMetadata, filter, params.opts)
                 ).ifPresent(rsTree::appendChild)
         );
         return rsTree;
     }
 
-    private Node<String> convertNode(Node<TraceItem> node, Map<Integer, InvokeMetadata> idToInvoke, TraceResultFilter filter, TraceResultOptions opts) {
+    private Node<String> convertNode(Node<TraceItem> node, Map<Integer, InvokeMetadata> idToMetadata, TraceResultFilter filter, TraceResultOptions opts) {
         TraceItem item = node.getData();
         InvokeMetadata metadata = getMetadata(
-                idToInvoke,
+                idToMetadata,
                 item.getInvokeId()
         );
         if (!filter.accept(new Pair<>(metadata, item)))
             return null;
 
-        Node<String> rsNode = newNode(node, idToInvoke, metadata, opts);
+        Node<String> rsNode = newNode(node, idToMetadata, metadata, opts);
         node.getChildren().forEach(
                 child -> Optional.ofNullable(
-                        convertNode(child, idToInvoke, filter, opts)
+                        convertNode(child, idToMetadata, filter, opts)
                 ).ifPresent(rsNode::appendChild)
         );
         return rsNode;
     }
 
-    private Node<String> newNode(Node<TraceItem> node, Map<Integer, InvokeMetadata> idToInvoke, InvokeMetadata metadata, TraceResultOptions opts) {
+    private Node<String> newNode(Node<TraceItem> node, Map<Integer, InvokeMetadata> idToMetadata, InvokeMetadata metadata, TraceResultOptions opts) {
         StringBuilder sb = new StringBuilder();
         TraceItem item = node.getData();
         if (opts.showTime)
@@ -85,7 +87,7 @@ public class TraceInvokeResultHandler
         sb.append(
                 convertInvoke(
                         item.getParentId() == -1 ? null : node.getParent().getData().getInvokeId(),
-                        idToInvoke,
+                        idToMetadata,
                         metadata
                 )
         );
@@ -138,15 +140,14 @@ public class TraceInvokeResultHandler
         return append(sb, map);
     }
 
-    @Override
-    String formatClassName(String className) {
+    private String formatClass(String className) {
         return InvokeDescriptorUtils.shortForPkgLang(className);
     }
 
     private void appendClassName(StringBuilder sb, Map<String, Object> rsMap) {
         if (rsMap.containsKey(KEY_CLASS)) {
             sb.append('<').append(
-                    formatClassName(
+                    formatClass(
                             String.valueOf(
                                     rsMap.remove(KEY_CLASS)
                             )
@@ -182,7 +183,7 @@ public class TraceInvokeResultHandler
     }
 
     @Override
-    Collection<Tree<TraceItem>> calculate(Collection<String> dataFiles, TraceResultParams params) {
+    Collection<Tree<TraceItem>> calculate(Collection<File> dataFiles, TraceResultParams params) {
         Collection<Tree<TraceItem>> rsList = new ConcurrentLinkedQueue<>();
         dataFiles.parallelStream()
                 .map(
@@ -197,10 +198,10 @@ public class TraceInvokeResultHandler
         return new TraceResultFilter();
     }
 
-    private List<Tree<TraceItem>> doCalculate(String dataFilePath, TraceResultParams params) {
+    private List<Tree<TraceItem>> doCalculate(File dataFile, TraceResultParams params) {
         List<Tree<TraceItem>> trees = new ArrayList<>();
         calculateTextFile(
-                dataFilePath,
+                dataFile,
                 reader -> {
                     String line;
                     while ((line = reader.readLine()) != null) {

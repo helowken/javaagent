@@ -8,7 +8,11 @@ import agent.common.tree.TreeUtils;
 import agent.common.utils.JSONUtils;
 import agent.server.transform.impl.DestInvokeIdRegistry.InvokeMetadata;
 
-import java.util.*;
+import java.io.File;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static agent.builtin.tools.result.ByCallChainCostTimeResultHandler.NodeData;
@@ -48,40 +52,40 @@ public class ByCallChainCostTimeResultHandler extends AbstractCostTimeResultHand
         );
     }
 
-    private Tree<String> convertTree(Tree<NodeData> tree, final Map<Integer, InvokeMetadata> idToInvoke, CostTimeResultParams params) {
+    private Tree<String> convertTree(Tree<NodeData> tree, final Map<Integer, InvokeMetadata> idToMetadata, CostTimeResultParams params) {
         Tree<String> rsTree = new Tree<>();
         CostTimeResultFilter filter = newFilter(params.opts);
         tree.getChildren().forEach(
                 child -> Optional.ofNullable(
-                        convertNode(null, child, idToInvoke, filter, params.opts.rates)
+                        convertNode(null, child, idToMetadata, filter, params.opts)
                 ).ifPresent(rsTree::appendChild)
         );
         return rsTree;
     }
 
-    private Node<String> convertNode(Integer parentInvokeId, Node<NodeData> node, final Map<Integer, InvokeMetadata> idToInvoke,
-                                     CostTimeResultFilter filter, final Set<Float> rates) {
+    private Node<String> convertNode(Integer parentInvokeId, Node<NodeData> node, final Map<Integer, InvokeMetadata> idToMetadata,
+                                     CostTimeResultFilter filter, CostTimeResultOptions opts) {
         final NodeData data = node.getData();
-        InvokeMetadata metadata = getMetadata(idToInvoke, data.invokeId);
+        InvokeMetadata metadata = getMetadata(idToMetadata, data.invokeId);
         if (!filter.accept(new Pair<>(metadata, data.item)))
             return null;
 
         Node<String> rsNode = newInvokeNode(
-                convertInvoke(parentInvokeId, idToInvoke, metadata),
+                convertInvoke(parentInvokeId, idToMetadata, metadata),
                 data.item,
-                rates
+                opts
         );
 
         node.getChildren().forEach(
                 child -> Optional.ofNullable(
-                        convertNode(data.invokeId, child, idToInvoke, filter, rates)
+                        convertNode(data.invokeId, child, idToMetadata, filter, opts)
                 ).ifPresent(rsNode::appendChild)
         );
         return rsNode;
     }
 
     @Override
-    Tree<NodeData> calculate(Collection<String> dataFiles, CostTimeResultParams params) {
+    Tree<NodeData> calculate(Collection<File> dataFiles, CostTimeResultParams params) {
         AtomicReference<Tree<NodeData>> ref = new AtomicReference<>();
         dataFiles.parallelStream()
                 .map(this::doCalculate)
@@ -123,11 +127,11 @@ public class ByCallChainCostTimeResultHandler extends AbstractCostTimeResultHand
         }
     }
 
-    private Tree<NodeData> doCalculate(String dataFilePath) {
+    private Tree<NodeData> doCalculate(File dataFile) {
         Tree<NodeData> tree = new Tree<>();
         Map<Integer, Node<NodeData>> idToNode = new HashMap<>();
         doCalculateFile(
-                dataFilePath,
+                dataFile,
                 (id, parentId, invokeId, costTime, error) -> {
                     Node<NodeData> node;
                     if (parentId == -1) {

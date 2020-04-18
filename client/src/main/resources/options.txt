@@ -1,7 +1,6 @@
 Where options include:
-    Filter rules: '+' or no prefix means inclusion,
-                   '-' means exclusion,
-                   Multiple items are separated by ':' ,
+    Filter rules: '^' means exclusion,
+                   Multiple items are separated by ',' ,
                    Default includes all.
     -c <classFilter>
                    Filter rules for classes.

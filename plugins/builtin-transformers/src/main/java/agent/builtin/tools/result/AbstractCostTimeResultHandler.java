@@ -7,8 +7,8 @@ import agent.server.transform.impl.DestInvokeIdRegistry;
 
 import java.io.File;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 abstract class AbstractCostTimeResultHandler<T>
         extends AbstractResultHandler<T, CostTimeStatItem, CostTimeResultFilter, CostTimeResultOptions, CostTimeResultParams> {
@@ -33,10 +33,14 @@ abstract class AbstractCostTimeResultHandler<T>
     @Override
     public void exec(CostTimeResultParams params) throws Exception {
         String inputPath = params.inputPath;
+        List<File> dataFiles = findDataFiles(inputPath);
         String cacheFilePath = getCacheFilePath(inputPath);
-        T result = readCache(cacheFilePath);
+        File cacheFile = new File(cacheFilePath);
+        T result = isCacheAvailable(cacheFile, dataFiles) ?
+                readCache(cacheFile) :
+                null;
         if (result == null) {
-            result = calculateStats(inputPath, params);
+            result = calculateStats(dataFiles, params);
             cacheResult(cacheFilePath, result);
         }
         doPrint(
@@ -46,8 +50,19 @@ abstract class AbstractCostTimeResultHandler<T>
         );
     }
 
-    private T readCache(String cacheFilePath) {
-        File cacheFile = new File(cacheFilePath);
+    private boolean isCacheAvailable(File cacheFile, List<File> dataFiles) {
+        if (cacheFile.exists()) {
+            long dataFileMaxLastModified = -1;
+            for (File dataFile : dataFiles) {
+                dataFileMaxLastModified = Math.max(dataFile.lastModified(), dataFileMaxLastModified);
+            }
+            return cacheFile.lastModified() >= dataFileMaxLastModified;
+        }
+        return false;
+    }
+
+    private T readCache(File cacheFile) {
+        String cacheFilePath = cacheFile.getAbsolutePath();
         if (cacheFile.exists()) {
             try {
                 System.out.println("Read data from cache file: " + cacheFilePath);
@@ -73,9 +88,9 @@ abstract class AbstractCostTimeResultHandler<T>
         }
     }
 
-    void doCalculateFile(String dataFilePath, CostTimeCalculateFunc calculateFunc) {
+    void doCalculateFile(File dataFile, CostTimeCalculateFunc calculateFunc) {
         calculateBytesFile(
-                dataFilePath,
+                dataFile,
                 in -> {
                     int totalSize = 0;
                     int count = in.readInt();
@@ -94,12 +109,8 @@ abstract class AbstractCostTimeResultHandler<T>
         );
     }
 
-    Node<String> newInvokeNode(String invoke, CostTimeStatItem item, Set<Float> rates) {
+    Node<String> newInvokeNode(String invoke, CostTimeStatItem item, CostTimeResultOptions opts) {
         return new Node<>(
-//                invoke + "\n" +
-//                        item.getAvgTimeString() + "\n" +
-//                        item.getMaxTimeString() + "\n" +
-//                        item.getCountString() + "\n" +
 //                        item.getTimeDistributionString(rates) + "\n\n"
                 "[" + item.getAvgTimeString() + ", " + item.getCountString() + "] " + invoke
         );

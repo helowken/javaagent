@@ -71,7 +71,7 @@ public class CostTimeStatisticsTransformerTest extends AbstractTest {
 
                     System.out.println("\n======= Use cache =======");
                     opts = new CostTimeResultOptions();
-                    opts.filterExpr = "avgTime > 20";
+//                    opts.filterExpr = "avgTime > 20";
                     params.opts = opts;
                     invokeHandler.exec(params);
                 }

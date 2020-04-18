@@ -27,28 +27,19 @@ abstract class AbstractResultHandler<T, D, F
         extends ResultFilter<D>, O extends BasicOptions, P extends BasicParams<O>>
         implements CmdRunner<O, P> {
 
-    abstract T calculate(Collection<String> dataFiles, P params);
+    abstract T calculate(Collection<File> dataFiles, P params);
 
     abstract F createFilter();
 
-    private List<String> findDataFiles(String dataFilePath) throws FileNotFoundException {
+    List<File> findDataFiles(String dataFilePath) throws FileNotFoundException {
         File dir = FileUtils.getValidFile(dataFilePath).getParentFile();
-        List<String> dataFiles = null;
+        List<File> dataFiles = null;
         if (dir != null) {
             File[] files = dir.listFiles();
             if (files != null) {
                 dataFiles = Stream.of(files)
-                        .map(File::getAbsolutePath)
                         .filter(
-                                filePath -> {
-                                    if (filePath.equals(dataFilePath))
-                                        return true;
-                                    int pos = filePath.lastIndexOf(".");
-                                    String tmpPath = filePath;
-                                    if (pos > -1)
-                                        tmpPath = filePath.substring(0, pos);
-                                    return tmpPath.equals(dataFilePath) && acceptFile(filePath);
-                                }
+                                file -> filterDataFile(file, dataFilePath)
                         )
                         .collect(Collectors.toList());
             }
@@ -58,12 +49,22 @@ abstract class AbstractResultHandler<T, D, F
         return dataFiles;
     }
 
+    private boolean filterDataFile(File file, String dataFilePath) {
+        String filePath = file.getAbsolutePath();
+        if (filePath.equals(dataFilePath))
+            return true;
+        int pos = filePath.lastIndexOf(".");
+        String tmpPath = filePath;
+        if (pos > -1)
+            tmpPath = filePath.substring(0, pos);
+        return tmpPath.equals(dataFilePath) && acceptFile(filePath);
+    }
+
     protected boolean acceptFile(String filePath) {
         return !DestInvokeIdRegistry.isMetadataFile(filePath);
     }
 
-    T calculateStats(String inputPath, P params) throws Exception {
-        List<String> dataFilePaths = findDataFiles(inputPath);
+    T calculateStats(List<File> dataFiles, P params) throws Exception {
         return TimeMeasureUtils.run(
                 () -> {
                     ForkJoinPool pool = new ForkJoinPool(
@@ -73,7 +74,7 @@ abstract class AbstractResultHandler<T, D, F
                     );
                     try {
                         return pool.submit(
-                                () -> calculate(dataFilePaths, params)
+                                () -> calculate(dataFiles, params)
                         ).get();
                     } finally {
                         pool.shutdown();
@@ -103,20 +104,23 @@ abstract class AbstractResultHandler<T, D, F
         return rsMap;
     }
 
-    private String formatInvoke(String method) {
+    String formatInvoke(String method) {
         TextConfig config = new TextConfig();
         config.withReturnType = false;
         config.withPkg = false;
         return InvokeDescriptorUtils.descToText(method, config);
     }
 
-    String formatClassName(String className) {
-        return InvokeDescriptorUtils.getSimpleName(className);
+    String formatClassName(InvokeMetadata metadata) {
+        String result = InvokeDescriptorUtils.getSimpleName(metadata.clazz);
+        if (metadata.idx > 1)
+            result += "(#" + metadata.idx +")";
+        return result;
     }
 
-    void calculateBytesFile(String dataFilePath, CalculateBytesFunc calculateFunc) {
+    void calculateBytesFile(File dataFile, CalculateBytesFunc calculateFunc) {
         calculateFile(
-                dataFilePath,
+                dataFile,
                 inputFile -> {
                     long length = inputFile.length();
                     try (DataInputStream in = new DataInputStream(new BufferedInputStream(new FileInputStream(inputFile)))) {
@@ -130,9 +134,9 @@ abstract class AbstractResultHandler<T, D, F
         );
     }
 
-    void calculateTextFile(String dataFilePath, CalculateTextFunc calculateTextFunc) {
+    void calculateTextFile(File dataFile, CalculateTextFunc calculateTextFunc) {
         calculateFile(
-                dataFilePath,
+                dataFile,
                 inputFile -> {
                     try (BufferedReader reader = new BufferedReader(new FileReader(inputFile))) {
                         calculateTextFunc.exec(reader);
@@ -152,23 +156,23 @@ abstract class AbstractResultHandler<T, D, F
     String convertInvoke(Integer parentInvokeId, Map<Integer, InvokeMetadata> idToInvoke, InvokeMetadata metadata) {
         String invoke = formatInvoke(metadata.invoke);
         if (parentInvokeId == null)
-            invoke = formatClassName(metadata.clazz) + " # " + invoke;
+            invoke = formatClassName(metadata) + " # " + invoke;
         else {
             InvokeMetadata parentMetadata = getMetadata(idToInvoke, parentInvokeId);
-            if (!parentMetadata.clazz.equals(metadata.clazz))
-                invoke = formatClassName(metadata.clazz) + " # " + invoke;
+            if (!parentMetadata.clazz.equals(metadata.clazz) ||
+                    parentMetadata.idx != metadata.idx)
+                invoke = formatClassName(metadata) + " # " + invoke;
         }
         return invoke;
     }
 
-    private void calculateFile(String dataFilePath, ProcessFileFunc processFileFunc) {
+    private void calculateFile(File dataFile, ProcessFileFunc processFileFunc) {
+        String path = dataFile.getAbsolutePath();
         TimeMeasureUtils.run(
-                () -> processFileFunc.process(
-                        new File(dataFilePath)
-                ),
-                e -> System.err.println("Read data file failed: " + dataFilePath + "\n" + Utils.getErrorStackStrace(e)),
+                () -> processFileFunc.process(dataFile),
+                e -> System.err.println("Read data file failed: " + path + "\n" + Utils.getErrorStackStrace(e)),
                 "Calculate {} used time: {}ms",
-                dataFilePath
+                path
         );
     }
 

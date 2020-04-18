@@ -1,5 +1,4 @@
--l             Enable chain transformation.
-    -ll <chainLevel>
+-ll <chainLevel>
                    The max level of chain nested hierarchy. It must be > 0.
     -lc <chainClassFilter>
                    Filter rules for classes in chain.

@@ -16,22 +16,8 @@ import static agent.common.parser.FilterOptionUtils.createTargetConfig;
 
 abstract class AbstractFilterCmdParser<F extends ChainOptions, P extends BasicParams<F>>
         extends AbstractChainOptionsCmdParser<F, P> implements CommandParser {
-    private static final String OPT_CHAIN_ENABLED = "-l";
 
     abstract Command createCommand(Map<String, Object> data);
-
-    @Override
-    protected int parseOption(F opts, String[] args, int currIdx) {
-        int i = currIdx;
-        switch (args[i]) {
-            case OPT_CHAIN_ENABLED:
-                opts.useChain = true;
-                break;
-            default:
-                return super.parseOption(opts, args, currIdx);
-        }
-        return i;
-    }
 
     @Override
     public Command parse(String[] args) throws Exception {
