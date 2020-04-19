@@ -74,7 +74,7 @@ public class TraceInvokeTransformerTest2 extends AbstractTest {
                             CostTimeResultParams costTimeParams = new CostTimeResultParams();
                             costTimeParams.inputPath = outputPath2;
                             costTimeParams.opts = new CostTimeResultOptions();
-                            new ByCallChainCostTimeResultHandler().exec(costTimeParams);
+                            new CallChainCostTimeResultHandler().exec(costTimeParams);
                             System.out.println("=================");
 
                             System.out.println(

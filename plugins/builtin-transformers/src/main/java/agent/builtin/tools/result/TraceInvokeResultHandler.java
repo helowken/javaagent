@@ -1,6 +1,7 @@
 package agent.builtin.tools.result;
 
 import agent.base.utils.*;
+import agent.builtin.tools.result.filter.TraceResultFilter;
 import agent.builtin.transformer.utils.TraceItem;
 import agent.common.tree.INode;
 import agent.common.tree.Node;
@@ -15,7 +16,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 
 public class TraceInvokeResultHandler
-        extends AbstractResultHandler<Collection<Tree<TraceItem>>, TraceItem, TraceResultFilter, TraceResultOptions, TraceResultParams> {
+        extends AbstractResultHandler<Collection<Tree<TraceItem>>, TraceResultOptions, TraceResultParams> {
     private static final String indent = IndentUtils.getIndent(1);
     private static final String KEY_CLASS = "class";
     private static final String KEY_INDEX = "index";
@@ -49,7 +50,8 @@ public class TraceInvokeResultHandler
 
     private Tree<String> convertTree(Tree<TraceItem> tree, Map<Integer, InvokeMetadata> idToMetadata, TraceResultParams params) {
         Tree<String> rsTree = new Tree<>();
-        TraceResultFilter filter = newFilter(params.opts);
+        TraceResultFilter filter = new TraceResultFilter();
+        populateFilter(filter, params.opts);
         tree.getChildren().forEach(
                 child -> Optional.ofNullable(
                         convertNode(child, idToMetadata, filter, params.opts)
@@ -64,7 +66,7 @@ public class TraceInvokeResultHandler
                 idToMetadata,
                 item.getInvokeId()
         );
-        if (!filter.accept(new Pair<>(metadata, item)))
+        if (!filter.accept(new Pair<>(metadata, node)))
             return null;
 
         Node<String> rsNode = newNode(node, idToMetadata, metadata, opts);
@@ -193,11 +195,6 @@ public class TraceInvokeResultHandler
         return rsList;
     }
 
-    @Override
-    TraceResultFilter createFilter() {
-        return new TraceResultFilter();
-    }
-
     private List<Tree<TraceItem>> doCalculate(File dataFile, TraceResultParams params) {
         List<Tree<TraceItem>> trees = new ArrayList<>();
         calculateTextFile(
@@ -252,12 +249,5 @@ public class TraceInvokeResultHandler
                 }
         );
         return tree;
-    }
-}
-
-class TraceResultFilter extends ResultFilter<TraceItem> {
-    @Override
-    Map<String, Object> convertTo(TraceItem value) {
-        return new HashMap<>();
     }
 }

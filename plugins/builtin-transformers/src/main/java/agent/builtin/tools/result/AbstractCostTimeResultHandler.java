@@ -6,12 +6,11 @@ import agent.common.tree.Node;
 import agent.server.transform.impl.DestInvokeIdRegistry;
 
 import java.io.File;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 abstract class AbstractCostTimeResultHandler<T>
-        extends AbstractResultHandler<T, CostTimeStatItem, CostTimeResultFilter, CostTimeResultOptions, CostTimeResultParams> {
+        extends AbstractResultHandler<T, CostTimeResultOptions, CostTimeResultParams> {
     private static final Logger logger = Logger.getLogger(AbstractCostTimeResultHandler.class);
     private static final String CACHE_FILE_SUFFIX = "_cache";
 
@@ -23,11 +22,6 @@ abstract class AbstractCostTimeResultHandler<T>
     protected boolean acceptFile(String filePath) {
         return super.acceptFile(filePath) &&
                 !filePath.endsWith(CACHE_FILE_SUFFIX);
-    }
-
-    @Override
-    CostTimeResultFilter createFilter() {
-        return new CostTimeResultFilter();
     }
 
     @Override
@@ -130,18 +124,3 @@ abstract class AbstractCostTimeResultHandler<T>
 
 }
 
-
-class CostTimeResultFilter extends ResultFilter<CostTimeStatItem> {
-    private static final String PARAM_COUNT = "count";
-    private static final String PARAM_MAX_TIME = "maxTime";
-    private static final String PARAM_AVG_TIME = "avgTime";
-
-    @Override
-    Map<String, Object> convertTo(CostTimeStatItem item) {
-        Map<String, Object> pvs = new HashMap<>();
-        pvs.put(PARAM_COUNT, item.getCount());
-        pvs.put(PARAM_AVG_TIME, item.getAvgTime());
-        pvs.put(PARAM_MAX_TIME, item.getMaxTime());
-        return pvs;
-    }
-}

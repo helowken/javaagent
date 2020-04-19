@@ -17,7 +17,7 @@ public class ResultCalculator {
     public static class CostTimeByChain {
         public static void main(String[] args) {
             run(
-                    () -> new ByCallChainCostTimeResultHandler().exec(
+                    () -> new CallChainCostTimeResultHandler().exec(
                             new CostTimeResultCmdParser().run(args)
                     )
             );
@@ -27,7 +27,7 @@ public class ResultCalculator {
     public static class CostTimeByInvoke {
         public static void main(String[] args) {
             run(
-                    () -> new ByInvokeCostTimeResultHandler().exec(
+                    () -> new InvokeCostTimeResultHandler().exec(
                             new CostTimeResultCmdParser().run(args)
                     )
             );

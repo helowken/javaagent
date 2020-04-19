@@ -2,9 +2,8 @@ package agent.builtin.tools.result;
 
 import agent.base.utils.*;
 import agent.base.utils.InvokeDescriptorUtils.TextConfig;
-import agent.common.config.ClassFilterConfig;
-import agent.common.config.ConstructorFilterConfig;
-import agent.common.config.MethodFilterConfig;
+import agent.builtin.tools.result.filter.AbstractResultFilter;
+import agent.builtin.tools.result.filter.ResultFilterUtils;
 import agent.common.config.TargetConfig;
 import agent.common.parser.BasicOptions;
 import agent.common.parser.BasicParams;
@@ -12,8 +11,6 @@ import agent.common.parser.CmdRunner;
 import agent.common.utils.JSONUtils;
 import agent.server.transform.impl.DestInvokeIdRegistry;
 import agent.server.transform.impl.DestInvokeIdRegistry.InvokeMetadata;
-import agent.server.transform.search.filter.FilterUtils;
-import agent.server.transform.search.filter.ScriptFilter;
 
 import java.io.*;
 import java.util.*;
@@ -23,13 +20,10 @@ import java.util.stream.Stream;
 
 import static agent.common.parser.FilterOptionUtils.createTargetConfig;
 
-abstract class AbstractResultHandler<T, D, F
-        extends ResultFilter<D>, O extends BasicOptions, P extends BasicParams<O>>
+abstract class AbstractResultHandler<T, O extends BasicOptions, P extends BasicParams<O>>
         implements CmdRunner<O, P> {
 
     abstract T calculate(Collection<File> dataFiles, P params);
-
-    abstract F createFilter();
 
     List<File> findDataFiles(String dataFilePath) throws FileNotFoundException {
         File dir = FileUtils.getValidFile(dataFilePath).getParentFile();
@@ -64,7 +58,7 @@ abstract class AbstractResultHandler<T, D, F
         return !DestInvokeIdRegistry.isMetadataFile(filePath);
     }
 
-    T calculateStats(List<File> dataFiles, P params) throws Exception {
+    T calculateStats(List<File> dataFiles, P params) {
         return TimeMeasureUtils.run(
                 () -> {
                     ForkJoinPool pool = new ForkJoinPool(
@@ -114,7 +108,7 @@ abstract class AbstractResultHandler<T, D, F
     String formatClassName(InvokeMetadata metadata) {
         String result = InvokeDescriptorUtils.getSimpleName(metadata.clazz);
         if (metadata.idx > 1)
-            result += "(#" + metadata.idx +")";
+            result += "#" + metadata.idx + "";
         return result;
     }
 
@@ -176,38 +170,14 @@ abstract class AbstractResultHandler<T, D, F
         );
     }
 
-    F newFilter(ResultOptions opts) {
+    <M> void populateFilter(AbstractResultFilter<M> filter, ResultOptions opts) {
         TargetConfig targetConfig = createTargetConfig(opts);
-        ClassFilterConfig classFilterConfig = targetConfig.getClassFilter();
-        MethodFilterConfig methodFilterConfig = targetConfig.getMethodFilter();
-        ConstructorFilterConfig constructorFilterConfig = targetConfig.getConstructorFilter();
-        F filter = createFilter();
-        if (classFilterConfig != null)
-            filter.setClassFilter(
-                    FilterUtils.newClassStringFilter(
-                            classFilterConfig.getIncludes(),
-                            classFilterConfig.getExcludes()
-                    )
-            );
-        if (methodFilterConfig != null)
-            filter.setMethodFilter(
-                    FilterUtils.newInvokeStringFilter(
-                            methodFilterConfig.getIncludes(),
-                            methodFilterConfig.getExcludes()
-                    )
-            );
-        if (constructorFilterConfig != null)
-            filter.setConstructorFilter(
-                    FilterUtils.newInvokeStringFilter(
-                            constructorFilterConfig.getIncludes(),
-                            constructorFilterConfig.getExcludes()
-                    )
-            );
-        if (opts.filterExpr != null)
-            filter.setScriptFilter(
-                    new ScriptFilter(opts.filterExpr)
-            );
-        return filter;
+        ResultFilterUtils.populateFilter(filter,
+                targetConfig.getClassFilter(),
+                targetConfig.getMethodFilter(),
+                targetConfig.getConstructorFilter(),
+                opts.filterExpr
+        );
     }
 
     private interface ProcessFileFunc {

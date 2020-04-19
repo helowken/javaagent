@@ -1,6 +1,13 @@
 package agent.builtin.tools.result;
 
 import agent.base.utils.Pair;
+import agent.builtin.tools.result.data.CallChainData;
+import agent.builtin.tools.result.data.CallChainDataConverter;
+import agent.builtin.tools.result.filter.CallChainCostTimeResultFilter;
+import agent.builtin.tools.result.filter.InvokeCostTimeResultFilter;
+import agent.builtin.tools.result.filter.ResultFilterUtils;
+import agent.common.config.InvokeChainConfig;
+import agent.common.config.TargetConfig;
 import agent.common.tree.Node;
 import agent.common.tree.NodeMapper;
 import agent.common.tree.Tree;
@@ -15,13 +22,14 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static agent.builtin.tools.result.ByCallChainCostTimeResultHandler.NodeData;
+import static agent.common.parser.FilterOptionUtils.createTargetConfig;
 
-public class ByCallChainCostTimeResultHandler extends AbstractCostTimeResultHandler<Tree<NodeData>> {
+
+public class CallChainCostTimeResultHandler extends AbstractCostTimeResultHandler<Tree<CallChainData>> {
     private static final String CACHE_TYPE = "chain";
 
     @Override
-    void doPrint(Map<Integer, InvokeMetadata> metadata, Tree<NodeData> tree, CostTimeResultParams params) {
+    void doPrint(Map<Integer, InvokeMetadata> metadata, Tree<CallChainData> tree, CostTimeResultParams params) {
         TreeUtils.printTree(
                 convertTree(tree, metadata, params),
                 new TreeUtils.PrintConfig(false),
@@ -29,32 +37,55 @@ public class ByCallChainCostTimeResultHandler extends AbstractCostTimeResultHand
         );
     }
 
-
     @Override
     String getCacheType() {
         return CACHE_TYPE;
     }
 
     @Override
-    String serializeResult(Tree<NodeData> tree) {
+    String serializeResult(Tree<CallChainData> tree) {
         return JSONUtils.writeAsString(
-                NodeMapper.serialize(tree, NodeDataConverter::serialize)
+                NodeMapper.serialize(tree, CallChainDataConverter::serialize)
         );
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    Tree<NodeData> deserializeResult(String content) {
+    Tree<CallChainData> deserializeResult(String content) {
         return (Tree) NodeMapper.deserialize(
                 null,
                 JSONUtils.read(content),
-                NodeDataConverter::deserialize
+                CallChainDataConverter::deserialize
         );
     }
 
-    private Tree<String> convertTree(Tree<NodeData> tree, final Map<Integer, InvokeMetadata> idToMetadata, CostTimeResultParams params) {
+    private CallChainCostTimeResultFilter createFilter(CostTimeResultOptions opts) {
+        TargetConfig targetConfig = createTargetConfig(opts);
+        InvokeCostTimeResultFilter rootFilter = new InvokeCostTimeResultFilter();
+        ResultFilterUtils.populateFilter(rootFilter,
+                targetConfig.getClassFilter(),
+                targetConfig.getMethodFilter(),
+                targetConfig.getConstructorFilter(),
+                opts.filterExpr
+        );
+
+        InvokeChainConfig invokeChainConfig = targetConfig.getInvokeChainConfig();
+        InvokeCostTimeResultFilter chainFilter = new InvokeCostTimeResultFilter();
+        ResultFilterUtils.populateFilter(chainFilter,
+                invokeChainConfig.getClassFilter(),
+                invokeChainConfig.getMethodFilter(),
+                invokeChainConfig.getConstructorFilter(),
+                opts.filterExpr
+        );
+
+
+        CallChainCostTimeResultFilter filter = new CallChainCostTimeResultFilter(rootFilter, chainFilter);
+        return filter;
+    }
+
+    private Tree<String> convertTree(Tree<CallChainData> tree, final Map<Integer, InvokeMetadata> idToMetadata, CostTimeResultParams params) {
         Tree<String> rsTree = new Tree<>();
-        CostTimeResultFilter filter = newFilter(params.opts);
+        CallChainCostTimeResultFilter filter = createFilter(params.opts);
         tree.getChildren().forEach(
                 child -> Optional.ofNullable(
                         convertNode(null, child, idToMetadata, filter, params.opts)
@@ -63,11 +94,11 @@ public class ByCallChainCostTimeResultHandler extends AbstractCostTimeResultHand
         return rsTree;
     }
 
-    private Node<String> convertNode(Integer parentInvokeId, Node<NodeData> node, final Map<Integer, InvokeMetadata> idToMetadata,
-                                     CostTimeResultFilter filter, CostTimeResultOptions opts) {
-        final NodeData data = node.getData();
+    private Node<String> convertNode(Integer parentInvokeId, Node<CallChainData> node, final Map<Integer, InvokeMetadata> idToMetadata,
+                                     CallChainCostTimeResultFilter filter, CostTimeResultOptions opts) {
+        final CallChainData data = node.getData();
         InvokeMetadata metadata = getMetadata(idToMetadata, data.invokeId);
-        if (!filter.accept(new Pair<>(metadata, data.item)))
+        if (!filter.accept(new Pair<>(metadata, node)))
             return null;
 
         Node<String> rsNode = newInvokeNode(
@@ -85,13 +116,13 @@ public class ByCallChainCostTimeResultHandler extends AbstractCostTimeResultHand
     }
 
     @Override
-    Tree<NodeData> calculate(Collection<File> dataFiles, CostTimeResultParams params) {
-        AtomicReference<Tree<NodeData>> ref = new AtomicReference<>();
+    Tree<CallChainData> calculate(Collection<File> dataFiles, CostTimeResultParams params) {
+        AtomicReference<Tree<CallChainData>> ref = new AtomicReference<>();
         dataFiles.parallelStream()
                 .map(this::doCalculate)
                 .forEach(
                         tree -> {
-                            Tree<NodeData> sumTree = ref.get();
+                            Tree<CallChainData> sumTree = ref.get();
                             if (sumTree == null)
                                 ref.set(tree);
                             else
@@ -105,14 +136,14 @@ public class ByCallChainCostTimeResultHandler extends AbstractCostTimeResultHand
         );
     }
 
-    private void mergeTrees(Tree<NodeData> sumTree, Tree<NodeData> tree) {
+    private void mergeTrees(Tree<CallChainData> sumTree, Tree<CallChainData> tree) {
         tree.getChildren().forEach(
                 child -> mergeNodes(sumTree, child)
         );
     }
 
-    private void mergeNodes(Node<NodeData> pn, Node<NodeData> newChild) {
-        Node<NodeData> oldChild = pn.findFirstChild(
+    private void mergeNodes(Node<CallChainData> pn, Node<CallChainData> newChild) {
+        Node<CallChainData> oldChild = pn.findFirstChild(
                 nodeData -> nodeData.invokeId == newChild.getData().invokeId
         );
         if (oldChild == null)
@@ -121,24 +152,24 @@ public class ByCallChainCostTimeResultHandler extends AbstractCostTimeResultHand
             oldChild.getData().item.merge(
                     newChild.getData().item
             );
-            for (Node<NodeData> cn : newChild.getChildren()) {
+            for (Node<CallChainData> cn : newChild.getChildren()) {
                 mergeNodes(oldChild, cn);
             }
         }
     }
 
-    private Tree<NodeData> doCalculate(File dataFile) {
-        Tree<NodeData> tree = new Tree<>();
-        Map<Integer, Node<NodeData>> idToNode = new HashMap<>();
+    private Tree<CallChainData> doCalculate(File dataFile) {
+        Tree<CallChainData> tree = new Tree<>();
+        Map<Integer, Node<CallChainData>> idToNode = new HashMap<>();
         doCalculateFile(
                 dataFile,
                 (id, parentId, invokeId, costTime, error) -> {
-                    Node<NodeData> node;
+                    Node<CallChainData> node;
                     if (parentId == -1) {
                         node = mayAddChild(tree, id, invokeId, costTime);
                         idToNode.clear();
                     } else {
-                        Node<NodeData> pn = idToNode.get(parentId);
+                        Node<CallChainData> pn = idToNode.get(parentId);
                         if (pn == null)
                             throw new RuntimeException("No parent node found in local!");
                         node = mayAddChild(pn, id, invokeId, costTime);
@@ -149,8 +180,8 @@ public class ByCallChainCostTimeResultHandler extends AbstractCostTimeResultHand
         return tree;
     }
 
-    private Node<NodeData> mayAddChild(Node<NodeData> pn, int id, int invokeId, int costTime) {
-        Node<NodeData> childNode = pn.findFirstChild(
+    private Node<CallChainData> mayAddChild(Node<CallChainData> pn, int id, int invokeId, int costTime) {
+        Node<CallChainData> childNode = pn.findFirstChild(
                 nodeData -> nodeData.invokeId == invokeId
         );
         if (childNode == null)
@@ -160,11 +191,11 @@ public class ByCallChainCostTimeResultHandler extends AbstractCostTimeResultHand
         return childNode;
     }
 
-    private Node<NodeData> addChild(Node<NodeData> pn, int id, int invokeId, int costTime) {
-        Node<NodeData> node = pn.addChildAt(
+    private Node<CallChainData> addChild(Node<CallChainData> pn, int id, int invokeId, int costTime) {
+        Node<CallChainData> node = pn.addChildAt(
                 0,
                 new Node<>(
-                        new NodeData(
+                        new CallChainData(
                                 id,
                                 invokeId,
                                 new CostTimeStatItem()
@@ -175,45 +206,5 @@ public class ByCallChainCostTimeResultHandler extends AbstractCostTimeResultHand
         return node;
     }
 
-    static class NodeData {
-        final int id;
-        final int invokeId;
-        final CostTimeStatItem item;
-
-        private NodeData(int id, int invokeId, CostTimeStatItem item) {
-            this.id = id;
-            this.invokeId = invokeId;
-            this.item = item;
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    private static class NodeDataConverter {
-        private static final String KEY_ID = "id";
-        private static final String KEY_INVOKE_ID = "invokeId";
-        private static final String KEY_ITEM = "item";
-
-        private static Map<String, Object> serialize(NodeData data) {
-            data.item.freeze();
-            Map<String, Object> rsMap = new HashMap<>();
-            rsMap.put(KEY_ID, data.id);
-            rsMap.put(KEY_INVOKE_ID, data.invokeId);
-            rsMap.put(
-                    KEY_ITEM,
-                    CostTimeStatItem.CostTimeItemConverter.serialize(data.item)
-            );
-            return rsMap;
-        }
-
-        private static NodeData deserialize(Map<String, Object> map) {
-            return new NodeData(
-                    Integer.parseInt(map.get(KEY_ID).toString()),
-                    Integer.parseInt(map.get(KEY_INVOKE_ID).toString()),
-                    CostTimeStatItem.CostTimeItemConverter.deserialize(
-                            (Map) map.get(KEY_ITEM)
-                    )
-            );
-        }
-    }
 
 }

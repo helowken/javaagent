@@ -1,4 +1,4 @@
-package agent.builtin.tools.result;
+package agent.builtin.tools.result.filter;
 
 import agent.base.utils.InvokeDescriptorUtils;
 import agent.base.utils.InvokeDescriptorUtils.TextConfig;
@@ -9,7 +9,7 @@ import agent.server.transform.search.filter.ScriptFilter;
 
 import java.util.Map;
 
-abstract class ResultFilter<T> implements AgentFilter<Pair<InvokeMetadata, T>> {
+public abstract class AbstractResultFilter<T> implements ResultFilter<T> {
     private static final TextConfig textConfig = new TextConfig();
 
     static {
@@ -21,28 +21,29 @@ abstract class ResultFilter<T> implements AgentFilter<Pair<InvokeMetadata, T>> {
     private AgentFilter<String> classFilter;
     private AgentFilter<String> methodFilter;
     private AgentFilter<String> constructorFilter;
+
     private ScriptFilter scriptFilter;
 
-    void setClassFilter(AgentFilter<String> classFilter) {
+    public void setClassFilter(AgentFilter<String> classFilter) {
         this.classFilter = classFilter;
     }
 
-    void setMethodFilter(AgentFilter<String> methodFilter) {
+    public void setMethodFilter(AgentFilter<String> methodFilter) {
         this.methodFilter = methodFilter;
     }
 
-    void setConstructorFilter(AgentFilter<String> constructorFilter) {
+    public void setConstructorFilter(AgentFilter<String> constructorFilter) {
         this.constructorFilter = constructorFilter;
     }
 
-    void setScriptFilter(ScriptFilter scriptFilter) {
+    public void setScriptFilter(ScriptFilter scriptFilter) {
         this.scriptFilter = scriptFilter;
     }
 
     @Override
     public boolean accept(Pair<InvokeMetadata, T> pair) {
         InvokeMetadata metadata = pair.left;
-        T item = pair.right;
+        T data = pair.right;
         if (classFilter == null || classFilter.accept(metadata.clazz)) {
             boolean v = isConstructor(metadata.invoke) ?
                     constructorFilter == null || constructorFilter.accept(
@@ -54,7 +55,7 @@ abstract class ResultFilter<T> implements AgentFilter<Pair<InvokeMetadata, T>> {
             if (v)
                 return scriptFilter == null ||
                         scriptFilter.accept(
-                                convertTo(item)
+                                convertToScriptParamValues(data)
                         );
         }
         return false;
@@ -68,5 +69,5 @@ abstract class ResultFilter<T> implements AgentFilter<Pair<InvokeMetadata, T>> {
         return invoke.startsWith("(");
     }
 
-    abstract Map<String, Object> convertTo(T value);
+    abstract Map<String, Object> convertToScriptParamValues(T value);
 }
