@@ -20,7 +20,7 @@ public class FilterOptionUtils {
                 opts.methodStr,
                 opts.constructorStr
         );
-        if (opts.useChain)
+        if (opts.isUseChain())
             targetConfig.setInvokeChainConfig(
                     createInvokeChainConfig(
                             opts.chainLevel,

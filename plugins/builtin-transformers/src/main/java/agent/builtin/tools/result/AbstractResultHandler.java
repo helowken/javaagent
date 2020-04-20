@@ -2,9 +2,6 @@ package agent.builtin.tools.result;
 
 import agent.base.utils.*;
 import agent.base.utils.InvokeDescriptorUtils.TextConfig;
-import agent.builtin.tools.result.filter.AbstractResultFilter;
-import agent.builtin.tools.result.filter.ResultFilterUtils;
-import agent.common.config.TargetConfig;
 import agent.common.parser.BasicOptions;
 import agent.common.parser.BasicParams;
 import agent.common.parser.CmdRunner;
@@ -17,8 +14,6 @@ import java.util.*;
 import java.util.concurrent.ForkJoinPool;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import static agent.common.parser.FilterOptionUtils.createTargetConfig;
 
 abstract class AbstractResultHandler<T, O extends BasicOptions, P extends BasicParams<O>>
         implements CmdRunner<O, P> {
@@ -167,16 +162,6 @@ abstract class AbstractResultHandler<T, O extends BasicOptions, P extends BasicP
                 e -> System.err.println("Read data file failed: " + path + "\n" + Utils.getErrorStackStrace(e)),
                 "Calculate {} used time: {}ms",
                 path
-        );
-    }
-
-    <M> void populateFilter(AbstractResultFilter<M> filter, ResultOptions opts) {
-        TargetConfig targetConfig = createTargetConfig(opts);
-        ResultFilterUtils.populateFilter(filter,
-                targetConfig.getClassFilter(),
-                targetConfig.getMethodFilter(),
-                targetConfig.getConstructorFilter(),
-                opts.filterExpr
         );
     }
 

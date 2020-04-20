@@ -1,8 +1,8 @@
 package agent.builtin.tools.result;
 
-import agent.base.utils.Pair;
 import agent.builtin.tools.result.data.InvokeDataConverter;
 import agent.builtin.tools.result.filter.InvokeCostTimeResultFilter;
+import agent.builtin.tools.result.filter.ResultFilterData;
 import agent.common.tree.Node;
 import agent.common.tree.Tree;
 import agent.common.tree.TreeUtils;
@@ -14,6 +14,8 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
+
+import static agent.builtin.tools.result.filter.ResultFilterUtils.populateFilter;
 
 public class InvokeCostTimeResultHandler extends AbstractCostTimeResultHandler<Map<Integer, CostTimeStatItem>> {
     private static final String CACHE_TYPE = "invoke";
@@ -39,9 +41,10 @@ public class InvokeCostTimeResultHandler extends AbstractCostTimeResultHandler<M
 
     @Override
     void doPrint(Map<Integer, InvokeMetadata> idToMetadata, Map<Integer, CostTimeStatItem> result, CostTimeResultParams params) {
-        Tree<String> tree = new Tree<>();
         InvokeCostTimeResultFilter filter = new InvokeCostTimeResultFilter();
-        populateFilter(filter, params.opts);
+        populateFilter(filter, null, params.opts);
+
+        Tree<String> tree = new Tree<>();
         Map<String, Map<Integer, InvokeMetadata>> classToIdToMetadata = new TreeMap<>();
         idToMetadata.forEach(
                 (id, metadata) -> classToIdToMetadata.computeIfAbsent(
@@ -111,7 +114,7 @@ public class InvokeCostTimeResultHandler extends AbstractCostTimeResultHandler<M
         idToMetadata.forEach(
                 (id, metadata) -> {
                     CostTimeStatItem item = idToCostTimeItem.get(id);
-                    if (item != null && filter.accept(new Pair<>(metadata, item)))
+                    if (item != null && filter.accept(new ResultFilterData<>(metadata, item)))
                         invokeToItem.put(metadata.invoke, item);
                 }
         );

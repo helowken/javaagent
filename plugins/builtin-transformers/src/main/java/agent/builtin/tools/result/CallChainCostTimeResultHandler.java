@@ -1,13 +1,9 @@
 package agent.builtin.tools.result;
 
-import agent.base.utils.Pair;
 import agent.builtin.tools.result.data.CallChainData;
 import agent.builtin.tools.result.data.CallChainDataConverter;
 import agent.builtin.tools.result.filter.CallChainCostTimeResultFilter;
-import agent.builtin.tools.result.filter.InvokeCostTimeResultFilter;
-import agent.builtin.tools.result.filter.ResultFilterUtils;
-import agent.common.config.InvokeChainConfig;
-import agent.common.config.TargetConfig;
+import agent.builtin.tools.result.filter.TreeResultConverter;
 import agent.common.tree.Node;
 import agent.common.tree.NodeMapper;
 import agent.common.tree.Tree;
@@ -22,19 +18,19 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static agent.common.parser.FilterOptionUtils.createTargetConfig;
-
 
 public class CallChainCostTimeResultHandler extends AbstractCostTimeResultHandler<Tree<CallChainData>> {
     private static final String CACHE_TYPE = "chain";
 
     @Override
     void doPrint(Map<Integer, InvokeMetadata> metadata, Tree<CallChainData> tree, CostTimeResultParams params) {
-        TreeUtils.printTree(
-                convertTree(tree, metadata, params),
-                new TreeUtils.PrintConfig(false),
-                (node, config) -> node.getData()
-        );
+        Tree<String> rsTree = convertTree(tree, metadata, params);
+        if (rsTree.hasChild())
+            TreeUtils.printTree(
+                    rsTree,
+                    new TreeUtils.PrintConfig(false),
+                    (node, config) -> node.getData()
+            );
     }
 
     @Override
@@ -59,60 +55,13 @@ public class CallChainCostTimeResultHandler extends AbstractCostTimeResultHandle
         );
     }
 
-    private CallChainCostTimeResultFilter createFilter(CostTimeResultOptions opts) {
-        TargetConfig targetConfig = createTargetConfig(opts);
-        InvokeCostTimeResultFilter rootFilter = new InvokeCostTimeResultFilter();
-        ResultFilterUtils.populateFilter(rootFilter,
-                targetConfig.getClassFilter(),
-                targetConfig.getMethodFilter(),
-                targetConfig.getConstructorFilter(),
-                opts.filterExpr
-        );
-
-        InvokeChainConfig invokeChainConfig = targetConfig.getInvokeChainConfig();
-        InvokeCostTimeResultFilter chainFilter = new InvokeCostTimeResultFilter();
-        ResultFilterUtils.populateFilter(chainFilter,
-                invokeChainConfig.getClassFilter(),
-                invokeChainConfig.getMethodFilter(),
-                invokeChainConfig.getConstructorFilter(),
-                opts.filterExpr
-        );
-
-
-        CallChainCostTimeResultFilter filter = new CallChainCostTimeResultFilter(rootFilter, chainFilter);
-        return filter;
-    }
-
     private Tree<String> convertTree(Tree<CallChainData> tree, final Map<Integer, InvokeMetadata> idToMetadata, CostTimeResultParams params) {
         Tree<String> rsTree = new Tree<>();
-        CallChainCostTimeResultFilter filter = createFilter(params.opts);
-        tree.getChildren().forEach(
-                child -> Optional.ofNullable(
-                        convertNode(null, child, idToMetadata, filter, params.opts)
-                ).ifPresent(rsTree::appendChild)
+        CallChainCostTimeResultConverter converter = new CallChainCostTimeResultConverter();
+        rsTree.appendChildren(
+                converter.convert(tree, idToMetadata, params)
         );
         return rsTree;
-    }
-
-    private Node<String> convertNode(Integer parentInvokeId, Node<CallChainData> node, final Map<Integer, InvokeMetadata> idToMetadata,
-                                     CallChainCostTimeResultFilter filter, CostTimeResultOptions opts) {
-        final CallChainData data = node.getData();
-        InvokeMetadata metadata = getMetadata(idToMetadata, data.invokeId);
-        if (!filter.accept(new Pair<>(metadata, node)))
-            return null;
-
-        Node<String> rsNode = newInvokeNode(
-                convertInvoke(parentInvokeId, idToMetadata, metadata),
-                data.item,
-                opts
-        );
-
-        node.getChildren().forEach(
-                child -> Optional.ofNullable(
-                        convertNode(data.invokeId, child, idToMetadata, filter, opts)
-                ).ifPresent(rsNode::appendChild)
-        );
-        return rsNode;
     }
 
     @Override
@@ -206,5 +155,38 @@ public class CallChainCostTimeResultHandler extends AbstractCostTimeResultHandle
         return node;
     }
 
+    private class CallChainCostTimeResultConverter extends TreeResultConverter<CallChainData, CostTimeResultOptions, CostTimeResultParams, String> {
+
+        @Override
+        protected CallChainCostTimeResultFilter createFilter() {
+            return new CallChainCostTimeResultFilter();
+        }
+
+        @Override
+        protected InvokeMetadata findMetadata(Map<Integer, InvokeMetadata> idToMetadata, CallChainData data) {
+            return getMetadata(
+                    idToMetadata,
+                    data.invokeId
+            );
+        }
+
+        @Override
+        protected Node<String> createNode(Node<CallChainData> node, Map<Integer, InvokeMetadata> idToMetadata,
+                                          InvokeMetadata metadata, CostTimeResultOptions opts) {
+            Integer parentInvokeId = getParentInvokeId(node);
+            return newInvokeNode(
+                    convertInvoke(parentInvokeId, idToMetadata, metadata),
+                    node.getData().item,
+                    opts
+            );
+        }
+
+        private Integer getParentInvokeId(Node<CallChainData> node) {
+            Node<CallChainData> pn = node.getParent();
+            return pn == null || pn.getData() == null ?
+                    null :
+                    pn.getData().invokeId;
+        }
+    }
 
 }

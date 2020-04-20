@@ -6,6 +6,7 @@ import agent.common.parser.AbstractOptionsCmdParser;
 
 abstract class ResultCmdParser<F extends ResultOptions, P extends ResultParams<F>> extends AbstractOptionsCmdParser<F, P> {
     private static final String OPT_FILTER_EXPR = "-e";
+    private static final String OPT_CHAIN_FILTER_EXPR = "-le";
 
     @Override
     protected int parseBeforeOptions(P params, String[] args) throws Exception {
@@ -22,6 +23,9 @@ abstract class ResultCmdParser<F extends ResultOptions, P extends ResultParams<F
         switch (args[i]) {
             case OPT_FILTER_EXPR:
                 opts.filterExpr = getArg(args, ++i, "filterExpr");
+                break;
+            case OPT_CHAIN_FILTER_EXPR:
+                opts.chainFilterExpr = getArg(args, ++i, "chainFilterExpr");
                 break;
             default:
                 return super.parseOption(opts, args, currIdx);

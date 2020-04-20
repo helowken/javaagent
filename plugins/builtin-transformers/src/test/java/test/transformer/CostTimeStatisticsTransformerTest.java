@@ -2,9 +2,9 @@ package test.transformer;
 
 import agent.base.utils.ReflectionUtils;
 import agent.builtin.tools.result.CallChainCostTimeResultHandler;
-import agent.builtin.tools.result.InvokeCostTimeResultHandler;
 import agent.builtin.tools.result.CostTimeResultOptions;
 import agent.builtin.tools.result.CostTimeResultParams;
+import agent.builtin.tools.result.InvokeCostTimeResultHandler;
 import agent.builtin.transformer.CostTimeStatisticsTransformer;
 import agent.common.config.InvokeChainConfig;
 import org.junit.Test;
@@ -57,21 +57,22 @@ public class CostTimeStatisticsTransformerTest extends AbstractTest {
 
                     System.out.println("\n======= Use cache =======");
                     opts = new CostTimeResultOptions();
-                    opts.methodStr = "runApi4:service";
+                    opts.methodStr = "service";
                     opts.filterExpr = "avgTime > 20";
+                    opts.chainMethodStr = "runApi4";
                     params.opts = opts;
                     chainHandler.exec(params);
 
                     System.out.println("====================\n");
                     InvokeCostTimeResultHandler invokeHandler = new InvokeCostTimeResultHandler();
                     opts = new CostTimeResultOptions();
-                    opts.methodStr = "runApi*:service";
+                    opts.methodStr = "runApi*,service";
                     params.opts = opts;
                     invokeHandler.exec(params);
 
                     System.out.println("\n======= Use cache =======");
                     opts = new CostTimeResultOptions();
-//                    opts.filterExpr = "avgTime > 20";
+                    opts.chainFilterExpr = "avgTime > 20";
                     params.opts = opts;
                     invokeHandler.exec(params);
                 }

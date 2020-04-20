@@ -13,19 +13,15 @@ public abstract class AbstractChainOptionsCmdParser<F extends ChainOptions, P ex
         int i = currIdx;
         switch (args[i]) {
             case OPT_CHAIN_CLASS_FILTER:
-                opts.useChain = true;
                 opts.chainClassStr = getArg(args, ++i, "chainClassFilter");
                 break;
             case OPT_CHAIN_METHOD_FILTER:
-                opts.useChain = true;
                 opts.chainMethodStr = getArg(args, ++i, "chainMethodFilter");
                 break;
             case OPT_CHAIN_CONSTRUCTOR_FILTER:
-                opts.useChain = true;
                 opts.chainConstructorStr = getArg(args, ++i, "chainConstructorFilter");
                 break;
             case OPT_CHAIN_MAX_LEVEL:
-                opts.useChain = true;
                 opts.chainLevel = Utils.parseInt(
                         getArg(args, ++i, "chainLevel"),
                         "Invoke chain level"

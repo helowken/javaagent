@@ -1,8 +1,6 @@
 package agent.common.tree;
 
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -10,6 +8,7 @@ public class Node<T> implements INode<T, Node<T>> {
     private Node<T> parent;
     private LinkedList<Node<T>> children = new LinkedList<>();
     private T data;
+    private Map<String, Object> userProps = new HashMap<>();
 
     public Node() {
     }
@@ -57,6 +56,11 @@ public class Node<T> implements INode<T, Node<T>> {
         children.add(child);
         child.parent = this;
         return child;
+    }
+
+    @Override
+    public void appendChildren(Node<T> node) {
+        node.getChildren().forEach(this::appendChild);
     }
 
     @Override
@@ -159,5 +163,13 @@ public class Node<T> implements INode<T, Node<T>> {
     @Override
     public void setData(T data) {
         this.data = data;
+    }
+
+    public void setUserProp(String key, Object value) {
+        userProps.put(key, value);
+    }
+
+    public Object getUserProp(String key) {
+        return userProps.get(key);
     }
 }

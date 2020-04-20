@@ -1,7 +1,11 @@
 package agent.builtin.tools.result;
 
-import agent.base.utils.*;
+import agent.base.utils.IndentUtils;
+import agent.base.utils.InvokeDescriptorUtils;
+import agent.base.utils.TypeObject;
+import agent.base.utils.Utils;
 import agent.builtin.tools.result.filter.TraceResultFilter;
+import agent.builtin.tools.result.filter.TreeResultConverter;
 import agent.builtin.transformer.utils.TraceItem;
 import agent.common.tree.INode;
 import agent.common.tree.Node;
@@ -27,17 +31,24 @@ public class TraceInvokeResultHandler
         String inputPath = params.inputPath;
         Map<Integer, InvokeMetadata> idToMetadata = readMetadata(inputPath);
         List<File> dataFiles = findDataFiles(inputPath);
-        calculateStats(dataFiles, params).forEach(
-                tree -> TreeUtils.printTree(
-                        convertTree(
+        TraceResultTreeConverter converter = new TraceResultTreeConverter();
+        calculateStats(dataFiles, params)
+                .stream()
+                .map(
+                        tree -> converter.convert(
                                 transform(tree),
                                 idToMetadata,
                                 params
-                        ),
-                        new TreeUtils.PrintConfig(false),
-                        (node, config) -> node.getData()
+                        )
                 )
-        );
+                .filter(INode::hasChild)
+                .forEach(
+                        tree -> TreeUtils.printTree(
+                                tree,
+                                new TreeUtils.PrintConfig(false),
+                                (node, config) -> node.getData()
+                        )
+                );
     }
 
     private Tree<TraceItem> transform(Tree<TraceItem> tree) {
@@ -46,86 +57,6 @@ public class TraceInvokeResultHandler
                 INode::reverseChildren
         );
         return tree;
-    }
-
-    private Tree<String> convertTree(Tree<TraceItem> tree, Map<Integer, InvokeMetadata> idToMetadata, TraceResultParams params) {
-        Tree<String> rsTree = new Tree<>();
-        TraceResultFilter filter = new TraceResultFilter();
-        populateFilter(filter, params.opts);
-        tree.getChildren().forEach(
-                child -> Optional.ofNullable(
-                        convertNode(child, idToMetadata, filter, params.opts)
-                ).ifPresent(rsTree::appendChild)
-        );
-        return rsTree;
-    }
-
-    private Node<String> convertNode(Node<TraceItem> node, Map<Integer, InvokeMetadata> idToMetadata, TraceResultFilter filter, TraceResultOptions opts) {
-        TraceItem item = node.getData();
-        InvokeMetadata metadata = getMetadata(
-                idToMetadata,
-                item.getInvokeId()
-        );
-        if (!filter.accept(new Pair<>(metadata, node)))
-            return null;
-
-        Node<String> rsNode = newNode(node, idToMetadata, metadata, opts);
-        node.getChildren().forEach(
-                child -> Optional.ofNullable(
-                        convertNode(child, idToMetadata, filter, opts)
-                ).ifPresent(rsNode::appendChild)
-        );
-        return rsNode;
-    }
-
-    private Node<String> newNode(Node<TraceItem> node, Map<Integer, InvokeMetadata> idToMetadata, InvokeMetadata metadata, TraceResultOptions opts) {
-        StringBuilder sb = new StringBuilder();
-        TraceItem item = node.getData();
-        if (opts.showTime)
-            sb.append("[").append(
-                    item.costTimeString()
-            ).append("ms] ");
-
-        sb.append(
-                convertInvoke(
-                        item.getParentId() == -1 ? null : node.getParent().getData().getInvokeId(),
-                        idToMetadata,
-                        metadata
-                )
-        );
-        if (item.hasArgs() && opts.showArgs) {
-            sb.append("\nArgs: \n");
-            item.getArgs().forEach(
-                    arg -> appendArg(
-                            sb.append(indent),
-                            new TreeMap<>(arg)
-                    )
-            );
-        }
-        if (item.hasReturnValue() && opts.showReturnValue) {
-            String className = (String) item.getReturnValue().get(KEY_CLASS);
-            if (className == null || !className.equals(void.class.getName())) {
-                addWrapIfNeeded(sb);
-                append(
-                        sb.append("Return: \n").append(indent),
-                        new TreeMap<>(
-                                item.getReturnValue()
-                        )
-                );
-            }
-        }
-        if (item.hasError() && opts.showError) {
-            addWrapIfNeeded(sb);
-            append(
-                    sb.append("Error: \n").append(indent),
-                    new TreeMap<>(
-                            item.getError()
-                    )
-            );
-        }
-        return new Node<>(
-                sb.toString()
-        );
     }
 
     private void addWrapIfNeeded(StringBuilder sb) {
@@ -249,5 +180,72 @@ public class TraceInvokeResultHandler
                 }
         );
         return tree;
+    }
+
+    private class TraceResultTreeConverter extends TreeResultConverter<TraceItem, TraceResultOptions, TraceResultParams, String> {
+
+        @Override
+        protected TraceResultFilter createFilter() {
+            return new TraceResultFilter();
+        }
+
+        @Override
+        protected InvokeMetadata findMetadata(Map<Integer, InvokeMetadata> idToMetadata, TraceItem data) {
+            return getMetadata(
+                    idToMetadata,
+                    data.getInvokeId()
+            );
+        }
+
+        @Override
+        protected Node<String> createNode(Node<TraceItem> node, Map<Integer, InvokeMetadata> idToMetadata, InvokeMetadata metadata, TraceResultOptions opts) {
+            StringBuilder sb = new StringBuilder();
+            TraceItem item = node.getData();
+            if (opts.showTime)
+                sb.append("[").append(
+                        item.costTimeString()
+                ).append("ms] ");
+
+            sb.append(
+                    convertInvoke(
+                            item.getParentId() == -1 ? null : node.getParent().getData().getInvokeId(),
+                            idToMetadata,
+                            metadata
+                    )
+            );
+            if (item.hasArgs() && opts.showArgs) {
+                sb.append("\nArgs: \n");
+                item.getArgs().forEach(
+                        arg -> appendArg(
+                                sb.append(indent),
+                                new TreeMap<>(arg)
+                        )
+                );
+            }
+            if (item.hasReturnValue() && opts.showReturnValue) {
+                String className = (String) item.getReturnValue().get(KEY_CLASS);
+                if (className == null || !className.equals(void.class.getName())) {
+                    addWrapIfNeeded(sb);
+                    append(
+                            sb.append("Return: \n").append(indent),
+                            new TreeMap<>(
+                                    item.getReturnValue()
+                            )
+                    );
+                }
+            }
+            if (item.hasError() && opts.showError) {
+                addWrapIfNeeded(sb);
+                append(
+                        sb.append("Error: \n").append(indent),
+                        new TreeMap<>(
+                                item.getError()
+                        )
+                );
+            }
+            return new Node<>(
+                    sb.toString()
+            );
+        }
     }
 }

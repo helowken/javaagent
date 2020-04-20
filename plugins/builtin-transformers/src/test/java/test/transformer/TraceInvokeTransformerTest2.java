@@ -65,16 +65,40 @@ public class TraceInvokeTransformerTest2 extends AbstractTest {
                             flushAndWaitMetadata(outputPath);
                             flushAndWaitMetadata(outputPath2);
 
+                            TraceInvokeResultHandler traceHandler = new TraceInvokeResultHandler();
                             TraceResultParams traceParams = new TraceResultParams();
+                            TraceResultOptions traceOpts = new TraceResultOptions();
                             traceParams.inputPath = outputPath;
-                            traceParams.opts = new TraceResultOptions();
-                            new TraceInvokeResultHandler().exec(traceParams);
+                            traceParams.opts = traceOpts;
+                            traceHandler.exec(traceParams);
+                            System.out.println("=================");
+                            traceOpts.methodStr = "recursive*";
+                            traceHandler.exec(traceParams);
+                            System.out.println("=================");
+                            traceOpts.chainLevel = 3;
+                            traceHandler.exec(traceParams);
+                            System.out.println("=================");
+                            traceOpts.chainLevel = -1;
+                            traceOpts.methodStr = "load*";
+                            traceHandler.exec(traceParams);
                             System.out.println("=================");
 
+                            CallChainCostTimeResultHandler costTimeHandler = new CallChainCostTimeResultHandler();
+                            CostTimeResultOptions costTimeOpts = new CostTimeResultOptions();
                             CostTimeResultParams costTimeParams = new CostTimeResultParams();
                             costTimeParams.inputPath = outputPath2;
-                            costTimeParams.opts = new CostTimeResultOptions();
-                            new CallChainCostTimeResultHandler().exec(costTimeParams);
+                            costTimeParams.opts = costTimeOpts;
+                            costTimeHandler.exec(costTimeParams);
+                            System.out.println("=================");
+                            costTimeOpts.methodStr = "test*";
+                            costTimeHandler.exec(costTimeParams);
+                            System.out.println("=================");
+                            costTimeOpts.methodStr = null;
+                            costTimeOpts.chainMethodStr = "recursive*";
+                            costTimeHandler.exec(costTimeParams);
+                            System.out.println("=================");
+                            costTimeOpts.chainLevel = 3;
+                            costTimeHandler.exec(costTimeParams);
                             System.out.println("=================");
 
                             System.out.println(

@@ -22,6 +22,8 @@ public interface INode<T, N extends INode> {
 
     N appendChild(N child);
 
+    void appendChildren(N node);
+
     void removeChild(N child);
 
     void removeChildAt(int idx);
