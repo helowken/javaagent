@@ -46,11 +46,16 @@ public class DefaultValueConverter implements ValueConverter {
     }
 
     private Map<String, Object> convert(Class<?> clazz, Object value) {
-        String rv = value == null ? "null" : valueToString(value);
-        if (clazz.equals(String.class) || Throwable.class.isAssignableFrom(clazz))
-            rv = "\"" + new StringItem(rv).replaceAll("\"", "\\\"").toString() + "\"";
-        else if (clazz.equals(char.class) || clazz.equals(Character.class))
-            rv = "'" + rv.replace("'", "\\'") + "'";
+        String rv;
+        if (value == null)
+            rv = "null";
+        else {
+            rv = valueToString(value);
+            if (clazz.equals(String.class) || Throwable.class.isAssignableFrom(clazz))
+                rv = "\"" + new StringItem(rv).replaceAll("\"", "\\\"").toString() + "\"";
+            else if (clazz.equals(char.class) || clazz.equals(Character.class))
+                rv = "'" + rv.replace("'", "\\'") + "'";
+        }
 
         Map<String, Object> rsMap = new HashMap<>();
         rsMap.put(KEY_CLASS, clazz.getName());
@@ -72,5 +77,4 @@ public class DefaultValueConverter implements ValueConverter {
             );
         return String.valueOf(v);
     }
-
 }

@@ -19,7 +19,8 @@ import java.net.Socket;
 import java.util.*;
 
 abstract class AbstractClientRunner implements Runner {
-    private static final Logger logger = Logger.getLogger(AbstractClientRunner.class);
+    private static final Logger logger = Logger.getLogger(AbstractClientRunner.class, false);
+    private static final String LOCAL_HOST = "127.0.0.1";
     private static final String KEY_HOST = "host";
     private static final String KEY_PORT = "port";
     private static final Set<String> quitCmds = new HashSet<>(Arrays.asList("quit", "exit", "byte"));
@@ -74,7 +75,7 @@ abstract class AbstractClientRunner implements Runner {
     boolean connectTo() {
         String host = Optional.ofNullable(
                 SystemConfig.get(KEY_HOST)
-        ).orElse("127.0.0.1");
+        ).orElse(LOCAL_HOST);
         int port = SystemConfig.getInt(KEY_PORT);
         try (Socket socket = new Socket()) {
             socket.connect(new InetSocketAddress(host, port));

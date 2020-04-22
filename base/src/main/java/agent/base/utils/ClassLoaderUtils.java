@@ -86,7 +86,7 @@ public class ClassLoaderUtils {
     }
 
     public static ClassLoader newURLClassLoader(ClassLoader parentLoader, String... libPaths) throws Exception {
-        logger.debug("Parent class loader: {}", parentLoader);
+//        logger.debug("Parent class loader: {}", parentLoader);
         return new URLClassLoader(
                 findLibUrls(libPaths).toArray(new URL[0]),
                 parentLoader

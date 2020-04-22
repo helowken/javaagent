@@ -13,7 +13,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import static agent.base.utils.Logger.LoggerLevel.*;
 
-public class Logger {
+public abstract class Logger {
     private static final String PREFIX_INFO = "INFO";
     private static final String PREFIX_DEBUG = "DEBUG";
     private static final String PREFIX_WARN = "WARN";
@@ -27,40 +27,11 @@ public class Logger {
     private static final Map<String, String> patternToFormat = new ConcurrentHashMap<>();
     private static final DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
     private static final Date date = new Date();
-    private static final ArrayBlockingQueue<LogItem> itemQueue = new ArrayBlockingQueue<>(10000);
-    private static Thread logThread;
     private static volatile boolean shutdown = false;
 
-    private final Class<?> clazz;
+    final Class<?> clazz;
 
-    static {
-        logThread = new Thread(Logger::asyncWrite);
-        logThread.setDaemon(true);
-        logThread.start();
-        Runtime.getRuntime().addShutdownHook(
-                new Thread(
-                        () -> {
-                            shutdown = true;
-                            logThread.interrupt();
-                        }
-                )
-        );
-    }
-
-    private static void asyncWrite() {
-        while (!shutdown) {
-            try {
-                write(
-                        itemQueue.take()
-                );
-            } catch (InterruptedException e) {
-            } catch (Throwable t) {
-                t.printStackTrace(
-                        getOutputStream()
-                );
-            }
-        }
-    }
+    abstract void println(String prefix, String pattern, Throwable t, Object... pvs);
 
     public static void init(String outputPath, String level) {
         if (outputPath != null) {
@@ -76,15 +47,7 @@ public class Logger {
             Logger.setLevel(LoggerLevel.valueOf(level));
     }
 
-    public static Logger getLogger(Class<?> clazz) {
-        return new Logger(clazz);
-    }
-
-    private Logger(Class<?> clazz) {
-        this.clazz = clazz;
-    }
-
-    public static void setOutputFile(String outputPath) {
+    private static void setOutputFile(String outputPath) {
         lo.sync(lock -> {
             if (outputStream == null) {
                 FileUtils.mkdirsByFile(outputPath);
@@ -93,8 +56,22 @@ public class Logger {
         });
     }
 
-    public static void setLevel(LoggerLevel newLevel) {
+    private static void setLevel(LoggerLevel newLevel) {
         level = newLevel;
+    }
+
+    public static Logger getLogger(Class<?> clazz) {
+        return getLogger(clazz, true);
+    }
+
+    public static Logger getLogger(Class<?> clazz, boolean async) {
+        return async ?
+                new AsyncLogger(clazz) :
+                new SyncLogger(clazz);
+    }
+
+    private Logger(Class<?> clazz) {
+        this.clazz = clazz;
     }
 
     public void info(String pattern, Object... pvs) {
@@ -150,16 +127,6 @@ public class Logger {
         );
     }
 
-    private void println(String prefix, String pattern, Throwable t, Object... pvs) {
-        try {
-            itemQueue.put(
-                    new LogItem(clazz, prefix, pattern, t, pvs)
-            );
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-    }
-
     private static void write(LogItem item) {
         String s = getPrefix(item) + formatMsg(item.pattern, item.pvs);
         if (item.error != null)
@@ -202,4 +169,64 @@ public class Logger {
         }
     }
 
+    private static class AsyncLogger extends Logger {
+        private static final ArrayBlockingQueue<LogItem> itemQueue = new ArrayBlockingQueue<>(10000);
+        private static Thread logThread;
+
+        static {
+            logThread = new Thread(AsyncLogger::asyncWrite);
+            logThread.setDaemon(true);
+            logThread.start();
+            Runtime.getRuntime().addShutdownHook(
+                    new Thread(
+                            () -> {
+                                shutdown = true;
+                                logThread.interrupt();
+                            }
+                    )
+            );
+        }
+
+        private static void asyncWrite() {
+            while (!shutdown) {
+                try {
+                    write(
+                            itemQueue.take()
+                    );
+                } catch (InterruptedException e) {
+                } catch (Throwable t) {
+                    t.printStackTrace(
+                            getOutputStream()
+                    );
+                }
+            }
+        }
+
+        private AsyncLogger(Class<?> clazz) {
+            super(clazz);
+        }
+
+        void println(String prefix, String pattern, Throwable t, Object... pvs) {
+            try {
+                itemQueue.put(
+                        new LogItem(clazz, prefix, pattern, t, pvs)
+                );
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private static class SyncLogger extends Logger {
+        private SyncLogger(Class<?> clazz) {
+            super(clazz);
+        }
+
+        @Override
+        void println(String prefix, String pattern, Throwable t, Object... pvs) {
+            write(
+                    new LogItem(clazz, prefix, pattern, t, pvs)
+            );
+        }
+    }
 }

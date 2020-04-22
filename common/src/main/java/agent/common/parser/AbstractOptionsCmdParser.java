@@ -40,10 +40,6 @@ public abstract class AbstractOptionsCmdParser<F extends BasicOptions, P extends
     protected void parseAfterOptions(P params, String[] args, int startIdx) throws Exception {
     }
 
-    private String usageError(String errMsg) {
-        return errMsg + "\n" + getUsageMsg();
-    }
-
     private String getUsageMsg() {
         if (usageMsg == null) {
             synchronized (this) {
@@ -81,8 +77,9 @@ public abstract class AbstractOptionsCmdParser<F extends BasicOptions, P extends
     }
 
     private RuntimeException newUsageError(String errMsg) {
-        return new RuntimeException(
-                usageError(errMsg)
+        return new OptionsParseException(
+                errMsg,
+                getUsageMsg()
         );
     }
 
@@ -121,8 +118,7 @@ public abstract class AbstractOptionsCmdParser<F extends BasicOptions, P extends
                 opts.constructorStr = getArg(args, ++i, "constructorFilter");
                 break;
             default:
-                logger.error("Unknown option: {}, at index: {}", args[i], i);
-                throw newUsageError("Unknown option: " + args[i]);
+                throw newUsageError("Unknown option: " + args[i] + ", at index: " + i);
         }
         return i;
     }

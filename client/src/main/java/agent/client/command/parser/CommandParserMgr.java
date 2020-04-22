@@ -1,11 +1,14 @@
 package agent.client.command.parser;
 
+import agent.base.utils.Logger;
 import agent.client.command.parser.exception.CommandParseException;
 import agent.client.command.parser.impl.*;
 import agent.common.message.command.Command;
+import agent.common.parser.FilterOptionUtils;
 import agent.common.utils.Registry;
 
 public class CommandParserMgr {
+    private static final Logger logger = Logger.getLogger(CommandParserMgr.class);
     private static final Registry<String, CommandParser> registry = new Registry<>();
 
     static {
@@ -29,8 +32,11 @@ public class CommandParserMgr {
             ).parse(args);
         } catch (CommandParseException e) {
             throw e;
-        } catch (Exception e) {
-            throw new CommandParseException(e.getMessage());
+        } catch (Throwable t) {
+            logger.error("Run failed.", t);
+            throw new CommandParseException(
+                    FilterOptionUtils.getErrMsg(t)
+            );
         }
     }
 }

@@ -103,4 +103,11 @@ public class FilterOptionUtils {
             );
         return invokeChainConfig;
     }
+
+    public static String getErrMsg(Throwable t) {
+        String errMsg = t.getMessage();
+        if (t instanceof OptionsParseException)
+            errMsg += "\n" + ((OptionsParseException) t).getUsageMsg();
+        return errMsg;
+    }
 }
