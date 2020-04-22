@@ -1,1 +1,10 @@
-Usage: cost_time_result
+Usage: cost_time_result [-options] inputPath
+${options.txt}
+    ${chainOptions.txt}
+    -r <ratesRange>
+                   An range of rates to calculate distribution of avgTime.
+                   e.g., "0.7, 0.9, 0.95"
+
+    Expr:           Attributes that can use in expr are "count", "avgTime" and "maxTime". Time unit is "ms".
+                   e.g., "avgTime>=1 && count > 10000".
+    ${resultCommon.txt}

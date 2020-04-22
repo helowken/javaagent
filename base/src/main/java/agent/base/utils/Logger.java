@@ -1,5 +1,6 @@
 package agent.base.utils;
 
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
 import java.text.DateFormat;
@@ -59,6 +60,20 @@ public class Logger {
                 );
             }
         }
+    }
+
+    public static void init(String outputPath, String level) {
+        if (outputPath != null) {
+            String path = outputPath.startsWith("/") ?
+                    outputPath :
+                    new File(
+                            SystemConfig.getBaseDir(),
+                            outputPath
+                    ).getAbsolutePath();
+            Logger.setOutputFile(path);
+        }
+        if (level != null)
+            Logger.setLevel(LoggerLevel.valueOf(level));
     }
 
     public static Logger getLogger(Class<?> clazz) {

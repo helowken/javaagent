@@ -54,7 +54,7 @@ public class InvokeChainSearcher {
     private final ClassCache classCache;
     private final Function<Class<?>, ClassNode> classNodeFunc;
     private final AopMethodFinder aopMethodFinder;
-    private final ConcurrentSet<String> invokeKeySet = new ConcurrentSet<>();
+    private final Map<Class<?>, ConcurrentSet<String>> classToInvokeKeySet = new ConcurrentHashMap<>();
     private final TaskRunner taskRunner = new TaskRunner(executor);
     private final Map<String, Class<?>> nameToArrayClass = new ConcurrentHashMap<>();
 
@@ -139,8 +139,11 @@ public class InvokeChainSearcher {
     }
 
     private void addJob(InvokeInfo info, int searchFlags, InvokeChainFilter filter) {
-        invokeKeySet.computeIfAbsent(
-                info.getFullKey(),
+        classToInvokeKeySet.computeIfAbsent(
+                info.getInvokeClass(),
+                clazz -> new ConcurrentSet<>()
+        ).computeIfAbsent(
+                info.getInvokeKey(),
                 () -> taskRunner.run(
                         () -> collectInnerInvokes(info, searchFlags, filter)
                 )
@@ -531,10 +534,6 @@ public class InvokeChainSearcher {
 
         private String getInvokeKey() {
             return invokeKey;
-        }
-
-        private String getFullKey() {
-            return clazz.getName() + "#" + getInvokeKey();
         }
 
         private boolean isAbstractOrNativeOrNotFound() {

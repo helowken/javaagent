@@ -236,7 +236,7 @@ public class CostTimeStatItem {
 
     public String getTimeDistributionString(Set<Float> rates) {
         StringBuilder sb = new StringBuilder();
-        sb.append("Time Distribution: [");
+        sb.append("[");
         Map<Float, Long> rateToCostTime = calculateTimeDistribution(rates);
         int idx = 0;
         for (Map.Entry<Float, Long> entry : rateToCostTime.entrySet()) {

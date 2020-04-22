@@ -5,9 +5,6 @@ import agent.base.plugin.InfoPluginFilter;
 import agent.base.plugin.PluginFactory;
 import agent.base.runner.Runner;
 import agent.base.utils.*;
-import agent.base.utils.Logger.LoggerLevel;
-
-import java.io.File;
 
 public abstract class AbstractLauncher {
     private static final Logger logger = Logger.getLogger(AbstractLauncher.class);
@@ -21,7 +18,7 @@ public abstract class AbstractLauncher {
 
     protected void init(String configFilePath) throws Exception {
         SystemConfig.load(configFilePath);
-        initLog(
+        Logger.init(
                 SystemConfig.get(KEY_LOG_PATH),
                 SystemConfig.get(KEY_LOG_LEVEL)
         );
@@ -31,20 +28,6 @@ public abstract class AbstractLauncher {
                         SystemConfig.getBaseDir()
                 )
         );
-    }
-
-    private void initLog(String outputPath, String level) {
-        if (outputPath != null) {
-            String path = outputPath.startsWith("/") ?
-                    outputPath :
-                    new File(
-                            SystemConfig.getBaseDir(),
-                            outputPath
-                    ).getAbsolutePath();
-            Logger.setOutputFile(path);
-        }
-        if (level != null)
-            Logger.setLevel(LoggerLevel.valueOf(level));
     }
 
     protected void startRunner(String runnerType, Object... args) {

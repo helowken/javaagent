@@ -1,5 +1,5 @@
 Usage: ${cmd} [-options] outputPath
-    ${options.txt}
+${options.txt}
     ${chainOptions.txt}
     -t  <transformationId>
                    Specified an id of transformer which is used to do the transformation.

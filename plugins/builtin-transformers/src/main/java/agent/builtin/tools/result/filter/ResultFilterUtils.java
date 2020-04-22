@@ -8,8 +8,8 @@ import agent.server.transform.search.filter.ScriptFilter;
 import static agent.common.parser.FilterOptionUtils.createTargetConfig;
 
 public class ResultFilterUtils {
-    public static <T> void populateFilter(AbstractResultFilter<T> filter, ClassFilterConfig classFilterConfig, MethodFilterConfig methodFilterConfig,
-                                          ConstructorFilterConfig constructorFilterConfig, String filterExpr) {
+    private static <T> void populateFilter(AbstractResultFilter<T> filter, ClassFilterConfig classFilterConfig, MethodFilterConfig methodFilterConfig,
+                                           ConstructorFilterConfig constructorFilterConfig, String filterExpr) {
         if (classFilterConfig != null)
             filter.setClassFilter(
                     FilterUtils.newClassStringFilter(
@@ -37,13 +37,6 @@ public class ResultFilterUtils {
             );
     }
 
-    public static <T> void populateChainFilter(AbstractResultFilter<T> filter, ClassFilterConfig classFilterConfig, MethodFilterConfig methodFilterConfig,
-                                               ConstructorFilterConfig constructorFilterConfig, String filterExpr, int level) {
-        populateFilter(filter, classFilterConfig, methodFilterConfig, constructorFilterConfig, filterExpr);
-        if (level > -1)
-            filter.setLevel(level);
-    }
-
     public static <M, O extends ResultOptions> void populateFilter(AbstractResultFilter<M> filter, AbstractResultFilter<M> chainFilter, O opts) {
         TargetConfig targetConfig = createTargetConfig(opts);
         if (filter != null) {
@@ -55,14 +48,16 @@ public class ResultFilterUtils {
             );
         }
         InvokeChainConfig invokeChainConfig = targetConfig.getInvokeChainConfig();
-        if (chainFilter != null && invokeChainConfig != null) {
-            ResultFilterUtils.populateChainFilter(chainFilter,
-                    invokeChainConfig.getClassFilter(),
-                    invokeChainConfig.getMethodFilter(),
-                    invokeChainConfig.getConstructorFilter(),
-                    opts.chainFilterExpr,
-                    opts.chainLevel
+        if (chainFilter != null) {
+            populateFilter(
+                    chainFilter,
+                    invokeChainConfig == null ? null : invokeChainConfig.getClassFilter(),
+                    invokeChainConfig == null ? null : invokeChainConfig.getMethodFilter(),
+                    invokeChainConfig == null ? null : invokeChainConfig.getConstructorFilter(),
+                    opts.chainFilterExpr
             );
+            if (opts.chainLevel > -1)
+                chainFilter.setLevel(opts.chainLevel);
         }
     }
 }

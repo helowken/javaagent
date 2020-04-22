@@ -105,8 +105,9 @@ abstract class AbstractCostTimeResultHandler<T>
 
     Node<String> newInvokeNode(String invoke, CostTimeStatItem item, CostTimeResultOptions opts) {
         return new Node<>(
-//                        item.getTimeDistributionString(rates) + "\n\n"
-                "[" + item.getAvgTimeString() + ", " + item.getCountString() + "] " + invoke
+                "[" + item.getAvgTimeString() + ", " + item.getCountString() + "] " +
+                        (opts.rates != null ? " " + item.getTimeDistributionString(opts.rates) + " " : "") +
+                        invoke
         );
     }
 

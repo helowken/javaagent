@@ -67,34 +67,40 @@ public class TransformMgr {
                     moduleConfig.validateForSearch();
                     ClassCache classCache = new ClassCache();
                     Set<DestInvoke> invokeSet = new HashSet<>();
+                    Set<DestInvoke> invokesPerTarget = new HashSet<>();
                     moduleConfig.getTargets().forEach(
-                            targetConfig -> ClassSearcher.getInstance().search(
-                                    classCache,
-                                    targetConfig.getClassFilter()
-                            ).forEach(
-                                    clazz -> {
-                                        Collection<DestInvoke> invokes = InvokeSearcher.getInstance()
-                                                .search(
-                                                        clazz,
-                                                        targetConfig.getMethodFilter(),
-                                                        targetConfig.getConstructorFilter()
-                                                );
-                                        invokeSet.addAll(invokes);
+                            targetConfig -> {
+                                invokesPerTarget.clear();
+                                ClassSearcher.getInstance().search(
+                                        classCache,
+                                        targetConfig.getClassFilter()
+                                ).forEach(
+                                        clazz -> {
+                                            Collection<DestInvoke> invokes = InvokeSearcher.getInstance()
+                                                    .search(
+                                                            clazz,
+                                                            targetConfig.getMethodFilter(),
+                                                            targetConfig.getConstructorFilter()
+                                                    );
+                                            invokesPerTarget.addAll(invokes);
+                                            invokeSet.addAll(invokes);
+                                        }
+                                );
 
-                                        Optional.ofNullable(
-                                                targetConfig.getInvokeChainConfig()
-                                        ).ifPresent(
-                                                invokeChainConfig -> invokeSet.addAll(
-                                                        InvokeChainSearcher.search(
-                                                                classCache,
-                                                                ClassDataRepository.getInstance()::getClassData,
-                                                                invokes,
-                                                                invokeChainConfig
-                                                        )
-                                                )
-                                        );
-                                    }
-                            )
+                                if (!invokesPerTarget.isEmpty())
+                                    Optional.ofNullable(
+                                            targetConfig.getInvokeChainConfig()
+                                    ).ifPresent(
+                                            invokeChainConfig -> invokeSet.addAll(
+                                                    InvokeChainSearcher.search(
+                                                            classCache,
+                                                            ClassDataRepository.getInstance()::getClassData,
+                                                            invokesPerTarget,
+                                                            invokeChainConfig
+                                                    )
+                                            )
+                                    );
+                            }
                     );
                     return invokeSet;
                 },

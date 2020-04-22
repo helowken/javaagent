@@ -20,22 +20,18 @@ abstract class AbstractResultHandler<T, O extends BasicOptions, P extends BasicP
 
     abstract T calculate(Collection<File> dataFiles, P params);
 
-    List<File> findDataFiles(String dataFilePath) throws FileNotFoundException {
-        File dir = FileUtils.getValidFile(dataFilePath).getParentFile();
-        List<File> dataFiles = null;
-        if (dir != null) {
+    List<File> findDataFiles(String dataFilePath) {
+        File dir = new File(dataFilePath).getParentFile();
+        if (dir != null && dir.exists() && dir.isDirectory()) {
             File[] files = dir.listFiles();
-            if (files != null) {
-                dataFiles = Stream.of(files)
+            if (files != null)
+                return Stream.of(files)
                         .filter(
                                 file -> filterDataFile(file, dataFilePath)
                         )
                         .collect(Collectors.toList());
-            }
         }
-        if (dataFiles == null || dataFiles.isEmpty())
-            throw new FileNotFoundException("No data files found in dir of file: " + dataFilePath);
-        return dataFiles;
+        return Collections.emptyList();
     }
 
     private boolean filterDataFile(File file, String dataFilePath) {

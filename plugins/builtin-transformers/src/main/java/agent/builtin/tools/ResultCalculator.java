@@ -1,15 +1,18 @@
 package agent.builtin.tools;
 
+import agent.base.utils.Logger;
 import agent.base.utils.Utils;
 import agent.builtin.tools.result.*;
 
 public class ResultCalculator {
+    private static final Logger logger = Logger.getLogger(ResultCalculator.class);
+
     private static void run(Utils.WithoutValueFunc func) {
         try {
             func.run();
         } catch (Throwable t) {
-            t.printStackTrace();
-            System.err.println(t.getMessage());
+            logger.error("Run failed.", t);
+            System.err.println("Error: " + t.getMessage());
             System.exit(-1);
         }
     }

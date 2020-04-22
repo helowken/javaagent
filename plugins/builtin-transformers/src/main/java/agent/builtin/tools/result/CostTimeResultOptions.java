@@ -11,5 +11,5 @@ public class CostTimeResultOptions extends ResultOptions {
                     Arrays.asList(0.9F, 0.95F, 0.99F)
             )
     );
-    public Set<Float> rates = DEFAULT_RATES;
+    public Set<Float> rates;
 }

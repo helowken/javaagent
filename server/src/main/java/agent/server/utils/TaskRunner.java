@@ -27,6 +27,8 @@ public class TaskRunner {
                     } finally {
                         if (jobsCount.decrementAndGet() == 0)
                             latch.countDown();
+                        else
+                            logger.debug("Jobs count: {}", jobsCount);
                     }
                 }
         );

@@ -1,3 +1,3 @@
 Usage: search [-options]
-Where options include:
-    ${options.txt}
+${options.txt}
+    ${chainOptions.txt}

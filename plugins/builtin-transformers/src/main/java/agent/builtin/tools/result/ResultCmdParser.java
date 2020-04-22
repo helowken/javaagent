@@ -1,10 +1,13 @@
 package agent.builtin.tools.result;
 
 import agent.base.utils.FileUtils;
+import agent.base.utils.Logger;
 import agent.base.utils.SystemConfig;
-import agent.common.parser.AbstractOptionsCmdParser;
+import agent.common.parser.AbstractChainOptionsCmdParser;
 
-abstract class ResultCmdParser<F extends ResultOptions, P extends ResultParams<F>> extends AbstractOptionsCmdParser<F, P> {
+abstract class ResultCmdParser<F extends ResultOptions, P extends ResultParams<F>> extends AbstractChainOptionsCmdParser<F, P> {
+    private static final String KEY_LOG_PATH = "result.log.path";
+    private static final String KEY_LOG_LEVEL = "result.log.level";
     private static final String OPT_FILTER_EXPR = "-e";
     private static final String OPT_CHAIN_FILTER_EXPR = "-le";
 
@@ -13,6 +16,10 @@ abstract class ResultCmdParser<F extends ResultOptions, P extends ResultParams<F
         int i = 0;
         SystemConfig.load(
                 getArg(args, i++, "configFile")
+        );
+        Logger.init(
+                SystemConfig.get(KEY_LOG_PATH),
+                SystemConfig.get(KEY_LOG_LEVEL)
         );
         return i;
     }

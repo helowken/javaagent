@@ -1,1 +1,3 @@
-Usage: trace_result
+Usage: trace_result [-options] inputPath
+${options.txt}
+    ${chainOptions.txt}
