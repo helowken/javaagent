@@ -1,6 +1,5 @@
 package agent.common.parser;
 
-import agent.base.parser.OptionsParseException;
 import agent.base.utils.ReflectionUtils;
 import agent.base.utils.Utils;
 import agent.common.config.*;
@@ -103,12 +102,5 @@ public class FilterOptionUtils {
                     )
             );
         return invokeChainConfig;
-    }
-
-    public static String getErrMsg(Throwable t) {
-        String errMsg = t.getMessage();
-        if (t instanceof OptionsParseException)
-            errMsg += "\n" + ((OptionsParseException) t).getUsageMsg();
-        return errMsg;
     }
 }

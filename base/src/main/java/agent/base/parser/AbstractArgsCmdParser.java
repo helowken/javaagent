@@ -75,7 +75,7 @@ public abstract class AbstractArgsCmdParser<F, P extends BasicParams<F>> impleme
     }
 
     protected RuntimeException newUsageError(String errMsg) {
-        return new OptionsParseException(
+        return new ArgsParseException(
                 errMsg,
                 getUsageMsg()
         );

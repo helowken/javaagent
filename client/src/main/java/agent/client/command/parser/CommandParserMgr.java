@@ -1,10 +1,10 @@
 package agent.client.command.parser;
 
+import agent.base.parser.ArgsParseUtils;
 import agent.base.utils.Logger;
 import agent.client.command.parser.exception.CommandParseException;
 import agent.client.command.parser.impl.*;
 import agent.common.message.command.Command;
-import agent.common.parser.FilterOptionUtils;
 import agent.common.utils.Registry;
 
 public class CommandParserMgr {
@@ -35,7 +35,7 @@ public class CommandParserMgr {
         } catch (Throwable t) {
             logger.error("Run failed.", t);
             throw new CommandParseException(
-                    FilterOptionUtils.getErrMsg(t)
+                    ArgsParseUtils.getErrMsg(t)
             );
         }
     }

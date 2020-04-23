@@ -1,9 +1,9 @@
 package agent.builtin.tools;
 
+import agent.base.parser.ArgsParseUtils;
 import agent.base.utils.Logger;
 import agent.base.utils.Utils;
 import agent.builtin.tools.result.*;
-import agent.common.parser.FilterOptionUtils;
 
 public class ResultCalculator {
     private static final Logger logger = Logger.getLogger(ResultCalculator.class);
@@ -18,7 +18,7 @@ public class ResultCalculator {
         } catch (Throwable t) {
             logger.error("Run failed.", t);
             System.err.println(
-                    "Error: " + FilterOptionUtils.getErrMsg(t)
+                    "Error: " + ArgsParseUtils.getErrMsg(t)
             );
         }
     }

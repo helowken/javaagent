@@ -21,6 +21,7 @@ public abstract class AbstractLauncher {
 
     protected void init(String configFilePath, int port) throws Exception {
         SystemConfig.load(configFilePath);
+        Logger.setSystemLogger(null);
         Logger.init(
                 StringParser.eval(
                         SystemConfig.get(KEY_LOG_PATH),

@@ -1,9 +1,9 @@
 package agent.base.parser;
 
-public class OptionsParseException extends RuntimeException {
+public class ArgsParseException extends RuntimeException {
     private final String usageMsg;
 
-    public OptionsParseException(String errMsg, String usageMsg) {
+    public ArgsParseException(String errMsg, String usageMsg) {
         super(errMsg);
         this.usageMsg = usageMsg;
     }
