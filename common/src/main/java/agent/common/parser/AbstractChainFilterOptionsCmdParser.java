@@ -1,8 +1,10 @@
 package agent.common.parser;
 
+import agent.base.parser.BasicParams;
 import agent.base.utils.Utils;
 
-public abstract class AbstractChainOptionsCmdParser<F extends ChainOptions, P extends BasicParams<F>> extends AbstractOptionsCmdParser<F, P> {
+public abstract class AbstractChainFilterOptionsCmdParser<F extends ChainFilterOptions, P extends BasicParams<F>>
+        extends AbstractFilterOptionsCmdParser<F, P> {
     private static final String OPT_CHAIN_CLASS_FILTER = "-lc";
     private static final String OPT_CHAIN_METHOD_FILTER = "-lm";
     private static final String OPT_CHAIN_CONSTRUCTOR_FILTER = "-li";

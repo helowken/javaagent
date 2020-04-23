@@ -3,31 +3,8 @@
 export type=client
 source $(dirname $0)/../../common/bin/env
 
-if [ "$1" = "-f" ]
-then
-    if [ $# -lt 2 ]
-    then
-        echo Usage: $0 -f script_file
-        exit 1
-    else
-        main_class=ScriptLauncher
-        shift
-    fi
-elif [ "$1" = "-s" ]
-then
-    if [ $# -lt 2 ]
-    then
-        echo Usage: $0 -s command [arguments]
-        exit 1
-    else
-        main_class=CmdLauncher
-        shift
-    fi
-else
-    main_class=ClientLauncher
-fi
-
 classpath=$common_lib_base_dir/*:$launcher_dir/*
+main_class=agent.launcher.client.ClientLauncher
 
-$JAVA_HOME/bin/java -cp $classpath agent.launcher.client.$main_class $conf_file "$@"
+$JAVA_HOME/bin/java -cp $classpath $main_class $conf_file "$@"
 

@@ -1,7 +1,7 @@
 package agent.client.command.result.handler;
 
 import agent.base.utils.IndentUtils;
-import agent.client.utils.ClientLogger;
+import agent.base.utils.ConsoleLogger;
 import agent.common.message.command.Command;
 import agent.common.message.result.ExecResult;
 
@@ -15,7 +15,7 @@ public class ViewResultHandler extends AbstractExecResultHandler {
     public void handleSuccess(Command command, ExecResult result) {
         StringBuilder sb = new StringBuilder();
         fillContent(result, sb);
-        ClientLogger.info(
+        ConsoleLogger.getInstance().info(
                 "Result: \n" + sb.toString()
         );
     }

@@ -10,7 +10,7 @@ public class AgentServerMgr {
         if (server == null)
             server = new AgentServer(port);
         if (!server.isRunning()) {
-            logger.info("Starting agent server...");
+            logger.info("Starting agent server at port: {}", port);
             server.startup();
             return true;
         } else

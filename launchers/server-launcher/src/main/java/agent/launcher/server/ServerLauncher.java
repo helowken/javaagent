@@ -10,6 +10,7 @@ import java.lang.instrument.Instrumentation;
 
 public class ServerLauncher extends AbstractLauncher {
     private static final Logger logger = Logger.getLogger(ServerLauncher.class);
+    private static final String SEP = ":";
     private static final String RUNNER_TYPE = "serverRunner";
     private static final ServerLauncher instance = new ServerLauncher();
     private static AttachType attachType;
@@ -27,8 +28,13 @@ public class ServerLauncher extends AbstractLauncher {
     private static void initAgent(String agentArgs, Instrumentation instrumentation) throws Exception {
         if (Utils.isBlank(agentArgs))
             throw new IllegalArgumentException("Agent arguments can not be empty.");
-        instance.init(agentArgs);
-        instance.startRunner(RUNNER_TYPE, instrumentation);
+        String[] ts = agentArgs.split(SEP);
+        if (ts.length != 2)
+            throw new IllegalArgumentException("Agent arguments should be: port:configFilePath");
+        int port = Utils.parseInt(ts[0], "port");
+        String configFilePath = ts[1];
+        instance.init(configFilePath, port);
+        instance.startRunner(RUNNER_TYPE, port, instrumentation);
     }
 
     @Override

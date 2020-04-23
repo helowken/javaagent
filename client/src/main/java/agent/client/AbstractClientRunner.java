@@ -1,14 +1,10 @@
 package agent.client;
 
 import agent.base.runner.Runner;
-import agent.base.utils.Logger;
-import agent.base.utils.StringParser;
-import agent.base.utils.SystemConfig;
-import agent.base.utils.Utils;
+import agent.base.utils.*;
 import agent.client.command.parser.CommandParserMgr;
 import agent.client.command.parser.exception.CommandParseException;
 import agent.client.command.result.CommandResultHandlerMgr;
-import agent.client.utils.ClientLogger;
 import agent.common.message.MessageMgr;
 import agent.common.message.command.Command;
 import agent.common.message.result.ExecResult;
@@ -19,12 +15,16 @@ import java.net.Socket;
 import java.util.*;
 
 abstract class AbstractClientRunner implements Runner {
-    private static final Logger logger = Logger.getLogger(AbstractClientRunner.class, false);
+    private static final Logger logger = Logger.getLogger(AbstractClientRunner.class);
     private static final String LOCAL_HOST = "127.0.0.1";
     private static final String KEY_HOST = "host";
     private static final String KEY_PORT = "port";
     private static final Set<String> quitCmds = new HashSet<>(Arrays.asList("quit", "exit", "byte"));
     private static final CmdItem QUIT_ITEM = new CmdItem(null, true);
+
+    static {
+        Logger.setAsync(false);
+    }
 
     abstract List<String> readCmdArgs() throws Exception;
 
@@ -79,7 +79,7 @@ abstract class AbstractClientRunner implements Runner {
         int port = SystemConfig.getInt(KEY_PORT);
         try (Socket socket = new Socket()) {
             socket.connect(new InetSocketAddress(host, port));
-            ClientLogger.info("Agent Server connected.");
+            ConsoleLogger.getInstance().info("Agent Server connected.");
             try (MessageIO io = MessageIO.create(socket)) {
                 while (true) {
                     try {
@@ -90,10 +90,10 @@ abstract class AbstractClientRunner implements Runner {
                             return true;
                         sendAndReceive(io, cmdItem.cmd);
                     } catch (CommandParseException e) {
-                        ClientLogger.error(e.getMessage());
+                        ConsoleLogger.getInstance().error(e.getMessage());
                     } catch (Exception e) {
                         if (MessageIO.isNetworkException(e))
-                            ClientLogger.error("Disconnected from Agent Server.");
+                            ConsoleLogger.getInstance().error("Disconnected from Agent Server.");
                         else {
                             logError("Error occurred.", e);
                         }
@@ -109,7 +109,7 @@ abstract class AbstractClientRunner implements Runner {
 
     private void logError(String msg, Exception e) {
         logger.error(msg, e);
-        ClientLogger.error(
+        ConsoleLogger.getInstance().error(
                 msg + "\n" + Utils.getMergedErrorMessage(e)
         );
     }

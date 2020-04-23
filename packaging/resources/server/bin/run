@@ -12,11 +12,10 @@ then
     exit 1
 fi
 
-jvm_display_name=$1
 classpath=$common_lib_base_dir/*:$launcher_dir/*:$tools_jar
 
 $JAVA_HOME/bin/java -cp $classpath \
 	agent.dynamic.attach.AgentLoader \
-	$jvm_display_name \
-	$server_launcher_jar=$conf_file
+	$server_launcher_jar=$conf_file \
+	"$@"
 

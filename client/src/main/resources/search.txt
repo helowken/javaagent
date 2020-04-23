@@ -1,3 +1,3 @@
 Usage: search [-options]
-${options.txt}
-    ${chainOptions.txt}
+${filterOptions.txt}
+    ${chainFilterOptions.txt}

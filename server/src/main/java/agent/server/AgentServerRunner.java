@@ -2,22 +2,23 @@ package agent.server;
 
 import agent.base.runner.Runner;
 import agent.base.utils.Logger;
-import agent.base.utils.SystemConfig;
 import agent.base.utils.Utils;
+
+import java.util.Arrays;
 
 public class AgentServerRunner implements Runner {
     private static final Logger logger = Logger.getLogger(AgentServerRunner.class);
-    private static final String KEY_PORT = "port";
 
     @Override
     public void startup(Object... args) {
         Utils.wrapToRtError(() -> {
-            int port = SystemConfig.getInt(KEY_PORT);
+            int port = Utils.getArgValue(args, 0);
             if (AgentServerMgr.startup(port)) {
+                Object[] restArgs = Arrays.copyOfRange(args, 1, args.length);
                 ServerContextMgr.getContext().getServerListeners().forEach(
                         serverListener -> {
                             logger.debug("{} onStartup.", serverListener.getClass().getName());
-                            serverListener.onStartup(args);
+                            serverListener.onStartup(restArgs);
                         }
                 );
                 logger.info("Startup successfully.");

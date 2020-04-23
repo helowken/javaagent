@@ -4,9 +4,9 @@ import agent.base.utils.TypeObject;
 import agent.client.command.parser.CommandParser;
 import agent.common.config.ModuleConfig;
 import agent.common.message.command.Command;
-import agent.common.parser.AbstractChainOptionsCmdParser;
-import agent.common.parser.BasicParams;
-import agent.common.parser.ChainOptions;
+import agent.common.parser.AbstractChainFilterOptionsCmdParser;
+import agent.base.parser.BasicParams;
+import agent.common.parser.ChainFilterOptions;
 import agent.common.utils.JSONUtils;
 
 import java.util.Collections;
@@ -14,8 +14,8 @@ import java.util.Map;
 
 import static agent.common.parser.FilterOptionUtils.createTargetConfig;
 
-abstract class AbstractFilterCmdParser<F extends ChainOptions, P extends BasicParams<F>>
-        extends AbstractChainOptionsCmdParser<F, P> implements CommandParser {
+abstract class AbstractModuleCmdParser<F extends ChainFilterOptions, P extends BasicParams<F>>
+        extends AbstractChainFilterOptionsCmdParser<F, P> implements CommandParser {
 
     abstract Command createCommand(Map<String, Object> data);
 

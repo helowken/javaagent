@@ -105,16 +105,16 @@ public class JavaToolUtils {
                     .filter(ts -> ts.length == 2 && ts[1].contains(displayName))
                     .collect(Collectors.toList());
             if (jpsList.isEmpty()) {
-                logger.error("No java process found by display name: {}", displayName);
-                return null;
+                throw new RuntimeException("No java process found by display name: " + displayName);
             } else if (jpsList.size() > 1) {
-                logger.error("More than one java process found by display name: {}", displayName);
-                return null;
+                throw new RuntimeException("More than one java process found by display name: " + displayName);
             }
             return jpsList.get(0)[0].trim();
         }
-        logger.error("Get jvm pid failed, exit value: {}\nInput: \n{}\n\nError:\n{}", result.getExitValue(), result.getInputString(), result.getErrorString());
-        return null;
+        String msg = "Get jvm pid failed, exit value: " + result.getExitValue() +
+                "\nInput: " + result.getInputString() +
+                "\nError:\n" + result.getErrorString();
+        throw new RuntimeException(msg);
     }
 
     public static Map<String, List<String>> findJarByClassNames(String dirPath, String... classNames) throws

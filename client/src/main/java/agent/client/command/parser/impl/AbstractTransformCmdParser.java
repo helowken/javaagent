@@ -6,13 +6,13 @@ import agent.common.config.ModuleConfig;
 import agent.common.config.TransformerConfig;
 import agent.common.message.command.Command;
 import agent.common.message.command.impl.TransformCommand;
-import agent.common.parser.BasicParams;
-import agent.common.parser.ChainOptions;
+import agent.base.parser.BasicParams;
+import agent.common.parser.ChainFilterOptions;
 
 import java.util.Collections;
 import java.util.Map;
 
-abstract class AbstractTransformCmdParser extends AbstractFilterCmdParser<TransformFilterOptions, TransformParams> {
+abstract class AbstractTransformCmdParser extends AbstractModuleCmdParser<TransformFilterOptions, TransformParams> {
     private static final String REF_SEP = ":";
     private static final String OUTPUT_PATH = "outputPath";
     private static final String OPT_TRANSFORMER_ID = "-t";
@@ -21,7 +21,7 @@ abstract class AbstractTransformCmdParser extends AbstractFilterCmdParser<Transf
     abstract String getTransformerKey();
 
     @Override
-    protected TransformFilterOptions createFilterOptions() {
+    protected TransformFilterOptions createOptions() {
         return new TransformFilterOptions();
     }
 
@@ -130,6 +130,6 @@ class TransformParams extends BasicParams<TransformFilterOptions> {
     String outputPath;
 }
 
-class TransformFilterOptions extends ChainOptions {
+class TransformFilterOptions extends ChainFilterOptions {
     String transformerId;
 }

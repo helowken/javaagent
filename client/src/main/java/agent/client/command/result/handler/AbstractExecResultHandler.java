@@ -1,7 +1,7 @@
 package agent.client.command.result.handler;
 
 import agent.base.utils.Logger;
-import agent.client.utils.ClientLogger;
+import agent.base.utils.ConsoleLogger;
 import agent.common.message.command.Command;
 import agent.common.message.result.ExecResult;
 import agent.common.message.result.handler.ExecResultHandler;
@@ -26,7 +26,7 @@ public abstract class AbstractExecResultHandler implements ExecResultHandler {
     private void handleFatal(Command command, ExecResult result) {
         String message = result.getMessage();
         logger.error("{} failed! Error: {}", command.getClass().getName(), message);
-        ClientLogger.error("Failed: " + message);
+        ConsoleLogger.getInstance().error("Failed: " + message);
     }
 
     protected void handleFail(Command command, ExecResult result) throws Exception {
@@ -37,6 +37,6 @@ public abstract class AbstractExecResultHandler implements ExecResultHandler {
         if (message == null)
             message = "success.";
         logger.debug("{}: {}", command.getClass().getName(), message);
-        ClientLogger.info(message);
+        ConsoleLogger.getInstance().info(message);
     }
 }

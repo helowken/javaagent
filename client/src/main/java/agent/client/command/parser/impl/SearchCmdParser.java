@@ -2,20 +2,20 @@ package agent.client.command.parser.impl;
 
 import agent.common.message.command.Command;
 import agent.common.message.command.impl.SearchCommand;
-import agent.common.parser.BasicParams;
-import agent.common.parser.ChainOptions;
+import agent.base.parser.BasicParams;
+import agent.common.parser.ChainFilterOptions;
 
 import java.util.Map;
 
-public class SearchCmdParser extends AbstractFilterCmdParser<ChainOptions, SearchParams> {
+public class SearchCmdParser extends AbstractModuleCmdParser<ChainFilterOptions, BasicParams<ChainFilterOptions>> {
     @Override
-    protected SearchParams createParams() {
-        return new SearchParams();
+    protected BasicParams<ChainFilterOptions> createParams() {
+        return new BasicParams<>();
     }
 
     @Override
-    protected ChainOptions createFilterOptions() {
-        return new ChainOptions();
+    protected ChainFilterOptions createOptions() {
+        return new ChainFilterOptions();
     }
 
     @Override
@@ -34,5 +34,3 @@ public class SearchCmdParser extends AbstractFilterCmdParser<ChainOptions, Searc
     }
 }
 
-class SearchParams extends BasicParams<ChainOptions> {
-}

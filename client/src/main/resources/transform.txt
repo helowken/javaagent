@@ -1,6 +1,6 @@
 Usage: ${cmd} [-options] outputPath
-${options.txt}
-    ${chainOptions.txt}
+${filterOptions.txt}
+    ${chainFilterOptions.txt}
     -t  <transformationId>
                    Specified an id of transformer which is used to do the transformation.
                    If no transformer is found by this id, a new transformer will be created with it.

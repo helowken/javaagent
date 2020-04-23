@@ -17,7 +17,7 @@ public class TraceResultCmdParser extends ResultCmdParser<TraceResultOptions, Tr
     private static final String OUTPUT_ERROR = "error";
 
     @Override
-    protected TraceResultOptions createFilterOptions() {
+    protected TraceResultOptions createOptions() {
         return new TraceResultOptions();
     }
 

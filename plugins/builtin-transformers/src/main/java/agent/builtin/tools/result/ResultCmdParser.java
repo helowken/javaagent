@@ -3,9 +3,9 @@ package agent.builtin.tools.result;
 import agent.base.utils.FileUtils;
 import agent.base.utils.Logger;
 import agent.base.utils.SystemConfig;
-import agent.common.parser.AbstractChainOptionsCmdParser;
+import agent.common.parser.AbstractChainFilterOptionsCmdParser;
 
-abstract class ResultCmdParser<F extends ResultOptions, P extends ResultParams<F>> extends AbstractChainOptionsCmdParser<F, P> {
+abstract class ResultCmdParser<F extends ResultOptions, P extends ResultParams<F>> extends AbstractChainFilterOptionsCmdParser<F, P> {
     private static final String KEY_LOG_PATH = "result.log.path";
     private static final String KEY_LOG_LEVEL = "result.log.level";
     private static final String OPT_FILTER_EXPR = "-e";

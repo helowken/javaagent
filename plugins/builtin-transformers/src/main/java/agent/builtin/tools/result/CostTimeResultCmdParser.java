@@ -11,7 +11,7 @@ public class CostTimeResultCmdParser extends ResultCmdParser<CostTimeResultOptio
     private static final String RATE_SEP = ",";
 
     @Override
-    protected CostTimeResultOptions createFilterOptions() {
+    protected CostTimeResultOptions createOptions() {
         return new CostTimeResultOptions();
     }
 

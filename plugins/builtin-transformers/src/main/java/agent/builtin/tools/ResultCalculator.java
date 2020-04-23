@@ -6,7 +6,11 @@ import agent.builtin.tools.result.*;
 import agent.common.parser.FilterOptionUtils;
 
 public class ResultCalculator {
-    private static final Logger logger = Logger.getLogger(ResultCalculator.class, false);
+    private static final Logger logger = Logger.getLogger(ResultCalculator.class);
+
+    static {
+        Logger.setAsync(false);
+    }
 
     private static void run(Utils.WithoutValueFunc func) {
         try {
@@ -16,7 +20,6 @@ public class ResultCalculator {
             System.err.println(
                     "Error: " + FilterOptionUtils.getErrMsg(t)
             );
-            System.exit(-1);
         }
     }
 

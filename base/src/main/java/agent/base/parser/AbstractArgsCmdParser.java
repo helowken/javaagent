@@ -1,33 +1,31 @@
-package agent.common.parser;
+package agent.base.parser;
 
 import agent.base.utils.IOUtils;
-import agent.base.utils.Logger;
 import agent.base.utils.StringParser;
 import agent.base.utils.Utils;
 
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public abstract class AbstractOptionsCmdParser<F extends BasicOptions, P extends BasicParams<F>> implements ArgsCmdParser<F, P> {
-    private static final Logger logger = Logger.getLogger(AbstractOptionsCmdParser.class);
+public abstract class AbstractArgsCmdParser<F, P extends BasicParams<F>> implements ArgsCmdParser<F, P> {
     private static final String OPT_PREFIX = "-";
-    private static final String OPT_CLASS_FILTER = "-c";
-    private static final String OPT_METHOD_FILTER = "-m";
-    private static final String OPT_CONSTRUCTOR_FILTER = "-i";
-
     private volatile String usageMsg = null;
 
-    protected abstract F createFilterOptions();
+    protected abstract F createOptions();
 
     protected abstract P createParams();
 
     protected abstract String getMsgFile();
 
+    protected int parseOption(F opts, String[] args, int startIdx) {
+        throw newUsageError("Unknown option: " + args[startIdx] + ", at index: " + startIdx);
+    }
+
     @Override
     public P run(String[] args) throws Exception {
         P params = createParams();
         int idx = parseBeforeOptions(params, args);
-        params.opts = createFilterOptions();
+        params.opts = createOptions();
         idx = parseOptions(params.opts, args, idx);
         parseAfterOptions(params, args, idx);
         return params;
@@ -76,7 +74,7 @@ public abstract class AbstractOptionsCmdParser<F extends BasicOptions, P extends
         );
     }
 
-    private RuntimeException newUsageError(String errMsg) {
+    protected RuntimeException newUsageError(String errMsg) {
         return new OptionsParseException(
                 errMsg,
                 getUsageMsg()
@@ -104,23 +102,4 @@ public abstract class AbstractOptionsCmdParser<F extends BasicOptions, P extends
         }
         return i;
     }
-
-    protected int parseOption(F opts, String[] args, int startIdx) {
-        int i = startIdx;
-        switch (args[i]) {
-            case OPT_CLASS_FILTER:
-                opts.classStr = getArg(args, ++i, "classFilter");
-                break;
-            case OPT_METHOD_FILTER:
-                opts.methodStr = getArg(args, ++i, "methodFilter");
-                break;
-            case OPT_CONSTRUCTOR_FILTER:
-                opts.constructorStr = getArg(args, ++i, "constructorFilter");
-                break;
-            default:
-                throw newUsageError("Unknown option: " + args[i] + ", at index: " + i);
-        }
-        return i;
-    }
 }
-

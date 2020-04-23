@@ -1,7 +1,7 @@
 package agent.client;
 
 import agent.base.utils.IOUtils;
-import agent.client.utils.ClientLogger;
+import agent.base.utils.ConsoleLogger;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -18,7 +18,7 @@ public class AgentClientRunner extends AbstractClientRunner {
                 if (connectTo())
                     break;
                 else
-                    ClientLogger.info("Try to reconnect...");
+                    ConsoleLogger.getInstance().info("Try to reconnect...");
             }
         } finally {
             IOUtils.close(reader);

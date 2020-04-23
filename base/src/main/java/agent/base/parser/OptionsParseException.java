@@ -1,4 +1,4 @@
-package agent.common.parser;
+package agent.base.parser;
 
 public class OptionsParseException extends RuntimeException {
     private final String usageMsg;

@@ -9,23 +9,23 @@ import agent.server.utils.log.text.TextLogger;
 import java.util.Map;
 
 public class LogMgr {
-    private static final Registry<LoggerType, ILogger> typeToLogger = new Registry<>();
+    private static final Registry<LoggerType, FileLogger> typeToLogger = new Registry<>();
 
     static {
         regLogger(new TextLogger());
         regLogger(new BinaryLogger());
     }
 
-    private static void regLogger(ILogger logger) {
+    private static void regLogger(FileLogger logger) {
         typeToLogger.reg(logger.getType(), logger);
     }
 
-    private static ILogger getLogger(LoggerType loggerType) {
+    private static FileLogger getLogger(LoggerType loggerType) {
         return typeToLogger.get(loggerType);
     }
 
     public static String reg(LoggerType loggerType, Map<String, Object> config, Map<String, Object> defaultValueMap) {
-        ILogger logger = getLogger(loggerType);
+        FileLogger logger = getLogger(loggerType);
         return logger.reg(
                 logger.getConfigParser().parse(config, defaultValueMap)
         );

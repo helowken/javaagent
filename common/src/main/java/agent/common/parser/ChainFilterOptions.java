@@ -2,7 +2,7 @@ package agent.common.parser;
 
 import agent.base.utils.Utils;
 
-public class ChainOptions extends BasicOptions {
+public class ChainFilterOptions extends BasicFilterOptions {
     public String chainClassStr = null;
     public String chainMethodStr = null;
     public String chainConstructorStr = null;

@@ -2,9 +2,8 @@ package agent.builtin.tools.result;
 
 import agent.base.utils.*;
 import agent.base.utils.InvokeDescriptorUtils.TextConfig;
-import agent.common.parser.BasicOptions;
-import agent.common.parser.BasicParams;
-import agent.common.parser.CmdRunner;
+import agent.common.parser.BasicFilterOptions;
+import agent.base.parser.BasicParams;
 import agent.common.utils.JSONUtils;
 import agent.server.transform.impl.DestInvokeIdRegistry;
 import agent.server.transform.impl.DestInvokeIdRegistry.InvokeMetadata;
@@ -15,8 +14,8 @@ import java.util.concurrent.ForkJoinPool;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-abstract class AbstractResultHandler<T, O extends BasicOptions, P extends BasicParams<O>>
-        implements CmdRunner<O, P> {
+abstract class AbstractResultHandler<T, O extends BasicFilterOptions, P extends BasicParams<O>>
+        implements CmdHandler<O, P> {
 
     abstract T calculate(Collection<File> dataFiles, P params);
 

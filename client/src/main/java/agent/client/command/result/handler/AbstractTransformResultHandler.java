@@ -2,7 +2,7 @@ package agent.client.command.result.handler;
 
 import agent.base.utils.TypeObject;
 import agent.base.utils.Utils;
-import agent.client.utils.ClientLogger;
+import agent.base.utils.ConsoleLogger;
 import agent.common.message.result.ExecResult;
 import agent.common.message.result.entity.ErrorEntity;
 import agent.common.message.result.entity.TransformResultEntity;
@@ -43,7 +43,7 @@ abstract class AbstractTransformResultHandler extends AbstractExecResultHandler 
                     }
             );
             sb.append("\n");
-            ClientLogger.info(msgPrefix + " failed.\n" + sb.toString());
+            ConsoleLogger.getInstance().info(msgPrefix + " failed.\n" + sb.toString());
         }
     }
 

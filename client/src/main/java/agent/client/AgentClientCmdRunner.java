@@ -1,12 +1,11 @@
 package agent.client;
 
 import agent.base.utils.Utils;
-import agent.client.utils.ClientLogger;
 
 import java.util.Arrays;
 import java.util.List;
 
-public class AgentCmdRunner extends AbstractClientRunner {
+public class AgentClientCmdRunner extends AbstractClientRunner {
     private String[] cmdArgs;
 
     @Override

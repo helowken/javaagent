@@ -15,7 +15,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import static agent.server.utils.log.LogConfig.STDOUT;
 
-public abstract class AbstractLogger<T extends LogItem> implements ILogger<T>, AgentEventListener {
+public abstract class AbstractLogger<T extends LogItem> implements FileLogger<T>, AgentEventListener {
     private volatile Logger logger;
     private final LockObject loggerLock = new LockObject();
     private final Map<String, LogWriter<T>> keyToLogWriter = new ConcurrentHashMap<>();

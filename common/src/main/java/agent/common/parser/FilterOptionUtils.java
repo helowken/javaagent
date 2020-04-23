@@ -1,5 +1,6 @@
 package agent.common.parser;
 
+import agent.base.parser.OptionsParseException;
 import agent.base.utils.ReflectionUtils;
 import agent.base.utils.Utils;
 import agent.common.config.*;
@@ -14,7 +15,7 @@ public class FilterOptionUtils {
     private static final String EXCLUDE = "^";
     private static final int EXCLUDE_LEN = EXCLUDE.length();
 
-    public static TargetConfig createTargetConfig(ChainOptions opts) {
+    public static TargetConfig createTargetConfig(ChainFilterOptions opts) {
         TargetConfig targetConfig = createTargetConfig(
                 opts.classStr,
                 opts.methodStr,

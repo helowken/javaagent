@@ -5,13 +5,13 @@ import agent.base.plugin.DefaultPluginInfo;
 import agent.base.plugin.PluginInfo;
 import agent.base.runner.Runner;
 
-public class AgentScriptPlugin extends AbstractPlugin {
-    public AgentScriptPlugin() {
-        reg(Runner.class, new AgentScriptRunner());
+public class AgentClientFilePlugin extends AbstractPlugin {
+    public AgentClientFilePlugin() {
+        reg(Runner.class, new AgentClientFileRunner());
     }
 
     @Override
     protected PluginInfo newPluginInfo() {
-        return new DefaultPluginInfo(Runner.TYPE, "scriptRunner");
+        return new DefaultPluginInfo(Runner.TYPE, "clientFileRunner");
     }
 }
