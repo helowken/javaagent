@@ -8,6 +8,6 @@ public class CostTimeCmdParser extends AbstractTransformCmdParser {
 
     @Override
     public String getCmdName() {
-        return "costTime";
+        return "cost_time";
     }
 }
