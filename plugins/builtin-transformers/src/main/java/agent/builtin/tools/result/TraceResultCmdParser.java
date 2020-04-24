@@ -27,7 +27,7 @@ public class TraceResultCmdParser extends ResultCmdParser<TraceResultOptions, Tr
     }
 
     @Override
-    protected int parseOption(TraceResultOptions opts, String[] args, int currIdx) {
+    protected int parseOption(TraceResultParams params, TraceResultOptions opts, String[] args, int currIdx) {
         int i = currIdx;
         switch (args[i]) {
             case OPT_OUTPUT:
@@ -48,7 +48,7 @@ public class TraceResultCmdParser extends ResultCmdParser<TraceResultOptions, Tr
                 opts.tailRows = getRows(args, ++i, "tailRows");
                 break;
             default:
-                return super.parseOption(opts, args, currIdx);
+                return super.parseOption(params, opts, args, currIdx);
         }
         return i;
     }

@@ -5,6 +5,7 @@ import agent.base.utils.Logger;
 import agent.server.exception.AgentServerException;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.ExecutorService;
@@ -18,6 +19,7 @@ class AgentServer {
             TimeUnit.SECONDS, new LinkedBlockingDeque<>());
     private boolean running = false;
     private boolean end = false;
+    private Throwable error;
     private volatile boolean shutdown = false;
     private ServerSocket serverSocket;
     private Thread t;
@@ -35,7 +37,8 @@ class AgentServer {
     void startup() {
         t = new Thread(() -> {
             try {
-                serverSocket = new ServerSocket(port);
+                serverSocket = new ServerSocket();
+                serverSocket.bind(new InetSocketAddress(port));
                 lockObject.syncAndNotifyAll(lock -> {
                     running = true;
                     end = true;
@@ -46,13 +49,16 @@ class AgentServer {
                         Socket socket = serverSocket.accept();
                         executorService.execute(new AgentEndpoint(socket));
                     } catch (Exception e) {
-                        logger.error("Server isActionValid failed.", e);
+                        logger.error("Server accept failed.", e);
                     }
                 }
                 executorService.shutdownNow();
             } catch (Exception e) {
                 logger.error("Server startup failed.", e);
-                lockObject.syncAndNotifyAll(lock -> end = true);
+                lockObject.syncAndNotifyAll(lock -> {
+                    end = true;
+                    error = e;
+                });
             }
         });
         t.setDaemon(true);
@@ -65,7 +71,7 @@ class AgentServer {
                 }
             }
             if (!running)
-                throw new AgentServerException("Startup agent server failed!");
+                throw new AgentServerException("Startup agent server failed!", error);
         });
     }
 

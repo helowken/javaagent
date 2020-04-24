@@ -43,14 +43,14 @@ abstract class AbstractTransformCmdParser extends AbstractModuleCmdParser<Transf
     }
 
     @Override
-    protected int parseOption(TransformFilterOptions opts, String[] args, int currIdx) {
+    protected int parseOption(TransformParams params, TransformFilterOptions opts, String[] args, int currIdx) {
         int i = currIdx;
         switch (args[i]) {
             case OPT_TRANSFORMER_ID:
                 opts.transformerId = getArg(args, ++i, "transformerId");
                 break;
             default:
-                return super.parseOption(opts, args, currIdx);
+                return super.parseOption(params, opts, args, currIdx);
         }
         return i;
     }

@@ -11,7 +11,7 @@ public abstract class AbstractChainFilterOptionsCmdParser<F extends ChainFilterO
     private static final String OPT_CHAIN_MAX_LEVEL = "-ll";
 
     @Override
-    protected int parseOption(F opts, String[] args, int currIdx) {
+    protected int parseOption(P params, F opts, String[] args, int currIdx) {
         int i = currIdx;
         switch (args[i]) {
             case OPT_CHAIN_CLASS_FILTER:
@@ -30,7 +30,7 @@ public abstract class AbstractChainFilterOptionsCmdParser<F extends ChainFilterO
                 );
                 break;
             default:
-                return super.parseOption(opts, args, currIdx);
+                return super.parseOption(params, opts, args, currIdx);
         }
         return i;
     }

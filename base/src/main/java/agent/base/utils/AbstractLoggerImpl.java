@@ -47,8 +47,19 @@ public abstract class AbstractLoggerImpl implements LoggerIntf {
         return reqLevel.value >= getLevel().value;
     }
 
-    protected static String formatMsg(String pattern, Object... pvs) {
-        return MessageFormat.format(convertPattern(pattern), pvs);
+    static String formatMsg(String pattern, Object... pvs) {
+        Object[] args = pvs == null ?
+                new Object[0] :
+                new Object[pvs.length];
+        if (pvs != null) {
+            for (int i = 0; i < pvs.length; ++i) {
+                args[i] = pvs[i] == null ? null : pvs[i].toString();
+            }
+        }
+        return MessageFormat.format(
+                convertPattern(pattern),
+                args
+        );
     }
 
     private static String convertPattern(String pattern) {

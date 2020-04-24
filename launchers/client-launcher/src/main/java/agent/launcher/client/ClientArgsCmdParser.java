@@ -3,9 +3,7 @@ package agent.launcher.client;
 import agent.base.parser.AbstractArgsCmdParser;
 import agent.base.utils.Utils;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 class ClientArgsCmdParser extends AbstractArgsCmdParser<ClientOptions, ClientParams> {
@@ -23,8 +21,6 @@ class ClientArgsCmdParser extends AbstractArgsCmdParser<ClientOptions, ClientPar
         runnerTypes.add(RUNNER_TYPE_CMD);
         runnerTypes.add(RUNNER_TYPE_FILE);
     }
-
-    private List<String> argList = new ArrayList<>();
 
     @Override
     protected ClientOptions createOptions() {
@@ -49,7 +45,7 @@ class ClientArgsCmdParser extends AbstractArgsCmdParser<ClientOptions, ClientPar
     }
 
     @Override
-    protected int parseOption(ClientOptions opts, String[] args, int startIdx) {
+    protected int parseOption(ClientParams params, ClientOptions opts, String[] args, int startIdx) {
         int i = startIdx;
         switch (args[i]) {
             case OPT_HOST:
@@ -67,23 +63,23 @@ class ClientArgsCmdParser extends AbstractArgsCmdParser<ClientOptions, ClientPar
                     throw new RuntimeException("Invalid runner type: " + opts.runnerType);
                 break;
             default:
-                argList.add(args[i]);
+                params.cmdArgs.add(args[i]);
                 break;
         }
         return i;
     }
 
     @Override
+    protected boolean parseArg(ClientParams params, String[] args, int startIdx) {
+        params.cmdArgs.add(args[startIdx]);
+        return true;
+    }
+
+    @Override
     protected void parseAfterOptions(ClientParams params, String[] args, int startIdx) throws Exception {
-        params.cmdArgs.add(params.opts.host);
-        params.cmdArgs.add(params.opts.port);
+        params.cmdArgs.add(0, params.opts.host);
+        params.cmdArgs.add(1, params.opts.port);
         switch (params.opts.runnerType) {
-            case RUNNER_TYPE_CMD:
-                params.cmdArgs.addAll(argList);
-                for (int i = startIdx; i < args.length; ++i) {
-                    params.cmdArgs.add(args[i]);
-                }
-                break;
             case RUNNER_TYPE_FILE:
                 throw new UnsupportedOperationException("Unsupported now.");
         }

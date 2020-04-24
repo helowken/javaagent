@@ -25,7 +25,7 @@ abstract class ResultCmdParser<F extends ResultOptions, P extends ResultParams<F
     }
 
     @Override
-    protected int parseOption(F opts, String[] args, int currIdx) {
+    protected int parseOption(P params, F opts, String[] args, int currIdx) {
         int i = currIdx;
         switch (args[i]) {
             case OPT_FILTER_EXPR:
@@ -35,7 +35,7 @@ abstract class ResultCmdParser<F extends ResultOptions, P extends ResultParams<F
                 opts.chainFilterExpr = getArg(args, ++i, "chainFilterExpr");
                 break;
             default:
-                return super.parseOption(opts, args, currIdx);
+                return super.parseOption(params, opts, args, currIdx);
         }
         return i;
     }

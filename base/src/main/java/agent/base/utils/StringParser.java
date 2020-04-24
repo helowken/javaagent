@@ -26,6 +26,12 @@ public class StringParser {
     }
 
     public static CompiledStringExpr compile(String pattern, String prefix, String suffix) {
+        if (pattern == null)
+            throw new IllegalArgumentException("Pattern is null.");
+        if (prefix == null)
+            throw new IllegalArgumentException("Prefix is null.");
+        if (suffix == null)
+            throw new IllegalArgumentException("Suffix is null.");
         int prefixLen = prefix.length();
         int suffixLen = suffix.length();
         int patternLen = pattern.length();

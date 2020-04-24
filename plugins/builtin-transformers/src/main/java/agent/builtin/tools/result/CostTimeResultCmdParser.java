@@ -26,7 +26,7 @@ public class CostTimeResultCmdParser extends ResultCmdParser<CostTimeResultOptio
     }
 
     @Override
-    protected int parseOption(CostTimeResultOptions opts, String[] args, int currIdx) {
+    protected int parseOption(CostTimeResultParams params, CostTimeResultOptions opts, String[] args, int currIdx) {
         int i = currIdx;
         switch (args[i]) {
             case OPT_RATES:
@@ -35,7 +35,7 @@ public class CostTimeResultCmdParser extends ResultCmdParser<CostTimeResultOptio
                 );
                 break;
             default:
-                return super.parseOption(opts, args, currIdx);
+                return super.parseOption(params, opts, args, currIdx);
         }
         return i;
     }
