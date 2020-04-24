@@ -1,5 +1,6 @@
 package agent.client;
 
+import agent.base.parser.CmdHelpException;
 import agent.base.runner.Runner;
 import agent.base.utils.*;
 import agent.client.command.parser.CommandParserMgr;
@@ -16,17 +17,24 @@ import java.util.*;
 
 abstract class AbstractClientRunner implements Runner {
     private static final Logger logger = Logger.getLogger(AbstractClientRunner.class);
-    private static final String LOCAL_HOST = "127.0.0.1";
-    private static final String KEY_HOST = "host";
-    private static final String KEY_PORT = "port";
+    private static final String KEY_SOCKET_CONNECTION_TIMEOUT = "socket.connection.timeout";
     private static final Set<String> quitCmds = new HashSet<>(Arrays.asList("quit", "exit", "byte"));
     private static final CmdItem QUIT_ITEM = new CmdItem(null, true);
+    private String host;
+    private int port;
 
     static {
         Logger.setAsync(false);
     }
 
     abstract List<String> readCmdArgs() throws Exception;
+
+    int init(Object[] args) {
+        int i = 0;
+        host = Utils.getArgValue(args, i++);
+        port = Utils.getArgValue(args, i++);
+        return i;
+    }
 
     @Override
     public void shutdown() {
@@ -73,12 +81,15 @@ abstract class AbstractClientRunner implements Runner {
     }
 
     boolean connectTo() {
-        String host = Optional.ofNullable(
-                SystemConfig.get(KEY_HOST)
-        ).orElse(LOCAL_HOST);
-        int port = SystemConfig.getInt(KEY_PORT);
         try (Socket socket = new Socket()) {
-            socket.connect(new InetSocketAddress(host, port));
+            ConsoleLogger.getInstance().info("Try to connect to: {}:{}", host, port);
+            socket.connect(
+                    new InetSocketAddress(host, port),
+                    Utils.parseInt(
+                            SystemConfig.get(KEY_SOCKET_CONNECTION_TIMEOUT),
+                            KEY_SOCKET_CONNECTION_TIMEOUT
+                    )
+            );
             ConsoleLogger.getInstance().info("Agent Server connected.");
             try (MessageIO io = MessageIO.create(socket)) {
                 while (true) {
@@ -89,8 +100,10 @@ abstract class AbstractClientRunner implements Runner {
                         if (cmdItem.quit)
                             return true;
                         sendAndReceive(io, cmdItem.cmd);
+                    } catch (CmdHelpException e) {
+                        ConsoleLogger.getInstance().info("{}", e.getMessage());
                     } catch (CommandParseException e) {
-                        ConsoleLogger.getInstance().error(e.getMessage());
+                        ConsoleLogger.getInstance().error("Error: {}", e.getMessage());
                     } catch (Exception e) {
                         if (MessageIO.isNetworkException(e))
                             ConsoleLogger.getInstance().error("Disconnected from Agent Server.");
@@ -110,7 +123,9 @@ abstract class AbstractClientRunner implements Runner {
     private void logError(String msg, Exception e) {
         logger.error(msg, e);
         ConsoleLogger.getInstance().error(
-                msg + "\n" + Utils.getMergedErrorMessage(e)
+                "{}\n{}",
+                msg,
+                Utils.getMergedErrorMessage(e)
         );
     }
 

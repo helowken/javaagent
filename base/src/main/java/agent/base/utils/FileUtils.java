@@ -26,6 +26,8 @@ public class FileUtils {
     }
 
     public static File getValidFile(String path, Supplier<FileNotFoundException> errorFunc) throws FileNotFoundException {
+        if (path == null)
+            throw new IllegalArgumentException("Invalid path: null.");
         File file = new File(
                 new File(path).getAbsolutePath()
         );

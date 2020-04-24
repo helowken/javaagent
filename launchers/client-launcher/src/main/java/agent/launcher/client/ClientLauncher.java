@@ -1,6 +1,7 @@
 package agent.launcher.client;
 
-import agent.base.parser.ArgsParseUtils;
+import agent.base.parser.CmdHelpException;
+import agent.base.utils.ConsoleLogger;
 import agent.launcher.basic.AbstractLauncher;
 
 public class ClientLauncher extends AbstractLauncher {
@@ -15,13 +16,13 @@ public class ClientLauncher extends AbstractLauncher {
             );
             instance.startRunner(
                     params.opts.runnerType,
-                    new Object[]{params.args}
+                    params.cmdArgs.toArray()
             );
+        } catch (CmdHelpException e) {
+            ConsoleLogger.getInstance().info("{}", e.getMessage());
         } catch (Throwable t) {
-            System.err.println(
-                    "Error: " + ArgsParseUtils.getErrMsg(t)
-            );
+            t.printStackTrace();
+            ConsoleLogger.getInstance().error("Error: {}", t.getMessage());
         }
     }
-
 }

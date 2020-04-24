@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 
 public abstract class AbstractArgsCmdParser<F, P extends BasicParams<F>> implements ArgsCmdParser<F, P> {
     private static final String OPT_PREFIX = "-";
+    private static final String OPT_PREFIX2 = "--";
     private volatile String usageMsg = null;
 
     protected abstract F createOptions();
@@ -18,7 +19,7 @@ public abstract class AbstractArgsCmdParser<F, P extends BasicParams<F>> impleme
     protected abstract String getMsgFile();
 
     protected int parseOption(F opts, String[] args, int startIdx) {
-        throw newUsageError("Unknown option: " + args[startIdx] + ", at index: " + startIdx);
+        throw new RuntimeException("Unknown option: " + args[startIdx] + ", at index: " + startIdx);
     }
 
     @Override
@@ -38,7 +39,7 @@ public abstract class AbstractArgsCmdParser<F, P extends BasicParams<F>> impleme
     protected void parseAfterOptions(P params, String[] args, int startIdx) throws Exception {
     }
 
-    private String getUsageMsg() {
+    protected String getUsageMsg() {
         if (usageMsg == null) {
             synchronized (this) {
                 if (usageMsg == null) {
@@ -74,28 +75,22 @@ public abstract class AbstractArgsCmdParser<F, P extends BasicParams<F>> impleme
         );
     }
 
-    protected RuntimeException newUsageError(String errMsg) {
-        return new ArgsParseException(
-                errMsg,
-                getUsageMsg()
-        );
-    }
-
     protected String getArg(String[] args, int idx, String errField) {
         if (idx < args.length)
             return args[idx];
-        throw newUsageError(errField + " not found.");
+        throw new RuntimeException(errField + " not found.");
     }
 
     protected void checkNotBlank(String v, String errField) {
         if (Utils.isBlank(v))
-            throw newUsageError(errField + " is blank.");
+            throw new RuntimeException(errField + " is blank.");
     }
 
     private int parseOptions(F opts, String[] args, int startIdx) {
         int i = startIdx;
         for (; i < args.length; ++i) {
-            if (args[i].startsWith(OPT_PREFIX))
+            if (args[i].startsWith(OPT_PREFIX) ||
+                    args[i].startsWith(OPT_PREFIX2))
                 i = parseOption(opts, args, i);
             else
                 break;

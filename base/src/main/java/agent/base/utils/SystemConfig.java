@@ -21,7 +21,7 @@ public class SystemConfig {
     public static void load(String path) throws Exception {
         File file = new File(path);
         if (!file.exists())
-            throw new FileNotFoundException(path);
+            throw new FileNotFoundException("File not found: " + path);
         baseDir = file.getParentFile().getParent();
         load(
                 Utils.loadProperties(path)

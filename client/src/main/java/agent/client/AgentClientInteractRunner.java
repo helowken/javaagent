@@ -1,17 +1,18 @@
 package agent.client;
 
-import agent.base.utils.IOUtils;
 import agent.base.utils.ConsoleLogger;
+import agent.base.utils.IOUtils;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.List;
 
-public class AgentClientRunner extends AbstractClientRunner {
+public class AgentClientInteractRunner extends AbstractClientRunner {
     private BufferedReader reader;
 
     @Override
     public void startup(Object... args) {
+        init(args);
         reader = new BufferedReader(new InputStreamReader(System.in));
         try {
             while (true) {

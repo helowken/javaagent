@@ -1,8 +1,8 @@
 package agent.client;
 
+import agent.base.utils.ConsoleLogger;
 import agent.base.utils.IOUtils;
 import agent.base.utils.Utils;
-import agent.base.utils.ConsoleLogger;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -14,12 +14,13 @@ public class AgentClientFileRunner extends AbstractClientRunner {
 
     @Override
     public void startup(Object... args) throws Exception {
-        String filePath = Utils.getArgValue(args, 0);
-        ConsoleLogger.getInstance().info("Execute script file: " + new File(filePath).getCanonicalPath());
+        int idx = init(args);
+        String filePath = Utils.getArgValue(args, idx);
+        ConsoleLogger.getInstance().info("Execute script file: {}", new File(filePath).getCanonicalPath());
         try {
             reader = new BufferedReader(new FileReader(filePath));
         } catch (Exception e) {
-            ConsoleLogger.getInstance().error("Failed. Error Cause: " + e.getMessage());
+            ConsoleLogger.getInstance().error("Failed. Error Cause: {}", e.getMessage());
             return;
         }
         connectTo();

@@ -1,1 +1,1 @@
-Usage: run [-s command [params] | -f file]
+Usage: run -t runnerType [-h host] [-p port] [--cmd command [params] | -f file]

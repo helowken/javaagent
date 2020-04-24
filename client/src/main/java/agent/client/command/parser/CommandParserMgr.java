@@ -1,6 +1,6 @@
 package agent.client.command.parser;
 
-import agent.base.parser.ArgsParseUtils;
+import agent.base.parser.CmdHelpException;
 import agent.base.utils.Logger;
 import agent.client.command.parser.exception.CommandParseException;
 import agent.client.command.parser.impl.*;
@@ -30,12 +30,12 @@ public class CommandParserMgr {
             return registry.get(cmdName,
                     key -> new CommandParseException("No command found by name: " + key)
             ).parse(args);
-        } catch (CommandParseException e) {
+        } catch (CmdHelpException | CommandParseException e) {
             throw e;
         } catch (Throwable t) {
             logger.error("Run failed.", t);
             throw new CommandParseException(
-                    ArgsParseUtils.getErrMsg(t)
+                    t.getMessage()
             );
         }
     }

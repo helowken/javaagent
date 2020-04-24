@@ -1,6 +1,6 @@
 package agent.builtin.tools;
 
-import agent.base.parser.ArgsParseUtils;
+import agent.base.utils.ConsoleLogger;
 import agent.base.utils.Logger;
 import agent.base.utils.Utils;
 import agent.builtin.tools.result.*;
@@ -17,9 +17,7 @@ public class ResultCalculator {
             func.run();
         } catch (Throwable t) {
             logger.error("Run failed.", t);
-            System.err.println(
-                    "Error: " + ArgsParseUtils.getErrMsg(t)
-            );
+            ConsoleLogger.getInstance().error("Error: {}", t.getMessage());
         }
     }
 
