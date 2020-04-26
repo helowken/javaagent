@@ -3,7 +3,6 @@ package agent.server.transform.search;
 import agent.base.utils.ReflectionUtils;
 import agent.server.transform.InstrumentationMgr;
 import agent.server.transform.search.filter.ClassFilter;
-import agent.server.transform.search.filter.FilterUtils;
 
 import java.lang.reflect.Modifier;
 import java.util.*;
@@ -21,8 +20,8 @@ public class ClassCache {
     private final Map<Class<?>, List<Class<?>>> classToSubTypes = new ConcurrentHashMap<>();
     private volatile List<Class<?>> loadedClasses;
 
-    static boolean isNativePackage(String namePath) {
-        return ReflectionUtils.isJavaNativePackage(namePath)
+    static boolean isIntrinsicPackage(String namePath) {
+        return ReflectionUtils.isJavaIntrinsicPackage(namePath)
                 || skipPackages.stream().anyMatch(namePath::startsWith);
     }
 
@@ -33,7 +32,7 @@ public class ClassCache {
                     loadedClasses = Arrays.stream(
                             InstrumentationMgr.getInstance().getAllLoadedClasses()
                     ).filter(
-                            clazz -> !isNativePackage(clazz.getName())
+                            clazz -> !isIntrinsicPackage(clazz.getName())
                     ).collect(
                             Collectors.toList()
                     );

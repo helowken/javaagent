@@ -152,9 +152,9 @@ public class InvokeChainSearcher {
 
     private void collectInnerInvokes(InvokeInfo info, int searchFlags, InvokeChainFilter filter) {
         debug(info, "Collect ");
-        boolean isNative = info.isNativePackage();
-        if (isNative) {
-            debug(info, "@ Skip native package: ");
+        boolean isIntrinsic = info.isIntrinsicPackage();
+        if (isIntrinsic) {
+            debug(info, "@ Skip intrinsic package: ");
             searchDownward(info, filter);
             return;
         } else if (info.isLambdaClass()) {
@@ -522,8 +522,8 @@ public class InvokeChainSearcher {
             return clazz;
         }
 
-        private boolean isNativePackage() {
-            return ClassCache.isNativePackage(
+        private boolean isIntrinsicPackage() {
+            return ClassCache.isIntrinsicPackage(
                     clazz.getName()
             );
         }

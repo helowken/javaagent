@@ -15,7 +15,7 @@ public class ReflectionUtils {
     public static final String CONSTRUCTOR_NAME = "<init>";
     private static final String[] javaPackages = {"java.", "javax.", "sun.", "com.sun.", "com.oracle.", "jdk."};
 
-    public static boolean isJavaNativePackage(String namePath) {
+    public static boolean isJavaIntrinsicPackage(String namePath) {
         for (String javaPackage : javaPackages) {
             if (namePath.startsWith(javaPackage))
                 return true;

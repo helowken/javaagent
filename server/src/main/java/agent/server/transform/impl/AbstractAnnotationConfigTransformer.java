@@ -59,7 +59,7 @@ public abstract class AbstractAnnotationConfigTransformer extends AbstractConfig
         }
         Class<?> superclass = clazz.getSuperclass();
         if (superclass != null &&
-                !ReflectionUtils.isJavaNativePackage(superclass.getName()))
+                !ReflectionUtils.isJavaIntrinsicPackage(superclass.getName()))
             collectAllMethods(rsMethods, superclass);
     }
 
