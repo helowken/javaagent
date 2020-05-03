@@ -64,7 +64,7 @@ abstract class AbstractResultHandler<T, O extends BasicFilterOptions, P extends 
                         pool.shutdown();
                     }
                 },
-                "Result calculation used time: {}ms"
+                "Result calculation used time: {}"
         );
     }
 
@@ -155,7 +155,7 @@ abstract class AbstractResultHandler<T, O extends BasicFilterOptions, P extends 
         TimeMeasureUtils.run(
                 () -> processFileFunc.process(dataFile),
                 e -> System.err.println("Read data file failed: " + path + "\n" + Utils.getErrorStackStrace(e)),
-                "Calculate {} used time: {}ms",
+                "Calculate {} used time: {}",
                 path
         );
     }

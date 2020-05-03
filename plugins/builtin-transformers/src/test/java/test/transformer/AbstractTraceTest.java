@@ -27,7 +27,7 @@ abstract class AbstractTraceTest extends AbstractTest {
         constructorFilterConfig.setIncludes(
                 Collections.singleton("*")
         );
-        invokeChainConfig.setConstructorFilter(constructorFilterConfig);
+        invokeChainConfig.setMatchConstructorFilter(constructorFilterConfig);
         doTest(clazz, methodName, classToMethodFilter, invokeChainConfig, runFirst);
     }
 

@@ -46,10 +46,10 @@ public class TimeMeasureUtils {
         } catch (Throwable e) {
             if (errorHandler != null)
                 return errorHandler.apply(e);
-            throw new RuntimeException(e);
+            throw Utils.toRtError(e, null);
         } finally {
             long et = System.nanoTime();
-            args[args.length - 1] = ((double) et - st) / (1000 * 1000);
+            args[args.length - 1] = et - st;
             logger.debug(pattern, args);
         }
     }

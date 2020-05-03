@@ -75,10 +75,10 @@ public class TraceInvokeTransformerTest2 extends AbstractTest {
                             traceOpts.methodStr = "recursive*";
                             traceHandler.exec(traceParams);
                             System.out.println("=================");
-                            traceOpts.chainLevel = 3;
+                            traceOpts.chainSearchLevel = 3;
                             traceHandler.exec(traceParams);
                             System.out.println("=================");
-                            traceOpts.chainLevel = -1;
+                            traceOpts.chainSearchLevel = -1;
                             traceOpts.methodStr = "load*";
                             traceHandler.exec(traceParams);
                             System.out.println("=================");
@@ -94,10 +94,10 @@ public class TraceInvokeTransformerTest2 extends AbstractTest {
                             costTimeHandler.exec(costTimeParams);
                             System.out.println("=================");
                             costTimeOpts.methodStr = null;
-                            costTimeOpts.chainMethodStr = "recursive*";
+                            costTimeOpts.chainMatchMethodStr = "recursive*";
                             costTimeHandler.exec(costTimeParams);
                             System.out.println("=================");
-                            costTimeOpts.chainLevel = 3;
+                            costTimeOpts.chainSearchLevel = 3;
                             costTimeHandler.exec(costTimeParams);
                             System.out.println("=================");
 

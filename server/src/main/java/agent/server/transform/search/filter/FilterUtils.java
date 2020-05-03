@@ -1,6 +1,7 @@
 package agent.server.transform.search.filter;
 
 import agent.base.utils.StringItem;
+import agent.base.utils.Utils;
 import agent.common.config.ClassFilterConfig;
 import agent.common.config.FilterConfig;
 import agent.common.config.InvokeChainConfig;
@@ -75,6 +76,8 @@ public class FilterUtils {
     }
 
     public static ClassFilter newClassFilter(Collection<String> includes, Collection<String> excludes, boolean includeInterface) {
+        if (Utils.isEmpty(includes) && Utils.isEmpty(excludes))
+            return null;
         validateClassFilters(includes, excludes);
         List<ClassFilter> filters = new ArrayList<>();
         if (!includeInterface)
@@ -102,6 +105,8 @@ public class FilterUtils {
     }
 
     public static InvokeFilter newInvokeFilter(Collection<String> includes, Collection<String> excludes) {
+        if (Utils.isEmpty(includes) && Utils.isEmpty(excludes))
+            return null;
         validateInvokeFilters(includes, excludes);
         return newFilter(
                 new ArrayList<>(),
@@ -159,22 +164,57 @@ public class FilterUtils {
         return mergeFilter(filters, mergeFilterFunc);
     }
 
-    public static InvokeChainFilter newInvokeChainFilter(InvokeChainConfig config) {
-        return config == null ?
-                null :
-                new InvokeChainFilter(
-                        newClassFilter(
-                                config.getClassFilter(),
-                                true
-                        ),
-                        newInvokeFilter(
-                                config.getMethodFilter()
-                        ),
-                        newInvokeFilter(
-                                config.getConstructorFilter()
-                        ),
+    public static InvokeChainMatchFilter newInvokeChainMatchFilter(InvokeChainConfig config) {
+        if (config == null)
+            return null;
+        ClassFilter classFilter = newClassFilter(
+                config.getMatchClassFilter(),
+                true
+        );
+        InvokeFilter methodFilter = newInvokeFilter(
+                config.getMatchMethodFilter()
+        );
+        InvokeFilter constructorFilter = newInvokeFilter(
+                config.getMatchConstructorFilter()
+        );
+        return classFilter != null || methodFilter != null || constructorFilter != null ?
+                new InvokeChainMatchFilter(classFilter, methodFilter, constructorFilter) :
+                null;
+    }
+
+    public static InvokeChainSearchFilter newInvokeChainSearchFilter(InvokeChainConfig config) {
+        if (config == null)
+            return null;
+        ClassFilter classFilter = newClassFilter(
+                config.getSearchClassFilter(),
+                true
+        );
+        InvokeFilter methodFilter = newInvokeFilter(
+                config.getSearchMethodFilter()
+        );
+        InvokeFilter constructorFilter = newInvokeFilter(
+                config.getSearchConstructorFilter()
+        );
+        if (classFilter == null && methodFilter == null && constructorFilter != null) {
+            classFilter = newClassFilter(
+                    config.getMatchClassFilter(),
+                    true
+            );
+            methodFilter = newInvokeFilter(
+                    config.getMatchMethodFilter()
+            );
+            constructorFilter = newInvokeFilter(
+                    config.getMatchConstructorFilter()
+            );
+        }
+        return classFilter != null || methodFilter != null || constructorFilter != null ?
+                new InvokeChainSearchFilter(
+                        classFilter,
+                        methodFilter,
+                        constructorFilter,
                         config.getMaxLevel()
-                );
+                ) :
+                null;
     }
 
     private static <T, F extends AgentFilter<T>> F mergeFilter(List<F> filters, Function<List<F>, F> mergeFilterFunc) {

@@ -49,6 +49,8 @@ public class Utils {
     }
 
     public static int parseInt(String s, String name) {
+        if (s == null)
+            throw new IllegalArgumentException(name + " is null.");
         try {
             return Integer.parseInt(s);
         } catch (NumberFormatException e) {
@@ -57,6 +59,8 @@ public class Utils {
     }
 
     public static long parseLong(String s, String name) {
+        if (s == null)
+            throw new IllegalArgumentException(name + " is null.");
         try {
             return Long.parseLong(s);
         } catch (NumberFormatException e) {

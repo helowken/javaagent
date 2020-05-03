@@ -138,4 +138,17 @@ public class ClassLoaderUtils {
         }
         return false;
     }
+
+    public static Class<?> loadClass(ClassLoader loader, String className) throws Exception {
+        if (loader == null)
+            return Class.forName(className);
+        try {
+            return loader.loadClass(className);
+        } catch (ClassNotFoundException e) {
+            return loadClass(
+                    loader.getParent(),
+                    className
+            );
+        }
+    }
 }

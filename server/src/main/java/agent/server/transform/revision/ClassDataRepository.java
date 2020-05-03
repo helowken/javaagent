@@ -70,18 +70,19 @@ public class ClassDataRepository {
     }
 
     public byte[] getClassData(Class<?> clazz) {
-        return classToData.computeIfAbsent(
-                clazz,
-                key -> {
-                    logger.debug("Try to find class data: {}, classLoader: {}", clazz.getName(), clazz.getClassLoader());
-                    byte[] data = loadClassDataFromResource(clazz);
-                    if (data == null)
-                        data = getClassDataFromInstrumentation(clazz);
-                    if (data != null)
-                        return data;
-                    throw new RuntimeException("No data found for class: " + clazz);
-                }
-        );
+        byte[] resourceData = loadClassDataFromResource(clazz);
+        return resourceData != null ?
+                resourceData :
+                classToData.computeIfAbsent(
+                        clazz,
+                        key -> {
+                            logger.debug("Try to find class data: {}, classLoader: {}", clazz.getName(), clazz.getClassLoader());
+                            byte[] data = getClassDataFromInstrumentation(clazz);
+                            if (data != null)
+                                return data;
+                            throw new RuntimeException("No data found for class: " + clazz);
+                        }
+                );
     }
 
 }

@@ -16,7 +16,7 @@ public class ConsoleLogger extends AbstractLoggerImpl {
         String s = PREFIX + formatMsg(pattern, pvs);
         if (t != null)
             s += "\nError: " + t.getMessage();
-        System.err.println(s);
+        System.out.println(s);
     }
 
     @Override

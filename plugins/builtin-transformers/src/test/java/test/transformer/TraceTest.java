@@ -2,10 +2,7 @@ package test.transformer;
 
 import org.junit.Test;
 
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Stream;
 
 public class TraceTest extends AbstractTraceTest {
@@ -20,7 +17,10 @@ public class TraceTest extends AbstractTraceTest {
         public void doFilter() {
             ParamObject po = new ParamObject();
             System.out.println(po.test((byte) 0, (short) 1, 2, 3L, 4.4f, 5, true, "aaa"));
-            System.out.println(po.test2());
+            System.out.println(po.test2(
+                    new int[]{9, 8, 7},
+                    new Boolean[]{false, true}
+            ));
 
             Base[] bs = new Impl[2];
             bs[0] = new Impl();
@@ -70,7 +70,10 @@ public class TraceTest extends AbstractTraceTest {
             return new Date();
         }
 
-        public boolean test2() {
+        public boolean test2(int[] as, Boolean[] bs) {
+            System.out.println(
+                    Arrays.toString(as) + "\n" + Arrays.toString(bs)
+            );
             return false;
         }
 

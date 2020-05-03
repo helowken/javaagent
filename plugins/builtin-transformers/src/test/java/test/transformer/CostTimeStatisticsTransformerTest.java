@@ -59,7 +59,7 @@ public class CostTimeStatisticsTransformerTest extends AbstractTest {
                     opts = new CostTimeResultOptions();
                     opts.methodStr = "service";
                     opts.filterExpr = "avgTime > 20";
-                    opts.chainMethodStr = "runApi4";
+                    opts.chainMatchMethodStr = "runApi4";
                     params.opts = opts;
                     chainHandler.exec(params);
 

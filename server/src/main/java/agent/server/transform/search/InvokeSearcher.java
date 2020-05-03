@@ -51,8 +51,12 @@ public class InvokeSearcher {
         Set<DestInvoke> result = new HashSet<>();
         if (constructorFilterConfig != null)
             doSearch(constructorFilterConfig, clazz, result);
-        else if (methodFilterConfig == null)
+        else if (methodFilterConfig == null) {
             methodFilterConfig = new MethodFilterConfig();
+            methodFilterConfig.setIncludes(
+                    Collections.singleton("*")
+            );
+        }
 
         if (methodFilterConfig != null)
             doSearch(methodFilterConfig, clazz, result);

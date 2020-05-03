@@ -15,6 +15,8 @@ public class SpringAopInvokeFinder implements AopMethodFinder {
 
     @Override
     public Collection<Method> findMethods(Method targetMethod, ClassLoader classLoader) {
+        if (classLoader == null)
+            return Collections.emptyList();
         Map<Method, Collection<Method>> targetToAopMethods = getTargetToAopMethodsByLoader(classLoader);
         Collection<Method> aopMethods = targetToAopMethods.get(targetMethod);
         return aopMethods == null ? Collections.emptyList() : aopMethods;

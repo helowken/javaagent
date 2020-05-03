@@ -22,12 +22,7 @@ public class FilterOptionUtils {
         );
         if (opts.isUseChain())
             targetConfig.setInvokeChainConfig(
-                    createInvokeChainConfig(
-                            opts.chainLevel,
-                            opts.chainClassStr,
-                            opts.chainMethodStr,
-                            opts.chainConstructorStr
-                    )
+                    createInvokeChainConfig(opts)
             );
         return targetConfig;
     }
@@ -81,22 +76,39 @@ public class FilterOptionUtils {
         return config;
     }
 
-    private static InvokeChainConfig createInvokeChainConfig(int chainLevel, String chainClassStr, String chainMethodStr, String chainConstructorStr) {
+    private static InvokeChainConfig createInvokeChainConfig(ChainFilterOptions opts) {
         InvokeChainConfig invokeChainConfig = new InvokeChainConfig();
-        if (chainLevel > 0)
-            invokeChainConfig.setMaxLevel(chainLevel);
-        if (Utils.isNotBlank(chainClassStr))
-            invokeChainConfig.setClassFilter(
-                    newFilterConfig(chainClassStr, ClassFilterConfig::new, null)
+        if (Utils.isNotBlank(opts.chainMatchClassStr))
+            invokeChainConfig.setMatchClassFilter(
+                    newFilterConfig(opts.chainMatchClassStr, ClassFilterConfig::new, null)
             );
-        if (Utils.isNotBlank(chainMethodStr))
-            invokeChainConfig.setMethodFilter(
-                    newFilterConfig(chainMethodStr, MethodFilterConfig::new, null)
+        if (Utils.isNotBlank(opts.chainMatchMethodStr))
+            invokeChainConfig.setMatchMethodFilter(
+                    newFilterConfig(opts.chainMatchMethodStr, MethodFilterConfig::new, null)
             );
-        if (Utils.isNotBlank(chainConstructorStr))
-            invokeChainConfig.setConstructorFilter(
+        if (Utils.isNotBlank(opts.chainMatchConstructorStr))
+            invokeChainConfig.setMatchConstructorFilter(
                     newFilterConfig(
-                            chainConstructorStr,
+                            opts.chainMatchConstructorStr,
+                            ConstructorFilterConfig::new,
+                            s -> ReflectionUtils.CONSTRUCTOR_NAME + s
+                    )
+            );
+
+        if (opts.chainSearchLevel > 0)
+            invokeChainConfig.setMaxLevel(opts.chainSearchLevel);
+        if (Utils.isNotBlank(opts.chainSearchClassStr))
+            invokeChainConfig.setSearchClassFilter(
+                    newFilterConfig(opts.chainSearchClassStr, ClassFilterConfig::new, null)
+            );
+        if (Utils.isNotBlank(opts.chainSearchMethodStr))
+            invokeChainConfig.setSearchMethodFilter(
+                    newFilterConfig(opts.chainSearchMethodStr, MethodFilterConfig::new, null)
+            );
+        if (Utils.isNotBlank(opts.chainSearchConstructorStr))
+            invokeChainConfig.setSearchConstructorFilter(
+                    newFilterConfig(
+                            opts.chainSearchConstructorStr,
                             ConstructorFilterConfig::new,
                             s -> ReflectionUtils.CONSTRUCTOR_NAME + s
                     )

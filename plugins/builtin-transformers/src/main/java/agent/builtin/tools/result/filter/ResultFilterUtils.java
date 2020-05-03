@@ -51,13 +51,13 @@ public class ResultFilterUtils {
         if (chainFilter != null) {
             populateFilter(
                     chainFilter,
-                    invokeChainConfig == null ? null : invokeChainConfig.getClassFilter(),
-                    invokeChainConfig == null ? null : invokeChainConfig.getMethodFilter(),
-                    invokeChainConfig == null ? null : invokeChainConfig.getConstructorFilter(),
+                    invokeChainConfig == null ? null : invokeChainConfig.getMatchClassFilter(),
+                    invokeChainConfig == null ? null : invokeChainConfig.getMatchMethodFilter(),
+                    invokeChainConfig == null ? null : invokeChainConfig.getMatchConstructorFilter(),
                     opts.chainFilterExpr
             );
-            if (opts.chainLevel > -1)
-                chainFilter.setLevel(opts.chainLevel);
+            if (opts.chainSearchLevel > -1)
+                chainFilter.setLevel(opts.chainSearchLevel);
         }
     }
 }

@@ -121,16 +121,16 @@ public class TransformMgr {
         TransformResult transformResult = new TransformResult();
         List<ProxyRegInfo> regInfos = TimeMeasureUtils.run(
                 () -> prepareRegInfos(transformContext, transformResult),
-                "t1: {}ms"
+                "t1: {}"
         );
         List<ProxyResult> proxyResults = TimeMeasureUtils.run(
                 () -> compile(regInfos, transformResult),
-                "t2: {}ms"
+                "t2: {}"
         );
         if (!proxyResults.isEmpty()) {
             Map<Class<?>, byte[]> classToData = TimeMeasureUtils.run(
                     () -> reTransform(transformResult, proxyResults),
-                    "t3: {}ms"
+                    "t3: {}"
             );
             TimeMeasureUtils.run(
                     () -> {
@@ -147,7 +147,7 @@ public class TransformMgr {
                                 )
                         );
                     },
-                    "t4: {}ms"
+                    "t4: {}"
             );
         } else {
             logger.debug("No class need to be retransformed.");
