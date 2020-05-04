@@ -50,7 +50,7 @@ public class TraceInvokeTransformerTest extends AbstractTraceTest {
                 test6();
             } catch (Exception e) {
             }
-            return "xxx";
+            return "xxxxxxxxxxyyyyyyyyyyxxxxxxxxxxyyyyyyyyyyxxxxxxxxxxyyyyyyyyyy";
         }
 
         Date test2(float a7, double a8) {

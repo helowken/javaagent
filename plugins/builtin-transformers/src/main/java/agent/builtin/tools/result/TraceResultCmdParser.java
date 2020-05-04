@@ -7,14 +7,15 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class TraceResultCmdParser extends ResultCmdParser<TraceResultOptions, TraceResultParams> {
-    private static final String OPT_OUTPUT = "-o";
+    private static final String OPT_DISPLAY_SETTING = "-o";
+    private static final String SEP = " ";
+    private static final String DISPLAY_TIME = "time";
+    private static final String DISPLAY_ARGS = "args";
+    private static final String DISPLAY_RETURN_VALUE = "returnValue";
+    private static final String DISPLAY_ERROR = "error";
+    private static final String OPT_CONTENT_MAX_SIZE = "-mx";
     private static final String OPT_HEAD = "-h";
     private static final String OPT_TAIL = "-t";
-    private static final String SEP = " ";
-    private static final String OUTPUT_TIME = "time";
-    private static final String OUTPUT_ARGS = "args";
-    private static final String OUTPUT_RETURN_VALUE = "returnValue";
-    private static final String OUTPUT_ERROR = "error";
 
     @Override
     protected TraceResultOptions createOptions() {
@@ -30,16 +31,23 @@ public class TraceResultCmdParser extends ResultCmdParser<TraceResultOptions, Tr
     protected int parseOption(TraceResultParams params, TraceResultOptions opts, String[] args, int currIdx) {
         int i = currIdx;
         switch (args[i]) {
-            case OPT_OUTPUT:
+            case OPT_DISPLAY_SETTING:
                 Set<String> attrs = Stream.of(
-                        args[++i].split(SEP)
+                        getArg(args, ++i, "displaySettings")
+                                .split(SEP)
                 ).map(String::trim)
                         .filter(Utils::isNotBlank)
                         .collect(Collectors.toSet());
-                opts.showTime = attrs.contains(OUTPUT_TIME);
-                opts.showArgs = attrs.contains(OUTPUT_ARGS);
-                opts.showReturnValue = attrs.contains(OUTPUT_RETURN_VALUE);
-                opts.showError = attrs.contains(OUTPUT_ERROR);
+                opts.displayTime = attrs.contains(DISPLAY_TIME);
+                opts.displayArgs = attrs.contains(DISPLAY_ARGS);
+                opts.displayReturnValue = attrs.contains(DISPLAY_RETURN_VALUE);
+                opts.displayError = attrs.contains(DISPLAY_ERROR);
+                break;
+            case OPT_CONTENT_MAX_SIZE:
+                opts.contentMaxSize = Utils.parseInt(
+                        getArg(args, ++i, "contentMaxSize"),
+                        "Content max size"
+                );
                 break;
             case OPT_HEAD:
                 opts.headRows = getRows(args, ++i, "headRows");

@@ -104,8 +104,15 @@ public class InvokeChainSearcher {
         );
         taskRunner.await();
         List<DestInvoke> rsList = new ArrayList<>(invokeSet);
-        invokeSet.clear();
+        clear();
         return rsList;
+    }
+
+    private void clear() {
+        invokeSet.clear();
+        classToInvokeKeySet.clear();
+        nameToArrayClass.clear();
+        itemCache.clear();
     }
 
     private synchronized DestInvoke addInvoke(DestInvoke invoke) {

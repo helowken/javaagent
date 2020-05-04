@@ -77,12 +77,13 @@ abstract class AbstractTraceTest extends AbstractTest {
 
                     TraceResultParams params = new TraceResultParams();
                     params.inputPath = outputPath;
-                    params.opts = new TraceResultOptions();
+                    TraceResultOptions opts = new TraceResultOptions();
+                    params.opts = opts;
                     new TraceInvokeResultHandler().exec(params);
 
                     System.out.println("\n==============================");
-                    TraceResultOptions opts = new TraceResultOptions();
-                    opts.showError = opts.showArgs = opts.showReturnValue = opts.showTime = false;
+                    opts = new TraceResultOptions();
+                    opts.displayError = opts.displayArgs = opts.displayReturnValue = opts.displayTime = false;
                     params.opts = opts;
                     new TraceInvokeResultHandler().exec(params);
                 }

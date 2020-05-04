@@ -1,10 +1,11 @@
 package agent.builtin.tools.result;
 
 public class TraceResultOptions extends ResultOptions {
-    public boolean showTime = true;
-    public boolean showArgs = true;
-    public boolean showReturnValue = true;
-    public boolean showError = true;
+    public boolean displayTime = true;
+    public boolean displayArgs = true;
+    public boolean displayReturnValue = true;
+    public boolean displayError = true;
+    public int contentMaxSize = 50;
     public int headRows = 0;
     public int tailRows = 1;
 }

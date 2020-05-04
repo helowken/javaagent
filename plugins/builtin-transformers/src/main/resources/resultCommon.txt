@@ -2,3 +2,5 @@
                    Expr for filtering.
     -le <chainExpr>
                    Expr for chain filtering.
+    -mx <maxSize>
+                   Content max size limit to display.

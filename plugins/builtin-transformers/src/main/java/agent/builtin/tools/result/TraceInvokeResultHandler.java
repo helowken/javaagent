@@ -64,13 +64,13 @@ public class TraceInvokeResultHandler
             sb.append('\n');
     }
 
-    private StringBuilder appendArg(StringBuilder sb, Map<String, Object> map) {
+    private StringBuilder appendArg(StringBuilder sb, Map<String, Object> map, TraceResultOptions opts) {
         if (map.containsKey(KEY_INDEX)) {
             sb.append('[').append(
                     map.remove(KEY_INDEX)
             ).append("] ");
         }
-        return append(sb, map);
+        return append(sb, map, opts);
     }
 
     private String formatClass(String className) {
@@ -89,17 +89,20 @@ public class TraceInvokeResultHandler
         }
     }
 
-    private void appendValue(StringBuilder sb, Map<String, Object> rsMap) {
+    private void appendValue(StringBuilder sb, Map<String, Object> rsMap, TraceResultOptions opts) {
         if (rsMap.containsKey(KEY_VALUE)) {
             sb.append(
-                    rsMap.remove(KEY_VALUE)
+                    formatContent(
+                            rsMap.remove(KEY_VALUE),
+                            opts
+                    )
             );
         }
     }
 
-    private StringBuilder append(StringBuilder sb, Map<String, Object> rsMap) {
+    private StringBuilder append(StringBuilder sb, Map<String, Object> rsMap, TraceResultOptions opts) {
         appendClassName(sb, rsMap);
-        appendValue(sb, rsMap);
+        appendValue(sb, rsMap, opts);
         int i = 0;
         for (Map.Entry<String, Object> entry : rsMap.entrySet()) {
             if (i > 0)
@@ -107,7 +110,10 @@ public class TraceInvokeResultHandler
             sb.append(
                     entry.getKey()
             ).append("=").append(
-                    entry.getValue()
+                    formatContent(
+                            entry.getValue(),
+                            opts
+                    )
             );
             ++i;
         }
@@ -115,18 +121,25 @@ public class TraceInvokeResultHandler
         return sb;
     }
 
+    private String formatContent(Object value, TraceResultOptions opts) {
+        if (value == null)
+            return null;
+        String content = value.toString();
+        return content.length() > opts.contentMaxSize ?
+                content.substring(0, opts.contentMaxSize) + "... (first " + opts.contentMaxSize + " chars)" :
+                content;
+    }
+
     @Override
     Collection<Tree<TraceItem>> calculate(Collection<File> dataFiles, TraceResultParams params) {
         Collection<Tree<TraceItem>> rsList = new ConcurrentLinkedQueue<>();
         dataFiles.parallelStream()
-                .map(
-                        dataFile -> doCalculate(dataFile, params)
-                )
+                .map(this::doCalculate)
                 .forEach(rsList::addAll);
         return rsList;
     }
 
-    private List<Tree<TraceItem>> doCalculate(File dataFile, TraceResultParams params) {
+    private List<Tree<TraceItem>> doCalculate(File dataFile) {
         List<Tree<TraceItem>> trees = new ArrayList<>();
         calculateTextFile(
                 dataFile,
@@ -198,10 +211,11 @@ public class TraceInvokeResultHandler
         }
 
         @Override
-        protected Node<String> createNode(Node<TraceItem> node, Map<Integer, InvokeMetadata> idToMetadata, InvokeMetadata metadata, TraceResultOptions opts) {
+        protected Node<String> createNode(Node<TraceItem> node, Map<Integer, InvokeMetadata> idToMetadata,
+                                          InvokeMetadata metadata, TraceResultOptions opts) {
             StringBuilder sb = new StringBuilder();
             TraceItem item = node.getData();
-            if (opts.showTime)
+            if (opts.displayTime)
                 sb.append("[").append(
                         item.costTimeString()
                 ).append("ms] ");
@@ -213,16 +227,17 @@ public class TraceInvokeResultHandler
                             metadata
                     )
             );
-            if (item.hasArgs() && opts.showArgs) {
+            if (item.hasArgs() && opts.displayArgs) {
                 sb.append("\nArgs: \n");
                 item.getArgs().forEach(
                         arg -> appendArg(
                                 sb.append(indent),
-                                new TreeMap<>(arg)
+                                new TreeMap<>(arg),
+                                opts
                         )
                 );
             }
-            if (item.hasReturnValue() && opts.showReturnValue) {
+            if (item.hasReturnValue() && opts.displayReturnValue) {
                 String className = (String) item.getReturnValue().get(KEY_CLASS);
                 if (className == null || !className.equals(void.class.getName())) {
                     addWrapIfNeeded(sb);
@@ -230,17 +245,19 @@ public class TraceInvokeResultHandler
                             sb.append("Return: \n").append(indent),
                             new TreeMap<>(
                                     item.getReturnValue()
-                            )
+                            ),
+                            opts
                     );
                 }
             }
-            if (item.hasError() && opts.showError) {
+            if (item.hasError() && opts.displayError) {
                 addWrapIfNeeded(sb);
                 append(
                         sb.append("Error: \n").append(indent),
                         new TreeMap<>(
                                 item.getError()
-                        )
+                        ),
+                        opts
                 );
             }
             return new Node<>(
