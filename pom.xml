@@ -98,12 +98,5 @@
             </modules>
         </profile>
 
-        <profile>
-            <id>integration-test</id>
-            <modules>
-                <module>integration-test</module>
-            </modules>
-        </profile>
-
     </profiles>
 </project>

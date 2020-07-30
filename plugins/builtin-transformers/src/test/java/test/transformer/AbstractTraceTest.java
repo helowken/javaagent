@@ -9,6 +9,7 @@ import agent.builtin.tools.result.TraceResultParams;
 import agent.builtin.transformer.TraceInvokeTransformer;
 import agent.common.config.ConstructorFilterConfig;
 import agent.common.config.InvokeChainConfig;
+import agent.common.config.MethodFilterConfig;
 import test.server.AbstractTest;
 
 import java.util.Collections;
@@ -24,10 +25,15 @@ abstract class AbstractTraceTest extends AbstractTest {
 
         InvokeChainConfig invokeChainConfig = new InvokeChainConfig();
         ConstructorFilterConfig constructorFilterConfig = new ConstructorFilterConfig();
-        constructorFilterConfig.setIncludes(
-                Collections.singleton("*")
-        );
+        constructorFilterConfig.setIncludes(Collections.singleton("*"));
         invokeChainConfig.setMatchConstructorFilter(constructorFilterConfig);
+        invokeChainConfig.setSearchConstructorFilter(constructorFilterConfig);
+
+        MethodFilterConfig methodFilterConfig = new MethodFilterConfig();
+        methodFilterConfig.setIncludes(Collections.singleton("*"));
+        invokeChainConfig.setMatchMethodFilter(methodFilterConfig);
+        invokeChainConfig.setSearchMethodFilter(methodFilterConfig);
+
         doTest(clazz, methodName, classToMethodFilter, invokeChainConfig, runFirst);
     }
 

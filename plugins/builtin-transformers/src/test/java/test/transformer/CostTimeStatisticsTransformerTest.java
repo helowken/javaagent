@@ -7,9 +7,12 @@ import agent.builtin.tools.result.CostTimeResultParams;
 import agent.builtin.tools.result.InvokeCostTimeResultHandler;
 import agent.builtin.transformer.CostTimeStatisticsTransformer;
 import agent.common.config.InvokeChainConfig;
+import agent.common.config.MethodFilterConfig;
+import agent.server.transform.search.filter.InvokeChainMatchFilter;
 import org.junit.Test;
 import test.server.AbstractTest;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -26,9 +29,14 @@ public class CostTimeStatisticsTransformerTest extends AbstractTest {
     public void test2() throws Exception {
         Map<Class<?>, String> classToMethodFilter = new HashMap<>();
         classToMethodFilter.put(A.class, "service");
+        InvokeChainConfig chainConfig = new InvokeChainConfig();
+        MethodFilterConfig methodFilterConfig = new MethodFilterConfig();
+        methodFilterConfig.setIncludes(Collections.singleton("*"));
+        chainConfig.setMatchMethodFilter(methodFilterConfig);
+        chainConfig.setSearchMethodFilter(methodFilterConfig);
         doTest(
                 classToMethodFilter,
-                new InvokeChainConfig()
+                chainConfig
         );
     }
 
@@ -55,30 +63,30 @@ public class CostTimeStatisticsTransformerTest extends AbstractTest {
                     CallChainCostTimeResultHandler chainHandler = new CallChainCostTimeResultHandler();
                     chainHandler.exec(params);
 
-                    System.out.println("\n======= Use cache =======");
+                    System.out.println("\n======= Use cache 1 =======");
                     opts = new CostTimeResultOptions();
                     opts.methodStr = "service";
-                    opts.filterExpr = "avgTime > 20";
+                    opts.filterExpr = "avg > 20";
                     opts.chainMatchMethodStr = "runApi4";
                     params.opts = opts;
                     chainHandler.exec(params);
 
-                    System.out.println("\n======= Use cache =======");
+                    System.out.println("\n======= Use cache 2 =======");
                     opts = new CostTimeResultOptions();
-                    opts.chainFilterExpr = "avgTime > 20";
+                    opts.chainFilterExpr = "avg > 20";
                     params.opts = opts;
                     chainHandler.exec(params);
 
-                    System.out.println("====================\n");
+                    System.out.println("=========== 33 =========\n");
                     InvokeCostTimeResultHandler invokeHandler = new InvokeCostTimeResultHandler();
                     opts = new CostTimeResultOptions();
                     opts.methodStr = "runApi*,service";
                     params.opts = opts;
                     invokeHandler.exec(params);
 
-                    System.out.println("\n======= Use cache =======");
+                    System.out.println("\n======= Use cache 4 =======");
                     opts = new CostTimeResultOptions();
-                    opts.chainFilterExpr = "avgTime > 20";
+                    opts.filterExpr = "avg > 20";
                     params.opts = opts;
                     invokeHandler.exec(params);
                 }

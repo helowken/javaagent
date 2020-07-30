@@ -40,7 +40,7 @@ public class ResultFilterUtils {
     public static <M, O extends ResultOptions> void populateFilter(AbstractResultFilter<M> filter, AbstractResultFilter<M> chainFilter, O opts) {
         TargetConfig targetConfig = createTargetConfig(opts);
         if (filter != null) {
-            ResultFilterUtils.populateFilter(filter,
+            populateFilter(filter,
                     targetConfig.getClassFilter(),
                     targetConfig.getMethodFilter(),
                     targetConfig.getConstructorFilter(),

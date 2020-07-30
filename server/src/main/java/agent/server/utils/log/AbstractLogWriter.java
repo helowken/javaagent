@@ -20,7 +20,7 @@ import static agent.server.utils.log.LogConfig.STDOUT;
 public abstract class AbstractLogWriter<T extends LogConfig, V extends LogItem> implements LogWriter<V> {
     private static final Logger logger = Logger.getLogger(AbstractLogWriter.class);
     protected final String logKey;
-    protected final T logConfig;
+    private final T logConfig;
     protected boolean stdout;
     private final LinkedBlockingQueue<ItemBuffer> taskQueue = new LinkedBlockingQueue<>();
     private final LinkedBlockingQueue<ItemBuffer> availableBuffers;
@@ -190,7 +190,7 @@ public abstract class AbstractLogWriter<T extends LogConfig, V extends LogItem> 
 
     protected class ItemBuffer {
         private final List<V> buffer = new LinkedList<>();
-        public long bufferSize = 0;
+        long bufferSize = 0;
         boolean flush = false;
 
         public void add(V item, long itemSize) {

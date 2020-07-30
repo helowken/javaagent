@@ -6,6 +6,7 @@ public class TraceResultOptions extends ResultOptions {
     public boolean displayReturnValue = true;
     public boolean displayError = true;
     public int contentMaxSize = 50;
+    public int expandLevels = -1;
     public int headRows = 0;
     public int tailRows = 1;
 }

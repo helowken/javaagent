@@ -14,6 +14,7 @@ public class TraceResultCmdParser extends ResultCmdParser<TraceResultOptions, Tr
     private static final String DISPLAY_RETURN_VALUE = "returnValue";
     private static final String DISPLAY_ERROR = "error";
     private static final String OPT_CONTENT_MAX_SIZE = "-mx";
+    private static final String OPT_EXPAND_LEVEL = "-el";
     private static final String OPT_HEAD = "-h";
     private static final String OPT_TAIL = "-t";
 

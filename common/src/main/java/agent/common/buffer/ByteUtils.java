@@ -39,6 +39,10 @@ public class ByteUtils {
         return idx;
     }
 
+    /**
+     * Read an integer stored in variable-length format using zig-zag decoding from
+     * <a href="http://code.google.com/apis/protocolbuffers/docs/encoding.html"> Google Protocol Buffers</a>.
+     **/
     public static int readVarInt(ByteBuffer buffer) {
         int value = 0;
         int i = 0;

@@ -54,7 +54,7 @@ public abstract class AbstractTest {
     private static synchronized void init() throws Exception {
         if (!inited) {
             Properties props = new Properties();
-            props.setProperty("invoke.chain.cache.max.size", "100");
+            props.setProperty("invoke.chain.search.cache.max.size", "100");
             SystemConfig.load(props);
             ReflectionUtils.useField(
                     JSONUtils.class,

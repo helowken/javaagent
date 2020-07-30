@@ -1,23 +1,29 @@
 package test.server.search;
 
+import agent.common.config.ClassFilterConfig;
+import agent.common.config.ConstructorFilterConfig;
+import agent.common.config.InvokeChainConfig;
+import agent.common.config.MethodFilterConfig;
 import agent.server.transform.impl.invoke.DestInvoke;
 import agent.server.transform.impl.invoke.MethodInvoke;
 import agent.server.transform.search.ClassCache;
 import agent.server.transform.search.InvokeChainSearcher;
+import com.sun.deploy.util.StringUtils;
 import org.junit.Test;
 import test.server.AbstractTest;
 
 import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.TreeSet;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.junit.Assert.*;
 
 public class InvokeChainSearcherTest extends AbstractTest {
-    private static final boolean debugEnabled = true;
+    private static final boolean debugEnabled = false;
     private static final ClassCache classCache = new ClassCache();
 
     static {
@@ -167,6 +173,22 @@ public class InvokeChainSearcherTest extends AbstractTest {
     private void doTest(Object... expectation) {
         assertNotNull(expectation);
         assertTrue(expectation.length > 0);
+        InvokeChainConfig filterConfig = new InvokeChainConfig();
+        ClassFilterConfig classFilterConfig = new ClassFilterConfig();
+        classFilterConfig.setIncludes(Collections.singleton("*"));
+        filterConfig.setMatchClassFilter(classFilterConfig);
+        filterConfig.setSearchClassFilter(classFilterConfig);
+
+        ConstructorFilterConfig constructorFilterConfig = new ConstructorFilterConfig();
+        constructorFilterConfig.setIncludes(Collections.singleton("*"));
+        filterConfig.setMatchConstructorFilter(constructorFilterConfig);
+        filterConfig.setSearchConstructorFilter(constructorFilterConfig);
+
+        MethodFilterConfig methodFilterConfig = new MethodFilterConfig();
+        methodFilterConfig.setIncludes(Collections.singleton("*"));
+        filterConfig.setMatchMethodFilter(methodFilterConfig);
+        filterConfig.setSearchMethodFilter(methodFilterConfig);
+
         Collection<DestInvoke> rsList = InvokeChainSearcher.search(
                 classCache,
                 this::getClassData,
@@ -175,25 +197,30 @@ public class InvokeChainSearcherTest extends AbstractTest {
                                 (Method) expectation[0]
                         )
                 ),
-                null
+                filterConfig
         );
         if (debugEnabled) {
             System.out.println("=============================");
             rsList.forEach(System.out::println);
         }
-        assertEquals(
-                new TreeSet<>(
-                        Stream.of(expectation)
-                                .map(Object::toString)
-                                .collect(Collectors.toSet())
-                ),
-                new TreeSet<>(
-                        rsList.stream()
-                                .map(DestInvoke::getInvokeEntity)
-                                .map(Object::toString)
-                                .collect(Collectors.toSet())
-                )
-        );
+
+
+        Set<String> expected = Stream.of(expectation)
+                .map(Object::toString)
+                .collect(Collectors.toSet());
+        Set<String> checked = rsList.stream()
+                .map(DestInvoke::getInvokeEntity)
+                .map(Object::toString)
+                .collect(Collectors.toSet());
+        Set<String> tmp = new HashSet<>(expected);
+        tmp.removeAll(checked);
+        if (!tmp.isEmpty())
+            fail("Missing: \n" + StringUtils.join(tmp, "\n    "));
+
+        tmp = new HashSet<>(checked);
+        tmp.removeAll(expected);
+        if (!tmp.isEmpty())
+            fail("Has More: \n" + StringUtils.join(tmp, "\n    "));
     }
 
     static class Invoker {
