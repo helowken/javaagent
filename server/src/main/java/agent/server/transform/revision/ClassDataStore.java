@@ -2,68 +2,52 @@ package agent.server.transform.revision;
 
 import agent.base.utils.IOUtils;
 import agent.base.utils.Logger;
-import agent.base.utils.TimeMeasureUtils;
-import agent.base.utils.Utils;
+import agent.base.utils.StringItem;
 
 import java.io.File;
-import java.nio.file.Files;
-import java.util.function.Function;
 
 public class ClassDataStore {
-    public static final int REVISION_0 = 0;
     private static final Logger logger = Logger.getLogger(ClassDataStore.class);
-    private static final String TMP_DIR_PREFIX = "javaagent";
-    private static final String STORE_DIR = "class_data";
-    private static File storeDir;
+    private final String dir;
 
-    private static synchronized File getStoreDir() {
-        if (storeDir == null) {
-            File tmpDir = Utils.wrapToRtError(
-                    () -> Files.createTempDirectory(TMP_DIR_PREFIX).toFile()
-            );
-            storeDir = new File(tmpDir, STORE_DIR);
-            if (!storeDir.mkdirs() && !storeDir.exists())
-                throw new RuntimeException("Couldn't create store dir.");
-        }
-        return storeDir;
+    ClassDataStore(String dir) {
+        this.dir = dir;
+        logger.debug("Class data store dir: {}", dir);
     }
 
-    private static File getFile(Class<?> clazz, int revisionNum) {
-        String relativePath = getFileName(clazz) + "_" + System.identityHashCode(clazz) + "." + revisionNum;
-        return new File(getStoreDir(), relativePath);
+    File getClassDataFile(Class<?> clazz) {
+        String relativePath = new StringItem(clazz.getName())
+                .replaceAll(".", File.separator)
+                .replaceAll("$", "#") + "_" +
+                System.identityHashCode(clazz.getClassLoader()) + "_" +
+                System.identityHashCode(clazz);
+        return new File(dir, relativePath);
     }
 
-    static void save(Class<?> clazz, byte[] data, final int revisionNum) {
-        TimeMeasureUtils.run(
-                () -> save(clazz,
-                        data,
-                        currClass -> getFile(currClass, revisionNum)
-                ),
-                "SaveClass: {}"
-        );
-    }
-
-    public static byte[] load(Class<?> clazz, int revisionNum) {
-        File file = getFile(clazz, revisionNum);
-        logger.debug("Load class {} [loader={}] data from: {}", clazz.getName(), clazz.getClassLoader(), file.getAbsolutePath());
-        return Utils.wrapToRtError(
-                () -> IOUtils.readBytes(file)
-        );
-    }
-
-    public static String getFileName(Class<?> clazz) {
-        return clazz.getName().replaceAll("\\.", File.separator);
-    }
-
-    public static void save(Class<?> clazz, byte[] data, Function<Class<?>, File> getClassFileFunc) {
-        File file = getClassFileFunc.apply(clazz);
+    void save(Class<?> clazz, byte[] data) {
+        File file = getClassDataFile(clazz);
         File parentFile = file.getParentFile();
-        if (!parentFile.exists())
-            parentFile.mkdirs();
-        logger.debug("Save class {} [loader={}] data to: {}", clazz.getName(), clazz.getClassLoader(), file.getAbsolutePath());
-        Utils.wrapToRtError(
-                () -> IOUtils.writeBytes(file, data, false)
-        );
+        try {
+            if (!parentFile.mkdirs() && !parentFile.exists())
+                throw new RuntimeException("Create dir failed: " + parentFile.getAbsolutePath());
+            logger.debug("Save class {} [loader={}] data to: {}", clazz.getName(), clazz.getClassLoader(), file.getAbsolutePath());
+            IOUtils.writeBytes(file, data, false);
+        } catch (Exception e) {
+            logger.error("Write class daa to file failed.", e);
+        }
     }
 
+    byte[] load(Class<?> clazz) {
+        File file = getClassDataFile(clazz);
+        if (file.exists()) {
+            logger.debug("Load class {} [loader={}] data from: {}", clazz.getName(), clazz.getClassLoader(), file.getAbsolutePath());
+            try {
+                return IOUtils.readBytes(file);
+            } catch (Exception e) {
+                logger.error("Read class data file failed.", e);
+                return null;
+            }
+        }
+        return null;
+    }
 }

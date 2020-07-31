@@ -94,7 +94,7 @@ public class TransformMgr {
                                             invokeChainConfig -> invokeSet.addAll(
                                                     InvokeChainSearcher.search(
                                                             classCache,
-                                                            ClassDataRepository.getInstance()::getClassData,
+                                                            ClassDataRepository.getInstance()::getCurrentClassData,
                                                             invokesPerTarget,
                                                             invokeChainConfig
                                                     )
@@ -177,7 +177,7 @@ public class TransformMgr {
         List<ProxyResult> rsList = new ArrayList<>();
         ProxyTransformMgr.getInstance().transform(
                 regInfos,
-                ClassDataRepository.getInstance()::getClassData
+                ClassDataRepository.getInstance()::getCurrentClassData
         ).forEach(
                 proxyResult -> {
                     if (proxyResult.hasError())

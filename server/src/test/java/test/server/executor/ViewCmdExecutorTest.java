@@ -8,39 +8,31 @@ import org.junit.Test;
 import test.server.AbstractTest;
 
 import java.lang.reflect.Method;
+import java.util.List;
 import java.util.Map;
 
 import static agent.common.message.command.impl.ViewCommand.CATALOG_CLASS;
 import static agent.common.message.command.impl.ViewCommand.CATALOG_INVOKE;
 
 public class ViewCmdExecutorTest extends AbstractTest {
-    private static final String context1 = "context1";
-    private static final String context2 = "context2";
-
     @Test
-    public void testContextToClass() throws Exception {
-        reg(context1, A.class);
-        reg(context2, B.class);
+    public void testContextToClass() {
+        reg(A.class);
+        reg(B.class);
 
-        Map map = CmdExecutorMgr.exec(
+        List classes = CmdExecutorMgr.exec(
                 new ViewCommand(CATALOG_CLASS)
         ).getContent();
-        System.out.println(map);
+        System.out.println(classes);
 
 
-        map = CmdExecutorMgr.exec(
+        Map map = CmdExecutorMgr.exec(
                 new ViewCommand(CATALOG_INVOKE)
         ).getContent();
         System.out.println(map);
     }
 
-    private void reg(String context, Class<?> clazz, String methodName) throws Exception {
-        DestInvokeIdRegistry.getInstance().reg(
-                newMethodInvoke(clazz, methodName)
-        );
-    }
-
-    private void reg(String context, Class<?> clazz) throws Exception {
+    private void reg(Class<?> clazz) {
         for (Method method : clazz.getDeclaredMethods()) {
             DestInvokeIdRegistry.getInstance().reg(
                     new MethodInvoke(method)

@@ -2,6 +2,7 @@ package test.server.search;
 
 import agent.base.utils.IOUtils;
 import agent.server.transform.search.ClassCache;
+import agent.server.transform.search.filter.ClassFilter;
 import agent.server.transform.search.filter.FilterUtils;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -165,14 +166,22 @@ public class ClassCacheTest extends AbstractTest {
     private Collection<Class<?>> getSubClasses(ClassCache classCache, Class<?> baseClass, boolean includeInterface) {
         return classCache.getSubClasses(
                 baseClass,
-                FilterUtils.newClassFilter(null, null, includeInterface)
+                createClassFilter(includeInterface)
         );
     }
 
     private Collection<Class<?>> getSubTypes(ClassCache classCache, Class<?> baseClass, boolean includeInterface) {
         return classCache.getSubTypes(
                 baseClass,
-                FilterUtils.newClassFilter(null, null, includeInterface)
+                createClassFilter(includeInterface)
+        );
+    }
+
+    private ClassFilter createClassFilter(boolean includeInterface) {
+        return FilterUtils.newClassFilter(
+                Collections.singleton("*"),
+                null,
+                includeInterface
         );
     }
 

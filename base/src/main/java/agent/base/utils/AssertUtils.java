@@ -11,8 +11,8 @@ public class AssertUtils {
     }
 
     public static void assertNull(Object v) {
-        if (v == null)
-            throw new RuntimeException("Object is not null!");
+        if (v != null)
+            throw new RuntimeException("Object is not null: " + v);
     }
 
     public static void fail(String msg) {

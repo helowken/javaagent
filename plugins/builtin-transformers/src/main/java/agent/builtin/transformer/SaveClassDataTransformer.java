@@ -57,7 +57,7 @@ public class SaveClassDataTransformer extends AbstractConfigTransformer {
 //                ).forEach(
 //                        savingClass -> ClassDataStore.save(
 //                                savingClass,
-//                                ClassDataRepository.getInstance().getClassData(savingClass),
+//                                ClassDataRepository.getInstance().getCurrentClassData(savingClass),
 //                                currClass -> new File(
 //                                        outputPath,
 //                                        ClassDataStore.getFileName(currClass) + FILE_SUFFIX

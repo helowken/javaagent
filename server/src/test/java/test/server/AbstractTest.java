@@ -37,7 +37,7 @@ import static org.junit.Assert.assertFalse;
 public abstract class AbstractTest {
     protected static final TestClassLoader loader = new TestClassLoader();
     private static boolean inited = false;
-    private static final TestInstrumentation instrumentation = new TestInstrumentation();
+    protected static final TestInstrumentation instrumentation = new TestInstrumentation();
     private static final WaitFlushingListener waitMetadataListener = new WaitFlushingListener(DestInvokeMetadataFlushedEvent.class);
     private static final WaitFlushingListener waitDataListener = new WaitFlushingListener(LogFlushedEvent.class);
 
@@ -54,7 +54,10 @@ public abstract class AbstractTest {
     private static synchronized void init() throws Exception {
         if (!inited) {
             Properties props = new Properties();
-            props.setProperty("invoke.chain.search.cache.max.size", "100");
+
+            props.setProperty("invoke.chain.search.cache.max.size", "1000");
+            props.setProperty("invoke.chain.search.core.pool.size", "1");
+            props.setProperty("invoke.chain.search.max.pool.size", "100");
             SystemConfig.load(props);
             ReflectionUtils.useField(
                     JSONUtils.class,
