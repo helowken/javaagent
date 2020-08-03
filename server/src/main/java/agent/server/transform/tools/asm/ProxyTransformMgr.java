@@ -4,6 +4,8 @@ import agent.base.utils.InvokeDescriptorUtils;
 import agent.base.utils.Logger;
 import agent.server.transform.impl.DestInvokeIdRegistry;
 import agent.server.transform.impl.invoke.DestInvoke;
+import agent.server.transform.revision.ClassDataRepository;
+import sun.reflect.generics.repository.ClassRepository;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -103,10 +105,8 @@ public class ProxyTransformMgr {
                     item.getIdToInvoke()
             );
             verifyClassData(newClassData);
-            return new ProxyResult(
-                    item,
-                    newClassData
-            );
+            ClassDataRepository.getInstance().saveClassData(targetClass, newClassData);
+            return new ProxyResult(item);
         } catch (Exception e) {
             logger.error("doTransform failed: {}", e, targetClass.getName());
             return new ProxyResult(item, e);

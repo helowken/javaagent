@@ -33,7 +33,7 @@ public class ClassDataStore {
             logger.debug("Save class {} [loader={}] data to: {}", clazz.getName(), clazz.getClassLoader(), file.getAbsolutePath());
             IOUtils.writeBytes(file, data, false);
         } catch (Exception e) {
-            logger.error("Write class daa to file failed.", e);
+            logger.error("Write class data to file failed.", e);
         }
     }
 

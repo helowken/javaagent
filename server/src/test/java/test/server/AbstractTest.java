@@ -16,9 +16,11 @@ import agent.server.transform.*;
 import agent.server.transform.impl.DestInvokeIdRegistry;
 import agent.server.transform.impl.invoke.DestInvoke;
 import agent.server.transform.impl.invoke.MethodInvoke;
+import agent.server.transform.revision.ClassDataRepository;
 import agent.server.transform.tools.asm.ProxyRegInfo;
 import agent.server.transform.tools.asm.ProxyResult;
 import agent.server.transform.tools.asm.ProxyTransformMgr;
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 
 import java.io.File;
@@ -49,6 +51,11 @@ public abstract class AbstractTest {
     @BeforeClass
     public static void beforeClass() throws Exception {
         init();
+    }
+
+    @AfterClass
+    public static void afterClass() throws Exception {
+        ClassDataRepository.getInstance().clearAllData();
     }
 
     private static synchronized void init() throws Exception {
@@ -290,6 +297,8 @@ public abstract class AbstractTest {
             runFileFunc.run(outputPath, config);
         } finally {
             Files.delete(path);
+            new File(outputPath + ".invoke_cache").delete();
+            new File(outputPath + ".chain_cache").delete();
             Stream.of(
                     DestInvokeIdRegistry.getMetadataFile(outputPath)
             ).map(File::new)

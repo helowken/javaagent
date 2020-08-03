@@ -1,8 +1,11 @@
 package test.transformer;
 
+import agent.common.config.ConstructorFilterConfig;
 import agent.common.config.InvokeChainConfig;
+import agent.common.config.MethodFilterConfig;
 import org.junit.Test;
 
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -16,20 +19,32 @@ public class TraceInvokeTransformerTest extends AbstractTraceTest {
         doTest(
                 A.class,
                 "service",
-                classToMethodFilter, null,
+                classToMethodFilter,
+                null,
                 true
         );
     }
 
     @Test
     public void test2() throws Exception {
+        InvokeChainConfig invokeChainConfig = new InvokeChainConfig();
+        ConstructorFilterConfig constructorFilterConfig = new ConstructorFilterConfig();
+        constructorFilterConfig.setIncludes(Collections.singleton("*"));
+        invokeChainConfig.setMatchConstructorFilter(constructorFilterConfig);
+        invokeChainConfig.setSearchConstructorFilter(constructorFilterConfig);
+
+        MethodFilterConfig methodFilterConfig = new MethodFilterConfig();
+        methodFilterConfig.setIncludes(Collections.singleton("*"));
+        invokeChainConfig.setSearchMethodFilter(methodFilterConfig);
+        invokeChainConfig.setMatchMethodFilter(methodFilterConfig);
+
         Map<Class<?>, String> classToMethodFilter = new HashMap<>();
         classToMethodFilter.put(A.class, "service");
         doTest(
                 A.class,
                 "service",
                 classToMethodFilter,
-                new InvokeChainConfig(),
+                invokeChainConfig,
                 true
         );
     }

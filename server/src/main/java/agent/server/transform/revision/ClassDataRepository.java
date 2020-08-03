@@ -6,7 +6,9 @@ import agent.server.transform.InstrumentationMgr;
 import java.io.File;
 import java.io.InputStream;
 import java.nio.file.Files;
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.UUID;
 import java.util.function.Function;
 
 public class ClassDataRepository {
@@ -16,6 +18,8 @@ public class ClassDataRepository {
     private static final String ORIGINAL_DIR = "original";
     private static final String CURR_DIR = "current";
     private static final ClassDataRepository instance = new ClassDataRepository();
+    private String baseDir;
+    private String launchBaseDir;
     private final ClassDataStore originalDataStore;
     private final ClassDataStore currentDataStore;
     private final List<Function<Class<?>, byte[]>> originalClassDataFuncList;
@@ -29,9 +33,8 @@ public class ClassDataRepository {
     }
 
     private ClassDataRepository() {
-        String baseDir = getBaseDir();
-        originalDataStore = new ClassDataStore(baseDir + File.separator + ORIGINAL_DIR);
-        currentDataStore = new ClassDataStore(baseDir + File.separator + CURR_DIR);
+        originalDataStore = new ClassDataStore(getLaunchBaseDir() + File.separator + ORIGINAL_DIR);
+        currentDataStore = new ClassDataStore(getLaunchBaseDir() + File.separator + CURR_DIR);
 
         originalClassDataFuncList = Arrays.asList(
                 this::loadClassDataFromResource,
@@ -41,23 +44,35 @@ public class ClassDataRepository {
     }
 
     private String getBaseDir() {
-        String baseDir = SystemConfig.get(KEY_CLASS_DATA_BASE_DIR);
-        if (Utils.isBlank(baseDir))
-            baseDir = Utils.wrapToRtError(
-                    () -> Files.createTempDirectory(TMP_DIR).toFile().getAbsolutePath()
-            );
-        baseDir += File.separator + UUID.randomUUID();
+        if (baseDir == null) {
+            String dir = SystemConfig.get(KEY_CLASS_DATA_BASE_DIR);
+            if (Utils.isBlank(dir))
+                dir = Utils.wrapToRtError(
+                        () -> Files.createTempDirectory(TMP_DIR).toFile().getAbsolutePath()
+                );
+            baseDir = dir;
+        }
         return baseDir;
     }
 
-    public void saveClassData(Class<?> clazz, byte[] data) {
-        saveClassData(
-                Collections.singletonMap(clazz, data)
-        );
+    private synchronized String getLaunchBaseDir() {
+        if (launchBaseDir == null)
+            launchBaseDir = getBaseDir() + File.separator + UUID.randomUUID();
+        return launchBaseDir;
     }
 
-    public void saveClassData(Map<Class<?>, byte[]> classDataMap) {
-        classDataMap.forEach(currentDataStore::save);
+    public synchronized void clearAllData() {
+        if (launchBaseDir != null) {
+            logger.debug("Clear all data in launch dir: {}", launchBaseDir);
+            FileUtils.removeFileOrDir(
+                    new File(launchBaseDir)
+            );
+            launchBaseDir = null;
+        }
+    }
+
+    public void saveClassData(Class<?> clazz, byte[] data) {
+        currentDataStore.save(clazz, data);
     }
 
     private byte[] loadClassDataFromResource(Class<?> clazz) {

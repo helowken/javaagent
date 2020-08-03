@@ -119,7 +119,7 @@
             </dependency>
             <dependency>
                 <groupId>javaagent</groupId>
-                <artifactId>spring-aop</artifactId>
+                <artifactId>aop4spring</artifactId>
                 <version>${project.version}</version>
             </dependency>
 

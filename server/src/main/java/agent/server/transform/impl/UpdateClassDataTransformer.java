@@ -3,18 +3,18 @@ package agent.server.transform.impl;
 import java.lang.instrument.ClassFileTransformer;
 import java.lang.instrument.IllegalClassFormatException;
 import java.security.ProtectionDomain;
-import java.util.Map;
+import java.util.function.Function;
 
 public class UpdateClassDataTransformer implements ClassFileTransformer {
-    private final Map<Class<?>, byte[]> classToData;
+    private final Function<Class<?>, byte[]> classDataFunc;
 
-    public UpdateClassDataTransformer(Map<Class<?>, byte[]> classToData) {
-        this.classToData = classToData;
+    public UpdateClassDataTransformer(Function<Class<?>, byte[]> classDataFunc) {
+        this.classDataFunc = classDataFunc;
     }
 
     @Override
     public byte[] transform(ClassLoader loader, String className, Class<?> classBeingRedefined,
                             ProtectionDomain protectionDomain, byte[] classfileBuffer) throws IllegalClassFormatException {
-        return classToData.get(classBeingRedefined);
+        return classDataFunc.apply(classBeingRedefined);
     }
 }

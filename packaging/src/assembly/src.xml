@@ -42,7 +42,7 @@
             <outputDirectory>server/lib/plugin</outputDirectory>
             <includes>
                 <include>javaagent:builtin-transformers</include>
-                <include>javaagent:spring-aop</include>
+                <include>javaagent:aop4spring</include>
             </includes>
         </dependencySet>
         <dependencySet>

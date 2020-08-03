@@ -84,7 +84,7 @@ public class ClassDataRepositoryTest extends AbstractTest {
     }
 
     @Test
-    public void testGetCurrentClassData() {
+    public void testGetCurrentClassData() throws Exception {
         Pair<Class<?>, byte[]> p = createClass();
         Class<?> newClass = p.left;
         byte[] data = p.right;
@@ -100,6 +100,11 @@ public class ClassDataRepositoryTest extends AbstractTest {
         data2 = ClassDataRepository.getInstance().getCurrentClassData(newClass);
         assertNotNull(data2);
         assertTrue(Arrays.equals(data, data2));
+
+        String path = ClassDataRepository.getInstance().getCurrentClassDataPath(newClass);
+        assertTrue(new File(path).exists());
+        byte[] data3 = IOUtils.readBytes(path);
+        assertTrue(Arrays.equals(data, data3));
     }
 
     private Pair<Class<?>, byte[]> createClass() {

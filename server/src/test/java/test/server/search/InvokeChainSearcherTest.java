@@ -8,7 +8,6 @@ import agent.server.transform.impl.invoke.DestInvoke;
 import agent.server.transform.impl.invoke.MethodInvoke;
 import agent.server.transform.search.ClassCache;
 import agent.server.transform.search.InvokeChainSearcher;
-import com.sun.deploy.util.StringUtils;
 import org.junit.Test;
 import test.server.AbstractTest;
 
@@ -215,12 +214,12 @@ public class InvokeChainSearcherTest extends AbstractTest {
         Set<String> tmp = new HashSet<>(expected);
         tmp.removeAll(checked);
         if (!tmp.isEmpty())
-            fail("Missing: \n" + StringUtils.join(tmp, "\n    "));
+            fail("Missing: \n" + String.join("\n    ", tmp));
 
         tmp = new HashSet<>(checked);
         tmp.removeAll(expected);
         if (!tmp.isEmpty())
-            fail("Has More: \n" + StringUtils.join(tmp, "\n    "));
+            fail("Has More: \n" + String.join("\n    ", tmp));
     }
 
     static class Invoker {

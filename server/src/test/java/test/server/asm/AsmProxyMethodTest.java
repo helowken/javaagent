@@ -3,6 +3,7 @@ package test.server.asm;
 import agent.base.utils.ReflectionUtils;
 import agent.base.utils.Utils;
 import org.junit.Test;
+import test.server.AbstractTest;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -11,7 +12,7 @@ import java.util.List;
 import static org.junit.Assert.*;
 import static test.server.asm.AsmTestUtils.doCheck;
 
-public class AsmProxyMethodTest {
+public class AsmProxyMethodTest extends AbstractTest {
     private final int count = 3;
     private static final String errorMsg = "xxxx";
 

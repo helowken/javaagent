@@ -60,7 +60,7 @@
         </dependency>
         <dependency>
             <groupId>javaagent</groupId>
-            <artifactId>spring-aop</artifactId>
+            <artifactId>aop4spring</artifactId>
         </dependency>
     </dependencies>
 

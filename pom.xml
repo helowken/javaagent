@@ -26,7 +26,7 @@
                 <module>server</module>
                 <module>client</module>
                 <module>plugins/builtin-transformers</module>
-                <module>plugins/spring-aop</module>
+                <module>plugins/aop4spring</module>
                 <module>packaging</module>
             </modules>
         </profile>
@@ -80,7 +80,7 @@
             <id>plugins</id>
             <modules>
                 <module>plugins/builtin-transformers</module>
-                <module>plugins/spring-aop</module>
+                <module>plugins/aop4spring</module>
             </modules>
         </profile>
 

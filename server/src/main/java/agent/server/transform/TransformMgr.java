@@ -20,7 +20,6 @@ import agent.server.transform.tools.asm.ProxyResult;
 import agent.server.transform.tools.asm.ProxyTransformMgr;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 import static agent.server.transform.TransformContext.ACTION_MODIFY;
@@ -128,23 +127,19 @@ public class TransformMgr {
                 "t2: {}"
         );
         if (!proxyResults.isEmpty()) {
-            Map<Class<?>, byte[]> classToData = TimeMeasureUtils.run(
+            List<ProxyResult> validRsList = TimeMeasureUtils.run(
                     () -> reTransform(transformResult, proxyResults),
                     "t3: {}"
             );
             TimeMeasureUtils.run(
                     () -> {
-                        Set<Class<?>> validClassSet = new HashSet<>(
-                                classToData.keySet()
-                        );
-                        regValidProxyResults(proxyResults, validClassSet);
-
-                        ClassDataRepository.getInstance().saveClassData(classToData);
+                        ProxyTransformMgr.getInstance().reg(validRsList);
                         EventListenerMgr.fireEvent(
                                 new TransformClassEvent(
                                         transformContext.getAction(),
-                                        validClassSet
-                                )
+                                        validRsList.stream()
+                                                .map(ProxyResult::getTargetClass)
+                                                .collect(Collectors.toSet()))
                         );
                     },
                     "t4: {}"
@@ -192,39 +187,24 @@ public class TransformMgr {
         return rsList;
     }
 
-    private Map<Class<?>, byte[]> reTransform(TransformResult transformResult, List<ProxyResult> proxyResults) {
-        Map<Class<?>, byte[]> classToData = new ConcurrentHashMap<>();
+    private List<ProxyResult> reTransform(TransformResult transformResult, List<ProxyResult> proxyResults) {
+        UpdateClassDataTransformer transformer = new UpdateClassDataTransformer(
+                ClassDataRepository.getInstance()::getCurrentClassData
+        );
+        List<ProxyResult> validRsList = new ArrayList<>();
         proxyResults.forEach(
-                proxyResult -> classToData.put(
-                        proxyResult.getTargetClass(),
-                        proxyResult.getClassData()
-                )
+                proxyResult -> {
+                    Class<?> clazz = proxyResult.getTargetClass();
+                    try {
+                        InstrumentationMgr.getInstance().retransform(transformer, clazz);
+                        validRsList.add(proxyResult);
+                    } catch (Throwable t) {
+                        transformResult.addReTransformError(clazz, t);
+                        logger.error("Update class data failed: {}", t, clazz);
+                    }
+                }
         );
-        try {
-            InstrumentationMgr.getInstance().retransform(
-                    new UpdateClassDataTransformer(classToData),
-                    classToData.keySet().toArray(new Class[0])
-            );
-            return classToData;
-        } catch (Throwable t) {
-            transformResult.addReTransformError(Object.class, t);
-            logger.error("Update class data failed.", t);
-            return Collections.emptyMap();
-        }
-    }
-
-    private void regValidProxyResults(List<ProxyResult> originalProxyResults, Set<Class<?>> validClassSet) {
-        ProxyTransformMgr.getInstance().reg(
-                originalProxyResults.stream()
-                        .filter(
-                                proxyResult -> validClassSet.contains(
-                                        proxyResult.getTargetClass()
-                                )
-                        )
-                        .collect(
-                                Collectors.toList()
-                        )
-        );
+        return validRsList;
     }
 
 }

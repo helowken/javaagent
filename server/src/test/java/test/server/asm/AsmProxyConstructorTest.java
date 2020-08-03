@@ -4,6 +4,7 @@ import agent.base.utils.ReflectionUtils;
 import agent.base.utils.Utils;
 import agent.server.transform.tools.asm.ProxyRegInfo;
 import org.junit.Test;
+import test.server.AbstractTest;
 
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
@@ -12,7 +13,7 @@ import java.util.List;
 import static org.junit.Assert.*;
 import static test.server.asm.AsmTestUtils.doCheck;
 
-public class AsmProxyConstructorTest {
+public class AsmProxyConstructorTest extends AbstractTest {
     private final int count = 3;
     private static final String errorMsg = "xxxx";
 
