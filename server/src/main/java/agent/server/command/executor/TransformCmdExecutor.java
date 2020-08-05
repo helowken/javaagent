@@ -12,13 +12,12 @@ class TransformCmdExecutor extends AbstractTransformCmdExecutor {
 
     @Override
     ExecResult doExec(Command cmd) {
-        int cmdType = cmd.getType();
         ModuleConfig moduleConfig = ConfigParser.parse(
                 ((TransformCommand) cmd).getConfig()
         );
         return convert(
                 TransformMgr.getInstance().transformByConfig(moduleConfig),
-                cmdType,
+                cmd.getType(),
                 PREFIX
         );
     }

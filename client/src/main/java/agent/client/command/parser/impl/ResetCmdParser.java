@@ -1,13 +1,32 @@
 package agent.client.command.parser.impl;
 
-import agent.client.command.parser.CommandParser;
+import agent.base.parser.BasicParams;
 import agent.common.message.command.Command;
 import agent.common.message.command.impl.ResetCommand;
+import agent.common.parser.ChainFilterOptions;
 
-public class ResetCmdParser implements CommandParser {
+import java.util.Map;
+
+public class ResetCmdParser extends AbstractModuleCmdParser<ChainFilterOptions, BasicParams<ChainFilterOptions>> {
+
     @Override
-    public Command parse(String[] args) {
-        return new ResetCommand(args);
+    protected BasicParams<ChainFilterOptions> createParams() {
+        return new BasicParams<>();
+    }
+
+    @Override
+    protected ChainFilterOptions createOptions() {
+        return new ChainFilterOptions();
+    }
+
+    @Override
+    Command createCommand(Map<String, Object> data) {
+        return new ResetCommand(data);
+    }
+
+    @Override
+    protected String getMsgFile() {
+        return "reset.txt";
     }
 
     @Override

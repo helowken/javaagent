@@ -1,4 +1,4 @@
-package test.command;
+package agent.common.command;
 
 import org.junit.Test;
 import agent.common.buffer.BufferAllocator;

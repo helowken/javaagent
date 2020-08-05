@@ -1,4 +1,4 @@
-package test.utils;
+package agent.common.utils;
 
 import agent.base.exception.StringParseException;
 import agent.base.utils.StringParser;

@@ -27,24 +27,13 @@ public class TraceInvokeTransformerTest extends AbstractTraceTest {
 
     @Test
     public void test2() throws Exception {
-        InvokeChainConfig invokeChainConfig = new InvokeChainConfig();
-        ConstructorFilterConfig constructorFilterConfig = new ConstructorFilterConfig();
-        constructorFilterConfig.setIncludes(Collections.singleton("*"));
-        invokeChainConfig.setMatchConstructorFilter(constructorFilterConfig);
-        invokeChainConfig.setSearchConstructorFilter(constructorFilterConfig);
-
-        MethodFilterConfig methodFilterConfig = new MethodFilterConfig();
-        methodFilterConfig.setIncludes(Collections.singleton("*"));
-        invokeChainConfig.setSearchMethodFilter(methodFilterConfig);
-        invokeChainConfig.setMatchMethodFilter(methodFilterConfig);
-
         Map<Class<?>, String> classToMethodFilter = new HashMap<>();
         classToMethodFilter.put(A.class, "service");
         doTest(
                 A.class,
                 "service",
                 classToMethodFilter,
-                invokeChainConfig,
+                InvokeChainConfig.matchAll(),
                 true
         );
     }

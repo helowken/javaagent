@@ -195,7 +195,7 @@ public class FilterUtils {
         InvokeFilter constructorFilter = newInvokeFilter(
                 config.getSearchConstructorFilter()
         );
-        if (classFilter == null && methodFilter == null && constructorFilter != null) {
+        if (classFilter == null && methodFilter == null && constructorFilter == null) {
             classFilter = newClassFilter(
                     config.getMatchClassFilter(),
                     true

@@ -1,4 +1,4 @@
-package test.struct;
+package agent.common.struct;
 
 import org.junit.Test;
 import agent.common.buffer.BufferAllocator;

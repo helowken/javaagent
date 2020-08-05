@@ -107,10 +107,10 @@ public class ResetMgr implements ServerListener, AgentEventListener {
     }
 
     public TransformResult resetAllClasses() {
-        return resetClasses(null, null);
+        return resetClasses(null);
     }
 
-    public TransformResult resetClasses(String contextExpr, Set<String> classExprSet) {
+    public TransformResult resetClasses(Set<String> classExprSet) {
 //        List<TransformContext> transformContextList = newResetContexts(contextExpr, classExprSet);
 //        if (transformContextList.isEmpty()) {
 //            logger.debug("No class need to reset.");

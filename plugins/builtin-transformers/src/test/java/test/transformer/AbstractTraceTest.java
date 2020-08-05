@@ -19,22 +19,17 @@ import java.util.Map;
 abstract class AbstractTraceTest extends AbstractTest {
     private static final Map<Class<?>, byte[]> classToData = new HashMap<>();
 
+
     void test(Class<?> clazz, String methodName, boolean runFirst) throws Exception {
         Map<Class<?>, String> classToMethodFilter = new HashMap<>();
         classToMethodFilter.put(clazz, methodName);
-
-        InvokeChainConfig invokeChainConfig = new InvokeChainConfig();
-        ConstructorFilterConfig constructorFilterConfig = new ConstructorFilterConfig();
-        constructorFilterConfig.setIncludes(Collections.singleton("*"));
-        invokeChainConfig.setMatchConstructorFilter(constructorFilterConfig);
-        invokeChainConfig.setSearchConstructorFilter(constructorFilterConfig);
-
-        MethodFilterConfig methodFilterConfig = new MethodFilterConfig();
-        methodFilterConfig.setIncludes(Collections.singleton("*"));
-        invokeChainConfig.setMatchMethodFilter(methodFilterConfig);
-        invokeChainConfig.setSearchMethodFilter(methodFilterConfig);
-
-        doTest(clazz, methodName, classToMethodFilter, invokeChainConfig, runFirst);
+        doTest(
+                clazz,
+                methodName,
+                classToMethodFilter,
+                InvokeChainConfig.matchAll(),
+                runFirst
+        );
     }
 
     void doTest(Class<?> targetClass, String targetMethodName, Map<Class<?>, String> classToMethodFilter,

@@ -1,5 +1,6 @@
 package agent.common.config;
 
+import java.util.Collections;
 import java.util.Objects;
 
 import static agent.base.utils.AssertUtils.assertTrue;
@@ -113,5 +114,36 @@ public class InvokeChainConfig extends AbstractAgentConfig {
                 ", searchConstructorFilter=" + searchConstructorFilter +
                 ", maxLevel=" + maxLevel +
                 '}';
+    }
+
+    public static InvokeChainConfig matchAll() {
+        ConstructorFilterConfig constructorFilterConfig = new ConstructorFilterConfig();
+        constructorFilterConfig.setIncludes(Collections.singleton("*"));
+
+        MethodFilterConfig methodFilterConfig = new MethodFilterConfig();
+        methodFilterConfig.setIncludes(Collections.singleton("*"));
+
+        InvokeChainConfig invokeChainConfig = new InvokeChainConfig();
+        invokeChainConfig.setMatchConstructorFilter(constructorFilterConfig);
+        invokeChainConfig.setMatchMethodFilter(methodFilterConfig);
+        return invokeChainConfig;
+    }
+
+    public static InvokeChainConfig matchAllMethods() {
+        MethodFilterConfig methodFilterConfig = new MethodFilterConfig();
+        methodFilterConfig.setIncludes(Collections.singleton("*"));
+
+        InvokeChainConfig invokeChainConfig = new InvokeChainConfig();
+        invokeChainConfig.setMatchMethodFilter(methodFilterConfig);
+        return invokeChainConfig;
+    }
+
+    public static InvokeChainConfig matchAllConstructors() {
+        ConstructorFilterConfig constructorFilterConfig = new ConstructorFilterConfig();
+        constructorFilterConfig.setIncludes(Collections.singleton("*"));
+
+        InvokeChainConfig invokeChainConfig = new InvokeChainConfig();
+        invokeChainConfig.setMatchConstructorFilter(constructorFilterConfig);
+        return invokeChainConfig;
     }
 }

@@ -7,12 +7,9 @@ import agent.builtin.tools.result.CostTimeResultParams;
 import agent.builtin.tools.result.InvokeCostTimeResultHandler;
 import agent.builtin.transformer.CostTimeStatisticsTransformer;
 import agent.common.config.InvokeChainConfig;
-import agent.common.config.MethodFilterConfig;
-import agent.server.transform.search.filter.InvokeChainMatchFilter;
 import org.junit.Test;
 import test.server.AbstractTest;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -29,14 +26,9 @@ public class CostTimeStatisticsTransformerTest extends AbstractTest {
     public void test2() throws Exception {
         Map<Class<?>, String> classToMethodFilter = new HashMap<>();
         classToMethodFilter.put(A.class, "service");
-        InvokeChainConfig chainConfig = new InvokeChainConfig();
-        MethodFilterConfig methodFilterConfig = new MethodFilterConfig();
-        methodFilterConfig.setIncludes(Collections.singleton("*"));
-        chainConfig.setMatchMethodFilter(methodFilterConfig);
-        chainConfig.setSearchMethodFilter(methodFilterConfig);
         doTest(
                 classToMethodFilter,
-                chainConfig
+                InvokeChainConfig.matchAllMethods()
         );
     }
 
