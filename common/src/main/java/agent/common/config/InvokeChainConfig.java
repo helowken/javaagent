@@ -3,8 +3,6 @@ package agent.common.config;
 import java.util.Collections;
 import java.util.Objects;
 
-import static agent.base.utils.AssertUtils.assertTrue;
-
 public class InvokeChainConfig extends AbstractAgentConfig {
     private ClassFilterConfig matchClassFilter;
     private MethodFilterConfig matchMethodFilter;
@@ -12,7 +10,17 @@ public class InvokeChainConfig extends AbstractAgentConfig {
     private ClassFilterConfig searchClassFilter;
     private MethodFilterConfig searchMethodFilter;
     private ConstructorFilterConfig searchConstructorFilter;
-    private int maxLevel = 100;
+    private int maxLevel = -1;
+
+    public boolean isEmpty() {
+        return matchClassFilter == null &&
+                matchMethodFilter == null &&
+                matchConstructorFilter == null &&
+                searchClassFilter == null &&
+                searchMethodFilter == null &&
+                searchConstructorFilter == null &&
+                maxLevel <= 0;
+    }
 
     public ClassFilterConfig getSearchClassFilter() {
         return searchClassFilter;
@@ -48,7 +56,6 @@ public class InvokeChainConfig extends AbstractAgentConfig {
                 searchMethodFilter,
                 searchConstructorFilter
         );
-        assertTrue(maxLevel >= 1, "Max level must >= 1");
     }
 
     public ClassFilterConfig getMatchClassFilter() {

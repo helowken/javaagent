@@ -75,7 +75,7 @@ public class InvokeChainSearcher {
         logger.debug("InvokeChainConfig: {}", filterConfig);
         InvokeChainMatchFilter matchFilter = FilterUtils.newInvokeChainMatchFilter(filterConfig);
         InvokeChainSearchFilter searchFilter = FilterUtils.newInvokeChainSearchFilter(filterConfig);
-        if (matchFilter == null || searchFilter == null)
+        if (matchFilter == null && searchFilter == null)
             return Collections.emptyList();
         return TimeMeasureUtils.run(
                 () -> new InvokeChainSearcher(classCache, classDataFunc)
@@ -333,18 +333,21 @@ public class InvokeChainSearcher {
 
     private DestInvoke traverseInvoke(InvokeInfo info, InvokeChainMatchFilter matchFilter, InvokeChainSearchFilter searchFilter) {
         boolean matched = matchFilter == null || matchFilter.accept(info);
-        boolean toSearch = searchFilter != null && searchFilter.accept(info);
-        if (!matched && !toSearch)
-            return null;
-        List<InnerInvokeItem> innerInvokes = info.getInnerInvokes();
-        if (innerInvokes == null) {
-            debug(info, "!!! No method node found: ");
-            return null;
-        }
         DestInvoke invoke = matched ?
                 addInvoke(
                         info.getInvoke()
-                ) : null;
+                ) :
+                null;
+
+        boolean toSearch = searchFilter == null || searchFilter.accept(info);
+        if (!toSearch)
+            return invoke;
+        List<InnerInvokeItem> innerInvokes = info.getInnerInvokes();
+        if (innerInvokes == null) {
+            debug(info, "!!! No method node found: ");
+            return invoke;
+        }
+
         debug(info, "=> Start to traverse: ");
         for (InnerInvokeItem innerInvoke : innerInvokes) {
             Class<?> innerInvokeClass = loadClass(

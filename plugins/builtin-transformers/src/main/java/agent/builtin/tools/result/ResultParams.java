@@ -1,7 +1,0 @@
-package agent.builtin.tools.result;
-
-import agent.base.parser.BasicParams;
-
-public class ResultParams<F extends ResultOptions> extends BasicParams<F> {
-    public String inputPath;
-}

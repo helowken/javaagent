@@ -7,9 +7,7 @@ public class InvokeChainSearchFilter extends AbstractInvokeChainFilter {
 
     InvokeChainSearchFilter(ClassFilter classFilter, InvokeFilter methodFilter, InvokeFilter constructorFilter, int maxLevel) {
         super(classFilter, methodFilter, constructorFilter);
-        if (maxLevel <= 0)
-            throw new IllegalArgumentException("Max search level must be > 0.");
-        this.maxLevel = maxLevel;
+        this.maxLevel = maxLevel <= 0 ? 100 : maxLevel;
     }
 
     @Override

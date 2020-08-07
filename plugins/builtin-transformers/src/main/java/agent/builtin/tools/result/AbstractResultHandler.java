@@ -1,9 +1,8 @@
 package agent.builtin.tools.result;
 
-import agent.base.parser.BasicParams;
 import agent.base.utils.*;
 import agent.base.utils.InvokeDescriptorUtils.TextConfig;
-import agent.common.parser.BasicFilterOptions;
+import agent.builtin.tools.result.parse.ResultParams;
 import agent.common.utils.JSONUtils;
 import agent.server.transform.impl.DestInvokeIdRegistry;
 import agent.server.transform.impl.DestInvokeIdRegistry.InvokeMetadata;
@@ -14,9 +13,7 @@ import java.util.concurrent.ForkJoinPool;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-abstract class AbstractResultHandler<T, O extends BasicFilterOptions, P extends BasicParams<O>>
-        implements CmdHandler<O, P> {
-
+abstract class AbstractResultHandler<T, P extends ResultParams> implements ResultHandler<P> {
     abstract T calculate(Collection<File> dataFiles, P params);
 
     List<File> findDataFiles(String dataFilePath) {

@@ -6,7 +6,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 
-public class InvokeCostTimeResultFilter extends AbstractResultFilter<CostTimeStatItem> {
+public class CostTimeInvokeResultFilter extends AbstractResultFilter<CostTimeStatItem> {
     private static final String PARAM_COUNT = "count";
     private static final String PARAM_MAX_TIME = "max";
     private static final String PARAM_AVG_TIME = "avg";

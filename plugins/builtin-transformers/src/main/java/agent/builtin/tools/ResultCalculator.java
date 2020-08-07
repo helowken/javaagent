@@ -2,19 +2,35 @@ package agent.builtin.tools;
 
 import agent.base.utils.ConsoleLogger;
 import agent.base.utils.Logger;
-import agent.base.utils.Utils;
-import agent.builtin.tools.result.*;
+import agent.base.utils.SystemConfig;
+import agent.builtin.tools.result.CostTimeCallChainResultHandler;
+import agent.builtin.tools.result.CostTimeInvokeResultHandler;
+import agent.builtin.tools.result.ResultHandler;
+import agent.builtin.tools.result.TraceInvokeResultHandler;
+import agent.builtin.tools.result.parse.*;
 
 public class ResultCalculator {
     private static final Logger logger = Logger.getLogger(ResultCalculator.class);
+    private static final String KEY_LOG_PATH = "result.log.path";
+    private static final String KEY_LOG_LEVEL = "result.log.level";
 
     static {
         Logger.setAsync(false);
     }
 
-    private static void run(Utils.WithoutValueFunc func) {
+    private static void init(String configFilePath) throws Exception {
+        SystemConfig.load(configFilePath);
+        Logger.init(
+                SystemConfig.get(KEY_LOG_PATH),
+                SystemConfig.get(KEY_LOG_LEVEL)
+        );
+    }
+
+    private static <P extends ResultParams> void run(String[] args, ResultOptParser<P> parser, ResultHandler<P> resultHandler) {
         try {
-            func.run();
+            P params = parser.parse(args);
+            init(params.getConfigFile());
+            resultHandler.exec(params);
         } catch (Throwable t) {
             logger.error("Run failed.", t);
             ConsoleLogger.getInstance().error("Error: {}", t.getMessage());
@@ -24,9 +40,9 @@ public class ResultCalculator {
     public static class CostTimeByChain {
         public static void main(String[] args) {
             run(
-                    () -> new CallChainCostTimeResultHandler().exec(
-                            new CostTimeResultCmdParser().run(args)
-                    )
+                    args,
+                    new CostTimeCallChainResultOptParser(),
+                    new CostTimeCallChainResultHandler()
             );
         }
     }
@@ -34,9 +50,9 @@ public class ResultCalculator {
     public static class CostTimeByInvoke {
         public static void main(String[] args) {
             run(
-                    () -> new InvokeCostTimeResultHandler().exec(
-                            new CostTimeResultCmdParser().run(args)
-                    )
+                    args,
+                    new CostTimeInvokeResultOptParser(),
+                    new CostTimeInvokeResultHandler()
             );
         }
     }
@@ -44,9 +60,9 @@ public class ResultCalculator {
     public static class InvokeResultTracer {
         public static void main(String[] args) {
             run(
-                    () -> new TraceInvokeResultHandler().exec(
-                            new TraceResultCmdParser().run(args)
-                    )
+                    args,
+                    new TraceResultOptParser(),
+                    new TraceInvokeResultHandler()
             );
         }
     }

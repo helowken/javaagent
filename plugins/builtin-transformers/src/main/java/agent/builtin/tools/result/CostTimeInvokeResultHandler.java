@@ -1,8 +1,9 @@
 package agent.builtin.tools.result;
 
 import agent.builtin.tools.result.data.InvokeDataConverter;
-import agent.builtin.tools.result.filter.InvokeCostTimeResultFilter;
+import agent.builtin.tools.result.filter.CostTimeInvokeResultFilter;
 import agent.builtin.tools.result.filter.ResultFilterData;
+import agent.builtin.tools.result.parse.CostTimeResultParams;
 import agent.common.tree.Node;
 import agent.common.tree.Tree;
 import agent.common.tree.TreeUtils;
@@ -17,7 +18,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import static agent.builtin.tools.result.filter.ResultFilterUtils.populateFilter;
 
-public class InvokeCostTimeResultHandler extends AbstractCostTimeResultHandler<Map<Integer, CostTimeStatItem>> {
+public class CostTimeInvokeResultHandler extends AbstractCostTimeResultHandler<Map<Integer, CostTimeStatItem>> {
     private static final String CACHE_TYPE = "invoke";
 
     @Override
@@ -41,8 +42,13 @@ public class InvokeCostTimeResultHandler extends AbstractCostTimeResultHandler<M
 
     @Override
     void doPrint(Map<Integer, InvokeMetadata> idToMetadata, Map<Integer, CostTimeStatItem> result, CostTimeResultParams params) {
-        InvokeCostTimeResultFilter filter = new InvokeCostTimeResultFilter();
-        populateFilter(filter, null, params.opts);
+        CostTimeInvokeResultFilter filter = new CostTimeInvokeResultFilter();
+        populateFilter(
+                filter,
+                null,
+                null,
+                params.getOpts()
+        );
 
         Tree<String> tree = new Tree<>();
         Map<String, Map<Integer, InvokeMetadata>> classToIdToMetadata = new TreeMap<>();
@@ -65,7 +71,7 @@ public class InvokeCostTimeResultHandler extends AbstractCostTimeResultHandler<M
                                         newInvokeNode(
                                                 formatInvoke(destInvoke),
                                                 item,
-                                                params.opts
+                                                params
                                         )
                                 )
                         );
@@ -109,7 +115,7 @@ public class InvokeCostTimeResultHandler extends AbstractCostTimeResultHandler<M
     }
 
     private Map<String, CostTimeStatItem> newInvokeToItem(Map<Integer, CostTimeStatItem> idToCostTimeItem,
-                                                          Map<Integer, InvokeMetadata> idToMetadata, InvokeCostTimeResultFilter filter) {
+                                                          Map<Integer, InvokeMetadata> idToMetadata, CostTimeInvokeResultFilter filter) {
         Map<String, CostTimeStatItem> invokeToItem = new TreeMap<>();
         idToMetadata.forEach(
                 (id, metadata) -> {

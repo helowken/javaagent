@@ -1,11 +1,9 @@
 package agent.builtin.tools.result;
 
-import agent.base.utils.IndentUtils;
-import agent.base.utils.InvokeDescriptorUtils;
-import agent.base.utils.TypeObject;
-import agent.base.utils.Utils;
+import agent.base.utils.*;
 import agent.builtin.tools.result.filter.TraceResultFilter;
 import agent.builtin.tools.result.filter.TreeResultConverter;
+import agent.builtin.tools.result.parse.TraceResultParams;
 import agent.builtin.transformer.utils.TraceItem;
 import agent.common.tree.INode;
 import agent.common.tree.Node;
@@ -19,8 +17,8 @@ import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 
-public class TraceInvokeResultHandler
-        extends AbstractResultHandler<Collection<Tree<TraceItem>>, TraceResultOptions, TraceResultParams> {
+public class TraceInvokeResultHandler extends AbstractResultHandler<Collection<Tree<TraceItem>>, TraceResultParams> {
+    private static final Logger logger = Logger.getLogger(TraceInvokeResultHandler.class);
     private static final String indent = IndentUtils.getIndent(1);
     private static final String KEY_CLASS = "class";
     private static final String KEY_INDEX = "index";
@@ -28,7 +26,8 @@ public class TraceInvokeResultHandler
 
     @Override
     public void exec(TraceResultParams params) throws Exception {
-        String inputPath = params.inputPath;
+        logger.debug("Params: {}", params);
+        String inputPath = params.getInputPath();
         Map<Integer, InvokeMetadata> idToMetadata = readMetadata(inputPath);
         List<File> dataFiles = findDataFiles(inputPath);
         TraceResultTreeConverter converter = new TraceResultTreeConverter();
@@ -64,13 +63,13 @@ public class TraceInvokeResultHandler
             sb.append('\n');
     }
 
-    private StringBuilder appendArg(StringBuilder sb, Map<String, Object> map, TraceResultOptions opts) {
+    private StringBuilder appendArg(StringBuilder sb, Map<String, Object> map, TraceResultParams params) {
         if (map.containsKey(KEY_INDEX)) {
             sb.append('[').append(
                     map.remove(KEY_INDEX)
             ).append("] ");
         }
-        return append(sb, map, opts);
+        return append(sb, map, params);
     }
 
     private String formatClass(String className) {
@@ -89,20 +88,20 @@ public class TraceInvokeResultHandler
         }
     }
 
-    private void appendValue(StringBuilder sb, Map<String, Object> rsMap, TraceResultOptions opts) {
+    private void appendValue(StringBuilder sb, Map<String, Object> rsMap, TraceResultParams params) {
         if (rsMap.containsKey(KEY_VALUE)) {
             sb.append(
                     formatContent(
                             rsMap.remove(KEY_VALUE),
-                            opts
+                            params
                     )
             );
         }
     }
 
-    private StringBuilder append(StringBuilder sb, Map<String, Object> rsMap, TraceResultOptions opts) {
+    private StringBuilder append(StringBuilder sb, Map<String, Object> rsMap, TraceResultParams params) {
         appendClassName(sb, rsMap);
-        appendValue(sb, rsMap, opts);
+        appendValue(sb, rsMap, params);
         int i = 0;
         for (Map.Entry<String, Object> entry : rsMap.entrySet()) {
             if (i > 0)
@@ -112,7 +111,7 @@ public class TraceInvokeResultHandler
             ).append("=").append(
                     formatContent(
                             entry.getValue(),
-                            opts
+                            params
                     )
             );
             ++i;
@@ -121,12 +120,13 @@ public class TraceInvokeResultHandler
         return sb;
     }
 
-    private String formatContent(Object value, TraceResultOptions opts) {
+    private String formatContent(Object value, TraceResultParams params) {
         if (value == null)
             return null;
         String content = value.toString();
-        return content.length() > opts.contentMaxSize ?
-                content.substring(0, opts.contentMaxSize) + "... (first " + opts.contentMaxSize + " chars)" :
+        int contentSize = params.getContentSize();
+        return content.length() > contentSize ?
+                content.substring(0, contentSize) + "... (first " + contentSize + " chars)" :
                 content;
     }
 
@@ -195,7 +195,7 @@ public class TraceInvokeResultHandler
         return tree;
     }
 
-    private class TraceResultTreeConverter extends TreeResultConverter<TraceItem, TraceResultOptions, TraceResultParams, String> {
+    private class TraceResultTreeConverter extends TreeResultConverter<TraceItem, TraceResultParams, String> {
 
         @Override
         protected TraceResultFilter createFilter() {
@@ -212,10 +212,10 @@ public class TraceInvokeResultHandler
 
         @Override
         protected Node<String> createNode(Node<TraceItem> node, Map<Integer, InvokeMetadata> idToMetadata,
-                                          InvokeMetadata metadata, TraceResultOptions opts) {
+                                          InvokeMetadata metadata, TraceResultParams params) {
             StringBuilder sb = new StringBuilder();
             TraceItem item = node.getData();
-            if (opts.displayTime)
+            if (params.isDisplayTime())
                 sb.append("[").append(
                         item.costTimeString()
                 ).append("ms] ");
@@ -227,17 +227,17 @@ public class TraceInvokeResultHandler
                             metadata
                     )
             );
-            if (item.hasArgs() && opts.displayArgs) {
+            if (item.hasArgs() && params.isDisplayArgs()) {
                 sb.append("\nArgs: \n");
                 item.getArgs().forEach(
                         arg -> appendArg(
                                 sb.append(indent),
                                 new TreeMap<>(arg),
-                                opts
+                                params
                         )
                 );
             }
-            if (item.hasReturnValue() && opts.displayReturnValue) {
+            if (item.hasReturnValue() && params.isDisplayRetValue()) {
                 String className = (String) item.getReturnValue().get(KEY_CLASS);
                 if (className == null || !className.equals(void.class.getName())) {
                     addWrapIfNeeded(sb);
@@ -246,18 +246,18 @@ public class TraceInvokeResultHandler
                             new TreeMap<>(
                                     item.getReturnValue()
                             ),
-                            opts
+                            params
                     );
                 }
             }
-            if (item.hasError() && opts.displayError) {
+            if (item.hasError() && params.isDisplayError()) {
                 addWrapIfNeeded(sb);
                 append(
                         sb.append("Error: \n").append(indent),
                         new TreeMap<>(
                                 item.getError()
                         ),
-                        opts
+                        params
                 );
             }
             return new Node<>(

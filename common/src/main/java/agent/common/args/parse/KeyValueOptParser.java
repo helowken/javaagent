@@ -1,13 +1,16 @@
 package agent.common.args.parse;
 
 public class KeyValueOptParser extends AbstractOptParser {
-    public KeyValueOptParser(OptConfig... optConfigs) {
-        super(optConfigs);
+    public KeyValueOptParser(Object... vs) {
+        super(vs);
     }
 
     @Override
     Object getValue(String arg, ArgList argList, OptConfig optConfig) {
-        String valueStr = argList.next("No option value found for: " + arg);
+        String errMsg = "No option value found for: " + arg;
+        String valueStr = argList.next(errMsg);
+        if (OptConfig.isOpt(valueStr))
+            throw new RuntimeException(errMsg);
         return convertValue(arg, valueStr, optConfig);
     }
 }

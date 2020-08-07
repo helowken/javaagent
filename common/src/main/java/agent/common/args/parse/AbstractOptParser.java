@@ -3,52 +3,29 @@ package agent.common.args.parse;
 import agent.base.utils.Logger;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 abstract class AbstractOptParser implements OptParser {
     private static final Logger logger = Logger.getLogger(AbstractOptParser.class);
     private final List<OptConfig> optConfigList = new ArrayList<>();
 
-    AbstractOptParser(OptConfig... optConfigs) {
-        if (optConfigs == null || optConfigs.length == 0)
+    AbstractOptParser(Object... vs) {
+        if (vs == null || vs.length == 0)
             throw new IllegalArgumentException();
-        add(optConfigs);
+        List<OptConfig> optConfigs = new ArrayList<>();
+        for (Object v : vs) {
+            if (v instanceof OptConfig)
+                optConfigs.add((OptConfig) v);
+            else if (v instanceof OptConfigSuite)
+                optConfigs.addAll(((OptConfigSuite) v).getOptConfigList());
+            else
+                throw new IllegalArgumentException("Invalid param: " + v);
+        }
+        OptConfigSuite.validate(optConfigs);
+        optConfigList.addAll(optConfigs);
     }
 
     abstract Object getValue(String arg, ArgList argList, OptConfig optConfig);
-
-    private void add(OptConfig[] optConfigs) {
-        Set<String> nameSet = new HashSet<>();
-        Set<String> fullNameSet = new HashSet<>();
-        Set<String> keySet = new HashSet<>();
-        for (OptConfig optConfig : optConfigs) {
-            String name = optConfig.getName();
-            if (name != null) {
-                if (nameSet.contains(name))
-                    throw new RuntimeException("Duplicated name: " + name);
-                else
-                    nameSet.add(name);
-            }
-
-            String fullName = optConfig.getFullName();
-            if (fullName != null) {
-                if (fullNameSet.contains(fullName))
-                    throw new RuntimeException("Duplicated full name: " + fullName);
-                else
-                    fullNameSet.add(fullName);
-            }
-
-            String key = optConfig.getKey();
-            if (keySet.contains(key))
-                throw new RuntimeException("Duplicated key: " + key);
-            else
-                keySet.add(key);
-
-            optConfigList.add(optConfig);
-        }
-    }
 
     @Override
     public boolean parse(String arg, ArgList argList, Opts opts) {

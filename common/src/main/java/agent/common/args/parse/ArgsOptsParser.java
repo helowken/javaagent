@@ -1,11 +1,16 @@
 package agent.common.args.parse;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
 public class ArgsOptsParser {
     private final List<OptParser> optParserList = new ArrayList<>();
+
+    public ArgsOptsParser(Collection<OptParser> optParsers) {
+        this(optParsers.toArray(new OptParser[0]));
+    }
 
     public ArgsOptsParser(OptParser... optParsers) {
         if (optParsers == null || optParsers.length == 0)
@@ -13,7 +18,7 @@ public class ArgsOptsParser {
         Collections.addAll(optParserList, optParsers);
     }
 
-    public ArgsOptsResult parse(String[] args) {
+    public ArgsOpts parse(String[] args) {
         ArgList argList = new ArgList(args);
         Opts opts = new Opts();
         List<String> params = new ArrayList<>();
@@ -24,7 +29,7 @@ public class ArgsOptsParser {
             else
                 params.add(arg);
         }
-        return new ArgsOptsResult(
+        return new ArgsOpts(
                 opts,
                 params.toArray(new String[0])
         );

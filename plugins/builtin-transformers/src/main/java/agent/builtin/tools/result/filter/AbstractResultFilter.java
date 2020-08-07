@@ -46,16 +46,18 @@ public abstract class AbstractResultFilter<T> implements ResultFilter<T> {
     @Override
     public boolean accept(ResultFilterData<T> filterData) {
         InvokeMetadata metadata = filterData.metadata;
-        if (level > -1 && filterData.level > level)
+        if (level > 0 && filterData.level > level)
             return false;
         if (classFilter == null || classFilter.accept(metadata.clazz)) {
             boolean v = isConstructor(metadata.invoke) ?
-                    constructorFilter == null || constructorFilter.accept(
-                            getInvokeText(metadata.invoke)
-                    ) :
-                    methodFilter == null || methodFilter.accept(
-                            getInvokeText(metadata.invoke)
-                    );
+                    constructorFilter == null ||
+                            constructorFilter.accept(
+                                    getInvokeText(metadata.invoke)
+                            ) :
+                    methodFilter == null ||
+                            methodFilter.accept(
+                                    getInvokeText(metadata.invoke)
+                            );
             if (v)
                 return scriptFilter == null ||
                         scriptFilter.accept(

@@ -7,9 +7,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 public class TreeUtils {
-//    private static final String branch = "├─";
+    //    private static final String branch = "├─";
 //    private static final String branch2 = "│   ";
 //    private static final String end = "└─";
 //    private static final String indent = "    ";
@@ -20,12 +21,17 @@ public class TreeUtils {
     private static final PrintConfig defaultConfig = new PrintConfig(true);
 
     public static <T> void traverse(Node<T> tree, Consumer<Node<T>> nodeAccessor) {
-        LinkedList<Node<T>> leftNodes = new LinkedList<>();
-        leftNodes.add(tree);
-        while (!leftNodes.isEmpty()) {
-            Node<T> node = leftNodes.pop();
+        traverse(tree, nodeAccessor, null);
+    }
+
+    public static <T> void traverse(Node<T> tree, Consumer<Node<T>> nodeAccessor, Predicate<Node<T>> searchChildrenPredicate) {
+        LinkedList<Node<T>> restNodes = new LinkedList<>();
+        restNodes.add(tree);
+        while (!restNodes.isEmpty()) {
+            Node<T> node = restNodes.pop();
             nodeAccessor.accept(node);
-            leftNodes.addAll(0, node.getChildren());
+            if (searchChildrenPredicate == null || searchChildrenPredicate.test(node))
+                restNodes.addAll(0, node.getChildren());
         }
     }
 

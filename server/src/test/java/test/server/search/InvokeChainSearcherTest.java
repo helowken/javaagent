@@ -172,16 +172,7 @@ public class InvokeChainSearcherTest extends AbstractTest {
     private void doTest(Object... expectation) {
         assertNotNull(expectation);
         assertTrue(expectation.length > 0);
-        InvokeChainConfig filterConfig = new InvokeChainConfig();
-
-        ConstructorFilterConfig constructorFilterConfig = new ConstructorFilterConfig();
-        constructorFilterConfig.setIncludes(Collections.singleton("*"));
-        filterConfig.setMatchConstructorFilter(constructorFilterConfig);
-
-        MethodFilterConfig methodFilterConfig = new MethodFilterConfig();
-        methodFilterConfig.setIncludes(Collections.singleton("*"));
-        filterConfig.setMatchMethodFilter(methodFilterConfig);
-
+        InvokeChainConfig filterConfig = InvokeChainConfig.matchAll();
         Collection<DestInvoke> rsList = InvokeChainSearcher.search(
                 classCache,
                 this::getClassData,

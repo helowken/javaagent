@@ -1,11 +1,13 @@
 package agent.builtin.tools.result.filter;
 
-import agent.builtin.tools.result.ResultOptions;
+import agent.builtin.tools.result.parse.ResultOptConfigs;
+import agent.common.args.parse.Opts;
+import agent.common.args.parse.specific.ChainFilterOptConfigs;
 import agent.common.config.*;
 import agent.server.transform.search.filter.FilterUtils;
 import agent.server.transform.search.filter.ScriptFilter;
 
-import static agent.common.parser.FilterOptionUtils.createTargetConfig;
+import static agent.common.args.parse.FilterOptUtils.createTargetConfig;
 
 public class ResultFilterUtils {
     private static <T> void populateFilter(AbstractResultFilter<T> filter, ClassFilterConfig classFilterConfig, MethodFilterConfig methodFilterConfig,
@@ -37,27 +39,37 @@ public class ResultFilterUtils {
             );
     }
 
-    public static <M, O extends ResultOptions> void populateFilter(AbstractResultFilter<M> filter, AbstractResultFilter<M> chainFilter, O opts) {
+    public static <M> void populateFilter(AbstractResultFilter<M> filter, AbstractResultFilter<M> searchFilter, AbstractResultFilter<M> matchFilter, Opts opts) {
         TargetConfig targetConfig = createTargetConfig(opts);
         if (filter != null) {
             populateFilter(filter,
                     targetConfig.getClassFilter(),
                     targetConfig.getMethodFilter(),
                     targetConfig.getConstructorFilter(),
-                    opts.filterExpr
+                    ResultOptConfigs.getFilterExpr(opts)
             );
         }
         InvokeChainConfig invokeChainConfig = targetConfig.getInvokeChainConfig();
-        if (chainFilter != null) {
+        if (searchFilter != null && invokeChainConfig != null) {
             populateFilter(
-                    chainFilter,
+                    searchFilter,
+                    invokeChainConfig.getSearchClassFilter(),
+                    invokeChainConfig.getSearchMethodFilter(),
+                    invokeChainConfig.getSearchConstructorFilter(),
+                    null
+            );
+            int level = ChainFilterOptConfigs.getChainSearchLevel(opts);
+            if (level > 0)
+                matchFilter.setLevel(level);
+        }
+        if (matchFilter != null) {
+            populateFilter(
+                    matchFilter,
                     invokeChainConfig == null ? null : invokeChainConfig.getMatchClassFilter(),
                     invokeChainConfig == null ? null : invokeChainConfig.getMatchMethodFilter(),
                     invokeChainConfig == null ? null : invokeChainConfig.getMatchConstructorFilter(),
-                    opts.chainFilterExpr
+                    ResultOptConfigs.getChainFilterExpr(opts)
             );
-            if (opts.chainSearchLevel > -1)
-                chainFilter.setLevel(opts.chainSearchLevel);
         }
     }
 }

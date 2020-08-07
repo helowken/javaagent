@@ -1,7 +1,9 @@
-package agent.common.parser;
+package agent.common.args.parse;
 
 import agent.base.utils.ReflectionUtils;
 import agent.base.utils.Utils;
+import agent.common.args.parse.specific.ChainFilterOptConfigs;
+import agent.common.args.parse.specific.FilterOptConfigs;
 import agent.common.config.*;
 
 import java.util.HashSet;
@@ -9,33 +11,27 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public class FilterOptionUtils {
+public class FilterOptUtils {
     private static final String SEP = ",";
     private static final String EXCLUDE = "^";
     private static final int EXCLUDE_LEN = EXCLUDE.length();
 
-    public static TargetConfig createTargetConfig(ChainFilterOptions opts) {
-        TargetConfig targetConfig = createTargetConfig(
-                opts.classStr,
-                opts.methodStr,
-                opts.constructorStr
-        );
-        if (opts.isUseChain())
-            targetConfig.setInvokeChainConfig(
-                    createInvokeChainConfig(opts)
-            );
-        return targetConfig;
-    }
-
-    private static TargetConfig createTargetConfig(String classStr, String methodStr, String constructorStr) {
+    public static TargetConfig createTargetConfig(Opts opts) {
         TargetConfig targetConfig = new TargetConfig();
-        targetConfig.setClassFilter(
-                newFilterConfig(classStr, ClassFilterConfig::new, null)
-        );
+
+        String classStr = FilterOptConfigs.getClassStr(opts);
+        if (Utils.isNotBlank(classStr))
+            targetConfig.setClassFilter(
+                    newFilterConfig(classStr, ClassFilterConfig::new, null)
+            );
+
+        String methodStr = FilterOptConfigs.getMethodStr(opts);
         if (Utils.isNotBlank(methodStr))
             targetConfig.setMethodFilter(
                     newFilterConfig(methodStr, MethodFilterConfig::new, null)
             );
+
+        String constructorStr = FilterOptConfigs.getConstructorStr(opts);
         if (Utils.isNotBlank(constructorStr))
             targetConfig.setConstructorFilter(
                     newFilterConfig(
@@ -44,6 +40,11 @@ public class FilterOptionUtils {
                             s -> ReflectionUtils.CONSTRUCTOR_NAME + s
                     )
             );
+
+        InvokeChainConfig chainConfig = createInvokeChainConfig(opts);
+        if (!chainConfig.isEmpty())
+            targetConfig.setInvokeChainConfig(chainConfig);
+
         return targetConfig;
     }
 
@@ -76,39 +77,51 @@ public class FilterOptionUtils {
         return config;
     }
 
-    private static InvokeChainConfig createInvokeChainConfig(ChainFilterOptions opts) {
+    private static InvokeChainConfig createInvokeChainConfig(Opts opts) {
         InvokeChainConfig invokeChainConfig = new InvokeChainConfig();
-        if (Utils.isNotBlank(opts.chainMatchClassStr))
+        String chainMatchClassStr = ChainFilterOptConfigs.getChainMatchClass(opts);
+        if (Utils.isNotBlank(chainMatchClassStr))
             invokeChainConfig.setMatchClassFilter(
-                    newFilterConfig(opts.chainMatchClassStr, ClassFilterConfig::new, null)
+                    newFilterConfig(chainMatchClassStr, ClassFilterConfig::new, null)
             );
-        if (Utils.isNotBlank(opts.chainMatchMethodStr))
+
+        String chainMatchMethodStr = ChainFilterOptConfigs.getChainMatchMethod(opts);
+        if (Utils.isNotBlank(chainMatchMethodStr))
             invokeChainConfig.setMatchMethodFilter(
-                    newFilterConfig(opts.chainMatchMethodStr, MethodFilterConfig::new, null)
+                    newFilterConfig(chainMatchMethodStr, MethodFilterConfig::new, null)
             );
-        if (Utils.isNotBlank(opts.chainMatchConstructorStr))
+
+        String chainMatchConstructorStr = ChainFilterOptConfigs.getChainMatchConstructor(opts);
+        if (Utils.isNotBlank(chainMatchConstructorStr))
             invokeChainConfig.setMatchConstructorFilter(
                     newFilterConfig(
-                            opts.chainMatchConstructorStr,
+                            chainMatchConstructorStr,
                             ConstructorFilterConfig::new,
                             s -> ReflectionUtils.CONSTRUCTOR_NAME + s
                     )
             );
 
-        if (opts.chainSearchLevel > 0)
-            invokeChainConfig.setMaxLevel(opts.chainSearchLevel);
-        if (Utils.isNotBlank(opts.chainSearchClassStr))
+        int chainSearchLevel = ChainFilterOptConfigs.getChainSearchLevel(opts);
+        if (chainSearchLevel > 0)
+            invokeChainConfig.setMaxLevel(chainSearchLevel);
+
+        String chainSearchClassStr = ChainFilterOptConfigs.getChainSearchClass(opts);
+        if (Utils.isNotBlank(chainSearchClassStr))
             invokeChainConfig.setSearchClassFilter(
-                    newFilterConfig(opts.chainSearchClassStr, ClassFilterConfig::new, null)
+                    newFilterConfig(chainSearchClassStr, ClassFilterConfig::new, null)
             );
-        if (Utils.isNotBlank(opts.chainSearchMethodStr))
+
+        String chainSearchMethodStr = ChainFilterOptConfigs.getChainSearchMethod(opts);
+        if (Utils.isNotBlank(chainSearchMethodStr))
             invokeChainConfig.setSearchMethodFilter(
-                    newFilterConfig(opts.chainSearchMethodStr, MethodFilterConfig::new, null)
+                    newFilterConfig(chainSearchMethodStr, MethodFilterConfig::new, null)
             );
-        if (Utils.isNotBlank(opts.chainSearchConstructorStr))
+
+        String chainSearchConstructorStr = ChainFilterOptConfigs.getChainSearchConstructor(opts);
+        if (Utils.isNotBlank(chainSearchConstructorStr))
             invokeChainConfig.setSearchConstructorFilter(
                     newFilterConfig(
-                            opts.chainSearchConstructorStr,
+                            chainSearchConstructorStr,
                             ConstructorFilterConfig::new,
                             s -> ReflectionUtils.CONSTRUCTOR_NAME + s
                     )

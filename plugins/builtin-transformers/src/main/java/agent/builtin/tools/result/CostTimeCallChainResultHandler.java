@@ -2,8 +2,9 @@ package agent.builtin.tools.result;
 
 import agent.builtin.tools.result.data.CallChainData;
 import agent.builtin.tools.result.data.CallChainDataConverter;
-import agent.builtin.tools.result.filter.CallChainCostTimeResultFilter;
+import agent.builtin.tools.result.filter.CostTimeCallChainResultFilter;
 import agent.builtin.tools.result.filter.TreeResultConverter;
+import agent.builtin.tools.result.parse.CostTimeResultParams;
 import agent.common.tree.Node;
 import agent.common.tree.NodeMapper;
 import agent.common.tree.Tree;
@@ -19,7 +20,7 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
 
-public class CallChainCostTimeResultHandler extends AbstractCostTimeResultHandler<Tree<CallChainData>> {
+public class CostTimeCallChainResultHandler extends AbstractCostTimeResultHandler<Tree<CallChainData>> {
     private static final String CACHE_TYPE = "chain";
 
     @Override
@@ -155,11 +156,11 @@ public class CallChainCostTimeResultHandler extends AbstractCostTimeResultHandle
         return node;
     }
 
-    private class CallChainCostTimeResultConverter extends TreeResultConverter<CallChainData, CostTimeResultOptions, CostTimeResultParams, String> {
+    private class CallChainCostTimeResultConverter extends TreeResultConverter<CallChainData, CostTimeResultParams, String> {
 
         @Override
-        protected CallChainCostTimeResultFilter createFilter() {
-            return new CallChainCostTimeResultFilter();
+        protected CostTimeCallChainResultFilter createFilter() {
+            return new CostTimeCallChainResultFilter();
         }
 
         @Override
@@ -172,12 +173,12 @@ public class CallChainCostTimeResultHandler extends AbstractCostTimeResultHandle
 
         @Override
         protected Node<String> createNode(Node<CallChainData> node, Map<Integer, InvokeMetadata> idToMetadata,
-                                          InvokeMetadata metadata, CostTimeResultOptions opts) {
+                                          InvokeMetadata metadata, CostTimeResultParams params) {
             Integer parentInvokeId = getParentInvokeId(node);
             return newInvokeNode(
                     convertInvoke(parentInvokeId, idToMetadata, metadata),
                     node.getData().item,
-                    opts
+                    params
             );
         }
 

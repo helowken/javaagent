@@ -1,8 +1,8 @@
 package agent.common.args.parse;
 
-public class SingleOptParser extends AbstractOptParser {
-    public SingleOptParser(OptConfig... optConfigs) {
-        super(optConfigs);
+public class BooleanOptParser extends AbstractOptParser {
+    public BooleanOptParser(Object... vs) {
+        super(vs);
     }
 
     @Override

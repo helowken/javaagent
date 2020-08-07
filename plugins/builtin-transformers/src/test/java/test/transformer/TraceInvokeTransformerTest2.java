@@ -2,6 +2,10 @@ package test.transformer;
 
 import agent.base.utils.ReflectionUtils;
 import agent.builtin.tools.result.*;
+import agent.builtin.tools.result.parse.CostTimeCallChainResultOptParser;
+import agent.builtin.tools.result.parse.CostTimeResultParams;
+import agent.builtin.tools.result.parse.TraceResultOptParser;
+import agent.builtin.tools.result.parse.TraceResultParams;
 import agent.builtin.transformer.CostTimeStatisticsTransformer;
 import agent.builtin.transformer.TraceInvokeTransformer;
 import agent.common.utils.JSONUtils;
@@ -65,42 +69,58 @@ public class TraceInvokeTransformerTest2 extends AbstractTest {
                             flushAndWaitMetadata(outputPath);
                             flushAndWaitMetadata(outputPath2);
 
+                            TraceResultOptParser parser = new TraceResultOptParser();
                             TraceInvokeResultHandler traceHandler = new TraceInvokeResultHandler();
-                            TraceResultParams traceParams = new TraceResultParams();
-                            TraceResultOptions traceOpts = new TraceResultOptions();
-                            traceParams.inputPath = outputPath;
-                            traceParams.opts = traceOpts;
+                            TraceResultParams traceParams = parser.parse(
+                                new String[] {"configFile", outputPath}
+                            );
                             traceHandler.exec(traceParams);
-                            System.out.println("=================");
-                            traceOpts.methodStr = "recursive*";
-                            traceHandler.exec(traceParams);
-                            System.out.println("=================");
-                            traceOpts.chainSearchLevel = 3;
-                            traceHandler.exec(traceParams);
-                            System.out.println("=================");
-                            traceOpts.chainSearchLevel = -1;
-                            traceOpts.methodStr = "load*";
-                            traceHandler.exec(traceParams);
-                            System.out.println("=================");
 
-                            CallChainCostTimeResultHandler costTimeHandler = new CallChainCostTimeResultHandler();
-                            CostTimeResultOptions costTimeOpts = new CostTimeResultOptions();
-                            CostTimeResultParams costTimeParams = new CostTimeResultParams();
-                            costTimeParams.inputPath = outputPath2;
-                            costTimeParams.opts = costTimeOpts;
-                            costTimeHandler.exec(costTimeParams);
-                            System.out.println("=================");
-                            costTimeOpts.methodStr = "test*";
-                            costTimeHandler.exec(costTimeParams);
-                            System.out.println("=================");
-                            costTimeOpts.methodStr = null;
-                            costTimeOpts.chainMatchMethodStr = "recursive*";
-                            costTimeHandler.exec(costTimeParams);
-                            System.out.println("=================");
-                            costTimeOpts.chainSearchLevel = 3;
-                            costTimeHandler.exec(costTimeParams);
-                            System.out.println("=================");
+                            System.out.println("\n=================");
+                            traceParams = parser.parse(
+                                new String[] {"configFile", "-m", "recursive*", outputPath}
+                            );
+                            traceHandler.exec(traceParams);
 
+                            System.out.println("\n=================");
+                            traceParams = parser.parse(
+                                    new String[] {"configFile", "-m", "recursive*", "-lsl", "3", outputPath}
+                            );
+                            traceHandler.exec(traceParams);
+
+                            System.out.println("\n=================");
+                            traceParams = parser.parse(
+                                    new String[] {"configFile", "-m", "load", "-lsl", "1", outputPath}
+                            );
+                            traceHandler.exec(traceParams);
+
+                            System.out.println("\n=================");
+                            CostTimeCallChainResultHandler costTimeHandler = new CostTimeCallChainResultHandler();
+                            CostTimeCallChainResultOptParser timeParser = new CostTimeCallChainResultOptParser();
+                            CostTimeResultParams costTimeParams = timeParser.parse(
+                                    new String[] {"configFile", outputPath2}
+                            );
+                            costTimeHandler.exec(costTimeParams);
+
+                            System.out.println("\n=================");
+                            costTimeParams = timeParser.parse(
+                                    new String[] {"configFile", "-m", "test", outputPath2}
+                            );
+                            costTimeHandler.exec(costTimeParams);
+
+                            System.out.println("\n=================");
+                            costTimeParams = timeParser.parse(
+                                    new String[] {"configFile", "-lm", "recursive*", outputPath2}
+                            );
+                            costTimeHandler.exec(costTimeParams);
+
+                            System.out.println("\n=================");
+                            costTimeParams = timeParser.parse(
+                                    new String[] {"configFile", "-lm", "recursive*", "-lsl", "3", outputPath2}
+                            );
+                            costTimeHandler.exec(costTimeParams);
+
+                            System.out.println("\n=================");
                             System.out.println(
                                     JSONUtils.writeAsString(
                                             ViewMgr.create(ViewMgr.VIEW_PROXY, null, null, null),

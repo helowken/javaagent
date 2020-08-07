@@ -2,15 +2,16 @@ package agent.builtin.tools.result;
 
 import agent.base.utils.IOUtils;
 import agent.base.utils.Logger;
+import agent.builtin.tools.result.parse.CostTimeResultParams;
 import agent.common.tree.Node;
 import agent.server.transform.impl.DestInvokeIdRegistry;
 
 import java.io.File;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
-abstract class AbstractCostTimeResultHandler<T>
-        extends AbstractResultHandler<T, CostTimeResultOptions, CostTimeResultParams> {
+abstract class AbstractCostTimeResultHandler<T> extends AbstractResultHandler<T, CostTimeResultParams> {
     private static final Logger logger = Logger.getLogger(AbstractCostTimeResultHandler.class);
     private static final String CACHE_FILE_SUFFIX = "_cache";
 
@@ -26,7 +27,8 @@ abstract class AbstractCostTimeResultHandler<T>
 
     @Override
     public void exec(CostTimeResultParams params) throws Exception {
-        String inputPath = params.inputPath;
+        logger.debug("Params: {}", params);
+        String inputPath = params.getInputPath();
         List<File> dataFiles = findDataFiles(inputPath);
         String cacheFilePath = getCacheFilePath(inputPath);
         File cacheFile = new File(cacheFilePath);
@@ -103,10 +105,11 @@ abstract class AbstractCostTimeResultHandler<T>
         );
     }
 
-    Node<String> newInvokeNode(String invoke, CostTimeStatItem item, CostTimeResultOptions opts) {
+    Node<String> newInvokeNode(String invoke, CostTimeStatItem item, CostTimeResultParams params) {
+        Set<Float> range = params.getRange();
         return new Node<>(
                 "[" + item.getAvgTimeString() + ", " + item.getCountString() + "] " +
-                        (opts.rates != null ? " " + item.getTimeDistributionString(opts.rates) + " " : "") +
+                        (range != null ? " " + item.getTimeDistributionString(range) + " " : "") +
                         invoke
         );
     }

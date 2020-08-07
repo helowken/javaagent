@@ -16,7 +16,11 @@ public class OptConfig {
     }
 
     public OptConfig(String name, String key) {
-        this(name, null, key, OptionValueType.STRING, false);
+        this(name, null, key);
+    }
+
+    public OptConfig(String name, String fullName, String key) {
+        this(name, fullName, key, OptionValueType.STRING, false);
     }
 
     public OptConfig(String name, String fullName, String key, OptionValueType valueType, boolean allowMulti) {

@@ -4,15 +4,12 @@ import agent.base.utils.IOUtils;
 import agent.base.utils.ReflectionUtils;
 import agent.base.utils.Utils;
 import agent.builtin.tools.result.TraceInvokeResultHandler;
-import agent.builtin.tools.result.TraceResultOptions;
-import agent.builtin.tools.result.TraceResultParams;
+import agent.builtin.tools.result.parse.TraceResultOptParser;
+import agent.builtin.tools.result.parse.TraceResultParams;
 import agent.builtin.transformer.TraceInvokeTransformer;
-import agent.common.config.ConstructorFilterConfig;
 import agent.common.config.InvokeChainConfig;
-import agent.common.config.MethodFilterConfig;
 import test.server.AbstractTest;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -76,16 +73,15 @@ abstract class AbstractTraceTest extends AbstractTest {
                     flushAndWaitMetadata(outputPath);
                     System.out.println(IOUtils.readToString(outputPath));
 
-                    TraceResultParams params = new TraceResultParams();
-                    params.inputPath = outputPath;
-                    TraceResultOptions opts = new TraceResultOptions();
-                    params.opts = opts;
+                    TraceResultParams params = new TraceResultOptParser().parse(
+                            new String[]{"configFile", outputPath}
+                    );
                     new TraceInvokeResultHandler().exec(params);
 
                     System.out.println("\n==============================");
-                    opts = new TraceResultOptions();
-                    opts.displayError = opts.displayArgs = opts.displayReturnValue = opts.displayTime = false;
-                    params.opts = opts;
+                    params = new TraceResultOptParser().parse(
+                            new String[]{"configFile", "-o", "' '", outputPath}
+                    );
                     new TraceInvokeResultHandler().exec(params);
                 }
         );

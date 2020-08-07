@@ -2,7 +2,7 @@ package agent.common.args.parse;
 
 import java.util.*;
 
-class Opts {
+public class Opts {
     private final Map<String, List<Object>> valueMap = new HashMap<>();
 
     boolean contains(String key) {
@@ -16,11 +16,6 @@ class Opts {
         ).add(value);
     }
 
-    List<Object> getList(String key) {
-        List<Object> vs = valueMap.get(key);
-        return vs == null ? null : Collections.unmodifiableList(vs);
-    }
-
     int size() {
         return valueMap.size();
     }
@@ -29,8 +24,27 @@ class Opts {
         return getList(key).size();
     }
 
-    <T> T get(String key) {
+    public List<Object> getList(String key) {
+        List<Object> vs = valueMap.get(key);
+        return vs == null ? null : Collections.unmodifiableList(vs);
+    }
+
+    private Object getRaw(String key) {
         List<Object> vs = getList(key);
-        return vs == null || vs.isEmpty() ? null : (T) vs.get(0);
+        return vs == null || vs.isEmpty() ? null : vs.get(0);
+    }
+
+    public <T> T get(String key) {
+        return (T) getRaw(key);
+    }
+
+    public <T> T getNotNull(String key, T defaultValue) {
+        Object v = getRaw(key);
+        return v == null ? defaultValue : (T) v;
+    }
+
+    @Override
+    public String toString() {
+        return valueMap.toString();
     }
 }

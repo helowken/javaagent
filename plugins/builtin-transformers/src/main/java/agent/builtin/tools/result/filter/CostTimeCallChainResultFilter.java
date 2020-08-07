@@ -4,9 +4,9 @@ import agent.builtin.tools.result.data.CallChainData;
 
 import java.util.Map;
 
-import static agent.builtin.tools.result.filter.InvokeCostTimeResultFilter.convertToMap;
+import static agent.builtin.tools.result.filter.CostTimeInvokeResultFilter.convertToMap;
 
-public class CallChainCostTimeResultFilter extends AbstractResultFilter<CallChainData> {
+public class CostTimeCallChainResultFilter extends AbstractResultFilter<CallChainData> {
 
     @Override
     Map<String, Object> convertToScriptParamValues(CallChainData value) {

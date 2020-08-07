@@ -1,10 +1,11 @@
 package test.transformer;
 
 import agent.base.utils.ReflectionUtils;
-import agent.builtin.tools.result.CallChainCostTimeResultHandler;
-import agent.builtin.tools.result.CostTimeResultOptions;
-import agent.builtin.tools.result.CostTimeResultParams;
-import agent.builtin.tools.result.InvokeCostTimeResultHandler;
+import agent.builtin.tools.result.CostTimeCallChainResultHandler;
+import agent.builtin.tools.result.CostTimeInvokeResultHandler;
+import agent.builtin.tools.result.parse.CostTimeCallChainResultOptParser;
+import agent.builtin.tools.result.parse.CostTimeInvokeResultOptParser;
+import agent.builtin.tools.result.parse.CostTimeResultParams;
 import agent.builtin.transformer.CostTimeStatisticsTransformer;
 import agent.common.config.InvokeChainConfig;
 import org.junit.Test;
@@ -48,38 +49,37 @@ public class CostTimeStatisticsTransformerTest extends AbstractTest {
 
                     flushAndWaitMetadata(outputPath);
 
-                    CostTimeResultOptions opts = new CostTimeResultOptions();
-                    CostTimeResultParams params = new CostTimeResultParams();
-                    params.inputPath = outputPath;
-                    params.opts = opts;
-                    CallChainCostTimeResultHandler chainHandler = new CallChainCostTimeResultHandler();
+                    CostTimeCallChainResultOptParser callChainOptParser = new CostTimeCallChainResultOptParser();
+                    CostTimeResultParams params = callChainOptParser.parse(
+                            new String[]{"configFile", outputPath}
+                    );
+                    CostTimeCallChainResultHandler chainHandler = new CostTimeCallChainResultHandler();
                     chainHandler.exec(params);
 
                     System.out.println("\n======= Use cache 1 =======");
-                    opts = new CostTimeResultOptions();
-                    opts.methodStr = "service";
-                    opts.filterExpr = "avg > 20";
-                    opts.chainMatchMethodStr = "runApi4";
-                    params.opts = opts;
+                    params = callChainOptParser.parse(
+                            new String[]{"configFile", "-m", "service", "-e", "avg > 20", "-lm", "runApi4", outputPath}
+                    );
                     chainHandler.exec(params);
 
                     System.out.println("\n======= Use cache 2 =======");
-                    opts = new CostTimeResultOptions();
-                    opts.chainFilterExpr = "avg > 20";
-                    params.opts = opts;
+                    params = callChainOptParser.parse(
+                            new String[]{"configFile", "-le", "avg > 20", outputPath}
+                    );
                     chainHandler.exec(params);
 
-                    System.out.println("=========== 33 =========\n");
-                    InvokeCostTimeResultHandler invokeHandler = new InvokeCostTimeResultHandler();
-                    opts = new CostTimeResultOptions();
-                    opts.methodStr = "runApi*,service";
-                    params.opts = opts;
+                    System.out.println("=========== For invoke =========\n");
+                    CostTimeInvokeResultHandler invokeHandler = new CostTimeInvokeResultHandler();
+                    CostTimeInvokeResultOptParser invokeParser = new CostTimeInvokeResultOptParser();
+                    params = invokeParser.parse(
+                            new String[]{"configFile", "-m", "runApi*,service", outputPath}
+                    );
                     invokeHandler.exec(params);
 
                     System.out.println("\n======= Use cache 4 =======");
-                    opts = new CostTimeResultOptions();
-                    opts.filterExpr = "avg > 20";
-                    params.opts = opts;
+                    params = invokeParser.parse(
+                            new String[]{"configFile", "-e", "avg > 20", outputPath}
+                    );
                     invokeHandler.exec(params);
                 }
         );
