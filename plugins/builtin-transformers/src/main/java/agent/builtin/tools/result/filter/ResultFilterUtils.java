@@ -1,7 +1,7 @@
 package agent.builtin.tools.result.filter;
 
 import agent.builtin.tools.result.parse.ResultOptConfigs;
-import agent.common.args.parse.Opts;
+import agent.base.args.parse.Opts;
 import agent.common.args.parse.specific.ChainFilterOptConfigs;
 import agent.common.config.*;
 import agent.server.transform.search.filter.FilterUtils;

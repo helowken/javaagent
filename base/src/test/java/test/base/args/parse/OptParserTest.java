@@ -1,8 +1,10 @@
-package agent.common.args.parse;
+package test.base.args.parse;
 
+import agent.base.args.parse.*;
 import org.junit.Test;
 
 import java.util.Arrays;
+import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
@@ -12,7 +14,7 @@ public class OptParserTest {
     public void test() {
         OptParser kvParser = new KeyValueOptParser(
                 new OptConfig("-o", "key1"),
-                new OptConfig(null, "--value", "twoValues", OptionValueType.STRING, true)
+                new OptConfig(null, "--value", "twoValues", OptValueType.STRING, true)
         );
         OptParser singleParser = new BooleanOptParser(
                 new OptConfig("-v", "sv"),
@@ -34,7 +36,8 @@ public class OptParserTest {
 
         ArgsOptsParser parser = new ArgsOptsParser(
                 kvParser,
-                singleParser
+                singleParser,
+                UnknownOptParser.getInstance()
         );
         ArgsOpts rs = parser.parse(args);
         final int totalOptSize = 5;
@@ -51,6 +54,29 @@ public class OptParserTest {
         checkFail(new String[]{"-v", "-v"}, parser, "Duplicated option: -v");
         checkFail(new String[]{"-o", "111", "-o", "222"}, parser, "Duplicated option: -o");
         checkFail(new String[]{"-o", "-v"}, parser, "No option value found for: -o");
+
+        StoreOtherArgsOptParser storeOtherArgsOptParser = new StoreOtherArgsOptParser();
+        parser = new ArgsOptsParser(
+                kvParser,
+                singleParser,
+                storeOtherArgsOptParser
+        );
+        checkStoreOtherArgs(storeOtherArgsOptParser, parser);
+    }
+
+    private void checkStoreOtherArgs(StoreOtherArgsOptParser storeOtherArgsOptParser, ArgsOptsParser parser) {
+        ArgsOpts argsOpts = parser.parse(new String[]{"-o", "111", "-ov", "-t", "-ov2", "222", "param1", "-p"});
+        List<String> restArgs = storeOtherArgsOptParser.getArgs();
+        assertEquals(
+                Arrays.asList(
+                        "-ov", "-ov2", "222", "param1"
+                ),
+                restArgs
+        );
+        assertEquals(3, argsOpts.optSize());
+        assertEquals("111", argsOpts.getOptValue("key1"));
+        assertEquals(true, argsOpts.getOptValue("sp"));
+        assertEquals(true, argsOpts.getOptValue("st"));
     }
 
     private void checkFail(String[] args, ArgsOptsParser parser, String errMsg) {

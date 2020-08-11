@@ -1,16 +1,16 @@
 package agent.builtin.tools.result.parse;
 
-import agent.common.args.parse.OptConfig;
-import agent.common.args.parse.OptConfigSuite;
-import agent.common.args.parse.OptionValueType;
-import agent.common.args.parse.Opts;
+import agent.base.args.parse.OptConfig;
+import agent.base.args.parse.OptConfigSuite;
+import agent.base.args.parse.OptValueType;
+import agent.base.args.parse.Opts;
 
 class TraceResultOptConfig {
     private static final String KEY_OUTPUT = "OUTPUT";
     private static final String KEY_CONTENT_SIZE = "CONTENT_SIZE";
     private static OptConfigSuite suite = new OptConfigSuite(
             new OptConfig("-o", "--output", KEY_OUTPUT),
-            new OptConfig("-s", "--content-size", KEY_CONTENT_SIZE, OptionValueType.INT, false)
+            new OptConfig("-s", "--content-size", KEY_CONTENT_SIZE, OptValueType.INT, false)
     );
 
     static OptConfigSuite getSuite() {

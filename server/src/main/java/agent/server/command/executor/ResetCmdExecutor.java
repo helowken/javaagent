@@ -16,7 +16,7 @@ class ResetCmdExecutor extends AbstractTransformCmdExecutor {
                 ((ResetCommand) cmd).getConfig()
         );
         return convert(
-                ResetMgr.getInstance().resetClasses(moduleConfig),
+                ResetMgr.getInstance().resetClasses(null),
                 cmd.getType(),
                 PREFIX
         );

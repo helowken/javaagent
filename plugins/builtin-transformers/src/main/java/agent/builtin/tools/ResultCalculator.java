@@ -1,5 +1,6 @@
 package agent.builtin.tools;
 
+import agent.base.args.parse.CmdParamParser;
 import agent.base.utils.ConsoleLogger;
 import agent.base.utils.Logger;
 import agent.base.utils.SystemConfig;
@@ -26,7 +27,7 @@ public class ResultCalculator {
         );
     }
 
-    private static <P extends ResultParams> void run(String[] args, ResultOptParser<P> parser, ResultHandler<P> resultHandler) {
+    private static <P extends ResultParams> void run(String[] args, CmdParamParser<P> parser, ResultHandler<P> resultHandler) {
         try {
             P params = parser.parse(args);
             init(params.getConfigFile());
@@ -41,7 +42,7 @@ public class ResultCalculator {
         public static void main(String[] args) {
             run(
                     args,
-                    new CostTimeCallChainResultOptParser(),
+                    new CostTimeCallChainResultParamParser(),
                     new CostTimeCallChainResultHandler()
             );
         }
@@ -51,7 +52,7 @@ public class ResultCalculator {
         public static void main(String[] args) {
             run(
                     args,
-                    new CostTimeInvokeResultOptParser(),
+                    new CostTimeInvokeResultParamParser(),
                     new CostTimeInvokeResultHandler()
             );
         }
@@ -61,7 +62,7 @@ public class ResultCalculator {
         public static void main(String[] args) {
             run(
                     args,
-                    new TraceResultOptParser(),
+                    new TraceResultParamParser(),
                     new TraceInvokeResultHandler()
             );
         }

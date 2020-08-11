@@ -2,7 +2,7 @@ package agent.client;
 
 import agent.base.utils.Logger;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class AgentClientCmdRunner extends AbstractClientRunner {
@@ -11,13 +11,9 @@ public class AgentClientCmdRunner extends AbstractClientRunner {
 
     @Override
     public void startup(Object... args) {
-        int idx = init(args);
-        cmdArgs = new ArrayList<>();
-        for (int i = idx; i < args.length; ++i) {
-            cmdArgs.add(
-                    String.valueOf(args[i])
-            );
-        }
+        cmdArgs = Arrays.asList(
+                init(args)
+        );
         logger.debug("Cmd args: {}", cmdArgs);
         connectTo();
     }

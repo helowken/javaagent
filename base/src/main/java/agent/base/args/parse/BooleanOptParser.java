@@ -1,4 +1,4 @@
-package agent.common.args.parse;
+package agent.base.args.parse;
 
 public class BooleanOptParser extends AbstractOptParser {
     public BooleanOptParser(Object... vs) {

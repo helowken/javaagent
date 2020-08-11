@@ -1,4 +1,4 @@
-package agent.common.args.parse;
+package agent.base.args.parse;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -24,9 +24,7 @@ public class ArgsOptsParser {
         List<String> params = new ArrayList<>();
         while (argList.hasNext()) {
             String arg = argList.next();
-            if (OptConfig.isOpt(arg))
-                parseOpt(arg, argList, opts);
-            else
+            if (!parseOpt(arg, argList, opts))
                 params.add(arg);
         }
         return new ArgsOpts(
@@ -35,11 +33,11 @@ public class ArgsOptsParser {
         );
     }
 
-    private void parseOpt(String arg, ArgList argList, Opts opts) {
+    private boolean parseOpt(String arg, ArgList argList, Opts opts) {
         for (OptParser optParser : optParserList) {
             if (optParser.parse(arg, argList, opts))
-                return;
+                return true;
         }
-        throw new RuntimeException("Unknown option: " + arg);
+        return false;
     }
 }

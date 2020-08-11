@@ -3,8 +3,8 @@ package test.transformer;
 import agent.base.utils.ReflectionUtils;
 import agent.builtin.tools.result.CostTimeCallChainResultHandler;
 import agent.builtin.tools.result.CostTimeInvokeResultHandler;
-import agent.builtin.tools.result.parse.CostTimeCallChainResultOptParser;
-import agent.builtin.tools.result.parse.CostTimeInvokeResultOptParser;
+import agent.builtin.tools.result.parse.CostTimeCallChainResultParamParser;
+import agent.builtin.tools.result.parse.CostTimeInvokeResultParamParser;
 import agent.builtin.tools.result.parse.CostTimeResultParams;
 import agent.builtin.transformer.CostTimeStatisticsTransformer;
 import agent.common.config.InvokeChainConfig;
@@ -49,7 +49,7 @@ public class CostTimeStatisticsTransformerTest extends AbstractTest {
 
                     flushAndWaitMetadata(outputPath);
 
-                    CostTimeCallChainResultOptParser callChainOptParser = new CostTimeCallChainResultOptParser();
+                    CostTimeCallChainResultParamParser callChainOptParser = new CostTimeCallChainResultParamParser();
                     CostTimeResultParams params = callChainOptParser.parse(
                             new String[]{"configFile", outputPath}
                     );
@@ -70,7 +70,7 @@ public class CostTimeStatisticsTransformerTest extends AbstractTest {
 
                     System.out.println("=========== For invoke =========\n");
                     CostTimeInvokeResultHandler invokeHandler = new CostTimeInvokeResultHandler();
-                    CostTimeInvokeResultOptParser invokeParser = new CostTimeInvokeResultOptParser();
+                    CostTimeInvokeResultParamParser invokeParser = new CostTimeInvokeResultParamParser();
                     params = invokeParser.parse(
                             new String[]{"configFile", "-m", "runApi*,service", outputPath}
                     );

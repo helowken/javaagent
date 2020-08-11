@@ -14,8 +14,8 @@ public class AgentClientFileRunner extends AbstractClientRunner {
 
     @Override
     public void startup(Object... args) throws Exception {
-        int idx = init(args);
-        String filePath = Utils.getArgValue(args, idx);
+        String[] restArgs = init(args);
+        String filePath = Utils.getArgValue(restArgs, 1);
         ConsoleLogger.getInstance().info("Execute script file: {}", new File(filePath).getCanonicalPath());
         try {
             reader = new BufferedReader(new FileReader(filePath));

@@ -1,8 +1,9 @@
 package agent.common.args.parse.specific;
 
-import agent.common.args.parse.OptConfig;
-import agent.common.args.parse.OptConfigSuite;
-import agent.common.args.parse.Opts;
+import agent.base.args.parse.OptConfig;
+import agent.base.args.parse.OptConfigSuite;
+import agent.base.args.parse.Opts;
+import agent.base.utils.Utils;
 
 public class FilterOptConfigs {
     private static final String KEY_MATCH_CLASS = "MATCH_CLASS";
@@ -18,8 +19,12 @@ public class FilterOptConfigs {
         return suite;
     }
 
-    public static String getClassStr(Opts opts) {
-        return opts.get(KEY_MATCH_CLASS);
+    public static String getClassStr(Opts opts, boolean notBlank) {
+        return suite.get(
+                opts,
+                KEY_MATCH_CLASS,
+                v -> !notBlank || Utils.isNotBlank(v)
+        );
     }
 
     public static String getMethodStr(Opts opts) {

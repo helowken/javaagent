@@ -1,5 +1,6 @@
 package agent.common.args.parse;
 
+import agent.base.args.parse.Opts;
 import agent.base.utils.ReflectionUtils;
 import agent.base.utils.Utils;
 import agent.common.args.parse.specific.ChainFilterOptConfigs;
@@ -19,7 +20,7 @@ public class FilterOptUtils {
     public static TargetConfig createTargetConfig(Opts opts) {
         TargetConfig targetConfig = new TargetConfig();
 
-        String classStr = FilterOptConfigs.getClassStr(opts);
+        String classStr = FilterOptConfigs.getClassStr(opts, false);
         if (Utils.isNotBlank(classStr))
             targetConfig.setClassFilter(
                     newFilterConfig(classStr, ClassFilterConfig::new, null)

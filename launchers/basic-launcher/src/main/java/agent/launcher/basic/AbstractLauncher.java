@@ -6,27 +6,25 @@ import agent.base.plugin.PluginFactory;
 import agent.base.runner.Runner;
 import agent.base.utils.*;
 
-import java.util.Arrays;
-import java.util.Collections;
+import java.util.Map;
 
 public abstract class AbstractLauncher {
     private static final Logger logger = Logger.getLogger(AbstractLauncher.class);
     private static final String KEY_LOG_PATH = "log.path";
     private static final String KEY_LOG_LEVEL = "log.level";
     private static final String KEY_LIB_DIR = "lib.dir";
-    private static final String PARAM_PORT = "port";
 
     protected void loadLibs(String[] libPaths) throws Exception {
         ClassLoaderUtils.initContextClassLoader(libPaths);
     }
 
-    protected void init(String configFilePath, int port) throws Exception {
+    protected void init(String configFilePath, Map<String, Object> pvs) throws Exception {
         SystemConfig.load(configFilePath);
         Logger.setSystemLogger(null);
         Logger.init(
                 StringParser.eval(
                         SystemConfig.get(KEY_LOG_PATH),
-                        Collections.singletonMap(PARAM_PORT, port)
+                        pvs
                 ),
                 SystemConfig.get(KEY_LOG_LEVEL)
         );

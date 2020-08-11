@@ -10,4 +10,5 @@ public class CostTimeCmdParser extends AbstractTransformCmdParser {
     public String getCmdName() {
         return "cost_time";
     }
+
 }

@@ -1,17 +1,45 @@
-package agent.common.args.parse;
+package agent.base.args.parse;
 
 import java.util.*;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class OptConfigSuite {
-    private final List<OptConfig> optConfigList = new ArrayList<>();
+    private final Map<String, OptConfig> keyToOptConfig;
 
     public OptConfigSuite(OptConfig... optConfigs) {
         validate(optConfigs);
-        Collections.addAll(optConfigList, optConfigs);
+        keyToOptConfig = Stream.of(optConfigs).collect(
+                Collectors.toMap(
+                        OptConfig::getKey,
+                        v -> v
+                )
+        );
     }
 
-    List<OptConfig> getOptConfigList() {
-        return Collections.unmodifiableList(optConfigList);
+    public OptConfig findByKey(String key) {
+        OptConfig optConfig = keyToOptConfig.get(key);
+        if (optConfig == null)
+            throw new RuntimeException("No option config found by key: " + key);
+        return optConfig;
+    }
+
+    public <T> T get(Opts opts, String key, Predicate<T> predicate) {
+        T v = opts.get(key);
+        if (!predicate.test(v)) {
+            OptConfig optConfig = findByKey(key);
+            throw new RuntimeException(
+                    "Option '" + optConfig.getDisplayName() + "' is required."
+            );
+        }
+        return v;
+    }
+
+    Collection<OptConfig> getOptConfigList() {
+        return Collections.unmodifiableCollection(
+                keyToOptConfig.values()
+        );
     }
 
     public static void validate(OptConfig... optConfigs) {

@@ -1,6 +1,6 @@
 package agent.builtin.tools.result.parse;
 
-import agent.common.args.parse.ArgsOpts;
+import agent.base.args.parse.ArgsOpts;
 
 import java.util.Arrays;
 import java.util.Collections;

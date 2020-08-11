@@ -20,8 +20,7 @@ abstract class AbstractClientRunner implements Runner {
     private static final String KEY_SOCKET_CONNECTION_TIMEOUT = "socket.connection.timeout";
     private static final Set<String> quitCmds = new HashSet<>(Arrays.asList("quit", "exit", "byte"));
     private static final CmdItem QUIT_ITEM = new CmdItem(null, true);
-    private String host;
-    private int port;
+    private HostAndPort hostAndPort;
 
     static {
         Logger.setAsync(false);
@@ -29,11 +28,12 @@ abstract class AbstractClientRunner implements Runner {
 
     abstract List<String> readCmdArgs() throws Exception;
 
-    int init(Object[] args) {
-        int i = 0;
-        host = Utils.getArgValue(args, i++);
-        port = Utils.getArgValue(args, i++);
-        return i;
+    String[] init(Object[] args) {
+        hostAndPort = Utils.getArgValue(args, 0);
+        List<String> restArgs = Utils.getArgValue(args, 1);
+        return restArgs.toArray(
+                new String[0]
+        );
     }
 
     @Override
@@ -82,9 +82,12 @@ abstract class AbstractClientRunner implements Runner {
 
     boolean connectTo() {
         try (Socket socket = new Socket()) {
-            ConsoleLogger.getInstance().info("Try to connect to: {}:{}", host, port);
+            ConsoleLogger.getInstance().info("Try to connect to: {}:{}", hostAndPort.host, hostAndPort.port);
             socket.connect(
-                    new InetSocketAddress(host, port),
+                    new InetSocketAddress(
+                            hostAndPort.host,
+                            hostAndPort.port
+                    ),
                     Utils.parseInt(
                             SystemConfig.get(KEY_SOCKET_CONNECTION_TIMEOUT),
                             KEY_SOCKET_CONNECTION_TIMEOUT

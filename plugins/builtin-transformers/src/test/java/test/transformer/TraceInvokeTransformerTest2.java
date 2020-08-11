@@ -2,9 +2,9 @@ package test.transformer;
 
 import agent.base.utils.ReflectionUtils;
 import agent.builtin.tools.result.*;
-import agent.builtin.tools.result.parse.CostTimeCallChainResultOptParser;
+import agent.builtin.tools.result.parse.CostTimeCallChainResultParamParser;
 import agent.builtin.tools.result.parse.CostTimeResultParams;
-import agent.builtin.tools.result.parse.TraceResultOptParser;
+import agent.builtin.tools.result.parse.TraceResultParamParser;
 import agent.builtin.tools.result.parse.TraceResultParams;
 import agent.builtin.transformer.CostTimeStatisticsTransformer;
 import agent.builtin.transformer.TraceInvokeTransformer;
@@ -69,7 +69,7 @@ public class TraceInvokeTransformerTest2 extends AbstractTest {
                             flushAndWaitMetadata(outputPath);
                             flushAndWaitMetadata(outputPath2);
 
-                            TraceResultOptParser parser = new TraceResultOptParser();
+                            TraceResultParamParser parser = new TraceResultParamParser();
                             TraceInvokeResultHandler traceHandler = new TraceInvokeResultHandler();
                             TraceResultParams traceParams = parser.parse(
                                 new String[] {"configFile", outputPath}
@@ -96,7 +96,7 @@ public class TraceInvokeTransformerTest2 extends AbstractTest {
 
                             System.out.println("\n=================");
                             CostTimeCallChainResultHandler costTimeHandler = new CostTimeCallChainResultHandler();
-                            CostTimeCallChainResultOptParser timeParser = new CostTimeCallChainResultOptParser();
+                            CostTimeCallChainResultParamParser timeParser = new CostTimeCallChainResultParamParser();
                             CostTimeResultParams costTimeParams = timeParser.parse(
                                     new String[] {"configFile", outputPath2}
                             );

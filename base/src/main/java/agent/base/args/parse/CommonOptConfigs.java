@@ -1,8 +1,4 @@
-package agent.common.args.parse.specific;
-
-import agent.common.args.parse.OptConfig;
-import agent.common.args.parse.OptConfigSuite;
-import agent.common.args.parse.Opts;
+package agent.base.args.parse;
 
 public class CommonOptConfigs {
     private static final String KEY_HELP = "HELP";

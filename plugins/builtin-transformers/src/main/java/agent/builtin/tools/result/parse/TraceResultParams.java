@@ -1,7 +1,7 @@
 package agent.builtin.tools.result.parse;
 
 import agent.base.utils.Utils;
-import agent.common.args.parse.ArgsOpts;
+import agent.base.args.parse.ArgsOpts;
 
 import java.util.Arrays;
 import java.util.Collection;

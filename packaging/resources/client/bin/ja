@@ -6,5 +6,10 @@ source $(dirname $0)/../../common/bin/env
 classpath=$common_lib_base_dir/*:$launcher_dir/*
 main_class=agent.launcher.client.ClientLauncher
 
-$JAVA_HOME/bin/java -cp $classpath $main_class $conf_file "$@"
+$JAVA_HOME/bin/java \
+        -cp $classpath \
+        $main_class \
+        $conf_file \
+        --runner-type clientCmdRunner \
+        "$@"
 

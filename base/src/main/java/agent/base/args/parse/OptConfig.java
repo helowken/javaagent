@@ -1,4 +1,6 @@
-package agent.common.args.parse;
+package agent.base.args.parse;
+
+import agent.base.utils.Utils;
 
 public class OptConfig {
     private static final String PREFIX = "-";
@@ -6,7 +8,7 @@ public class OptConfig {
     private final String name;
     private final String fullName;
     private final String key;
-    private final OptionValueType valueType;
+    private final OptValueType valueType;
     private final boolean allowMulti;
 
     static boolean isOpt(String arg) {
@@ -20,10 +22,10 @@ public class OptConfig {
     }
 
     public OptConfig(String name, String fullName, String key) {
-        this(name, fullName, key, OptionValueType.STRING, false);
+        this(name, fullName, key, OptValueType.STRING, false);
     }
 
-    public OptConfig(String name, String fullName, String key, OptionValueType valueType, boolean allowMulti) {
+    public OptConfig(String name, String fullName, String key, OptValueType valueType, boolean allowMulti) {
         if (name == null && fullName == null)
             throw new IllegalArgumentException("Name and full name can't be both null.");
         if (name != null && !name.startsWith(PREFIX))
@@ -41,6 +43,10 @@ public class OptConfig {
         this.allowMulti = allowMulti;
     }
 
+    String getDisplayName() {
+        return Utils.isBlank(fullName) ? name : fullName;
+    }
+
     String getName() {
         return name;
     }
@@ -53,7 +59,7 @@ public class OptConfig {
         return key;
     }
 
-    OptionValueType getValueType() {
+    OptValueType getValueType() {
         return valueType;
     }
 

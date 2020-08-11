@@ -1,27 +1,26 @@
 package agent.client.command.parser.impl;
 
-import agent.base.parser.BasicParams;
 import agent.base.utils.TypeObject;
+import agent.client.args.parse.ModuleParams;
 import agent.client.command.parser.CommandParser;
+import agent.common.args.parse.specific.FilterOptConfigs;
 import agent.common.config.ModuleConfig;
 import agent.common.message.command.Command;
-import agent.common.parser.AbstractChainSearchFilterOptionsCmdParser;
-import agent.common.parser.ChainFilterOptions;
 import agent.common.utils.JSONUtils;
 
 import java.util.Collections;
 import java.util.Map;
 
-import static agent.common.parser.FilterOptionUtils.createTargetConfig;
+import static agent.common.args.parse.FilterOptUtils.createTargetConfig;
 
-abstract class AbstractModuleCmdParser<F extends ChainFilterOptions, P extends BasicParams<F>>
-        extends AbstractChainSearchFilterOptionsCmdParser<F, P> implements CommandParser {
-
+abstract class AbstractModuleCmdParser<P extends ModuleParams> implements CommandParser {
     abstract Command createCommand(Map<String, Object> data);
 
+    abstract P doParse(String[] args);
+
     @Override
-    public Command parse(String[] args) throws Exception {
-        P params = run(args);
+    public Command parse(String[] args) {
+        P params = doParse(args);
         checkParams(params);
         return createCommand(
                 JSONUtils.convert(
@@ -33,9 +32,9 @@ abstract class AbstractModuleCmdParser<F extends ChainFilterOptions, P extends B
     }
 
     void checkParams(P params) {
-        checkNotBlank(
-                params.opts.classStr,
-                "classFilter"
+        FilterOptConfigs.getClassStr(
+                params.getOpts(),
+                true
         );
     }
 
@@ -43,12 +42,13 @@ abstract class AbstractModuleCmdParser<F extends ChainFilterOptions, P extends B
         ModuleConfig moduleConfig = new ModuleConfig();
         moduleConfig.setTargets(
                 Collections.singletonList(
-                        createTargetConfig(params.opts)
+                        createTargetConfig(
+                                params.getOpts()
+                        )
                 )
         );
         return moduleConfig;
     }
-
-
 }
+
 

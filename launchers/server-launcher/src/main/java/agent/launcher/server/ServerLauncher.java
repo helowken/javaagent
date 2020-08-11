@@ -6,12 +6,14 @@ import agent.base.utils.Utils;
 import agent.launcher.basic.AbstractLauncher;
 
 import java.lang.instrument.Instrumentation;
+import java.util.Collections;
 
 
 public class ServerLauncher extends AbstractLauncher {
     private static final Logger logger = Logger.getLogger(ServerLauncher.class);
     private static final String SEP = ":";
     private static final String RUNNER_TYPE = "serverRunner";
+    private static final String KEY_PORT = "port";
     private static final ServerLauncher instance = new ServerLauncher();
     private static AttachType attachType;
 
@@ -31,9 +33,12 @@ public class ServerLauncher extends AbstractLauncher {
         String[] ts = agentArgs.split(SEP);
         if (ts.length != 2)
             throw new IllegalArgumentException("Agent arguments should be: port:configFilePath");
-        int port = Utils.parseInt(ts[0], "port");
+        int port = Utils.parseInt(ts[0], KEY_PORT);
         String configFilePath = ts[1];
-        instance.init(configFilePath, port);
+        instance.init(
+                configFilePath,
+                Collections.singletonMap(KEY_PORT, port)
+        );
         instance.startRunner(RUNNER_TYPE, port, instrumentation);
     }
 

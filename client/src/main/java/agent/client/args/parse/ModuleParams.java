@@ -1,16 +1,15 @@
-package agent.builtin.tools.result.parse;
+package agent.client.args.parse;
 
 import agent.base.args.parse.ArgsOpts;
 import agent.base.args.parse.Opts;
 
-abstract class AbstractResultParams implements ResultParams {
-    private final ArgsOpts argsOpts;
+public class ModuleParams {
+    final ArgsOpts argsOpts;
 
-    AbstractResultParams(ArgsOpts argsOpts) {
+    ModuleParams(ArgsOpts argsOpts) {
         this.argsOpts = argsOpts;
     }
 
-    @Override
     public String getConfigFile() {
         return argsOpts.getArg(
                 0,
@@ -18,15 +17,6 @@ abstract class AbstractResultParams implements ResultParams {
         );
     }
 
-    @Override
-    public String getInputPath() {
-        return argsOpts.getArg(
-                1,
-                () -> "No input path found."
-        );
-    }
-
-    @Override
     public Opts getOpts() {
         return argsOpts.getOpts();
     }

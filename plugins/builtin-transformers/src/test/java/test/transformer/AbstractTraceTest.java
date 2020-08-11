@@ -4,7 +4,7 @@ import agent.base.utils.IOUtils;
 import agent.base.utils.ReflectionUtils;
 import agent.base.utils.Utils;
 import agent.builtin.tools.result.TraceInvokeResultHandler;
-import agent.builtin.tools.result.parse.TraceResultOptParser;
+import agent.builtin.tools.result.parse.TraceResultParamParser;
 import agent.builtin.tools.result.parse.TraceResultParams;
 import agent.builtin.transformer.TraceInvokeTransformer;
 import agent.common.config.InvokeChainConfig;
@@ -73,13 +73,13 @@ abstract class AbstractTraceTest extends AbstractTest {
                     flushAndWaitMetadata(outputPath);
                     System.out.println(IOUtils.readToString(outputPath));
 
-                    TraceResultParams params = new TraceResultOptParser().parse(
+                    TraceResultParams params = new TraceResultParamParser().parse(
                             new String[]{"configFile", outputPath}
                     );
                     new TraceInvokeResultHandler().exec(params);
 
                     System.out.println("\n==============================");
-                    params = new TraceResultOptParser().parse(
+                    params = new TraceResultParamParser().parse(
                             new String[]{"configFile", "-o", "' '", outputPath}
                     );
                     new TraceInvokeResultHandler().exec(params);

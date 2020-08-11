@@ -1,9 +1,9 @@
 package agent.common.args.parse.specific;
 
-import agent.common.args.parse.OptConfig;
-import agent.common.args.parse.OptConfigSuite;
-import agent.common.args.parse.OptionValueType;
-import agent.common.args.parse.Opts;
+import agent.base.args.parse.OptConfig;
+import agent.base.args.parse.OptConfigSuite;
+import agent.base.args.parse.OptValueType;
+import agent.base.args.parse.Opts;
 
 public class ChainFilterOptConfigs {
     private static final String KEY_CHAIN_SEARCH_CLASS = "CHAIN_SEARCH_CLASS";
@@ -17,7 +17,7 @@ public class ChainFilterOptConfigs {
             new OptConfig("-lsc", "--chain-search-class", KEY_CHAIN_SEARCH_CLASS),
             new OptConfig("-lsm", "--chain-search-method", KEY_CHAIN_SEARCH_METHOD),
             new OptConfig("-lsi", "--chain-search-constructor", KEY_CHAIN_SEARCH_CONSTRUCTOR),
-            new OptConfig("-lsl", "--chain-search-level", KEY_CHAIN_SEARCH_LEVEL, OptionValueType.INT, false),
+            new OptConfig("-lsl", "--chain-search-level", KEY_CHAIN_SEARCH_LEVEL, OptValueType.INT, false),
             new OptConfig("-lc", "--chain-match-class", KEY_CHAIN_MATCH_CLASS),
             new OptConfig("-lm", "--chain-match-method", KEY_CHAIN_MATCH_METHOD),
             new OptConfig("-li", "--chain-match-constructor", KEY_CHAIN_MATCH_CONSTRUCTOR)

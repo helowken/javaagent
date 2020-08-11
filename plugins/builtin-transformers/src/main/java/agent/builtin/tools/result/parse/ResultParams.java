@@ -1,6 +1,6 @@
 package agent.builtin.tools.result.parse;
 
-import agent.common.args.parse.Opts;
+import agent.base.args.parse.Opts;
 
 public interface ResultParams {
     String getConfigFile();
