@@ -1,49 +1,51 @@
 package agent.launcher.client;
 
+import agent.base.args.parse.CommonOptConfigs;
 import agent.base.args.parse.Opts;
-import agent.base.parser.CmdHelpException;
 import agent.base.utils.ConsoleLogger;
 import agent.base.utils.HostAndPort;
 import agent.base.utils.Utils;
 import agent.launcher.basic.AbstractLauncher;
 
-import java.util.Arrays;
+import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class ClientLauncher extends AbstractLauncher {
     private static final String KEY_HOST = "host";
     private static final String KEY_PORT = "port";
-    private static final String DEFAULT_RUNNER_TYPE = "clientCmdRunner";
     private static final ClientLauncher instance = new ClientLauncher();
     private static final ClientLauncherParamParser parser = new ClientLauncherParamParser();
 
     public static void main(String[] args) {
         try {
-            ClientLauncherParams params = parser.parse(args);
-            HostAndPort hostAndPort = ClientLauncherOptConfigs.getHostAndPort(
-                    params.getOpts()
+            Opts opts = parser.parse(args).getOpts();
+            List<String> restArgList = new ArrayList<>(
+                    parser.getRestArgs()
             );
-            String[] restArgs = parser.getRestArgs().toArray(
-                    new String[0]
-            );
+            HostAndPort hostAndPort = ClientLauncherOptConfigs.getHostAndPort(opts);
             instance.init(
-                    Utils.getArgValue(restArgs, 0),
+                    getConfigFile(restArgList),
                     getInitParams(hostAndPort)
             );
-            instance.startRunner(
-                    getRunnerType(
-                            params.getOpts()
-                    ),
-                    hostAndPort,
-                    Arrays.copyOfRange(
-                            restArgs,
-                            1,
-                            restArgs.length
-                    )
-            );
-        } catch (CmdHelpException e) {
-            ConsoleLogger.getInstance().info("{}", e.getMessage());
+            restArgList.remove(0);
+
+            if (CommonOptConfigs.isVersion(opts))
+                HelpUtils.printVersion();
+            else if (CommonOptConfigs.isHelp(opts) && restArgList.isEmpty())
+                HelpUtils.printHelp(
+                        parser.getOptConfigList()
+                );
+            else
+                instance.startRunner(
+                        getRunnerType(opts),
+                        hostAndPort,
+                        restArgList.toArray(
+                                new String[0]
+                        )
+                );
         } catch (Throwable t) {
             t.printStackTrace();
             ConsoleLogger.getInstance().error("Error: {}", t.getMessage());
@@ -71,6 +73,17 @@ public class ClientLauncher extends AbstractLauncher {
 
     private static String getRunnerType(Opts opts) {
         String runnerType = ClientLauncherOptConfigs.getRunnerType(opts);
-        return Utils.isBlank(runnerType) ? DEFAULT_RUNNER_TYPE : runnerType;
+        if (Utils.isBlank(runnerType))
+            throw new RuntimeException("No client runner type found.");
+        return runnerType;
+    }
+
+    private static String getConfigFile(List<String> args) {
+        if (args.isEmpty())
+            throw new RuntimeException("No config file found.");
+        String configFilePath = args.get(0);
+        if (!new File(configFilePath).exists())
+            throw new RuntimeException("Config file does not exist: " + configFilePath);
+        return configFilePath;
     }
 }

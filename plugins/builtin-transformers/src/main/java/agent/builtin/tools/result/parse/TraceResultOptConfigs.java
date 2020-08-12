@@ -5,12 +5,24 @@ import agent.base.args.parse.OptConfigSuite;
 import agent.base.args.parse.OptValueType;
 import agent.base.args.parse.Opts;
 
-class TraceResultOptConfig {
+class TraceResultOptConfigs {
     private static final String KEY_OUTPUT = "OUTPUT";
     private static final String KEY_CONTENT_SIZE = "CONTENT_SIZE";
     private static OptConfigSuite suite = new OptConfigSuite(
-            new OptConfig("-o", "--output", KEY_OUTPUT),
-            new OptConfig("-s", "--content-size", KEY_CONTENT_SIZE, OptValueType.INT, false)
+            new OptConfig(
+                    "-o",
+                    "--output",
+                    KEY_OUTPUT,
+                    "Desc TODO."
+            ),
+            new OptConfig(
+                    "-s",
+                    "--content-size",
+                    KEY_CONTENT_SIZE,
+                    "Desc TODO.",
+                    OptValueType.INT,
+                    false
+            )
     );
 
     static OptConfigSuite getSuite() {

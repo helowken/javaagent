@@ -17,7 +17,7 @@ public class TraceResultParamParser extends AbstractCmdParamParser<TraceResultPa
                 new KeyValueOptParser(
                         FilterOptConfigs.getSuite(),
                         ChainFilterOptConfigs.getSuite(),
-                        TraceResultOptConfig.getSuite(),
+                        TraceResultOptConfigs.getSuite(),
                         ResultOptConfigs.getSuite()
                 )
         );

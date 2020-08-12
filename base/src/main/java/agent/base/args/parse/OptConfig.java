@@ -8,6 +8,7 @@ public class OptConfig {
     private final String name;
     private final String fullName;
     private final String key;
+    private final String desc;
     private final OptValueType valueType;
     private final boolean allowMulti;
 
@@ -18,14 +19,14 @@ public class OptConfig {
     }
 
     public OptConfig(String name, String key) {
-        this(name, null, key);
+        this(name, null, key, null);
     }
 
-    public OptConfig(String name, String fullName, String key) {
-        this(name, fullName, key, OptValueType.STRING, false);
+    public OptConfig(String name, String fullName, String key, String desc) {
+        this(name, fullName, key, desc, OptValueType.STRING, false);
     }
 
-    public OptConfig(String name, String fullName, String key, OptValueType valueType, boolean allowMulti) {
+    public OptConfig(String name, String fullName, String key, String desc, OptValueType valueType, boolean allowMulti) {
         if (name == null && fullName == null)
             throw new IllegalArgumentException("Name and full name can't be both null.");
         if (name != null && !name.startsWith(PREFIX))
@@ -39,35 +40,40 @@ public class OptConfig {
         this.name = name;
         this.fullName = fullName;
         this.key = key;
+        this.desc = desc;
         this.valueType = valueType;
         this.allowMulti = allowMulti;
     }
 
-    String getDisplayName() {
+    public String getDisplayName() {
         return Utils.isBlank(fullName) ? name : fullName;
     }
 
-    String getName() {
+    public String getName() {
         return name;
     }
 
-    String getFullName() {
+    public String getFullName() {
         return fullName;
     }
 
-    String getKey() {
+    public String getKey() {
         return key;
     }
 
-    OptValueType getValueType() {
+    public String getDesc() {
+        return desc;
+    }
+
+    public OptValueType getValueType() {
         return valueType;
     }
 
-    boolean isAllowMulti() {
+    public boolean isAllowMulti() {
         return allowMulti;
     }
 
-    boolean match(String arg) {
+    public boolean match(String arg) {
         return arg.equals(name) || arg.equals(fullName);
     }
 }

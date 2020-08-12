@@ -18,7 +18,9 @@ import java.util.*;
 abstract class AbstractClientRunner implements Runner {
     private static final Logger logger = Logger.getLogger(AbstractClientRunner.class);
     private static final String KEY_SOCKET_CONNECTION_TIMEOUT = "socket.connection.timeout";
-    private static final Set<String> quitCmds = new HashSet<>(Arrays.asList("quit", "exit", "byte"));
+    private static final Set<String> quitCmds = new HashSet<>(
+            Arrays.asList("quit", "exit", "byte")
+    );
     private static final CmdItem QUIT_ITEM = new CmdItem(null, true);
     private HostAndPort hostAndPort;
 
@@ -30,10 +32,7 @@ abstract class AbstractClientRunner implements Runner {
 
     String[] init(Object[] args) {
         hostAndPort = Utils.getArgValue(args, 0);
-        List<String> restArgs = Utils.getArgValue(args, 1);
-        return restArgs.toArray(
-                new String[0]
-        );
+        return Utils.getArgValue(args, 1);
     }
 
     @Override

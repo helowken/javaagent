@@ -40,4 +40,14 @@ public class ArgsOptsParser {
         }
         return false;
     }
+
+    public List<OptConfig> getOptConfigList() {
+        List<OptConfig> rsList = new ArrayList<>();
+        optParserList.forEach(
+                optParser -> rsList.addAll(
+                        optParser.getOptConfigList()
+                )
+        );
+        return rsList;
+    }
 }

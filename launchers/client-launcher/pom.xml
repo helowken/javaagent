@@ -18,6 +18,12 @@
             <groupId>javaagent</groupId>
             <artifactId>basic-launcher</artifactId>
         </dependency>
+
+        <!-- test -->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+        </dependency>
     </dependencies>
 
 </project>

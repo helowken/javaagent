@@ -34,6 +34,13 @@ public class SystemConfig {
         return Utils.blankToNull(fileProps.getProperty(key, userDefineProps.get(key)));
     }
 
+    public static String getNotBlank(String key) {
+        String v = get(key);
+        if (Utils.isBlank(v))
+            throw new RuntimeException("Invalid config: " + key);
+        return v;
+    }
+
     public static Set<String> splitToSet(String key, String sep) {
         return Utils.splitToSet(get(key), sep);
     }

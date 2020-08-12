@@ -3,6 +3,7 @@ package agent.base.args.parse;
 import agent.base.utils.Logger;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 abstract class AbstractOptParser implements OptParser {
@@ -59,5 +60,10 @@ abstract class AbstractOptParser implements OptParser {
             logger.error("Convert value failed, arg: {}, valueStr: {}", e, arg, valueStr);
         }
         throw new RuntimeException("Invalid value for " + arg + ": " + valueStr);
+    }
+
+    @Override
+    public List<OptConfig> getOptConfigList() {
+        return Collections.unmodifiableList(optConfigList);
     }
 }

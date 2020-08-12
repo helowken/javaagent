@@ -68,8 +68,13 @@ class LoggerImpl extends AbstractLoggerImpl {
                     ).getAbsolutePath();
             setOutputFile(path);
         }
-        if (level != null)
-            setLevel(LoggerLevel.valueOf(level));
+        if (level != null) {
+            try {
+                setLevel(LoggerLevel.valueOf(level));
+            } catch (Exception e) {
+                throw new RuntimeException("Invalid log level: " + level);
+            }
+        }
     }
 
     LoggerImpl(Class<?> clazz) {

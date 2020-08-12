@@ -11,33 +11,43 @@ class ClientLauncherOptConfigs {
     private static final String KEY_PORT = "PORT";
     private static final String KEY_RUNNER_TYPE = "RUNNER_TYPE";
     private static final String DEFAULT_HOST = "127.0.0.1";
+    private static final String DEFAULT_RUNNER_TYPE = "clientCmdRunner";
     private static final int DEFAULT_PORT = 10086;
     private static final OptConfigSuite suite = new OptConfigSuite(
-            new OptConfig(null, "--host", KEY_HOST),
-            new OptConfig(null, "--port", KEY_PORT, OptValueType.INT, false),
-            new OptConfig(null, "--runner-type", KEY_RUNNER_TYPE)
+            new OptConfig(
+                    null,
+                    "--host",
+                    KEY_HOST,
+                    "Specify server address. Default: \"" + DEFAULT_HOST + "\""
+            ),
+            new OptConfig(
+                    null,
+                    "--port",
+                    KEY_PORT,
+                    "Specify server port. Default: " + DEFAULT_PORT,
+                    OptValueType.INT,
+                    false
+            ),
+            new OptConfig(
+                    null,
+                    "--runner-type",
+                    KEY_RUNNER_TYPE,
+                    "Specify client runner type. Default: \"" + DEFAULT_RUNNER_TYPE + "\""
+            )
     );
 
     static OptConfigSuite getSuite() {
         return suite;
     }
 
-    static String getHost(Opts opts) {
-        return opts.getNotNull(KEY_HOST, DEFAULT_HOST);
-    }
-
-    static int getPort(Opts opts) {
-        return opts.getNotNull(KEY_HOST, DEFAULT_PORT);
-    }
-
     static HostAndPort getHostAndPort(Opts opts) {
         return new HostAndPort(
-                getHost(opts),
-                getPort(opts)
+                opts.getNotNull(KEY_HOST, DEFAULT_HOST),
+                opts.getNotNull(KEY_HOST, DEFAULT_PORT)
         );
     }
 
     static String getRunnerType(Opts opts) {
-        return opts.get(KEY_RUNNER_TYPE);
+        return opts.getNotNull(KEY_RUNNER_TYPE, DEFAULT_RUNNER_TYPE);
     }
 }

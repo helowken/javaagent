@@ -23,7 +23,7 @@ public abstract class AbstractLauncher {
         Logger.setSystemLogger(null);
         Logger.init(
                 StringParser.eval(
-                        SystemConfig.get(KEY_LOG_PATH),
+                        SystemConfig.getNotBlank(KEY_LOG_PATH),
                         pvs
                 ),
                 SystemConfig.get(KEY_LOG_LEVEL)

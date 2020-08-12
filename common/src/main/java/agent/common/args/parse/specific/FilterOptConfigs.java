@@ -10,9 +10,24 @@ public class FilterOptConfigs {
     private static final String KEY_MATCH_METHOD = "MATCH_METHOD";
     private static final String KEY_MATCH_CONSTRUCTOR = "MATCH_CONSTRUCTOR";
     private static final OptConfigSuite suite = new OptConfigSuite(
-            new OptConfig("-c", "--match-class", KEY_MATCH_CLASS),
-            new OptConfig("-m", "--match-method", KEY_MATCH_METHOD),
-            new OptConfig("-i", "--match-constructor", KEY_MATCH_CONSTRUCTOR)
+            new OptConfig(
+                    "-c",
+                    "--match-class",
+                    KEY_MATCH_CLASS,
+                    "Filter rules for classes."
+            ),
+            new OptConfig(
+                    "-m",
+                    "--match-method",
+                    KEY_MATCH_METHOD,
+                    "Filter rules for methods."
+            ),
+            new OptConfig(
+                    "-i",
+                    "--match-constructor",
+                    KEY_MATCH_CONSTRUCTOR,
+                    "Filter rules for constructors."
+            )
     );
 
     public static OptConfigSuite getSuite() {

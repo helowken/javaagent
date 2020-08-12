@@ -13,6 +13,11 @@ public class StoreOtherArgsOptParser implements OptParser {
         return true;
     }
 
+    @Override
+    public List<OptConfig> getOptConfigList() {
+        return Collections.emptyList();
+    }
+
     public List<String> getArgs() {
         return Collections.unmodifiableList(args);
     }

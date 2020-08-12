@@ -10,6 +10,11 @@ public abstract class AbstractCmdParamParser<P> implements CmdParamParser<P> {
 
     protected abstract P convert(ArgsOpts argsOpts);
 
+    @Override
+    public List<OptConfig> getOptConfigList() {
+        return getArgsOptsParser().getOptConfigList();
+    }
+
     protected void preParse(String[] args) {
     }
 

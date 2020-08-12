@@ -13,7 +13,11 @@ public class OptConfigSuite {
         keyToOptConfig = Stream.of(optConfigs).collect(
                 Collectors.toMap(
                         OptConfig::getKey,
-                        v -> v
+                        v -> v,
+                        (u, v) -> {
+                            throw new IllegalStateException(String.format("Duplicate key %s", u));
+                        },
+                        LinkedHashMap::new
                 )
         );
     }

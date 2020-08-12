@@ -22,7 +22,7 @@ public class TraceResultParams extends AbstractResultParams {
 
     TraceResultParams(ArgsOpts argsOpts) {
         super(argsOpts);
-        this.contentSize = TraceResultOptConfig.getContentSize(
+        this.contentSize = TraceResultOptConfigs.getContentSize(
                 argsOpts.getOpts()
         );
         Collection<String> attrs = parseOutputSetting(argsOpts);
@@ -53,7 +53,7 @@ public class TraceResultParams extends AbstractResultParams {
     }
 
     private Collection<String> parseOutputSetting(ArgsOpts argsOpts) {
-        String output = TraceResultOptConfig.getOutput(
+        String output = TraceResultOptConfigs.getOutput(
                 argsOpts.getOpts()
         );
         return Utils.isBlank(output) ?

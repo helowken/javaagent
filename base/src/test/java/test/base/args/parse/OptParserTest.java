@@ -10,35 +10,35 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 public class OptParserTest {
+    private final OptParser kvParser = new KeyValueOptParser(
+            new OptConfig("-o", "key1"),
+            new OptConfig(null, "--value", "twoValues", null, OptValueType.STRING, true)
+    );
+    private final OptParser singleParser = new BooleanOptParser(
+            new OptConfig("-v", "sv"),
+            new OptConfig("-p", "sp"),
+            new OptConfig("-t", "st")
+    );
+
+    private final String[] args = {
+            "param0",
+            "-o", "111",
+            "--value", "v1",
+            "param1",
+            "-v",
+            "-p",
+            "--value", "v2",
+            "param2",
+            "-t"
+    };
+    private final ArgsOptsParser parser = new ArgsOptsParser(
+            kvParser,
+            singleParser,
+            UnknownOptParser.getInstance()
+    );
+
     @Test
-    public void test() {
-        OptParser kvParser = new KeyValueOptParser(
-                new OptConfig("-o", "key1"),
-                new OptConfig(null, "--value", "twoValues", OptValueType.STRING, true)
-        );
-        OptParser singleParser = new BooleanOptParser(
-                new OptConfig("-v", "sv"),
-                new OptConfig("-p", "sp"),
-                new OptConfig("-t", "st")
-        );
-
-        String[] args = {
-                "param0",
-                "-o", "111",
-                "--value", "v1",
-                "param1",
-                "-v",
-                "-p",
-                "--value", "v2",
-                "param2",
-                "-t"
-        };
-
-        ArgsOptsParser parser = new ArgsOptsParser(
-                kvParser,
-                singleParser,
-                UnknownOptParser.getInstance()
-        );
+    public void testSuccess() {
         ArgsOpts rs = parser.parse(args);
         final int totalOptSize = 5;
         checkOpts(rs, totalOptSize, "key1", "111", 1);
@@ -47,16 +47,22 @@ public class OptParserTest {
         checkOpts(rs, totalOptSize, "sp", true, 1);
         checkOpts(rs, totalOptSize, "st", true, 1);
         checkArgs(rs, 3, new String[]{"param0", "param1", "param2"});
+    }
 
+    @Test
+    public void testFail() {
         checkFail(new String[]{"-ov", "111"}, parser, "Unknown option: -ov");
         checkFail(new String[]{"--value2", "111"}, parser, "Unknown option: --value2");
         checkFail(new String[]{"-y"}, parser, "Unknown option: -y");
         checkFail(new String[]{"-v", "-v"}, parser, "Duplicated option: -v");
         checkFail(new String[]{"-o", "111", "-o", "222"}, parser, "Duplicated option: -o");
         checkFail(new String[]{"-o", "-v"}, parser, "No option value found for: -o");
+    }
 
+    @Test
+    public void testStoreOtherArgs() {
         StoreOtherArgsOptParser storeOtherArgsOptParser = new StoreOtherArgsOptParser();
-        parser = new ArgsOptsParser(
+        ArgsOptsParser parser = new ArgsOptsParser(
                 kvParser,
                 singleParser,
                 storeOtherArgsOptParser

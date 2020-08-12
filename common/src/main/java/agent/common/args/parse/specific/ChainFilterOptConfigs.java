@@ -14,13 +14,50 @@ public class ChainFilterOptConfigs {
     private static final String KEY_CHAIN_MATCH_METHOD = "CHAIN_MATCH_METHOD";
     private static final String KEY_CHAIN_MATCH_CONSTRUCTOR = "CHAIN_MATCH_CONSTRUCTOR";
     private static final OptConfigSuite suite = new OptConfigSuite(
-            new OptConfig("-lsc", "--chain-search-class", KEY_CHAIN_SEARCH_CLASS),
-            new OptConfig("-lsm", "--chain-search-method", KEY_CHAIN_SEARCH_METHOD),
-            new OptConfig("-lsi", "--chain-search-constructor", KEY_CHAIN_SEARCH_CONSTRUCTOR),
-            new OptConfig("-lsl", "--chain-search-level", KEY_CHAIN_SEARCH_LEVEL, OptValueType.INT, false),
-            new OptConfig("-lc", "--chain-match-class", KEY_CHAIN_MATCH_CLASS),
-            new OptConfig("-lm", "--chain-match-method", KEY_CHAIN_MATCH_METHOD),
-            new OptConfig("-li", "--chain-match-constructor", KEY_CHAIN_MATCH_CONSTRUCTOR)
+            new OptConfig(
+                    "-lsc",
+                    "--chain-search-class",
+                    KEY_CHAIN_SEARCH_CLASS,
+                    "Filter rules for classes in chain to see if it need to search downward."
+            ),
+            new OptConfig(
+                    "-lsm",
+                    "--chain-search-method",
+                    KEY_CHAIN_SEARCH_METHOD,
+                    "Filter rules for methods in chain to see if it need to search downward."
+            ),
+            new OptConfig(
+                    "-lsi",
+                    "--chain-search-constructor",
+                    KEY_CHAIN_SEARCH_CONSTRUCTOR,
+                    "Filter rules for constructors in chain to see if it need to search downward."
+            ),
+            new OptConfig(
+                    "-lsv",
+                    "--chain-search-level",
+                    KEY_CHAIN_SEARCH_LEVEL,
+                    "The max level of chain nested hierarchy to search. It must be > 0.",
+                    OptValueType.INT,
+                    false
+            ),
+            new OptConfig(
+                    "-lc",
+                    "--chain-match-class",
+                    KEY_CHAIN_MATCH_CLASS,
+                    "Filter rules for classes in chain."
+            ),
+            new OptConfig(
+                    "-lm",
+                    "--chain-match-method",
+                    KEY_CHAIN_MATCH_METHOD,
+                    "Filter rules for methods in chain."
+            ),
+            new OptConfig(
+                    "-li",
+                    "--chain-match-constructor",
+                    KEY_CHAIN_MATCH_CONSTRUCTOR,
+                    "Filter rules for constructors in chain."
+            )
     );
 
     public static OptConfigSuite getSuite() {

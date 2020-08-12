@@ -1,5 +1,8 @@
 package agent.base.args.parse;
 
+import java.util.Collections;
+import java.util.List;
+
 public class UnknownOptParser implements OptParser {
     private static final UnknownOptParser instance = new UnknownOptParser();
 
@@ -15,5 +18,10 @@ public class UnknownOptParser implements OptParser {
         if (OptConfig.isOpt(arg))
             throw new RuntimeException("Unknown option: " + arg);
         return false;
+    }
+
+    @Override
+    public List<OptConfig> getOptConfigList() {
+        return Collections.emptyList();
     }
 }
