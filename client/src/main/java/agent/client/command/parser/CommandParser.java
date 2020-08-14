@@ -5,5 +5,7 @@ import agent.common.message.command.Command;
 public interface CommandParser {
     Command parse(String[] args) throws Exception;
 
-    String getCmdName();
+    String[] getCmdNames();
+
+    String getDesc();
 }

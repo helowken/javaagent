@@ -15,7 +15,7 @@ public class AgentClientCmdRunner extends AbstractClientRunner {
                 init(args)
         );
         logger.debug("Cmd args: {}", cmdArgs);
-        connectTo();
+        execCmd();
     }
 
     @Override

@@ -39,7 +39,11 @@ public class ServerLauncher extends AbstractLauncher {
                 configFilePath,
                 Collections.singletonMap(KEY_PORT, port)
         );
-        instance.startRunner(RUNNER_TYPE, port, instrumentation);
+        instance.startRunner(
+                getRunner(RUNNER_TYPE),
+                port,
+                instrumentation
+        );
     }
 
     @Override

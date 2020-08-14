@@ -23,7 +23,7 @@ public class AgentClientFileRunner extends AbstractClientRunner {
             ConsoleLogger.getInstance().error("Failed. Error Cause: {}", e.getMessage());
             return;
         }
-        connectTo();
+        execCmd();
     }
 
     private String readLineFromFile() throws Exception {

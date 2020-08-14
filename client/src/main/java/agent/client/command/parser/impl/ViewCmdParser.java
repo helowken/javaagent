@@ -19,7 +19,12 @@ public class ViewCmdParser extends AbstractCmdParser {
     }
 
     @Override
-    public String getCmdName() {
-        return "view";
+    public String[] getCmdNames() {
+        return new String[]{"view"};
+    }
+
+    @Override
+    public String getDesc() {
+        return "Print information.";
     }
 }

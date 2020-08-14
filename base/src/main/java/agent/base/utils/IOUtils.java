@@ -1,6 +1,7 @@
 package agent.base.utils;
 
 import java.io.*;
+import java.net.Socket;
 
 public class IOUtils {
     private static final int BUF_SIZE = 4096;
@@ -61,6 +62,15 @@ public class IOUtils {
         if (o != null) {
             try {
                 o.close();
+            } catch (IOException e) {
+            }
+        }
+    }
+
+    public static void close(Socket socket) {
+        if (socket != null) {
+            try {
+                socket.close();
             } catch (IOException e) {
             }
         }

@@ -7,7 +7,12 @@ public class TraceCmdParser extends AbstractTransformCmdParser {
     }
 
     @Override
-    public String getCmdName() {
-        return "trace";
+    public String[] getCmdNames() {
+        return new String[]{"trace"};
+    }
+
+    @Override
+    public String getDesc() {
+        return "Trace arguments, return value and exceptions of methods and constructors.";
     }
 }

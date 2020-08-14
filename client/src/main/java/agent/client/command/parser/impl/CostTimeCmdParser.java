@@ -7,8 +7,13 @@ public class CostTimeCmdParser extends AbstractTransformCmdParser {
     }
 
     @Override
-    public String getCmdName() {
-        return "cost_time";
+    public String[] getCmdNames() {
+        return new String[]{"cost-time", "ct"};
+    }
+
+    @Override
+    public String getDesc() {
+        return "Log cost time for methods and constructors.";
     }
 
 }

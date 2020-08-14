@@ -36,11 +36,14 @@ public abstract class AbstractLauncher {
         );
     }
 
-    protected void startRunner(String runnerType, Object... args) {
-        Runner runner = PluginFactory.getInstance().find(
+    protected static Runner getRunner(String runnerType) {
+        return PluginFactory.getInstance().find(
                 Runner.class,
                 new RunnerPluginFilter(runnerType)
         );
+    }
+
+    protected void startRunner(Runner runner, Object... args) {
         try {
             runner.startup(args);
         } catch (Exception e) {

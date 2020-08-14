@@ -19,8 +19,13 @@ public class SearchCmdParser extends AbstractModuleCmdParser<ModuleParams> {
     }
 
     @Override
-    public String getCmdName() {
-        return "search";
+    public String[] getCmdNames() {
+        return new String[]{"search", "se"};
+    }
+
+    @Override
+    public String getDesc() {
+        return "Search for classes, methods or constructors matching filters.";
     }
 }
 

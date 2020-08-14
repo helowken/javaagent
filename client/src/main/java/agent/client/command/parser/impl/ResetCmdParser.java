@@ -19,7 +19,12 @@ public class ResetCmdParser extends AbstractModuleCmdParser<ModuleParams> {
     }
 
     @Override
-    public String getCmdName() {
-        return "reset";
+    public String[] getCmdNames() {
+        return new String[]{"reset", "rs"};
+    }
+
+    @Override
+    public String getDesc() {
+        return "Reset class bytecode.";
     }
 }

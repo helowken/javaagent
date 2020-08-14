@@ -15,7 +15,12 @@ public class FlushLogCmdParser implements CommandParser {
     }
 
     @Override
-    public String getCmdName() {
-        return "flush";
+    public String[] getCmdNames() {
+        return new String[]{"flush-log", "fl"};
+    }
+
+    @Override
+    public String getDesc() {
+        return "Flush data in memory to file.";
     }
 }

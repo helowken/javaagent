@@ -2,6 +2,7 @@ package agent.launcher.client;
 
 import agent.base.args.parse.CommonOptConfigs;
 import agent.base.args.parse.Opts;
+import agent.base.runner.Runner;
 import agent.base.utils.ConsoleLogger;
 import agent.base.utils.HostAndPort;
 import agent.base.utils.Utils;
@@ -17,13 +18,13 @@ public class ClientLauncher extends AbstractLauncher {
     private static final String KEY_HOST = "host";
     private static final String KEY_PORT = "port";
     private static final ClientLauncher instance = new ClientLauncher();
-    private static final ClientLauncherParamParser parser = new ClientLauncherParamParser();
+    private static final ClientLauncherParamParser paramParser = new ClientLauncherParamParser();
 
     public static void main(String[] args) {
         try {
-            Opts opts = parser.parse(args).getOpts();
+            Opts opts = paramParser.parse(args).getOpts();
             List<String> restArgList = new ArrayList<>(
-                    parser.getRestArgs()
+                    paramParser.getRestArgs()
             );
             HostAndPort hostAndPort = ClientLauncherOptConfigs.getHostAndPort(opts);
             instance.init(
@@ -32,22 +33,30 @@ public class ClientLauncher extends AbstractLauncher {
             );
             restArgList.remove(0);
 
-            if (CommonOptConfigs.isVersion(opts))
-                HelpUtils.printVersion();
-            else if (CommonOptConfigs.isHelp(opts) && restArgList.isEmpty())
-                HelpUtils.printHelp(
-                        parser.getOptConfigList()
+            if (CommonOptConfigs.isVersion(opts)) {
+                ClientHelpUtils.printVersion();
+                return;
+            }
+
+            String runnerType = getRunnerType(opts);
+            Runner runner = getRunner(runnerType);
+            if (CommonOptConfigs.isHelp(opts) || restArgList.isEmpty()) {
+                ClientHelpUtils.printHelp(
+                        paramParser.getOptConfigList(),
+                        runner.getHelps()
                 );
-            else
-                instance.startRunner(
-                        getRunnerType(opts),
-                        hostAndPort,
-                        restArgList.toArray(
-                                new String[0]
-                        )
-                );
+                return;
+            }
+
+            instance.startRunner(
+                    runner,
+                    hostAndPort,
+                    restArgList.toArray(
+                            new String[0]
+                    )
+            );
         } catch (Throwable t) {
-            t.printStackTrace();
+//            t.printStackTrace();
             ConsoleLogger.getInstance().error("Error: {}", t.getMessage());
         }
     }

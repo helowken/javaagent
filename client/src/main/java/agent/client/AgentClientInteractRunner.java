@@ -16,7 +16,7 @@ public class AgentClientInteractRunner extends AbstractClientRunner {
         reader = new BufferedReader(new InputStreamReader(System.in));
         try {
             while (true) {
-                if (connectTo())
+                if (execCmd())
                     break;
                 else
                     ConsoleLogger.getInstance().info("Try to reconnect...");

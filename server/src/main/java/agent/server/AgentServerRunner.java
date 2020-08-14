@@ -1,10 +1,13 @@
 package agent.server;
 
+import agent.base.help.HelpInfo;
 import agent.base.runner.Runner;
 import agent.base.utils.Logger;
 import agent.base.utils.Utils;
 
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 public class AgentServerRunner implements Runner {
     private static final Logger logger = Logger.getLogger(AgentServerRunner.class);
@@ -37,6 +40,11 @@ public class AgentServerRunner implements Runner {
                 }
         );
         logger.info("Shutdown successfully.");
+    }
+
+    @Override
+    public List<HelpInfo> getHelps() {
+        return Collections.emptyList();
     }
 
 

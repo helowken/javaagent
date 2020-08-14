@@ -1,6 +1,5 @@
 package agent.client.command.parser.impl;
 
-import agent.client.command.parser.CommandParser;
 import agent.common.message.command.Command;
 import agent.common.message.command.impl.EchoCommand;
 
@@ -12,7 +11,12 @@ public class EchoCmdParser extends AbstractCmdParser {
     }
 
     @Override
-    public String getCmdName() {
-        return "echo";
+    public String[] getCmdNames() {
+        return new String[]{"echo"};
+    }
+
+    @Override
+    public String getDesc() {
+        return "Echo message for test.";
     }
 }

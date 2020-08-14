@@ -33,7 +33,7 @@
             <useStrictFiltering>true</useStrictFiltering>
             <outputDirectory>server/lib/core</outputDirectory>
             <includes>
-                <include>javaagent:server</include>
+                <include>javaagent:server:jar</include>
                 <include>javaagent:native</include>
             </includes>
         </dependencySet>

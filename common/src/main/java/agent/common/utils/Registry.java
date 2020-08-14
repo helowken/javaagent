@@ -1,5 +1,7 @@
 package agent.common.utils;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
@@ -36,6 +38,12 @@ public class Registry<K, V> {
         if (v == null && errorSupplier != null)
             throw errorSupplier.get(key);
         return v;
+    }
+
+    public List<V> getValues() {
+        return new ArrayList<>(
+                map.values()
+        );
     }
 
     public interface KeyExistedErrorSupplier<K, V, T extends RuntimeException> {
