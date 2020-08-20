@@ -28,7 +28,7 @@ public class ChainFilterOptConfigs {
             ),
             new OptConfig(
                     "-lsi",
-                    "--chain-search-constructor",
+                    "--chain-search-init",
                     KEY_CHAIN_SEARCH_CONSTRUCTOR,
                     "Filter rules for constructors in chain to see if it need to search downward."
             ),
@@ -54,7 +54,7 @@ public class ChainFilterOptConfigs {
             ),
             new OptConfig(
                     "-li",
-                    "--chain-match-constructor",
+                    "--chain-match-init",
                     KEY_CHAIN_MATCH_CONSTRUCTOR,
                     "Filter rules for constructors in chain."
             )

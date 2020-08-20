@@ -33,11 +33,6 @@ public abstract class AbstractCmdParamParser<P> implements CmdParamParser<P> {
     private synchronized ArgsOptsParser getArgsOptsParser() {
         if (argsOptsParser == null) {
             List<OptParser> optParsers = new ArrayList<>();
-            optParsers.add(
-                    new BooleanOptParser(
-                            CommonOptConfigs.getSuite()
-                    )
-            );
 
             List<OptParser> moreParsers = getMoreParsers();
             if (moreParsers != null)

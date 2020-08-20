@@ -14,6 +14,10 @@ public class HelpSection extends AbstractHelpInfo {
     private final String padding;
     private final List<HelpInfo> children = new ArrayList<>();
 
+    public HelpSection() {
+        this(null, "");
+    }
+
     public HelpSection(String header, String padding) {
         this.header = header;
         this.padding = padding;

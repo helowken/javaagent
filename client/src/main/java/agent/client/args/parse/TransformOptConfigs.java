@@ -8,7 +8,7 @@ public class TransformOptConfigs {
     private static final String KEY_TRANSFORMER_ID = "TRANSFORMER_ID";
     private static final OptConfigSuite suite = new OptConfigSuite(
             new OptConfig(
-                    "-t",
+                    "-tid",
                     "--transformer-id",
                     KEY_TRANSFORMER_ID,
                     "Desc TODO."

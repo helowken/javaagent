@@ -1,5 +1,6 @@
 package agent.client.command.parser.impl;
 
+import agent.base.args.parse.CmdParamParser;
 import agent.base.utils.Utils;
 import agent.client.args.parse.TransformParamParser;
 import agent.client.args.parse.TransformParams;
@@ -13,13 +14,12 @@ import java.util.Map;
 
 abstract class AbstractTransformCmdParser extends AbstractModuleCmdParser<TransformParams> {
     private static final String REF_SEP = ":";
-    private static final TransformParamParser parser = new TransformParamParser();
 
     abstract String getTransformerKey();
 
     @Override
-    TransformParams doParse(String[] args) {
-        return parser.parse(args);
+    CmdParamParser<TransformParams> createParamParser() {
+        return new TransformParamParser();
     }
 
     @Override
@@ -31,7 +31,7 @@ abstract class AbstractTransformCmdParser extends AbstractModuleCmdParser<Transf
     }
 
     @Override
-    Command createCommand(Map<String, Object> data) {
+    Command newCommand(Map<String, Object> data) {
         return new TransformCommand(data);
     }
 

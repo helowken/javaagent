@@ -1,18 +1,10 @@
 package agent.client.command.parser.impl;
 
-import agent.client.command.parser.CommandParser;
+import agent.base.args.parse.CmdParamParser;
+import agent.client.args.parse.CmdParams;
 import agent.common.message.command.Command;
-import agent.common.message.command.impl.FlushLogCommand;
 
-public class FlushLogCmdParser implements CommandParser {
-
-    @Override
-    public Command parse(String[] args) {
-        String outputPath = null;
-        if (args.length > 0)
-            outputPath = args[0];
-        return new FlushLogCommand(outputPath);
-    }
+public class FlushLogCmdParser extends AbstractCmdParser {
 
     @Override
     public String[] getCmdNames() {
@@ -22,5 +14,20 @@ public class FlushLogCmdParser implements CommandParser {
     @Override
     public String getDesc() {
         return "Flush data in memory to file.";
+    }
+
+    @Override
+    CmdParamParser createParamParser() {
+        return null;
+    }
+
+    @Override
+    Command createCommand(CmdParams params) {
+        return null;
+    }
+
+    @Override
+    void checkParams(CmdParams params) {
+
     }
 }

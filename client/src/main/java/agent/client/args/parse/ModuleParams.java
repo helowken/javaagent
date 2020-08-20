@@ -1,13 +1,10 @@
 package agent.client.args.parse;
 
 import agent.base.args.parse.ArgsOpts;
-import agent.base.args.parse.Opts;
 
-public class ModuleParams {
-    final ArgsOpts argsOpts;
-
-    ModuleParams(ArgsOpts argsOpts) {
-        this.argsOpts = argsOpts;
+public class ModuleParams extends CmdParams {
+    public ModuleParams(ArgsOpts argsOpts) {
+        super(argsOpts);
     }
 
     public String getConfigFile() {
@@ -17,12 +14,4 @@ public class ModuleParams {
         );
     }
 
-    public Opts getOpts() {
-        return argsOpts.getOpts();
-    }
-
-    @Override
-    public String toString() {
-        return argsOpts.toString();
-    }
 }

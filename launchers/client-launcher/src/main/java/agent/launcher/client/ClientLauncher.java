@@ -1,6 +1,7 @@
 package agent.launcher.client;
 
 import agent.base.args.parse.CommonOptConfigs;
+import agent.base.args.parse.OptConfig;
 import agent.base.args.parse.Opts;
 import agent.base.runner.Runner;
 import agent.base.utils.ConsoleLogger;
@@ -33,24 +34,32 @@ public class ClientLauncher extends AbstractLauncher {
             );
             restArgList.remove(0);
 
+            List<String> invalidOpts = getInvalidOpts(restArgList);
+            if (!invalidOpts.isEmpty()) {
+                System.out.println(
+                        "Unknown options: " + Utils.join(", ", invalidOpts)
+                );
+                return;
+            }
+
             if (CommonOptConfigs.isVersion(opts)) {
-                ClientHelpUtils.printVersion();
+                System.out.println("JavaAgent 1.0.0");
                 return;
             }
 
             String runnerType = getRunnerType(opts);
             Runner runner = getRunner(runnerType);
-            if (CommonOptConfigs.isHelp(opts) || restArgList.isEmpty()) {
-                ClientHelpUtils.printHelp(
-                        paramParser.getOptConfigList(),
-                        runner.getHelps()
+            if (restArgList.isEmpty())
+                restArgList.add("help");
+            else if (CommonOptConfigs.isHelp(opts))
+                restArgList.add(
+                        CommonOptConfigs.getHelpOptName()
                 );
-                return;
-            }
 
             instance.startRunner(
                     runner,
                     hostAndPort,
+                    paramParser.getOptConfigList(),
                     restArgList.toArray(
                             new String[0]
                     )
@@ -59,6 +68,17 @@ public class ClientLauncher extends AbstractLauncher {
 //            t.printStackTrace();
             ConsoleLogger.getInstance().error("Error: {}", t.getMessage());
         }
+    }
+
+    private static List<String> getInvalidOpts(List<String> args) {
+        List<String> invalidOpts = new ArrayList<>();
+        for (String arg : args) {
+            if (OptConfig.isOpt(arg))
+                invalidOpts.add(arg);
+            else
+                break;
+        }
+        return invalidOpts;
     }
 
     private static Map<String, Object> getInitParams(HostAndPort hostAndPort) {

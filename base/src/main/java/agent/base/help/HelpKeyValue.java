@@ -6,6 +6,7 @@ import agent.base.utils.Utils;
 public class HelpKeyValue extends AbstractHelpInfo {
     private static final String DESC_INDENT = IndentUtils.getIndent(7);
     private static final int DESC_INDENT_LENGTH = DESC_INDENT.length();
+    private static final int GAP_LENGTH = 4;
     private final String key;
     private final String value;
 
@@ -21,11 +22,11 @@ public class HelpKeyValue extends AbstractHelpInfo {
         String totalPadding = getTotalPadding();
         sb.append(totalPadding).append(key);
         if (Utils.isNotBlank(value)) {
-            int restLength = DESC_INDENT_LENGTH - key.length() - totalPadding.length();
+            int restLength = DESC_INDENT_LENGTH - key.length() - totalPadding.length() - GAP_LENGTH;
             if (restLength >= 0)
-                printSpaces(sb, restLength);
+                printSpaces(sb, restLength + GAP_LENGTH);
             else
-                sb.append('\n').append(totalPadding).append(DESC_INDENT);
+                sb.append('\n').append(DESC_INDENT);
             sb.append(value);
         }
         sb.append('\n');

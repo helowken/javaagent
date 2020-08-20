@@ -8,7 +8,6 @@ import agent.base.utils.Utils;
 import agent.client.command.parser.exception.CommandNotFoundException;
 import agent.client.command.parser.exception.CommandParseException;
 import agent.client.command.parser.impl.*;
-import agent.common.message.command.Command;
 import agent.common.utils.Registry;
 
 import java.util.*;
@@ -19,6 +18,12 @@ public class CommandParserMgr {
     private static final Map<String, List<CommandParser>> headerToParser = new LinkedHashMap<>();
 
     static {
+        headerToParser.put(
+                "",
+                Collections.singletonList(
+                        new HelpCmdParser()
+                )
+        );
         headerToParser.put(
                 "System Management:",
                 Arrays.asList(
@@ -48,7 +53,7 @@ public class CommandParserMgr {
         }
     }
 
-    public static Command parse(String cmdName, String[] args) {
+    public static CmdItem parse(String cmdName, String[] args) {
         try {
             return registry.get(cmdName,
                     key -> new CommandNotFoundException("Unknown command '" + key + "'")
@@ -63,7 +68,7 @@ public class CommandParserMgr {
         }
     }
 
-    public static List<HelpInfo> getHelps() {
+    public static List<HelpInfo> getCmdHelps() {
         List<HelpInfo> rsList = new ArrayList<>();
         headerToParser.forEach(
                 (header, parserList) -> rsList.add(
@@ -80,5 +85,11 @@ public class CommandParserMgr {
                 )
         );
         return rsList;
+    }
+
+
+    public static void main(String[] args) {
+        parse("help", new String[]{"help"})
+                .getHelpInfo().testPrint();
     }
 }

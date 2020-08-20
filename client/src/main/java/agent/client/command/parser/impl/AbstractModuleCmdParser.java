@@ -2,7 +2,6 @@ package agent.client.command.parser.impl;
 
 import agent.base.utils.TypeObject;
 import agent.client.args.parse.ModuleParams;
-import agent.client.command.parser.CommandParser;
 import agent.common.args.parse.specific.FilterOptConfigs;
 import agent.common.config.ModuleConfig;
 import agent.common.message.command.Command;
@@ -13,16 +12,12 @@ import java.util.Map;
 
 import static agent.common.args.parse.FilterOptUtils.createTargetConfig;
 
-abstract class AbstractModuleCmdParser<P extends ModuleParams> implements CommandParser {
-    abstract Command createCommand(Map<String, Object> data);
-
-    abstract P doParse(String[] args);
+abstract class AbstractModuleCmdParser<P extends ModuleParams> extends AbstractCmdParser<P> {
+    abstract Command newCommand(Map<String, Object> data);
 
     @Override
-    public Command parse(String[] args) {
-        P params = doParse(args);
-        checkParams(params);
-        return createCommand(
+    Command createCommand(P params) {
+        return newCommand(
                 JSONUtils.convert(
                         createModuleConfig(params),
                         new TypeObject<Map<String, Object>>() {

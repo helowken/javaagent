@@ -1,8 +1,9 @@
 package agent.client;
 
-import agent.base.help.HelpInfo;
 import agent.base.runner.Runner;
 import agent.base.utils.*;
+import agent.client.command.parser.CmdHelpUtils;
+import agent.client.command.parser.CmdItem;
 import agent.client.command.parser.CommandParserMgr;
 import agent.client.command.parser.exception.CommandNotFoundException;
 import agent.client.command.parser.exception.CommandParseException;
@@ -35,7 +36,10 @@ abstract class AbstractClientRunner implements Runner {
         socketMgr = new SocketMgr(
                 Utils.getArgValue(args, 0)
         );
-        return Utils.getArgValue(args, 1);
+        CmdHelpUtils.setOptConfigList(
+                Utils.getArgValue(args, 1)
+        );
+        return Utils.getArgValue(args, 2);
     }
 
     @Override
@@ -53,20 +57,32 @@ abstract class AbstractClientRunner implements Runner {
 
     private Command parseCommand(List<String> argList) {
         try {
-            return CommandParserMgr.parse(
+            CmdItem cmdItem = CommandParserMgr.parse(
                     argList.get(0),
                     argList.subList(1, argList.size())
                             .toArray(new String[0])
             );
+            if (cmdItem.isHelp()) {
+                printHelp(cmdItem);
+                return null;
+            }
+            return cmdItem.getCmd();
         } catch (CommandNotFoundException e) {
             ConsoleLogger.getInstance().error(
-                    "{}\nType 'ja help' to get a list of global options and commands.",
-                    e.getMessage()
+                    "{}\n{}",
+                    e.getMessage(),
+                    "Type 'ja help' to get a list of global options and commands."
             );
         } catch (CommandParseException e) {
             ConsoleLogger.getInstance().error("{}", e.getMessage());
         }
         return null;
+    }
+
+    private void printHelp(CmdItem cmdItem) {
+        StringBuilder sb = new StringBuilder();
+        cmdItem.getHelpInfo().print(sb);
+        ConsoleLogger.getInstance().info("{}", sb);
     }
 
     List<String> splitStringToArgs(String line) {
@@ -127,10 +143,6 @@ abstract class AbstractClientRunner implements Runner {
                 msg,
                 Utils.getMergedErrorMessage(e)
         );
-    }
-
-    public List<HelpInfo> getHelps() {
-        return CommandParserMgr.getHelps();
     }
 
     private static class SocketMgr {

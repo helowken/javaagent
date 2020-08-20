@@ -1,13 +1,26 @@
 package agent.client.command.parser.impl;
 
+import agent.base.args.parse.CmdParamParser;
+import agent.client.args.parse.CmdParams;
 import agent.common.message.command.Command;
 import agent.common.message.command.impl.EchoCommand;
 
 public class EchoCmdParser extends AbstractCmdParser {
     @Override
-    public Command parse(String[] args) {
-        checkArgs(args, 1, "message");
-        return new EchoCommand(args[0]);
+    CmdParamParser createParamParser() {
+        return null;
+    }
+
+    @Override
+    Command createCommand(CmdParams params) {
+        return new EchoCommand(
+                params.getArgs()[0]
+        );
+    }
+
+    @Override
+    void checkParams(CmdParams params) {
+
     }
 
     @Override
@@ -19,4 +32,5 @@ public class EchoCmdParser extends AbstractCmdParser {
     public String getDesc() {
         return "Echo message for test.";
     }
+
 }

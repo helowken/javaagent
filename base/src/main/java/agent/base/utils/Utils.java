@@ -193,6 +193,10 @@ public class Utils {
         return null;
     }
 
+    public static <T> String join(String sep, Collection<T> vs) {
+        return join(sep, vs.toArray());
+    }
+
     public static <T> String join(String sep, T... vs) {
         if (vs == null)
             return null;
@@ -251,6 +255,14 @@ public class Utils {
         if (o instanceof Collection)
             return ((Collection) o).isEmpty() ? null : o;
         return o;
+    }
+
+    public static <T> boolean isIn(T[] vs, T v) {
+        for (T t : vs) {
+            if (t == v || Objects.equals(t, v))
+                return true;
+        }
+        return false;
     }
 
     public interface WithValueFunc<T> {

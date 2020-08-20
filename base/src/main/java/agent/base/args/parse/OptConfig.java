@@ -12,7 +12,7 @@ public class OptConfig {
     private final OptValueType valueType;
     private final boolean allowMulti;
 
-    static boolean isOpt(String arg) {
+    public static boolean isOpt(String arg) {
         if (arg == null)
             throw new IllegalArgumentException();
         return arg.startsWith(PREFIX) || arg.startsWith(PREFIX2);

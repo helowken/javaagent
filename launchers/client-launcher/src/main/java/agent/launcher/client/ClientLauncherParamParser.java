@@ -11,6 +11,9 @@ public class ClientLauncherParamParser extends AbstractCmdParamParser<ClientLaun
     @Override
     protected List<OptParser> getMoreParsers() {
         return Arrays.asList(
+                new BooleanOptParser(
+                        CommonOptConfigs.getSuite()
+                ),
                 new KeyValueOptParser(
                         ClientLauncherOptConfigs.getSuite()
                 ),
