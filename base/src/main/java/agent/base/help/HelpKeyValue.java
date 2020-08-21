@@ -22,12 +22,17 @@ public class HelpKeyValue extends AbstractHelpInfo {
         String totalPadding = getTotalPadding();
         sb.append(totalPadding).append(key);
         if (Utils.isNotBlank(value)) {
+            String[] rows = Utils.splitToArray(value, "\n");
             int restLength = DESC_INDENT_LENGTH - key.length() - totalPadding.length() - GAP_LENGTH;
             if (restLength >= 0)
                 printSpaces(sb, restLength + GAP_LENGTH);
             else
                 sb.append('\n').append(DESC_INDENT);
-            sb.append(value);
+            sb.append(rows[0]);
+
+            for (int i = 1; i < rows.length; ++i) {
+                sb.append('\n').append(DESC_INDENT).append(rows[i]);
+            }
         }
         sb.append('\n');
     }

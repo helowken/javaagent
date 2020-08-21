@@ -16,10 +16,6 @@ public class TargetConfig extends AbstractAgentConfig {
         validateIfNotNull(invokeChainConfig);
     }
 
-    public boolean isEmpty() {
-        return classFilter == null && methodFilter == null && constructorFilter == null;
-    }
-
     public ConstructorFilterConfig getConstructorFilter() {
         return constructorFilter;
     }

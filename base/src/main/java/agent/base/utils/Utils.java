@@ -174,7 +174,9 @@ public class Utils {
         return Stream.of(s.split(sep))
                 .map(String::trim)
                 .filter(t -> !t.isEmpty())
-                .collect(Collectors.toSet());
+                .collect(
+                        Collectors.toCollection(LinkedHashSet::new)
+                );
     }
 
     public static String[] splitToArray(String s, String sep) {

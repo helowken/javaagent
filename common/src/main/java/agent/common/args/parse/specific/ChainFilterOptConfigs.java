@@ -15,25 +15,25 @@ public class ChainFilterOptConfigs {
     private static final String KEY_CHAIN_MATCH_CONSTRUCTOR = "CHAIN_MATCH_CONSTRUCTOR";
     private static final OptConfigSuite suite = new OptConfigSuite(
             new OptConfig(
-                    "-lsc",
+                    "-sc",
                     "--chain-search-class",
                     KEY_CHAIN_SEARCH_CLASS,
                     "Filter rules for classes in chain to see if it need to search downward."
             ),
             new OptConfig(
-                    "-lsm",
+                    "-sm",
                     "--chain-search-method",
                     KEY_CHAIN_SEARCH_METHOD,
                     "Filter rules for methods in chain to see if it need to search downward."
             ),
             new OptConfig(
-                    "-lsi",
+                    "-si",
                     "--chain-search-init",
                     KEY_CHAIN_SEARCH_CONSTRUCTOR,
                     "Filter rules for constructors in chain to see if it need to search downward."
             ),
             new OptConfig(
-                    "-lsv",
+                    "-sv",
                     "--chain-search-level",
                     KEY_CHAIN_SEARCH_LEVEL,
                     "The max level of chain nested hierarchy to search. It must be > 0.",
@@ -41,19 +41,19 @@ public class ChainFilterOptConfigs {
                     false
             ),
             new OptConfig(
-                    "-lc",
+                    "-mc",
                     "--chain-match-class",
                     KEY_CHAIN_MATCH_CLASS,
                     "Filter rules for classes in chain."
             ),
             new OptConfig(
-                    "-lm",
+                    "-mm",
                     "--chain-match-method",
                     KEY_CHAIN_MATCH_METHOD,
                     "Filter rules for methods in chain."
             ),
             new OptConfig(
-                    "-li",
+                    "-mi",
                     "--chain-match-init",
                     KEY_CHAIN_MATCH_CONSTRUCTOR,
                     "Filter rules for constructors in chain."

@@ -78,4 +78,9 @@ abstract class AbstractTransformCmdParser extends AbstractModuleCmdParser<Transf
                 )
         );
     }
+
+    @Override
+    String getHelpUsageArgs() {
+        return "<OUTPUT_PATH>";
+    }
 }

@@ -1,9 +1,6 @@
 package agent.client.command.parser.impl;
 
 import agent.base.args.parse.CmdParamParser;
-import agent.base.help.HelpInfo;
-import agent.base.help.HelpSingleValue;
-import agent.base.help.HelpUtils;
 import agent.client.args.parse.ModuleParams;
 import agent.client.args.parse.SearchParamParser;
 import agent.common.message.command.Command;
@@ -32,13 +29,5 @@ public class SearchCmdParser extends AbstractModuleCmdParser<ModuleParams> {
         return "Search for classes, methods or constructors matching filters.";
     }
 
-    @Override
-    HelpInfo getHelpUsage(ModuleParams params) {
-        return new HelpSingleValue(
-                HelpUtils.formatCmdString(
-                        getCmdNames()
-                ) + " [OPTIONS]"
-        );
-    }
 }
 

@@ -12,16 +12,6 @@ public class InvokeChainConfig extends AbstractAgentConfig {
     private ConstructorFilterConfig searchConstructorFilter;
     private int maxLevel = -1;
 
-    public boolean isEmpty() {
-        return matchClassFilter == null &&
-                matchMethodFilter == null &&
-                matchConstructorFilter == null &&
-                searchClassFilter == null &&
-                searchMethodFilter == null &&
-                searchConstructorFilter == null &&
-                maxLevel <= 0;
-    }
-
     public ClassFilterConfig getSearchClassFilter() {
         return searchClassFilter;
     }

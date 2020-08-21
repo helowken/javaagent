@@ -68,7 +68,7 @@ public class CommandParserMgr {
         }
     }
 
-    public static List<HelpInfo> getCmdHelps() {
+    static List<HelpInfo> getCmdHelps() {
         List<HelpInfo> rsList = new ArrayList<>();
         headerToParser.forEach(
                 (header, parserList) -> rsList.add(
@@ -87,9 +87,4 @@ public class CommandParserMgr {
         return rsList;
     }
 
-
-    public static void main(String[] args) {
-        parse("help", new String[]{"help"})
-                .getHelpInfo().testPrint();
-    }
 }

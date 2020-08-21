@@ -1,7 +1,5 @@
 Where options include:
-    Filter rules: "^" means exclusion.
-                   Multiple items are separated by ",".
-                   Default includes all.
+Filter rules: "^" means exclusion. Multiple items are separated by ",".
     -c <classFilter>
                    Filter rules for classes.
     -m <methodFilter>

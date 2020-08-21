@@ -8,7 +8,7 @@ public class FlushLogCmdParser extends AbstractCmdParser {
 
     @Override
     public String[] getCmdNames() {
-        return new String[]{"flush-log", "fl"};
+        return new String[]{"flush", "fl"};
     }
 
     @Override
