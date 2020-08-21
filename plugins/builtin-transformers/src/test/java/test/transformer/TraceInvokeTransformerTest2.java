@@ -84,13 +84,13 @@ public class TraceInvokeTransformerTest2 extends AbstractTest {
 
                             System.out.println("\n=================");
                             traceParams = parser.parse(
-                                    new String[] {"configFile", "-m", "recursive*", "-lsv", "3", outputPath}
+                                    new String[] {"configFile", "-m", "recursive*", "-sv", "3", outputPath}
                             );
                             traceHandler.exec(traceParams);
 
                             System.out.println("\n=================");
                             traceParams = parser.parse(
-                                    new String[] {"configFile", "-m", "load", "-lsv", "1", outputPath}
+                                    new String[] {"configFile", "-m", "load", "-sv", "1", outputPath}
                             );
                             traceHandler.exec(traceParams);
 
@@ -110,13 +110,13 @@ public class TraceInvokeTransformerTest2 extends AbstractTest {
 
                             System.out.println("\n=================");
                             costTimeParams = timeParser.parse(
-                                    new String[] {"configFile", "-lm", "recursive*", outputPath2}
+                                    new String[] {"configFile", "-cm", "recursive*", outputPath2}
                             );
                             costTimeHandler.exec(costTimeParams);
 
                             System.out.println("\n=================");
                             costTimeParams = timeParser.parse(
-                                    new String[] {"configFile", "-lm", "recursive*", "-lsv", "3", outputPath2}
+                                    new String[] {"configFile", "-cm", "recursive*", "-sv", "3", outputPath2}
                             );
                             costTimeHandler.exec(costTimeParams);
 

@@ -115,7 +115,7 @@ class LoggerImpl extends AbstractLoggerImpl {
     private static void write(LogItem item) {
         String s = getPrefix(item) + formatMsg(item.pattern, item.pvs);
         if (item.error != null)
-            s += "\n" + Utils.getErrorStackStrace(item.error);
+            s += '\n' + Utils.getErrorStackStrace(item.error);
         getOutputStream().println(s);
     }
 

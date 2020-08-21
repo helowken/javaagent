@@ -3,6 +3,7 @@ package agent.common.message.result;
 import agent.common.message.AbstractMessage;
 import agent.common.message.MessageType;
 import agent.common.struct.impl.MapStruct;
+import agent.common.struct.impl.Structs;
 
 @SuppressWarnings("unchecked")
 public class DefaultExecResult extends AbstractMessage<MapStruct<String, Object>> implements ExecResult {
@@ -36,7 +37,7 @@ public class DefaultExecResult extends AbstractMessage<MapStruct<String, Object>
     }
 
     public DefaultExecResult() {
-        super(MessageType.RESULT_DEFAULT, new MapStruct<>());
+        super(MessageType.RESULT_DEFAULT, Structs.newTreeMap());
     }
 
     private DefaultExecResult(ResultStatus resultStatus, int cmdType, String msg, Object content) {

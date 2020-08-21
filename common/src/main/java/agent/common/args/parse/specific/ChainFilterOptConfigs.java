@@ -41,19 +41,19 @@ public class ChainFilterOptConfigs {
                     false
             ),
             new OptConfig(
-                    "-mc",
+                    "-cc",
                     "--chain-match-class",
                     KEY_CHAIN_MATCH_CLASS,
                     "Filter rules for classes in chain."
             ),
             new OptConfig(
-                    "-mm",
+                    "-cm",
                     "--chain-match-method",
                     KEY_CHAIN_MATCH_METHOD,
                     "Filter rules for methods in chain."
             ),
             new OptConfig(
-                    "-mi",
+                    "-ci",
                     "--chain-match-init",
                     KEY_CHAIN_MATCH_CONSTRUCTOR,
                     "Filter rules for constructors in chain."

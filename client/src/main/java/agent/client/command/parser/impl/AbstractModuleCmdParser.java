@@ -4,7 +4,7 @@ import agent.base.help.HelpInfo;
 import agent.base.help.HelpSingleValue;
 import agent.base.help.HelpUtils;
 import agent.base.utils.TypeObject;
-import agent.client.args.parse.ModuleParams;
+import agent.client.args.parse.CmdParams;
 import agent.common.args.parse.FilterOptUtils;
 import agent.common.args.parse.specific.FilterOptConfigs;
 import agent.common.config.ModuleConfig;
@@ -14,7 +14,7 @@ import agent.common.utils.JSONUtils;
 import java.util.Collections;
 import java.util.Map;
 
-abstract class AbstractModuleCmdParser<P extends ModuleParams> extends AbstractCmdParser<P> {
+abstract class AbstractModuleCmdParser<P extends CmdParams> extends AbstractCmdParser<P> {
     abstract Command newCommand(Map<String, Object> data);
 
     @Override
@@ -48,7 +48,7 @@ abstract class AbstractModuleCmdParser<P extends ModuleParams> extends AbstractC
     }
 
     @Override
-    HelpInfo getHelpUsage(ModuleParams params) {
+    HelpInfo getHelpUsage(P params) {
         return new HelpSingleValue(
                 HelpUtils.formatCmdString(
                         getCmdNames()

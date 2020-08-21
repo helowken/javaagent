@@ -58,13 +58,13 @@ public class CostTimeStatisticsTransformerTest extends AbstractTest {
 
                     System.out.println("\n======= Use cache 1 =======");
                     params = callChainOptParser.parse(
-                            new String[]{"configFile", "-m", "service", "-e", "avg > 20", "-lm", "runApi4", outputPath}
+                            new String[]{"configFile", "-m", "service", "-e", "avg > 20", "-cm", "runApi4", outputPath}
                     );
                     chainHandler.exec(params);
 
                     System.out.println("\n======= Use cache 2 =======");
                     params = callChainOptParser.parse(
-                            new String[]{"configFile", "-le", "avg > 20", outputPath}
+                            new String[]{"configFile", "-ce", "avg > 20", outputPath}
                     );
                     chainHandler.exec(params);
 

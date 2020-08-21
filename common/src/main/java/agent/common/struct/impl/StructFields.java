@@ -1,11 +1,12 @@
 package agent.common.struct.impl;
 
-import agent.common.struct.StructField;
 import agent.base.utils.Pair;
+import agent.common.struct.StructField;
 
 import java.util.*;
 
 
+@SuppressWarnings("unchecked")
 public final class StructFields {
     static final byte T_NULL = 0;
     private static final byte T_BYTE = 1;
@@ -34,10 +35,12 @@ public final class StructFields {
     private static final byte T_STRING_ARRAY = 23;
 
     private static final byte T_LIST = 24;
-    private static final byte T_SET = 25;
-    private static final byte T_MAP = 26;
+    private static final byte T_TREE_SET = 25;
+    private static final byte T_SET = 26;
+    private static final byte T_TREE_MAP = 27;
+    private static final byte T_MAP = 28;
 
-    private static Map<Byte, StructField> typeToField = new HashMap<>();
+    private static Map<Byte, StructField> typeToField = new TreeMap<>();
 
     static {
         typeToField.put(T_BYTE, newByte());
@@ -66,7 +69,9 @@ public final class StructFields {
         typeToField.put(T_STRING_ARRAY, newStringArray());
 
         typeToField.put(T_LIST, newList());
+        typeToField.put(T_TREE_SET, newTreeSet());
         typeToField.put(T_SET, newSet());
+        typeToField.put(T_TREE_MAP, newTreeMap());
         typeToField.put(T_MAP, newMap());
     }
 
@@ -218,11 +223,19 @@ public final class StructFields {
         return newCollection(List.class, ArrayList.class);
     }
 
+    public static StructField newTreeSet() {
+        return newCollection(Set.class, TreeSet.class);
+    }
+
     public static StructField newSet() {
         return newCollection(Set.class, HashSet.class);
     }
 
-    public static StructField newMap() {
-        return new MapStructField();
+    public static MapStructField newTreeMap() {
+        return new MapStructField(TreeMap.class, TreeMap::new);
+    }
+
+    public static MapStructField newMap() {
+        return new MapStructField(Map.class, HashMap::new);
     }
 }

@@ -4,7 +4,7 @@ import agent.base.utils.LockObject;
 import agent.client.command.result.handler.DefaultExecResultHandler;
 import agent.client.command.result.handler.ResetResultHandler;
 import agent.client.command.result.handler.TransformResultHandler;
-import agent.client.command.result.handler.ViewResultHandler;
+import agent.client.command.result.handler.InfoResultHandler;
 import agent.common.message.command.Command;
 import agent.common.message.result.ExecResult;
 import agent.common.message.result.handler.ExecResultHandler;
@@ -20,7 +20,7 @@ public class CommandResultHandlerMgr {
     private static final LockObject resultHandlerLock = new LockObject();
 
     static {
-        ViewResultHandler viewResultHandler = new ViewResultHandler();
+        InfoResultHandler viewResultHandler = new InfoResultHandler();
 
         regResultHandlerClass(CMD_SEARCH, viewResultHandler);
         regResultHandlerClass(CMD_VIEW, viewResultHandler);

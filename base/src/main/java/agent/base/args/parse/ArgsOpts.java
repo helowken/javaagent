@@ -1,5 +1,7 @@
 package agent.base.args.parse;
 
+import agent.base.exception.ArgMissingException;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Supplier;
@@ -21,15 +23,9 @@ public class ArgsOpts {
         return args;
     }
 
-    public String getArg(int idx) {
-        return getArg(idx, () -> "Invalid arg index: " + idx);
-    }
-
-    public String getArg(int idx, Supplier<String> errMsgSupplier) {
+    public String getArg(int idx, String argName) {
         if (idx >= args.length)
-            throw new IllegalArgumentException(
-                    errMsgSupplier.get()
-            );
+            throw new ArgMissingException(argName);
         return args[idx];
     }
 

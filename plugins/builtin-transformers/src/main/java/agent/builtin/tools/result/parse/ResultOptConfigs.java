@@ -14,7 +14,7 @@ public class ResultOptConfigs {
             "Desc TODO."
     );
     private static final OptConfig CHAIN_EXPR_OPT = new OptConfig(
-            "-le",
+            "-ce",
             "--chain-expr",
             KEY_CHAIN_FILTER_EXPR,
             "Desc TODO."

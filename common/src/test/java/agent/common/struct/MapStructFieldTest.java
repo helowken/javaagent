@@ -1,16 +1,12 @@
 package agent.common.struct;
 
-import org.junit.Test;
 import agent.common.buffer.BufferAllocator;
-import agent.common.struct.StructField;
 import agent.common.struct.impl.StructFields;
+import org.junit.Test;
 import utils.TestUtils;
 
 import java.nio.ByteBuffer;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
+import java.util.*;
 
 @SuppressWarnings("unchecked")
 public class MapStructFieldTest {
@@ -19,12 +15,18 @@ public class MapStructFieldTest {
         Map map = newMap("");
         map.put("Map", newMap("sub-"));
         StructField field = StructFields.newMap();
+        checkEquals(field, map);
+    }
+
+    private void checkEquals(StructField field, Map<String, Object> map) {
         ByteBuffer bb = BufferAllocator.allocate(field.bytesSize(map));
         field.serialize(bb, map);
         bb.flip();
         Map<String, Object> map2 = (Map) field.deserialize(bb);
         TestUtils.checkEquals(map, map2);
         TestUtils.print(map);
+        System.out.println("============");
+        TestUtils.print(map2);
     }
 
     private Map newMap(String keyPrefix) {
@@ -57,5 +59,24 @@ public class MapStructFieldTest {
         map.put(keyPrefix + "List", Arrays.asList(1, "2", 3.3D));
         map.put(keyPrefix + "Set", new HashSet(Arrays.asList(1, "2", 3.3D)));
         return map;
+    }
+
+    @Test
+    public void testTreeMap() {
+        Map<String, Object> map = new TreeMap<>();
+        Map<String, Object> cm = new TreeMap<>();
+        cm.put("testAfterReturn()", "void");
+        cm.put("doBefore2()", "void");
+        cm.put("testBefore2()", "void");
+        cm.put("testAfter()", "void");
+        cm.put("testAfter2()", "void");
+        cm.put("doAfterReturn()", "void");
+        cm.put("doAfter()", "void");
+        cm.put("doBefore()", "void");
+        cm.put("testPointcut()", "void");
+        cm.put("doAfter2()", "void");
+        cm.put("testBefore()", "void");
+        map.put("xxxx", cm);
+        checkEquals(StructFields.newTreeMap(), map);
     }
 }

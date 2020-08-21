@@ -122,7 +122,7 @@ public class ClassLoaderUtils {
         for (int i = 0, len = chain.size(); i < len; ++i) {
             sb.append(IndentUtils.getIndent(i))
                     .append(chain.get(i).getClass().getName())
-                    .append("\n");
+                    .append('\n');
         }
         logger.debug("classLoader cascade: \n{}", sb);
     }

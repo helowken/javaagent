@@ -496,6 +496,8 @@ public class InvokeChainSearcher {
                                 "InitMethodNodeMap: {}, {}",
                                 clazz.getName()
                         );
+                        if (classInvokeItem == null)
+                            classInvokeItem = new ClassInvokeItem();
                     }
                 }
             }

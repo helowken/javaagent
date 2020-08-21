@@ -12,18 +12,12 @@ abstract class AbstractResultParams implements ResultParams {
 
     @Override
     public String getConfigFile() {
-        return argsOpts.getArg(
-                0,
-                () -> "No config file found."
-        );
+        return argsOpts.getArg(0, "CONFIG_FILE");
     }
 
     @Override
     public String getInputPath() {
-        return argsOpts.getArg(
-                1,
-                () -> "No input path found."
-        );
+        return argsOpts.getArg(1, "INPUT_PATH");
     }
 
     @Override

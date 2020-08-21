@@ -7,7 +7,7 @@ import agent.common.args.parse.specific.FilterOptConfigs;
 import java.util.Arrays;
 import java.util.List;
 
-public abstract class AbstractModuleParamParser<P extends ModuleParams> extends AbstractCmdParamParser<P> {
+public abstract class AbstractModuleParamParser<P extends CmdParams> extends AbstractCmdParamParser<P> {
 
     @Override
     protected List<OptParser> getMoreParsers() {

@@ -151,7 +151,7 @@ abstract class AbstractResultHandler<T, P extends ResultParams> implements Resul
         String path = dataFile.getAbsolutePath();
         TimeMeasureUtils.run(
                 () -> processFileFunc.process(dataFile),
-                e -> System.err.println("Read data file failed: " + path + "\n" + Utils.getErrorStackStrace(e)),
+                e -> System.err.println("Read data file failed: " + path + '\n' + Utils.getErrorStackStrace(e)),
                 "Calculate {} used time: {}",
                 path
         );

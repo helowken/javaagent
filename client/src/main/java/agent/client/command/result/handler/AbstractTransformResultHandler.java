@@ -31,18 +31,18 @@ abstract class AbstractTransformResultHandler extends AbstractExecResultHandler 
 
                             String targetClassName = errorEntity.getClassName();
                             if (Utils.isNotBlank(targetClassName))
-                                sb.append(INDENT_1).append("Class: ").append(targetClassName).append("\n");
+                                sb.append(INDENT_1).append("Class: ").append(targetClassName).append('\n');
 
                             String transformerKey = errorEntity.getTransformerKey();
                             if (Utils.isNotBlank(transformerKey))
-                                sb.append(INDENT_1).append("Transformer: ").append(transformerKey).append("\n");
+                                sb.append(INDENT_1).append("Transformer: ").append(transformerKey).append('\n');
 
                             sb.append(INDENT_1).append("Error: ").append(errorEntity.getErrMsg());
                             ++count;
                         }
                     }
             );
-            sb.append("\n");
+            sb.append('\n');
             ConsoleLogger.getInstance().info(msgPrefix + " failed.\n" + sb.toString());
         }
     }

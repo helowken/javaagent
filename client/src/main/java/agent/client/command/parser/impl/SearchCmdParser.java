@@ -1,21 +1,21 @@
 package agent.client.command.parser.impl;
 
 import agent.base.args.parse.CmdParamParser;
-import agent.client.args.parse.ModuleParams;
+import agent.client.args.parse.CmdParams;
 import agent.client.args.parse.SearchParamParser;
 import agent.common.message.command.Command;
 import agent.common.message.command.impl.SearchCommand;
 
 import java.util.Map;
 
-public class SearchCmdParser extends AbstractModuleCmdParser<ModuleParams> {
+public class SearchCmdParser extends AbstractModuleCmdParser<CmdParams> {
     @Override
     Command newCommand(Map<String, Object> data) {
         return new SearchCommand(data);
     }
 
     @Override
-    CmdParamParser<ModuleParams> createParamParser() {
+    CmdParamParser<CmdParams> createParamParser() {
         return new SearchParamParser();
     }
 

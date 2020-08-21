@@ -30,7 +30,7 @@ public class TestUtils {
                 valueString = toMapString((Map) v, level + 1);
             else
                 valueString = wrap(v);
-            sb.append(IndentUtils.getIndent(level)).append(k).append(": \t").append(valueString).append("\n");
+            sb.append(IndentUtils.getIndent(level)).append(k).append(": \t").append(valueString).append('\n');
         });
         sb.append(IndentUtils.getIndent(level - 1)).append("}");
         return sb.toString();

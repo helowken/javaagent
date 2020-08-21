@@ -1,6 +1,7 @@
 package agent.client.command.parser.impl;
 
 import agent.base.args.parse.CmdParamParser;
+import agent.base.exception.ArgMissingException;
 import agent.base.utils.Utils;
 import agent.client.args.parse.TransformParamParser;
 import agent.client.args.parse.TransformParams;
@@ -26,7 +27,7 @@ abstract class AbstractTransformCmdParser extends AbstractModuleCmdParser<Transf
     protected void checkParams(TransformParams params) {
         super.checkParams(params);
         if (Utils.isBlank(getTransformerKey()))
-            throw new RuntimeException("No transformer key found.");
+            throw new ArgMissingException("Transformer key");
         params.getOutputPath();
     }
 

@@ -116,7 +116,7 @@ public class TraceInvokeResultHandler extends AbstractResultHandler<Collection<T
             );
             ++i;
         }
-        sb.append("\n");
+        sb.append('\n');
         return sb;
     }
 

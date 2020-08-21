@@ -115,7 +115,7 @@ public class Utils {
 
     public static String getMergedErrorMessage(Throwable t) {
         StringBuilder sb = new StringBuilder();
-        getErrorMessages(t).forEach(errMsg -> sb.append(errMsg).append("\n"));
+        getErrorMessages(t).forEach(errMsg -> sb.append(errMsg).append('\n'));
         return sb.toString();
     }
 

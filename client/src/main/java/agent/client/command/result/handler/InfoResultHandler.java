@@ -1,7 +1,7 @@
 package agent.client.command.result.handler;
 
-import agent.base.utils.IndentUtils;
 import agent.base.utils.ConsoleLogger;
+import agent.base.utils.IndentUtils;
 import agent.common.message.command.Command;
 import agent.common.message.result.ExecResult;
 
@@ -9,14 +9,14 @@ import java.util.Collection;
 import java.util.Map;
 
 @SuppressWarnings("unchecked")
-public class ViewResultHandler extends AbstractExecResultHandler {
+public class InfoResultHandler extends AbstractExecResultHandler {
 
     @Override
     public void handleSuccess(Command command, ExecResult result) {
         StringBuilder sb = new StringBuilder();
         fillContent(result, sb);
         ConsoleLogger.getInstance().info(
-                "Result: \n" + sb.toString()
+                sb.toString()
         );
     }
 
@@ -25,7 +25,7 @@ public class ViewResultHandler extends AbstractExecResultHandler {
         if (content != null)
             printContent(sb, 0, content);
         else
-            sb.append("No content.");
+            sb.append("\nNone.");
     }
 
     private void printContent(StringBuilder sb, int level, Object content) {
@@ -37,11 +37,13 @@ public class ViewResultHandler extends AbstractExecResultHandler {
         else if (content instanceof Map)
             ((Map) content).forEach(
                     (key, value) -> {
+                        if (level == 0)
+                            sb.append('\n');
                         sb.append(indent).append(key).append(":\n");
                         printContent(sb, level + 1, value);
                     }
             );
         else if (content != null)
-            sb.append(indent).append(content).append("\n");
+            sb.append(indent).append(content).append('\n');
     }
 }

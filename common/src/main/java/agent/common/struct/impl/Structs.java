@@ -2,6 +2,8 @@ package agent.common.struct.impl;
 
 import agent.common.struct.StructField;
 
+import java.util.TreeMap;
+
 public class Structs {
     public static EmptyStruct empty() {
         return EmptyStruct.getInstance();
@@ -9,6 +11,13 @@ public class Structs {
 
     public static <K, V> MapStruct<K, V> newMap() {
         return new MapStruct<>();
+    }
+
+    public static <K, V> MapStruct<K, V> newTreeMap() {
+        return new MapStruct<>(
+                new TreeMap<>(),
+                StructFields.newTreeMap()
+        );
     }
 
     public static <V> ListStruct<V> newList() {

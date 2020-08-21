@@ -116,7 +116,7 @@ public class MavenDependencyTreeChecker {
         } else {
             if (!result.resultList.isEmpty()) {
                 sb.append("Failed.\n");
-                result.resultList.stream().map(p -> indent + p + "\n").forEach(sb::append);
+                result.resultList.stream().map(p -> indent + p + '\n').forEach(sb::append);
                 sb.deleteCharAt(sb.length() - 1);
             } else {
                 sb.append("Pass.");
@@ -245,7 +245,7 @@ public class MavenDependencyTreeChecker {
             String errMsg = "Get mvn dependency tree fail.";
             if (!errorLines.isEmpty()) {
                 StringBuilder sb = new StringBuilder();
-                errorLines.forEach(line -> sb.append("==>").append(line).append("\n"));
+                errorLines.forEach(line -> sb.append("==>").append(line).append('\n'));
                 errMsg += "\n" + sb;
             }
             if (errRef.get() != null) {

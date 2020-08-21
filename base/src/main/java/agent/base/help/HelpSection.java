@@ -50,7 +50,7 @@ public class HelpSection extends AbstractHelpInfo {
             if (!(idx > 1 &&
                     sb.charAt(idx) == '\n' &&
                     sb.charAt(idx - 1) == '\n'))
-                sb.append("\n");
+                sb.append('\n');
 
             sb.append(
                     getParentPadding()

@@ -158,7 +158,7 @@ abstract class AbstractClientRunner implements Runner {
             if (socket == null) {
                 try {
                     socket = new Socket();
-                    ConsoleLogger.getInstance().info("Try to connect to: {}:{}", hostAndPort.host, hostAndPort.port);
+                    ConsoleLogger.getInstance().info("Connect to: {}:{}", hostAndPort.host, hostAndPort.port);
                     socket.connect(
                             new InetSocketAddress(
                                     hostAndPort.host,
@@ -169,7 +169,6 @@ abstract class AbstractClientRunner implements Runner {
                                     KEY_SOCKET_CONNECTION_TIMEOUT
                             )
                     );
-                    ConsoleLogger.getInstance().info("Agent Server connected.");
                 } catch (Exception e) {
                     logError("Connect to server failed.", e);
                     close();

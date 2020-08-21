@@ -72,7 +72,7 @@ public class TraceTest extends AbstractTraceTest {
 
         public boolean test2(int[] as, Boolean[] bs) {
             System.out.println(
-                    Arrays.toString(as) + "\n" + Arrays.toString(bs)
+                    Arrays.toString(as) + '\n' + Arrays.toString(bs)
             );
             return false;
         }

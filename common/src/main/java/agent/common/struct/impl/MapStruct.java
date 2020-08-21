@@ -10,8 +10,20 @@ import java.util.Map;
 
 @SuppressWarnings("unchecked")
 public class MapStruct<K, V> implements Struct {
-    private StructField field = StructFields.newMap();
-    private final Map<K, V> valueMap = new HashMap<>();
+    private StructField field;
+    private final Map<K, V> valueMap;
+
+    protected MapStruct() {
+        this(
+                new HashMap<>(),
+                StructFields.newMap()
+        );
+    }
+
+    public MapStruct(Map<K, V> valueMap, MapStructField field) {
+        this.valueMap = valueMap;
+        this.field = field;
+    }
 
     public void put(K key, V value) {
         valueMap.put(key, value);

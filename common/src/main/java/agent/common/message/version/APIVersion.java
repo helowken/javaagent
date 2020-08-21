@@ -12,6 +12,7 @@ public class APIVersion extends MapStruct<String, Integer> {
     }
 
     public APIVersion(int majorVersion, int minorVersion) {
+        super();
         put(FIELD_MAJOR_VERSION, majorVersion);
         put(FIELD_MINOR_VERSION, minorVersion);
     }

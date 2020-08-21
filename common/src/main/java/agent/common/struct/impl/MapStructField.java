@@ -1,13 +1,16 @@
 package agent.common.struct.impl;
 
 import java.nio.ByteBuffer;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Supplier;
 
 @SuppressWarnings("unchecked")
-class MapStructField extends CompoundStructField {
-    MapStructField() {
-        super(Map.class);
+class MapStructField<T extends Map> extends CompoundStructField {
+    private final Supplier<T> newInstanceFunc;
+
+    MapStructField(Class<T> valueClass, Supplier<T> newInstanceFunc) {
+        super(valueClass);
+        this.newInstanceFunc = newInstanceFunc;
     }
 
     @Override
@@ -34,7 +37,7 @@ class MapStructField extends CompoundStructField {
     @Override
     public Object deserialize(ByteBuffer bb) {
         int size = bb.getInt();
-        Map map = new HashMap();
+        Map map = newInstanceFunc.get();
         for (int i = 0; i < size; ++i) {
             Object key = deserializeField(bb);
             Object value = deserializeField(bb);

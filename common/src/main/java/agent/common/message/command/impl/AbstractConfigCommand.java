@@ -7,7 +7,7 @@ import java.util.Map;
 
 abstract class AbstractConfigCommand extends AbstractCommand<MapStruct<String, Object>> {
     AbstractConfigCommand(int cmdType, Map<String, Object> data) {
-        super(cmdType, Structs.newMap());
+        super(cmdType, Structs.newTreeMap());
         if (data != null)
             getBody().putAll(data);
     }
