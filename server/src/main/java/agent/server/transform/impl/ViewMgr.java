@@ -2,7 +2,7 @@ package agent.server.transform.impl;
 
 import agent.base.utils.InvokeDescriptorUtils;
 import agent.base.utils.Utils;
-import agent.server.transform.impl.invoke.DestInvoke;
+import agent.invoke.DestInvoke;
 import agent.server.transform.search.filter.AgentFilter;
 import agent.server.transform.search.filter.ClassFilter;
 import agent.server.transform.search.filter.FilterUtils;

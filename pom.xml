@@ -14,11 +14,12 @@
             <id>all</id>
             <modules>
                 <module>parent</module>
-                <module>dependent-lib</module>
-                <module>delegate-lib</module>
+                <module>dependents/asm-dependent</module>
+                <module>dependents/json-dependent</module>
                 <module>base</module>
                 <module>common</module>
                 <module>native</module>
+                <module>invoke-proxy</module>
                 <module>launchers/basic-launcher</module>
                 <module>launchers/client-launcher</module>
                 <module>launchers/server-launcher</module>
@@ -42,13 +43,6 @@
             <id>common</id>
             <modules>
                 <module>common</module>
-            </modules>
-        </profile>
-
-        <profile>
-            <id>dependent-lib</id>
-            <modules>
-                <module>dependent-lib</module>
             </modules>
         </profile>
 
@@ -85,9 +79,17 @@
         </profile>
 
         <profile>
-            <id>delegate-lib</id>
+            <id>invoke-proxy</id>
             <modules>
-                <module>delegate-lib</module>
+                <module>invoke-proxy</module>
+            </modules>
+        </profile>
+
+        <profile>
+            <id>dependents</id>
+            <modules>
+                <module>dependents/asm-dependent</module>
+                <module>dependents/json-dependent</module>
             </modules>
         </profile>
 

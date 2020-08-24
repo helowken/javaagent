@@ -4,7 +4,7 @@ import agent.base.utils.IOUtils;
 import agent.base.utils.Logger;
 import agent.base.utils.TypeObject;
 import agent.common.config.ModuleConfig;
-import agent.common.utils.JSONUtils;
+import agent.common.utils.JsonUtils;
 import agent.server.transform.config.parser.exception.ConfigParseException;
 
 import java.io.File;
@@ -21,13 +21,13 @@ public class ConfigParser {
             if (data instanceof byte[])
                 data = new String((byte[]) data);
             if (data instanceof String)
-                return JSONUtils.read(
+                return JsonUtils.read(
                         (String) data,
                         new TypeObject<ModuleConfig>() {
                         }
                 );
             if (data instanceof Map)
-                return JSONUtils.convert(
+                return JsonUtils.convert(
                         data,
                         new TypeObject<ModuleConfig>() {
                         }

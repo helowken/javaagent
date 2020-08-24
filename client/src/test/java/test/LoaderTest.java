@@ -1,6 +1,7 @@
 package test;
 
 import agent.base.utils.ReflectionUtils;
+import org.junit.Ignore;
 import org.junit.Test;
 import sun.misc.Launcher;
 import sun.misc.Resource;
@@ -12,6 +13,7 @@ import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
 
+@Ignore
 public class LoaderTest {
 
     @Test

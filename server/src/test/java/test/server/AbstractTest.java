@@ -2,8 +2,12 @@ package test.server;
 
 import agent.base.utils.*;
 import agent.common.config.*;
-import agent.common.utils.JSONUtils;
-import agent.delegate.JSONDelegate;
+import agent.common.utils.DelegateClassItem;
+import agent.common.utils.JsonUtils;
+import agent.invoke.DestInvoke;
+import agent.invoke.MethodInvoke;
+import agent.invoke.proxy.ProxyRegInfo;
+import agent.invoke.proxy.ProxyResult;
 import agent.jvmti.JvmtiUtils;
 import agent.server.event.AgentEvent;
 import agent.server.event.AgentEventListener;
@@ -14,12 +18,11 @@ import agent.server.event.impl.LogFlushedEvent;
 import agent.server.event.impl.ResetEvent;
 import agent.server.transform.*;
 import agent.server.transform.impl.DestInvokeIdRegistry;
-import agent.server.transform.impl.invoke.DestInvoke;
-import agent.server.transform.impl.invoke.MethodInvoke;
 import agent.server.transform.revision.ClassDataRepository;
-import agent.server.transform.tools.asm.ProxyRegInfo;
-import agent.server.transform.tools.asm.ProxyResult;
+import agent.server.transform.tools.asm.AsmUtils;
 import agent.server.transform.tools.asm.ProxyTransformMgr;
+import agent.tools.asm.AsmDelegate;
+import agent.tools.json.JsonDelegate;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 
@@ -61,19 +64,14 @@ public abstract class AbstractTest {
     private static synchronized void init() throws Exception {
         if (!inited) {
             Properties props = new Properties();
-
             props.setProperty("invoke.chain.search.cache.max.size", "1000");
             props.setProperty("invoke.chain.search.core.pool.size", "1");
             props.setProperty("invoke.chain.search.max.pool.size", "100");
             SystemConfig.load(props);
-            ReflectionUtils.useField(
-                    JSONUtils.class,
-                    "delegateClass",
-                    field -> {
-                        field.set(null, JSONDelegate.class);
-                        return null;
-                    }
-            );
+
+            DelegateClassItem.getInstance().mock(AsmUtils.ASM_DELEGATE_CLASS, AsmDelegate.class);
+            DelegateClassItem.getInstance().mock(JsonUtils.JSON_DELEGATE_CLASS, JsonDelegate.class);
+
             InstrumentationMgr.getInstance().onStartup(new Object[]{instrumentation});
             DestInvokeIdRegistry.getInstance().onStartup(new Object[0]);
             String dir = System.getProperty("user.dir");
@@ -206,7 +204,9 @@ public abstract class AbstractTest {
                 .collect(
                         Collectors.toMap(
                                 ProxyResult::getTargetClass,
-                                ProxyResult::getClassData
+                                proxyResult -> ClassDataRepository.getInstance().getCurrentClassData(
+                                        proxyResult.getTargetClass()
+                                )
                         )
                 );
     }

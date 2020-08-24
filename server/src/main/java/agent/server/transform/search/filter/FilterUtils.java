@@ -5,7 +5,7 @@ import agent.base.utils.Utils;
 import agent.common.config.ClassFilterConfig;
 import agent.common.config.FilterConfig;
 import agent.common.config.InvokeChainConfig;
-import agent.server.transform.impl.invoke.DestInvoke;
+import agent.invoke.DestInvoke;
 
 import java.util.ArrayList;
 import java.util.Collection;

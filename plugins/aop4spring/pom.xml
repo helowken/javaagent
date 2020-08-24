@@ -18,17 +18,11 @@
             <artifactId>server</artifactId>
         </dependency>
 
-        <!-- test -->
-        <dependency>
-            <groupId>javaagent</groupId>
-            <artifactId>server</artifactId>
-            <type>test-jar</type>
-        </dependency>
+        <!-- test 3pp -->
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
         </dependency>
-
         <dependency>
             <groupId>org.aspectj</groupId>
             <artifactId>aspectjweaver</artifactId>
@@ -44,6 +38,23 @@
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-aop</artifactId>
+        </dependency>
+
+        <!-- test app -->
+        <dependency>
+            <groupId>javaagent</groupId>
+            <artifactId>server</artifactId>
+            <type>test-jar</type>
+        </dependency>
+        <dependency>
+            <groupId>javaagent</groupId>
+            <artifactId>json-dependent</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>javaagent</groupId>
+            <artifactId>asm-dependent</artifactId>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 </project>

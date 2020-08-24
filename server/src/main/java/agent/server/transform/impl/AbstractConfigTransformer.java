@@ -1,9 +1,9 @@
 package agent.server.transform.impl;
 
+import agent.invoke.DestInvoke;
 import agent.server.transform.ConfigTransformer;
 import agent.server.transform.TransformContext;
 import agent.server.transform.exception.InvalidTransformerConfigException;
-import agent.server.transform.impl.invoke.DestInvoke;
 import agent.server.utils.log.LogConfig;
 import agent.server.utils.log.LogMgr;
 import agent.server.utils.log.LoggerType;

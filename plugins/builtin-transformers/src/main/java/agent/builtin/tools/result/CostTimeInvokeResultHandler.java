@@ -7,7 +7,7 @@ import agent.builtin.tools.result.parse.CostTimeResultParams;
 import agent.common.tree.Node;
 import agent.common.tree.Tree;
 import agent.common.tree.TreeUtils;
-import agent.common.utils.JSONUtils;
+import agent.common.utils.JsonUtils;
 import agent.server.transform.impl.DestInvokeIdRegistry.InvokeMetadata;
 
 import java.io.File;
@@ -28,7 +28,7 @@ public class CostTimeInvokeResultHandler extends AbstractCostTimeResultHandler<M
 
     @Override
     String serializeResult(Map<Integer, CostTimeStatItem> result) {
-        return JSONUtils.writeAsString(
+        return JsonUtils.writeAsString(
                 InvokeDataConverter.serialize(result)
         );
     }
@@ -36,7 +36,7 @@ public class CostTimeInvokeResultHandler extends AbstractCostTimeResultHandler<M
     @Override
     Map<Integer, CostTimeStatItem> deserializeResult(String content) {
         return InvokeDataConverter.deserialize(
-                JSONUtils.read(content)
+                JsonUtils.read(content)
         );
     }
 

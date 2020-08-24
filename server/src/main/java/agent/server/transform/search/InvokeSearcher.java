@@ -6,9 +6,9 @@ import agent.base.utils.Utils;
 import agent.common.config.ConstructorFilterConfig;
 import agent.common.config.FilterConfig;
 import agent.common.config.MethodFilterConfig;
-import agent.server.transform.impl.invoke.ConstructorInvoke;
-import agent.server.transform.impl.invoke.DestInvoke;
-import agent.server.transform.impl.invoke.MethodInvoke;
+import agent.invoke.ConstructorInvoke;
+import agent.invoke.DestInvoke;
+import agent.invoke.MethodInvoke;
 import agent.server.transform.search.filter.AgentFilter;
 import agent.server.transform.search.filter.FilterUtils;
 

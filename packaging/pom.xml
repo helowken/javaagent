@@ -24,11 +24,11 @@
         </dependency>
         <dependency>
             <groupId>javaagent</groupId>
-            <artifactId>dependent-lib</artifactId>
+            <artifactId>asm-dependent</artifactId>
         </dependency>
         <dependency>
             <groupId>javaagent</groupId>
-            <artifactId>delegate-lib</artifactId>
+            <artifactId>json-dependent</artifactId>
         </dependency>
         <dependency>
             <groupId>javaagent</groupId>

@@ -9,7 +9,7 @@ import agent.common.tree.INode;
 import agent.common.tree.Node;
 import agent.common.tree.Tree;
 import agent.common.tree.TreeUtils;
-import agent.common.utils.JSONUtils;
+import agent.common.utils.JsonUtils;
 import agent.server.transform.impl.DestInvokeIdRegistry.InvokeMetadata;
 
 import java.io.File;
@@ -159,7 +159,7 @@ public class TraceInvokeResultHandler extends AbstractResultHandler<Collection<T
 
     private Tree<TraceItem> processRow(String row) {
         Map<Integer, Node<TraceItem>> idToNode = new HashMap<>();
-        List<TraceItem> traceItemList = JSONUtils.read(
+        List<TraceItem> traceItemList = JsonUtils.read(
                 row,
                 new TypeObject<List<TraceItem>>() {
                 }

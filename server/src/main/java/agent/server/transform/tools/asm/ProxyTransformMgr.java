@@ -2,10 +2,13 @@ package agent.server.transform.tools.asm;
 
 import agent.base.utils.InvokeDescriptorUtils;
 import agent.base.utils.Logger;
+import agent.invoke.DestInvoke;
+import agent.invoke.proxy.ProxyCallSite;
+import agent.invoke.proxy.ProxyItem;
+import agent.invoke.proxy.ProxyRegInfo;
+import agent.invoke.proxy.ProxyResult;
 import agent.server.transform.impl.DestInvokeIdRegistry;
-import agent.server.transform.impl.invoke.DestInvoke;
 import agent.server.transform.revision.ClassDataRepository;
-import sun.reflect.generics.repository.ClassRepository;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -99,7 +102,7 @@ public class ProxyTransformMgr {
     private ProxyResult doTransform(ProxyItem item, Function<Class<?>, byte[]> classDataFunc) {
         Class<?> targetClass = item.getTargetClass();
         try {
-            byte[] newClassData = AsmTransformProxy.transform(
+            byte[] newClassData = AsmUtils.transform(
                     targetClass,
                     classDataFunc.apply(targetClass),
                     item.getIdToInvoke()

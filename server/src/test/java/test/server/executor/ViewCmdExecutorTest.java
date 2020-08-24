@@ -1,9 +1,9 @@
 package test.server.executor;
 
 import agent.common.message.command.impl.ViewCommand;
+import agent.invoke.MethodInvoke;
 import agent.server.command.executor.CmdExecutorMgr;
 import agent.server.transform.impl.DestInvokeIdRegistry;
-import agent.server.transform.impl.invoke.MethodInvoke;
 import org.junit.Test;
 import test.server.AbstractTest;
 

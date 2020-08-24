@@ -1,1 +1,27 @@
-1. because jetty runner is loaded by AppClassLoader
+server:
+    launch:
+        static:
+            1. embed "server/lib/agent/server-launcher.jar" in java startup
+
+        dynamic:
+            use "server/lib/launcher/agent-launcher.jar" to
+            1. attach java process
+            2. ask java process to use "server/lib/agent/server-launcher.jar" as an agent
+
+
+    "server/lib/agent/server-launcher.jar":
+        contains:
+            common
+            `--- lib
+                 `--- base
+                      `--- base.jar
+        loads jars under:
+            common
+            `--- lib
+                  `--- core
+            server
+            `--- lib
+                  +--- core
+                  `--- plugin
+
+

@@ -4,8 +4,8 @@ import agent.base.utils.LockObject;
 import agent.base.utils.ReflectionUtils;
 import agent.base.utils.Utils;
 import agent.common.utils.Registry;
+import agent.invoke.DestInvoke;
 import agent.server.transform.AnnotationConfigTransformer;
-import agent.server.transform.impl.invoke.DestInvoke;
 
 import java.lang.reflect.Method;
 import java.util.Collection;

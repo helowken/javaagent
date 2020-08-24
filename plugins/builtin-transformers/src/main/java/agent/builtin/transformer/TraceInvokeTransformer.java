@@ -4,9 +4,9 @@ import agent.base.utils.Utils;
 import agent.builtin.transformer.utils.DefaultValueConverter;
 import agent.builtin.transformer.utils.TraceItem;
 import agent.builtin.transformer.utils.ValueConverter;
-import agent.common.utils.JSONUtils;
+import agent.common.utils.JsonUtils;
+import agent.invoke.DestInvoke;
 import agent.server.transform.impl.CallChainTransformer;
-import agent.server.transform.impl.invoke.DestInvoke;
 import agent.server.utils.log.LogMgr;
 
 import java.lang.reflect.Method;
@@ -64,7 +64,7 @@ public class TraceInvokeTransformer extends CallChainTransformer {
         protected void processOnCompleted(List<SelfInvokeInfo> completed, DestInvoke destInvoke, Object[] otherArgs) {
             final String logKey = Utils.getArgValue(otherArgs, 0);
             ValueConverter valueConverter = Utils.getArgValue(otherArgs, 1);
-            String content = JSONUtils.writeAsString(
+            String content = JsonUtils.writeAsString(
                     completed.stream()
                             .map(
                                     item -> convert(item, valueConverter)

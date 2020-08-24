@@ -23,6 +23,7 @@
 
     <dependencyManagement>
         <dependencies>
+            <!-- 3pp -->
             <dependency>
                 <groupId>com.fasterxml.jackson.core</groupId>
                 <artifactId>jackson-databind</artifactId>
@@ -36,11 +37,6 @@
             <dependency>
                 <groupId>org.ow2.asm</groupId>
                 <artifactId>asm-util</artifactId>
-                <version>${asm.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.ow2.asm</groupId>
-                <artifactId>asm-analysis</artifactId>
                 <version>${asm.version}</version>
             </dependency>
             <dependency>
@@ -64,7 +60,7 @@
             </dependency>
             <dependency>
                 <groupId>javaagent</groupId>
-                <artifactId>delegate-lib</artifactId>
+                <artifactId>invoke-proxy</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -74,7 +70,12 @@
             </dependency>
             <dependency>
                 <groupId>javaagent</groupId>
-                <artifactId>dependent-lib</artifactId>
+                <artifactId>asm-dependent</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>javaagent</groupId>
+                <artifactId>json-dependent</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

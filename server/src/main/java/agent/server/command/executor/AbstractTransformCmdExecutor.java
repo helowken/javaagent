@@ -6,7 +6,7 @@ import agent.common.message.result.DefaultExecResult;
 import agent.common.message.result.ExecResult;
 import agent.common.message.result.entity.ErrorEntity;
 import agent.common.message.result.entity.TransformResultEntity;
-import agent.common.utils.JSONUtils;
+import agent.common.utils.JsonUtils;
 import agent.server.transform.TransformResult;
 
 import java.util.List;
@@ -39,7 +39,7 @@ abstract class AbstractTransformCmdExecutor extends AbstractCmdExecutor {
 
         return failed ?
                 DefaultExecResult.toError(cmdType, msgPrefix + " failed.",
-                        JSONUtils.convert(entity,
+                        JsonUtils.convert(entity,
                                 new TypeObject<Map>() {
                                 }
                         )

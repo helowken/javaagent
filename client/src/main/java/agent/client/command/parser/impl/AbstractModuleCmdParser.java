@@ -9,7 +9,7 @@ import agent.common.args.parse.FilterOptUtils;
 import agent.common.args.parse.specific.FilterOptConfigs;
 import agent.common.config.ModuleConfig;
 import agent.common.message.command.Command;
-import agent.common.utils.JSONUtils;
+import agent.common.utils.JsonUtils;
 
 import java.util.Collections;
 import java.util.Map;
@@ -20,7 +20,7 @@ abstract class AbstractModuleCmdParser<P extends CmdParams> extends AbstractCmdP
     @Override
     Command createCommand(P params) {
         return newCommand(
-                JSONUtils.convert(
+                JsonUtils.convert(
                         createModuleConfig(params),
                         new TypeObject<Map<String, Object>>() {
                         }

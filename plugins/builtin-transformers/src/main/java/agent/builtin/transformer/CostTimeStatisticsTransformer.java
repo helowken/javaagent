@@ -1,8 +1,8 @@
 package agent.builtin.transformer;
 
 import agent.base.utils.Utils;
+import agent.invoke.DestInvoke;
 import agent.server.transform.impl.CallChainTransformer;
-import agent.server.transform.impl.invoke.DestInvoke;
 import agent.server.utils.log.LogMgr;
 import agent.server.utils.log.binary.BinaryLogItem;
 import agent.server.utils.log.binary.BinaryLogItemPool;

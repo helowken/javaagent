@@ -8,7 +8,7 @@ import agent.builtin.tools.result.parse.TraceResultParamParser;
 import agent.builtin.tools.result.parse.TraceResultParams;
 import agent.builtin.transformer.CostTimeStatisticsTransformer;
 import agent.builtin.transformer.TraceInvokeTransformer;
-import agent.common.utils.JSONUtils;
+import agent.common.utils.JsonUtils;
 import agent.server.transform.ConfigTransformer;
 import agent.server.transform.impl.ViewMgr;
 import org.junit.Test;
@@ -122,7 +122,7 @@ public class TraceInvokeTransformerTest2 extends AbstractTest {
 
                             System.out.println("\n=================");
                             System.out.println(
-                                    JSONUtils.writeAsString(
+                                    JsonUtils.writeAsString(
                                             ViewMgr.create(ViewMgr.VIEW_PROXY, null, null, null),
                                             true
                                     )

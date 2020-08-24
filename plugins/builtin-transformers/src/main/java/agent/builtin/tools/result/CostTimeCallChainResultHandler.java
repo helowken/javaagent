@@ -9,7 +9,7 @@ import agent.common.tree.Node;
 import agent.common.tree.NodeMapper;
 import agent.common.tree.Tree;
 import agent.common.tree.TreeUtils;
-import agent.common.utils.JSONUtils;
+import agent.common.utils.JsonUtils;
 import agent.server.transform.impl.DestInvokeIdRegistry.InvokeMetadata;
 
 import java.io.File;
@@ -41,7 +41,7 @@ public class CostTimeCallChainResultHandler extends AbstractCostTimeResultHandle
 
     @Override
     String serializeResult(Tree<CallChainData> tree) {
-        return JSONUtils.writeAsString(
+        return JsonUtils.writeAsString(
                 NodeMapper.serialize(tree, CallChainDataConverter::serialize)
         );
     }
@@ -51,7 +51,7 @@ public class CostTimeCallChainResultHandler extends AbstractCostTimeResultHandle
     Tree<CallChainData> deserializeResult(String content) {
         return (Tree) NodeMapper.deserialize(
                 null,
-                JSONUtils.read(content),
+                JsonUtils.read(content),
                 CallChainDataConverter::deserialize
         );
     }

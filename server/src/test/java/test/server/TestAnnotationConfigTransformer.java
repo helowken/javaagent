@@ -1,7 +1,7 @@
 package test.server;
 
+import agent.invoke.DestInvoke;
 import agent.server.transform.impl.AbstractAnnotationConfigTransformer;
-import agent.server.transform.impl.invoke.DestInvoke;
 
 import java.lang.reflect.Method;
 import java.util.Collection;

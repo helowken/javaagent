@@ -1,6 +1,7 @@
 package agent.server.transform;
 
-import agent.server.transform.tools.asm.ProxyRegInfo;
+
+import agent.invoke.proxy.ProxyRegInfo;
 
 import java.util.Collection;
 

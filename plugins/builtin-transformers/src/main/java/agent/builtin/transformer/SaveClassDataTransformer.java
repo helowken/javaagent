@@ -1,9 +1,9 @@
 package agent.builtin.transformer;
 
 import agent.base.utils.Utils;
+import agent.invoke.DestInvoke;
 import agent.server.transform.TransformContext;
 import agent.server.transform.impl.AbstractConfigTransformer;
-import agent.server.transform.impl.invoke.DestInvoke;
 
 import java.util.HashMap;
 import java.util.Map;

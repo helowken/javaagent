@@ -1,11 +1,8 @@
 package test.server.search;
 
-import agent.common.config.ClassFilterConfig;
-import agent.common.config.ConstructorFilterConfig;
 import agent.common.config.InvokeChainConfig;
-import agent.common.config.MethodFilterConfig;
-import agent.server.transform.impl.invoke.DestInvoke;
-import agent.server.transform.impl.invoke.MethodInvoke;
+import agent.invoke.DestInvoke;
+import agent.invoke.MethodInvoke;
 import agent.server.transform.search.ClassCache;
 import agent.server.transform.search.InvokeChainSearcher;
 import org.junit.Test;

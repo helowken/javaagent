@@ -1,94 +1,87 @@
 package agent.server.transform.tools.asm;
 
-import org.objectweb.asm.ClassReader;
-import org.objectweb.asm.ClassWriter;
-import org.objectweb.asm.tree.ClassNode;
-import org.objectweb.asm.util.CheckClassAdapter;
-import org.objectweb.asm.util.TraceClassVisitor;
+import agent.base.utils.ReflectionUtils;
+import agent.base.utils.Utils;
+import agent.common.utils.DelegateClassItem;
+import agent.invoke.DestInvoke;
+import agent.invoke.data.ClassInvokeItem;
+import agent.invoke.data.TypeItem;
 
 import java.io.OutputStream;
-import java.io.PrintWriter;
-import java.io.StringWriter;
+import java.util.Map;
 
 public class AsmUtils {
+    public static final String ASM_DELEGATE_CLASS = "agent.tools.asm.AsmDelegate";
+    private static final DelegateClassItem item = DelegateClassItem.getInstance();
+
+    public static byte[] transform(Class<?> sourceClass, byte[] classData, Map<Integer, DestInvoke> idToInvoke) {
+        return Utils.wrapToRtError(
+                () -> ReflectionUtils.invokeStatic(
+                        item.getDelegateClass(ASM_DELEGATE_CLASS),
+                        "transform",
+                        new Class[]{
+                                Class.class,
+                                byte[].class,
+                                Map.class
+                        },
+                        sourceClass,
+                        classData,
+                        idToInvoke
+                )
+        );
+    }
 
     public static void verifyAndPrintResult(ClassLoader loader, byte[] bs, OutputStream out) {
-        verify(
-                loader,
-                bs,
-                true,
-                new PrintWriter(System.out)
+        Utils.wrapToRtError(
+                () -> ReflectionUtils.invokeStatic(
+                        item.getDelegateClass(ASM_DELEGATE_CLASS),
+                        "verifyAndPrintResult",
+                        new Class[]{
+                                ClassLoader.class,
+                                byte[].class,
+                                OutputStream.class
+                        },
+                        loader,
+                        bs,
+                        out
+                )
         );
-    }
-
-    public static String getVerifyResult(ClassLoader loader, byte[] bs, boolean printResults) {
-        StringWriter sw = new StringWriter();
-        verify(
-                loader,
-                bs,
-                printResults,
-                new PrintWriter(sw)
-        );
-        return sw.toString();
-    }
-
-    private static void verify(ClassLoader loader, byte[] bs, boolean printResults, PrintWriter pw) {
-        CheckClassAdapter.verify(
-                new ClassReader(bs),
-                loader,
-                printResults,
-                pw
-        );
-    }
-
-    public static String convertToReadableContent(byte[] bs) {
-        StringWriter sw = new StringWriter();
-        printClass(
-                bs,
-                new PrintWriter(sw)
-        );
-        return sw.toString();
     }
 
     public static void print(byte[] bs, OutputStream out) {
-        printClass(
-                bs,
-                new PrintWriter(out)
+        Utils.wrapToRtError(
+                () -> ReflectionUtils.invokeStatic(
+                        item.getDelegateClass(ASM_DELEGATE_CLASS),
+                        "print",
+                        new Class[]{
+                                byte[].class,
+                                OutputStream.class
+                        },
+                        bs,
+                        out
+                )
         );
     }
 
-    private static void printClass(byte[] bs, PrintWriter pw) {
-        new ClassReader(bs)
-                .accept(
-                        new TraceClassVisitor(null, pw),
-                        0
-                );
-    }
-
-    public static ClassNode newClassNode(byte[] bs) {
-        ClassNode cn = new ClassNode();
-        ClassReader cr = new ClassReader(bs);
-        cr.accept(cn, 0);
-        return cn;
-    }
-
-    static ClassNode transform(byte[] bs, TransformFunc transformFunc) {
-        ClassNode cn = newClassNode(bs);
-        transformFunc.transform(cn);
-        return cn;
-    }
-
-    static byte[] transformClass(Class<?> sourceClass, byte[] bs, TransformFunc transformFunc) {
-        ClassNode cn = transform(bs, transformFunc);
-        ClassWriter cw = new AsmClassWriter(
-                ClassWriter.COMPUTE_FRAMES,
-                sourceClass.getClassLoader()
+    public static TypeItem parseType(String invokeOwner) {
+        return Utils.wrapToRtError(
+                () -> ReflectionUtils.invokeStatic(
+                        item.getDelegateClass(ASM_DELEGATE_CLASS),
+                        "parseType",
+                        new Class[]{String.class},
+                        invokeOwner
+                )
         );
-        cn.accept(cw);
-        return cw.toByteArray();
     }
 
-    interface TransformFunc {
-        void transform(ClassNode classNode);
+    public static ClassInvokeItem collect(byte[] classData) {
+        return Utils.wrapToRtError(
+                () -> ReflectionUtils.invokeStatic(
+                        item.getDelegateClass(ASM_DELEGATE_CLASS),
+                        "collect",
+                        new Class[]{byte[].class},
+                        new Object[]{classData}
+                )
+        );
     }
 }

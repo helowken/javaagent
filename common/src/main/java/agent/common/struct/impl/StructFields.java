@@ -96,6 +96,7 @@ public final class StructFields {
 
     static Pair<Byte, StructField> detectTypeAndField(Object value) {
         byte type = detectType(value);
+        System.out.println("========= " + value.getClass() + ": " + type);
         return new Pair<>(type, getField(type));
     }
 
@@ -224,7 +225,7 @@ public final class StructFields {
     }
 
     public static StructField newTreeSet() {
-        return newCollection(Set.class, TreeSet.class);
+        return newCollection(TreeSet.class, TreeSet.class);
     }
 
     public static StructField newSet() {

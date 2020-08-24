@@ -1,7 +1,7 @@
 package agent.server.config;
 
 import agent.base.utils.TypeObject;
-import agent.common.utils.JSONUtils;
+import agent.common.utils.JsonUtils;
 
 public class ServerConfigMgr {
     private static final String CONF_FILE = "serverConf.json";
@@ -15,7 +15,7 @@ public class ServerConfigMgr {
     }
 
     private static ServerConfig parse() {
-        return JSONUtils.read(
+        return JsonUtils.read(
                 ServerConfigMgr.class.getClassLoader().getResourceAsStream(CONF_FILE),
                 new TypeObject<ServerConfig>() {
                 }

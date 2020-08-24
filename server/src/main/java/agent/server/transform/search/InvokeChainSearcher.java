@@ -3,19 +3,19 @@ package agent.server.transform.search;
 import agent.base.plugin.PluginFactory;
 import agent.base.utils.*;
 import agent.common.config.InvokeChainConfig;
+import agent.invoke.ConstructorInvoke;
+import agent.invoke.DestInvoke;
+import agent.invoke.MethodInvoke;
+import agent.invoke.data.ClassInvokeItem;
+import agent.invoke.data.InnerInvokeItem;
+import agent.invoke.data.TypeItem;
 import agent.server.transform.AopMethodFinder;
-import agent.server.transform.impl.invoke.ConstructorInvoke;
-import agent.server.transform.impl.invoke.DestInvoke;
-import agent.server.transform.impl.invoke.MethodInvoke;
 import agent.server.transform.search.filter.FilterUtils;
 import agent.server.transform.search.filter.InvokeChainMatchFilter;
 import agent.server.transform.search.filter.InvokeChainSearchFilter;
 import agent.server.transform.search.filter.NotInterfaceFilter;
-import agent.server.transform.search.invoke.ClassInvokeCollector;
-import agent.server.transform.search.invoke.ClassInvokeItem;
-import agent.server.transform.search.invoke.InnerInvokeItem;
+import agent.server.transform.tools.asm.AsmUtils;
 import agent.server.utils.TaskRunner;
-import org.objectweb.asm.Type;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
@@ -32,7 +32,7 @@ import java.util.stream.Stream;
 
 import static agent.base.utils.InvokeDescriptorUtils.getDescriptor;
 import static agent.base.utils.ReflectionUtils.CONSTRUCTOR_NAME;
-import static agent.server.transform.search.invoke.ClassInvokeItem.newInvokeKey;
+import static agent.invoke.data.ClassInvokeItem.newInvokeKey;
 
 public class InvokeChainSearcher {
     private static final Logger logger = Logger.getLogger(InvokeChainSearcher.class);
@@ -375,23 +375,23 @@ public class InvokeChainSearcher {
 
     private Class<?> loadClass(ClassLoader loader, String invokeOwner) {
         try {
-            Type type = Type.getObjectType(invokeOwner);
-            return type.getSort() == Type.ARRAY ?
+            TypeItem typeItem = AsmUtils.parseType(invokeOwner);
+            return typeItem.isArray() ?
                     nameToArrayClass.computeIfAbsent(
                             invokeOwner,
                             key -> Utils.wrapToRtError(
                                     () -> Array.newInstance(
                                             ClassLoaderUtils.loadClass(
                                                     loader,
-                                                    type.getElementType().getClassName()
+                                                    typeItem.getClassName()
                                             ),
-                                            new int[type.getDimensions()]
+                                            new int[typeItem.getDimensions()]
                                     ).getClass()
                             )
                     ) :
                     ClassLoaderUtils.loadClass(
                             loader,
-                            type.getClassName()
+                            typeItem.getClassName()
                     );
         } catch (Throwable t) {
             logger.error("Load class failed: {}", t, invokeOwner);
@@ -488,7 +488,7 @@ public class InvokeChainSearcher {
                     if (classInvokeItem == null) {
                         TimeMeasureUtils.run(
                                 () -> {
-                                    classInvokeItem = ClassInvokeCollector.collect(
+                                    classInvokeItem = AsmUtils.collect(
                                             classDataFunc.apply(clazz)
                                     );
                                 },

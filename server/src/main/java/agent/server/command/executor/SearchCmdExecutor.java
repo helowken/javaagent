@@ -6,9 +6,9 @@ import agent.common.message.command.Command;
 import agent.common.message.command.impl.SearchCommand;
 import agent.common.message.result.DefaultExecResult;
 import agent.common.message.result.ExecResult;
+import agent.invoke.DestInvoke;
 import agent.server.transform.TransformMgr;
 import agent.server.transform.config.parser.ConfigParser;
-import agent.server.transform.impl.invoke.DestInvoke;
 
 import java.util.Collection;
 import java.util.Map;

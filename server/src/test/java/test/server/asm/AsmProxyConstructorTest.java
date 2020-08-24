@@ -2,7 +2,7 @@ package test.server.asm;
 
 import agent.base.utils.ReflectionUtils;
 import agent.base.utils.Utils;
-import agent.server.transform.tools.asm.ProxyRegInfo;
+import agent.invoke.proxy.ProxyRegInfo;
 import org.junit.Test;
 import test.server.AbstractTest;
 

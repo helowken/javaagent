@@ -1,6 +1,7 @@
 package agent.server.transform;
 
-import agent.server.transform.impl.invoke.DestInvoke;
+
+import agent.invoke.DestInvoke;
 
 import java.util.Collection;
 import java.util.Collections;

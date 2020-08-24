@@ -4,8 +4,13 @@ import agent.base.utils.IOUtils;
 import agent.base.utils.InvokeDescriptorUtils;
 import agent.base.utils.ReflectionUtils;
 import agent.base.utils.Utils;
+import agent.invoke.proxy.ProxyCallInfo;
+import agent.invoke.proxy.ProxyRegInfo;
+import agent.invoke.proxy.ProxyResult;
 import agent.server.transform.impl.DestInvokeIdRegistry;
-import agent.server.transform.tools.asm.*;
+import agent.server.transform.revision.ClassDataRepository;
+import agent.server.transform.tools.asm.AsmUtils;
+import agent.server.transform.tools.asm.ProxyTransformMgr;
 import test.server.TestClassLoader;
 
 import java.lang.reflect.Constructor;
@@ -14,7 +19,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import static agent.server.transform.tools.asm.ProxyArgsMask.*;
+import static agent.invoke.proxy.ProxyArgsMask.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
@@ -70,7 +75,9 @@ public class AsmTestUtils {
         );
         return AsmTestUtils.newClass(
                 item.getTargetClass().getName(),
-                item.getClassData()
+                ClassDataRepository.getInstance().getCurrentClassData(
+                        item.getTargetClass()
+                )
         );
     }
 

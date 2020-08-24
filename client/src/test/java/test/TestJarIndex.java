@@ -1,11 +1,13 @@
 package test;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import sun.misc.JarIndex;
 
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
+@Ignore
 public class TestJarIndex {
     @Test
     public void test() throws Exception {

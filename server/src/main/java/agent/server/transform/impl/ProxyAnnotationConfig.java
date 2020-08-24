@@ -1,7 +1,7 @@
 package agent.server.transform.impl;
 
 import agent.base.utils.Logger;
-import agent.server.transform.impl.invoke.DestInvoke;
+import agent.invoke.DestInvoke;
 import agent.server.transform.tools.asm.annotation.OnAfter;
 import agent.server.transform.tools.asm.annotation.OnBefore;
 import agent.server.transform.tools.asm.annotation.OnReturning;
@@ -9,7 +9,7 @@ import agent.server.transform.tools.asm.annotation.OnThrowing;
 
 import java.util.List;
 
-import static agent.server.transform.tools.asm.ProxyArgsMask.*;
+import static agent.invoke.proxy.ProxyArgsMask.*;
 
 public abstract class ProxyAnnotationConfig<T, R> {
     public static final int ARGS_NONE = -1;

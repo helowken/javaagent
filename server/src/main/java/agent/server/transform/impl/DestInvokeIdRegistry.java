@@ -4,7 +4,8 @@ import agent.base.utils.IOUtils;
 import agent.base.utils.LockObject;
 import agent.base.utils.Logger;
 import agent.base.utils.Utils;
-import agent.common.utils.JSONUtils;
+import agent.common.utils.JsonUtils;
+import agent.invoke.DestInvoke;
 import agent.server.ServerListener;
 import agent.server.event.AgentEvent;
 import agent.server.event.AgentEventListener;
@@ -12,7 +13,6 @@ import agent.server.event.EventListenerMgr;
 import agent.server.event.impl.DestInvokeMetadataFlushedEvent;
 import agent.server.event.impl.LogFlushedEvent;
 import agent.server.event.impl.ResetEvent;
-import agent.server.transform.impl.invoke.DestInvoke;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -116,7 +116,7 @@ public class DestInvokeIdRegistry implements ServerListener, AgentEventListener 
                     boolean isStd = STDOUT.equals(outputPath);
                     if (isStd || outputPaths.contains(outputPath)) {
                         try {
-                            String content = JSONUtils.writeAsString(
+                            String content = JsonUtils.writeAsString(
                                     convertMetadata()
                             );
                             if (isStd)

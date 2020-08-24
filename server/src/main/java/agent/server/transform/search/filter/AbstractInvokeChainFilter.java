@@ -1,6 +1,6 @@
 package agent.server.transform.search.filter;
 
-import agent.server.transform.impl.invoke.DestInvoke;
+import agent.invoke.DestInvoke;
 import agent.server.transform.search.InvokeChainSearcher.InvokeInfo;
 
 abstract class AbstractInvokeChainFilter implements AgentFilter<InvokeInfo> {

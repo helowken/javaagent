@@ -6,7 +6,7 @@ import agent.base.utils.ConsoleLogger;
 import agent.common.message.result.ExecResult;
 import agent.common.message.result.entity.ErrorEntity;
 import agent.common.message.result.entity.TransformResultEntity;
-import agent.common.utils.JSONUtils;
+import agent.common.utils.JsonUtils;
 
 import static agent.base.utils.IndentUtils.INDENT_1;
 import static agent.common.message.result.entity.TransformResultEntity.*;
@@ -14,7 +14,7 @@ import static agent.common.message.result.entity.TransformResultEntity.*;
 abstract class AbstractTransformResultHandler extends AbstractExecResultHandler {
 
     void handleFailResult(ExecResult result, String msgPrefix) {
-        TransformResultEntity entity = JSONUtils.convert(
+        TransformResultEntity entity = JsonUtils.convert(
                 result.getContent(),
                 new TypeObject<TransformResultEntity>() {
                 }

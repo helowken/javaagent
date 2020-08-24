@@ -2,7 +2,7 @@ package agent.server.transform.impl;
 
 import agent.base.utils.ReflectionUtils;
 import agent.server.transform.AgentTransformer;
-import agent.server.transform.tools.asm.ProxyRegInfo;
+import agent.invoke.proxy.ProxyRegInfo;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;

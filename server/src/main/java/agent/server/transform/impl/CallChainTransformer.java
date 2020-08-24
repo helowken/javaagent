@@ -1,7 +1,7 @@
 package agent.server.transform.impl;
 
 import agent.base.utils.Utils;
-import agent.server.transform.impl.invoke.DestInvoke;
+import agent.invoke.DestInvoke;
 
 import java.lang.reflect.Method;
 

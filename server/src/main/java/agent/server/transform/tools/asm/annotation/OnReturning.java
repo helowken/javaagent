@@ -5,7 +5,8 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import static agent.server.transform.tools.asm.ProxyArgsMask.MASK_NONE;
+import static agent.invoke.proxy.ProxyArgsMask.MASK_NONE;
+
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)

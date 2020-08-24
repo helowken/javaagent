@@ -19,14 +19,14 @@
             <outputDirectory>common/lib/core</outputDirectory>
             <includes>
                 <include>javaagent:common</include>
-                <include>javaagent:dependent-lib</include>
             </includes>
         </dependencySet>
         <dependencySet>
             <useStrictFiltering>true</useStrictFiltering>
-            <outputDirectory>common/lib/delegate</outputDirectory>
+            <outputDirectory>common/lib/dependent</outputDirectory>
             <includes>
-                <include>javaagent:delegate-lib</include>
+                <include>javaagent:asm-dependent</include>
+                <include>javaagent:json-dependent</include>
             </includes>
         </dependencySet>
         <dependencySet>

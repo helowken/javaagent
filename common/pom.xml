@@ -23,10 +23,6 @@
             <groupId>javaagent</groupId>
             <artifactId>base</artifactId>
         </dependency>
-        <dependency>
-            <groupId>javaagent</groupId>
-            <artifactId>delegate-lib</artifactId>
-        </dependency>
 
         <!-- test -->
         <dependency>
