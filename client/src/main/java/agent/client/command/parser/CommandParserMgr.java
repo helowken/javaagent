@@ -27,7 +27,7 @@ public class CommandParserMgr {
         headerToParser.put(
                 "System Management:",
                 Arrays.asList(
-                        new ViewCmdParser(),
+                        new InfoCmdParser(),
                         new SearchCmdParser(),
                         new ResetCmdParser(),
                         new FlushLogCmdParser(),

@@ -3,14 +3,14 @@ package agent.server.config;
 import java.util.List;
 
 public class ServerConfig {
-    private List<ServerListenerConfig> listeners;
+    private final List<ServerListenerConfig> listeners;
+
+    public ServerConfig(List<ServerListenerConfig> listenerConfigs) {
+        listeners = listenerConfigs;
+    }
 
     public List<ServerListenerConfig> getListeners() {
         return listeners;
-    }
-
-    public void setListeners(List<ServerListenerConfig> listeners) {
-        this.listeners = listeners;
     }
 
     @Override

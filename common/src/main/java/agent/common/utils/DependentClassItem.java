@@ -8,22 +8,22 @@ import agent.base.utils.Utils;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class DelegateClassItem {
-    private static final String KEY_DELEGATE_LIB_DIR = "delegate.lib.dir";
-    private static final DelegateClassItem instance = new DelegateClassItem();
+public class DependentClassItem {
+    private static final String KEY_DELEGATE_LIB_DIR = "dependent.lib.dir";
+    private static final DependentClassItem instance = new DependentClassItem();
     private final ClassLoader parentLoader;
     private final Map<String, Class<?>> nameToClass = new ConcurrentHashMap<>();
     private ClassLoader loader;
 
-    public static DelegateClassItem getInstance() {
+    public static DependentClassItem getInstance() {
         return instance;
     }
 
-    public DelegateClassItem() {
-        this(DelegateClassItem.class.getClassLoader());
+    public DependentClassItem() {
+        this(DependentClassItem.class.getClassLoader());
     }
 
-    public DelegateClassItem(ClassLoader parentLoader) {
+    public DependentClassItem(ClassLoader parentLoader) {
         this.parentLoader = parentLoader;
     }
 

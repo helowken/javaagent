@@ -25,7 +25,6 @@
             <useStrictFiltering>true</useStrictFiltering>
             <outputDirectory>common/lib/dependent</outputDirectory>
             <includes>
-                <include>javaagent:asm-dependent</include>
                 <include>javaagent:json-dependent</include>
             </includes>
         </dependencySet>
@@ -33,8 +32,16 @@
             <useStrictFiltering>true</useStrictFiltering>
             <outputDirectory>server/lib/core</outputDirectory>
             <includes>
+                <include>javaagent:invoke-proxy:jar</include>
                 <include>javaagent:server:jar</include>
                 <include>javaagent:native</include>
+            </includes>
+        </dependencySet>
+        <dependencySet>
+            <useStrictFiltering>true</useStrictFiltering>
+            <outputDirectory>server/lib/dependent</outputDirectory>
+            <includes>
+                <include>javaagent:asm-dependent</include>
             </includes>
         </dependencySet>
         <dependencySet>

@@ -12,7 +12,7 @@ import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-public class ViewMgr {
+public class InfoMgr {
     public static final int VIEW_CLASS = 0;
     public static final int VIEW_INVOKE = 1;
     public static final int VIEW_PROXY = 2;

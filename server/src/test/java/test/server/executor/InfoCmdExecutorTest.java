@@ -1,6 +1,6 @@
 package test.server.executor;
 
-import agent.common.message.command.impl.ViewCommand;
+import agent.common.message.command.impl.InfoCommand;
 import agent.invoke.MethodInvoke;
 import agent.server.command.executor.CmdExecutorMgr;
 import agent.server.transform.impl.DestInvokeIdRegistry;
@@ -11,23 +11,23 @@ import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Map;
 
-import static agent.common.message.command.impl.ViewCommand.CATALOG_CLASS;
-import static agent.common.message.command.impl.ViewCommand.CATALOG_INVOKE;
+import static agent.common.message.command.impl.InfoCommand.CATALOG_CLASS;
+import static agent.common.message.command.impl.InfoCommand.CATALOG_INVOKE;
 
-public class ViewCmdExecutorTest extends AbstractTest {
+public class InfoCmdExecutorTest extends AbstractTest {
     @Test
     public void testContextToClass() {
         reg(A.class);
         reg(B.class);
 
         List classes = CmdExecutorMgr.exec(
-                new ViewCommand(CATALOG_CLASS)
+                new InfoCommand(CATALOG_CLASS)
         ).getContent();
         System.out.println(classes);
 
 
         Map map = CmdExecutorMgr.exec(
-                new ViewCommand(CATALOG_INVOKE)
+                new InfoCommand(CATALOG_INVOKE)
         ).getContent();
         System.out.println(map);
     }

@@ -8,8 +8,8 @@ import java.io.InputStream;
 import java.lang.reflect.Type;
 
 public class JsonUtils {
-    public static final String JSON_DELEGATE_CLASS = "agent.tools.json.JSONDelegate";
-    private static final DelegateClassItem item = DelegateClassItem.getInstance();
+    public static final String JSON_DELEGATE_CLASS = "agent.tools.json.JsonDelegate";
+    private static final DependentClassItem item = DependentClassItem.getInstance();
 
     public static <T> T read(String content) {
         return Utils.wrapToRtError(

@@ -9,7 +9,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-public abstract class AbstractViewTest extends AbstractTest {
+public abstract class AbstractInfoTest extends AbstractTest {
     @BeforeClass
     public static void prepare() {
         DestInvokeIdRegistry.getInstance().reset();

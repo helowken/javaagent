@@ -2,7 +2,7 @@ package agent.server.transform.tools.asm;
 
 import agent.base.utils.ReflectionUtils;
 import agent.base.utils.Utils;
-import agent.common.utils.DelegateClassItem;
+import agent.common.utils.DependentClassItem;
 import agent.invoke.DestInvoke;
 import agent.invoke.data.ClassInvokeItem;
 import agent.invoke.data.TypeItem;
@@ -12,7 +12,7 @@ import java.util.Map;
 
 public class AsmUtils {
     public static final String ASM_DELEGATE_CLASS = "agent.tools.asm.AsmDelegate";
-    private static final DelegateClassItem item = DelegateClassItem.getInstance();
+    private static final DependentClassItem item = DependentClassItem.getInstance();
 
     public static byte[] transform(Class<?> sourceClass, byte[] classData, Map<Integer, DestInvoke> idToInvoke) {
         return Utils.wrapToRtError(

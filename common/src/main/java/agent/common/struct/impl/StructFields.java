@@ -96,7 +96,6 @@ public final class StructFields {
 
     static Pair<Byte, StructField> detectTypeAndField(Object value) {
         byte type = detectType(value);
-        System.out.println("========= " + value.getClass() + ": " + type);
         return new Pair<>(type, getField(type));
     }
 

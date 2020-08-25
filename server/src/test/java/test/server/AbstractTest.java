@@ -2,7 +2,7 @@ package test.server;
 
 import agent.base.utils.*;
 import agent.common.config.*;
-import agent.common.utils.DelegateClassItem;
+import agent.common.utils.DependentClassItem;
 import agent.common.utils.JsonUtils;
 import agent.invoke.DestInvoke;
 import agent.invoke.MethodInvoke;
@@ -69,8 +69,8 @@ public abstract class AbstractTest {
             props.setProperty("invoke.chain.search.max.pool.size", "100");
             SystemConfig.load(props);
 
-            DelegateClassItem.getInstance().mock(AsmUtils.ASM_DELEGATE_CLASS, AsmDelegate.class);
-            DelegateClassItem.getInstance().mock(JsonUtils.JSON_DELEGATE_CLASS, JsonDelegate.class);
+            DependentClassItem.getInstance().mock(AsmUtils.ASM_DELEGATE_CLASS, AsmDelegate.class);
+            DependentClassItem.getInstance().mock(JsonUtils.JSON_DELEGATE_CLASS, JsonDelegate.class);
 
             InstrumentationMgr.getInstance().onStartup(new Object[]{instrumentation});
             DestInvokeIdRegistry.getInstance().onStartup(new Object[0]);

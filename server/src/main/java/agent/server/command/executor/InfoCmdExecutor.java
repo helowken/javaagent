@@ -1,22 +1,22 @@
 package agent.server.command.executor;
 
 import agent.common.message.command.Command;
-import agent.common.message.command.impl.ViewCommand;
+import agent.common.message.command.impl.InfoCommand;
 import agent.common.message.result.DefaultExecResult;
 import agent.common.message.result.ExecResult;
-import agent.server.transform.impl.ViewMgr;
+import agent.server.transform.impl.InfoMgr;
 
 import java.util.Map;
 
 import static agent.common.message.MessageType.CMD_VIEW;
-import static agent.common.message.command.impl.ViewCommand.*;
-import static agent.server.transform.impl.ViewMgr.*;
+import static agent.common.message.command.impl.InfoCommand.*;
+import static agent.server.transform.impl.InfoMgr.*;
 
 @SuppressWarnings("unchecked")
-class ViewCmdExecutor extends AbstractCmdExecutor {
+class InfoCmdExecutor extends AbstractCmdExecutor {
     @Override
     ExecResult doExec(Command cmd) throws Exception {
-        ViewCommand viewCmd = (ViewCommand) cmd;
+        InfoCommand viewCmd = (InfoCommand) cmd;
         String catalog = viewCmd.getCatalog();
         Map<String, String> filterMap = viewCmd.getFilterMap();
         int maxLevel;
@@ -36,7 +36,7 @@ class ViewCmdExecutor extends AbstractCmdExecutor {
         return DefaultExecResult.toSuccess(
                 CMD_VIEW,
                 null,
-                ViewMgr.create(
+                InfoMgr.create(
                         maxLevel,
                         filterMap.get(CATALOG_CLASS),
                         filterMap.get(CATALOG_INVOKE),

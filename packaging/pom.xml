@@ -20,6 +20,10 @@
         </dependency>
         <dependency>
             <groupId>javaagent</groupId>
+            <artifactId>invoke-proxy</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>javaagent</groupId>
             <artifactId>common</artifactId>
         </dependency>
         <dependency>

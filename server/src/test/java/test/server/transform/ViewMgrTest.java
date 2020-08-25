@@ -1,18 +1,9 @@
 package test.server.transform;
 
-import agent.server.transform.impl.ViewMgr;
-import org.junit.Test;
-import test.server.TestAnnotationConfigTransformer;
-import test.server.asm.AsmTestUtils;
-
-import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 import static org.junit.Assert.assertEquals;
 
 @SuppressWarnings("unchecked")
-public class ViewMgrTest extends AbstractViewTest {
+public class ViewMgrTest extends AbstractInfoTest {
 //
 //    @Test
 //    public void testViewClass() {

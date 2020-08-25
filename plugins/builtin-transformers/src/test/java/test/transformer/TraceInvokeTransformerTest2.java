@@ -10,7 +10,7 @@ import agent.builtin.transformer.CostTimeStatisticsTransformer;
 import agent.builtin.transformer.TraceInvokeTransformer;
 import agent.common.utils.JsonUtils;
 import agent.server.transform.ConfigTransformer;
-import agent.server.transform.impl.ViewMgr;
+import agent.server.transform.impl.InfoMgr;
 import org.junit.Test;
 import test.server.AbstractTest;
 
@@ -123,7 +123,7 @@ public class TraceInvokeTransformerTest2 extends AbstractTest {
                             System.out.println("\n=================");
                             System.out.println(
                                     JsonUtils.writeAsString(
-                                            ViewMgr.create(ViewMgr.VIEW_PROXY, null, null, null),
+                                            InfoMgr.create(InfoMgr.VIEW_PROXY, null, null, null),
                                             true
                                     )
                             );

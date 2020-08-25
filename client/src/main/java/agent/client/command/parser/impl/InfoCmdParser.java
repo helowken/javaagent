@@ -3,9 +3,9 @@ package agent.client.command.parser.impl;
 import agent.base.args.parse.CmdParamParser;
 import agent.client.args.parse.CmdParams;
 import agent.common.message.command.Command;
-import agent.common.message.command.impl.ViewCommand;
+import agent.common.message.command.impl.InfoCommand;
 
-public class ViewCmdParser extends AbstractCmdParser {
+public class InfoCmdParser extends AbstractCmdParser {
 
     @Override
     CmdParamParser createParamParser() {
@@ -14,7 +14,7 @@ public class ViewCmdParser extends AbstractCmdParser {
 
     @Override
     Command createCommand(CmdParams params) {
-        return new ViewCommand(null);
+        return new InfoCommand(null);
     }
 
     @Override
@@ -24,7 +24,7 @@ public class ViewCmdParser extends AbstractCmdParser {
 
     @Override
     public String[] getCmdNames() {
-        return new String[]{"view"};
+        return new String[]{"info", "in"};
     }
 
     @Override

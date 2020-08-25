@@ -11,11 +11,11 @@ import java.util.Set;
 
 import static agent.common.message.MessageType.CMD_VIEW;
 
-public class ViewCommand extends AbstractCommand<DefaultStruct> {
-    public static final String SEP = "=";
+public class InfoCommand extends AbstractCommand<DefaultStruct> {
     public static final String CATALOG_CLASS = "class";
     public static final String CATALOG_INVOKE = "invoke";
     public static final String CATALOG_PROXY = "proxy";
+    private static final String SEP = "=";
     private static final Set<String> catalogSet = new HashSet<>();
 
     static {
@@ -24,11 +24,11 @@ public class ViewCommand extends AbstractCommand<DefaultStruct> {
         catalogSet.add(CATALOG_PROXY);
     }
 
-    public ViewCommand() {
+    public InfoCommand() {
         super(CMD_VIEW, Structs.newStringArray());
     }
 
-    public ViewCommand(String... args) {
+    public InfoCommand(String... args) {
         this();
         if (args == null || args.length == 0)
             throw new IllegalArgumentException("Invalid args!");

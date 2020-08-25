@@ -25,7 +25,7 @@ public class MessageMgr {
         reg(MessageType.CMD_FLUSH_LOG, FlushLogCommand.class);
         reg(MessageType.CMD_ECHO, EchoCommand.class);
         reg(MessageType.CMD_SEARCH, SearchCommand.class);
-        reg(MessageType.CMD_VIEW, ViewCommand.class);
+        reg(MessageType.CMD_VIEW, InfoCommand.class);
     }
 
     private static void reg(int type, Class<? extends Message> msgClass) {

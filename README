@@ -10,18 +10,18 @@ server:
 
 
     "server/lib/agent/server-launcher.jar":
-        contains:
-            common
-            `--- lib
-                 `--- base
-                      `--- base.jar
-        loads jars under:
-            common
-            `--- lib
-                  `--- core
-            server
-            `--- lib
-                  +--- core
-                  `--- plugin
+        contains jars under:
+            common/lib/base
 
+        loads jars under:
+            common/lib/core
+            server/lib/core
+            server/lib/plugin
+
+        uses native so under:
+            server/lib/native
+
+        uses dependent jars under:
+            common/lib/dependent
+            server/lib/dependent
 
