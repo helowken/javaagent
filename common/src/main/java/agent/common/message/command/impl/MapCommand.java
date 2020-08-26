@@ -5,8 +5,12 @@ import agent.common.struct.impl.Structs;
 
 import java.util.Map;
 
-abstract class AbstractConfigCommand extends AbstractCommand<MapStruct<String, Object>> {
-    AbstractConfigCommand(int cmdType, Map<String, Object> data) {
+public class MapCommand extends AbstractCommand<MapStruct<String, Object>> {
+    public MapCommand(int cmdType) {
+        this(cmdType, null);
+    }
+
+    public MapCommand(int cmdType, Map<String, Object> data) {
         super(cmdType, Structs.newTreeMap());
         if (data != null)
             getBody().putAll(data);

@@ -1,14 +1,15 @@
 package agent.common.args.parse;
 
-import agent.base.args.parse.Opts;
+import agent.base.args.parse.*;
+import agent.base.help.HelpInfo;
+import agent.base.help.HelpSection;
+import agent.base.help.HelpSingleValue;
+import agent.base.help.HelpUtils;
 import agent.base.utils.ReflectionUtils;
 import agent.base.utils.Utils;
-import agent.common.args.parse.specific.ChainFilterOptConfigs;
-import agent.common.args.parse.specific.FilterOptConfigs;
 import agent.common.config.*;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -138,5 +139,63 @@ public class FilterOptUtils {
                     )
             );
         return invokeChainConfig;
+    }
+
+    public static HelpInfo getUsageWithFilterRules(String[] cmdNames, String args, HelpInfo... others) {
+        HelpSection section = new HelpSection();
+        section.add(
+                new HelpSingleValue(
+                        HelpUtils.formatCmdString(cmdNames) + " [OPTIONS] " + args
+                )
+        );
+        if (others != null)
+            section.add(
+                    Arrays.asList(others)
+            );
+        return section.add(
+                new HelpSingleValue(
+                        FilterOptConfigs.FILTER_RULE_DESC
+                )
+        );
+    }
+
+    public static OptParser getHelpOptParser() {
+        return new BooleanOptParser(
+                CommonOptConfigs.helpOpt
+        );
+    }
+
+    public static List<OptParser> getFilterOptParsers() {
+        return Arrays.asList(
+                getHelpOptParser(),
+                new KeyValueOptParser(
+                        FilterOptConfigs.getSuite()
+                )
+        );
+    }
+
+    public static List<OptParser> getFilterAndChainOptParsers() {
+        return Arrays.asList(
+                getHelpOptParser(),
+                new KeyValueOptParser(
+                        FilterOptConfigs.getSuite(),
+                        ChainFilterOptConfigs.getSuite()
+                )
+        );
+    }
+
+    public static List<OptParser> merge(Object... vs) {
+        if (vs == null || vs.length == 0)
+            throw new IllegalArgumentException();
+        List<OptParser> rsList = new ArrayList<>();
+        for (Object v : vs) {
+            if (v instanceof OptParser)
+                rsList.add((OptParser) v);
+            else if (v instanceof Collection)
+                rsList.addAll((Collection) v);
+            else
+                throw new IllegalArgumentException("Invalid arg: " + v);
+        }
+        return rsList;
     }
 }

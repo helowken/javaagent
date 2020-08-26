@@ -1,4 +1,4 @@
-package agent.common.args.parse.specific;
+package agent.common.args.parse;
 
 import agent.base.args.parse.OptConfig;
 import agent.base.args.parse.OptConfigSuite;

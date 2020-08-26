@@ -6,7 +6,7 @@ import java.util.List;
 public abstract class AbstractCmdParamParser<P> implements CmdParamParser<P> {
     private ArgsOptsParser argsOptsParser;
 
-    protected abstract List<OptParser> getMoreParsers();
+    protected abstract List<OptParser> getOptParsers();
 
     protected abstract P convert(ArgsOpts argsOpts);
 
@@ -34,7 +34,7 @@ public abstract class AbstractCmdParamParser<P> implements CmdParamParser<P> {
         if (argsOptsParser == null) {
             List<OptParser> optParsers = new ArrayList<>();
 
-            List<OptParser> moreParsers = getMoreParsers();
+            List<OptParser> moreParsers = getOptParsers();
             if (moreParsers != null)
                 optParsers.addAll(moreParsers);
 

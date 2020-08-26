@@ -9,7 +9,7 @@ public class ClientLauncherParamParser extends AbstractCmdParamParser<ClientLaun
     private final StoreOtherArgsOptParser storeOtherArgsOptParser = new StoreOtherArgsOptParser();
 
     @Override
-    protected List<OptParser> getMoreParsers() {
+    protected List<OptParser> getOptParsers() {
         return Arrays.asList(
                 new BooleanOptParser(
                         CommonOptConfigs.getSuite()

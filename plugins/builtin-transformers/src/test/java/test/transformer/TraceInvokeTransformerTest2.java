@@ -1,13 +1,16 @@
 package test.transformer;
 
 import agent.base.utils.ReflectionUtils;
-import agent.builtin.tools.result.*;
+import agent.builtin.tools.result.CostTimeCallChainResultHandler;
+import agent.builtin.tools.result.TraceInvokeResultHandler;
 import agent.builtin.tools.result.parse.CostTimeCallChainResultParamParser;
 import agent.builtin.tools.result.parse.CostTimeResultParams;
 import agent.builtin.tools.result.parse.TraceResultParamParser;
 import agent.builtin.tools.result.parse.TraceResultParams;
 import agent.builtin.transformer.CostTimeStatisticsTransformer;
 import agent.builtin.transformer.TraceInvokeTransformer;
+import agent.common.config.InfoQuery;
+import agent.common.config.TargetConfig;
 import agent.common.utils.JsonUtils;
 import agent.server.transform.ConfigTransformer;
 import agent.server.transform.impl.InfoMgr;
@@ -72,25 +75,25 @@ public class TraceInvokeTransformerTest2 extends AbstractTest {
                             TraceResultParamParser parser = new TraceResultParamParser();
                             TraceInvokeResultHandler traceHandler = new TraceInvokeResultHandler();
                             TraceResultParams traceParams = parser.parse(
-                                new String[] {"configFile", outputPath}
+                                    new String[]{"configFile", outputPath}
                             );
                             traceHandler.exec(traceParams);
 
                             System.out.println("\n=================");
                             traceParams = parser.parse(
-                                new String[] {"configFile", "-m", "recursive*", outputPath}
+                                    new String[]{"configFile", "-m", "recursive*", outputPath}
                             );
                             traceHandler.exec(traceParams);
 
                             System.out.println("\n=================");
                             traceParams = parser.parse(
-                                    new String[] {"configFile", "-m", "recursive*", "-sv", "3", outputPath}
+                                    new String[]{"configFile", "-m", "recursive*", "-sv", "3", outputPath}
                             );
                             traceHandler.exec(traceParams);
 
                             System.out.println("\n=================");
                             traceParams = parser.parse(
-                                    new String[] {"configFile", "-m", "load", "-sv", "1", outputPath}
+                                    new String[]{"configFile", "-m", "load", "-sv", "1", outputPath}
                             );
                             traceHandler.exec(traceParams);
 
@@ -98,32 +101,35 @@ public class TraceInvokeTransformerTest2 extends AbstractTest {
                             CostTimeCallChainResultHandler costTimeHandler = new CostTimeCallChainResultHandler();
                             CostTimeCallChainResultParamParser timeParser = new CostTimeCallChainResultParamParser();
                             CostTimeResultParams costTimeParams = timeParser.parse(
-                                    new String[] {"configFile", outputPath2}
+                                    new String[]{"configFile", outputPath2}
                             );
                             costTimeHandler.exec(costTimeParams);
 
                             System.out.println("\n=================");
                             costTimeParams = timeParser.parse(
-                                    new String[] {"configFile", "-m", "test", outputPath2}
+                                    new String[]{"configFile", "-m", "test", outputPath2}
                             );
                             costTimeHandler.exec(costTimeParams);
 
                             System.out.println("\n=================");
                             costTimeParams = timeParser.parse(
-                                    new String[] {"configFile", "-cm", "recursive*", outputPath2}
+                                    new String[]{"configFile", "-cm", "recursive*", outputPath2}
                             );
                             costTimeHandler.exec(costTimeParams);
 
                             System.out.println("\n=================");
                             costTimeParams = timeParser.parse(
-                                    new String[] {"configFile", "-cm", "recursive*", "-sv", "3", outputPath2}
+                                    new String[]{"configFile", "-cm", "recursive*", "-sv", "3", outputPath2}
                             );
                             costTimeHandler.exec(costTimeParams);
 
                             System.out.println("\n=================");
+                            InfoQuery infoQuery = new InfoQuery();
+                            infoQuery.setLevel(InfoQuery.INFO_PROXY);
+                            infoQuery.setTargetConfig(new TargetConfig());
                             System.out.println(
                                     JsonUtils.writeAsString(
-                                            InfoMgr.create(InfoMgr.VIEW_PROXY, null, null, null),
+                                            InfoMgr.create(infoQuery),
                                             true
                                     )
                             );

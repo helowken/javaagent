@@ -17,7 +17,7 @@ public class CmdExecutorMgr {
         registry.reg(CMD_FLUSH_LOG, new FlushLogCmdExecutor());
         registry.reg(CMD_ECHO, new EchoCmdExecutor());
         registry.reg(CMD_SEARCH, new SearchCmdExecutor());
-        registry.reg(CMD_VIEW, new InfoCmdExecutor());
+        registry.reg(CMD_INFO, new InfoCmdExecutor());
     }
 
     public static ExecResult exec(Command cmd) {

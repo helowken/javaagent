@@ -8,5 +8,5 @@ public class MessageType {
     public static final int CMD_FLUSH_LOG = 5;
     public static final int CMD_ECHO = 6;
     public static final int CMD_SEARCH = 7;
-    public static final int CMD_VIEW = 8;
+    public static final int CMD_INFO = 8;
 }

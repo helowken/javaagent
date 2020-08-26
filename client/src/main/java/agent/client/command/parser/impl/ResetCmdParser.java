@@ -4,14 +4,16 @@ import agent.base.args.parse.CmdParamParser;
 import agent.client.args.parse.CmdParams;
 import agent.client.args.parse.DefaultCmdParamParser;
 import agent.common.message.command.Command;
-import agent.common.message.command.impl.ResetCommand;
+import agent.common.message.command.impl.MapCommand;
 
 import java.util.Map;
+
+import static agent.common.message.MessageType.CMD_RESET;
 
 public class ResetCmdParser extends AbstractModuleCmdParser<CmdParams> {
     @Override
     Command newCommand(Map<String, Object> data) {
-        return new ResetCommand(data);
+        return new MapCommand(CMD_RESET, data);
     }
 
     @Override

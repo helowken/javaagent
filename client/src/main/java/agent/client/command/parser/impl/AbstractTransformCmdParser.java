@@ -8,10 +8,12 @@ import agent.client.args.parse.TransformParams;
 import agent.common.config.ModuleConfig;
 import agent.common.config.TransformerConfig;
 import agent.common.message.command.Command;
-import agent.common.message.command.impl.TransformCommand;
+import agent.common.message.command.impl.MapCommand;
 
 import java.util.Collections;
 import java.util.Map;
+
+import static agent.common.message.MessageType.CMD_TRANSFORM;
 
 abstract class AbstractTransformCmdParser extends AbstractModuleCmdParser<TransformParams> {
     private static final String REF_SEP = ":";
@@ -33,7 +35,7 @@ abstract class AbstractTransformCmdParser extends AbstractModuleCmdParser<Transf
 
     @Override
     Command newCommand(Map<String, Object> data) {
-        return new TransformCommand(data);
+        return new MapCommand(CMD_TRANSFORM, data);
     }
 
     @Override
@@ -81,7 +83,7 @@ abstract class AbstractTransformCmdParser extends AbstractModuleCmdParser<Transf
     }
 
     @Override
-    String getHelpUsageArgs() {
+    String getHelpArgs() {
         return "<OUTPUT_PATH>";
     }
 }

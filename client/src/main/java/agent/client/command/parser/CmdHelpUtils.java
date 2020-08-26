@@ -20,7 +20,7 @@ public class CmdHelpUtils {
     public static HelpSection getHelp() {
         HelpSection section = new HelpSection(null, "")
                 .add(
-                        new HelpSection("Usage:", PADDING_2)
+                        new HelpSection("Usage:\n", PADDING_2)
                                 .add(
                                         new HelpSingleValue(
                                                 "ja [--GLOBAL-OPTIONS] <COMMAND> [--COMMAND-OPTIONS] [ARGUMENTS]"
@@ -30,7 +30,7 @@ public class CmdHelpUtils {
 
         if (optConfigList != null && !optConfigList.isEmpty())
             section.add(
-                    new HelpSection("Global Options:", PADDING_2)
+                    new HelpSection("Global Options:\n", PADDING_2)
                             .invoke(
                                     sc -> sc.add(
                                             HelpUtils.convert(optConfigList)
@@ -39,7 +39,7 @@ public class CmdHelpUtils {
             );
 
         return section.add(
-                new HelpSection("Commands:", PADDING_1)
+                new HelpSection("Commands:\n", PADDING_1)
                         .add(
                                 CommandParserMgr.getCmdHelps()
                         )

@@ -1,19 +1,22 @@
 package agent.server.command.executor;
 
+import agent.base.utils.TypeObject;
 import agent.common.config.ModuleConfig;
 import agent.common.message.command.Command;
-import agent.common.message.command.impl.TransformCommand;
+import agent.common.message.command.impl.MapCommand;
 import agent.common.message.result.ExecResult;
+import agent.common.utils.JsonUtils;
 import agent.server.transform.TransformMgr;
-import agent.server.transform.config.parser.ConfigParser;
 
 class TransformCmdExecutor extends AbstractTransformCmdExecutor {
     private static final String PREFIX = "Transform";
 
     @Override
     ExecResult doExec(Command cmd) {
-        ModuleConfig moduleConfig = ConfigParser.parse(
-                ((TransformCommand) cmd).getConfig()
+        ModuleConfig moduleConfig = JsonUtils.convert(
+                ((MapCommand) cmd).getConfig(),
+                new TypeObject<ModuleConfig>() {
+                }
         );
         return convert(
                 TransformMgr.getInstance().transformByConfig(moduleConfig),

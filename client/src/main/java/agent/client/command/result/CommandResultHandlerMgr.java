@@ -20,10 +20,10 @@ public class CommandResultHandlerMgr {
     private static final LockObject resultHandlerLock = new LockObject();
 
     static {
-        InfoResultHandler viewResultHandler = new InfoResultHandler();
+        InfoResultHandler infoResultHandler = new InfoResultHandler();
 
-        regResultHandlerClass(CMD_SEARCH, viewResultHandler);
-        regResultHandlerClass(CMD_VIEW, viewResultHandler);
+        regResultHandlerClass(CMD_SEARCH, infoResultHandler);
+        regResultHandlerClass(CMD_INFO, infoResultHandler);
         regResultHandlerClass(CMD_TRANSFORM, new TransformResultHandler());
         regResultHandlerClass(CMD_RESET, new ResetResultHandler());
     }

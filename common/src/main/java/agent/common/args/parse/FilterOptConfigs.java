@@ -1,4 +1,4 @@
-package agent.common.args.parse.specific;
+package agent.common.args.parse;
 
 import agent.base.args.parse.OptConfig;
 import agent.base.args.parse.OptConfigSuite;
@@ -6,7 +6,7 @@ import agent.base.args.parse.Opts;
 import agent.base.utils.Utils;
 
 public class FilterOptConfigs {
-    public static final String FILTER_RULE_DESC = "Filter rules: \"^\" means exclusion. Multiple items are separated by \",\". ";
+    public static final String FILTER_RULE_DESC = "\nFilter rules: \"^\" means exclusion. Multiple items are separated by \",\". ";
     private static final String KEY_MATCH_CLASS = "MATCH_CLASS";
     private static final String KEY_MATCH_METHOD = "MATCH_METHOD";
     private static final String KEY_MATCH_CONSTRUCTOR = "MATCH_CONSTRUCTOR";

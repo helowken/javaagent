@@ -2,20 +2,25 @@ package agent.server.transform.impl;
 
 import agent.base.utils.InvokeDescriptorUtils;
 import agent.base.utils.Utils;
+import agent.common.config.InfoQuery;
+import agent.common.config.TargetConfig;
+import agent.invoke.ConstructorInvoke;
 import agent.invoke.DestInvoke;
-import agent.server.transform.search.filter.AgentFilter;
 import agent.server.transform.search.filter.ClassFilter;
 import agent.server.transform.search.filter.FilterUtils;
+import agent.server.transform.search.filter.InvokeFilter;
 import agent.server.transform.tools.asm.ProxyTransformMgr;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.TreeMap;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static agent.common.config.InfoQuery.*;
+
 public class InfoMgr {
-    public static final int VIEW_CLASS = 0;
-    public static final int VIEW_INVOKE = 1;
-    public static final int VIEW_PROXY = 2;
 
     private static Pattern newPattern(String regExp) {
         return regExp == null ?
@@ -29,49 +34,50 @@ public class InfoMgr {
         return pattern == null || pattern.matcher(value).matches();
     }
 
-    public static Object create(int maxLevel, String classRegExp, String invokeRegExp, String proxyRegExp) {
+    public static Object create(InfoQuery infoQuery) {
+        TargetConfig targetConfig = infoQuery.getTargetConfig();
         final ClassFilter classFilter = FilterUtils.newClassFilter(
-                classRegExp == null ? null : Collections.singleton(classRegExp),
-                null,
+                targetConfig.getClassFilter(),
                 true
         );
-        final AgentFilter<DestInvoke> invokeFilter = FilterUtils.newInvokeFilter(
-                invokeRegExp == null ? null : Collections.singleton(invokeRegExp),
-                null
+        final InvokeFilter methodFilter = FilterUtils.newInvokeFilter(
+                targetConfig.getMethodFilter()
         );
-        final Pattern proxyPattern = newPattern(proxyRegExp);
+        final InvokeFilter constructorFilter = FilterUtils.newInvokeFilter(
+                targetConfig.getConstructorFilter()
+        );
+        final Pattern proxyPattern = newPattern(null);
         return DestInvokeIdRegistry.getInstance().run(
                 classToInvokeToId -> newValue(
-                        VIEW_CLASS,
-                        maxLevel,
+                        INFO_CLASS,
+                        infoQuery.getLevel(),
                         classToInvokeToId,
                         (currLevel, mLevel, value) -> {
                             switch (currLevel) {
-                                case VIEW_CLASS:
+                                case INFO_CLASS:
                                     return FilterUtils.isAccept(
                                             classFilter,
                                             (Class<?>) value
                                     );
-                                case VIEW_INVOKE:
+                                case INFO_INVOKE:
                                     return FilterUtils.isAccept(
-                                            invokeFilter,
+                                            value instanceof ConstructorInvoke ? constructorFilter : methodFilter,
                                             (DestInvoke) value
                                     );
-                                case VIEW_PROXY:
                                 default:
-                                    throw new RuntimeException("Unsupport level: " + currLevel);
+                                    throw new RuntimeException("Unsupported level: " + currLevel);
                             }
                         },
                         (currLevel, mLevel, value) -> {
                             switch (currLevel) {
-                                case VIEW_CLASS:
+                                case INFO_CLASS:
                                     return ((Class<?>) value).getName();
-                                case VIEW_INVOKE:
+                                case INFO_INVOKE:
                                     DestInvoke destInvoke = (DestInvoke) value;
                                     return InvokeDescriptorUtils.descToText(
                                             destInvoke.getFullName()
                                     );
-                                case VIEW_PROXY:
+                                case INFO_PROXY:
                                     return filterProxy(
                                             (Integer) value,
                                             proxyPattern

@@ -1,25 +1,25 @@
 package agent.client.args.parse;
 
+import agent.base.args.parse.AbstractCmdParamParser;
 import agent.base.args.parse.ArgsOpts;
 import agent.base.args.parse.KeyValueOptParser;
 import agent.base.args.parse.OptParser;
 
-import java.util.ArrayList;
 import java.util.List;
 
-public class TransformParamParser extends AbstractModuleParamParser<TransformParams> {
+import static agent.common.args.parse.FilterOptUtils.getFilterAndChainOptParsers;
+import static agent.common.args.parse.FilterOptUtils.merge;
+
+
+public class TransformParamParser extends AbstractCmdParamParser<TransformParams> {
     @Override
-    protected List<OptParser> getMoreParsers() {
-        List<OptParser> parentOptParsers = super.getMoreParsers();
-        List<OptParser> optParsers = new ArrayList<>();
-        if (parentOptParsers != null)
-            optParsers.addAll(parentOptParsers);
-        optParsers.add(
+    protected List<OptParser> getOptParsers() {
+        return merge(
+                getFilterAndChainOptParsers(),
                 new KeyValueOptParser(
                         TransformOptConfigs.getSuite()
                 )
         );
-        return optParsers;
     }
 
     @Override

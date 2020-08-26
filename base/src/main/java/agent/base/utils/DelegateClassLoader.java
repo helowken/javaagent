@@ -1,22 +1,24 @@
 package agent.base.utils;
 
-public class DelegateClassLoader extends ClassLoader {
-    private final ClassLoader childLoader;
-    private final ClassLoader parentLoader;
+import java.net.URL;
+import java.net.URLClassLoader;
+
+public class DelegateClassLoader extends URLClassLoader {
 
     public DelegateClassLoader(ClassLoader parentLoader, String... libPaths) throws Exception {
-        this.parentLoader = parentLoader;
-        this.childLoader = ClassLoaderUtils.newURLClassLoader(null, libPaths);
+        super(
+                ClassLoaderUtils.findLibUrls(libPaths).toArray(new URL[0]),
+                parentLoader
+        );
     }
 
     @Override
     public Class<?> loadClass(String name) throws ClassNotFoundException {
         try {
-            return childLoader.loadClass(name);
+            Class<?> clazz = findLoadedClass(name);
+            return clazz == null ? findClass(name) : clazz;
         } catch (ClassNotFoundException e) {
-            if (parentLoader != null)
-                return parentLoader.loadClass(name);
-            throw e;
+            return super.loadClass(name);
         }
     }
 }

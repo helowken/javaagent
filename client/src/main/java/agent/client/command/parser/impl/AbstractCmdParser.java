@@ -20,7 +20,8 @@ abstract class AbstractCmdParser<P extends CmdParams> implements CommandParser {
 
     abstract Command createCommand(P params);
 
-    abstract void checkParams(P params);
+    void checkParams(P params) {
+    }
 
     HelpInfo getHelpUsage(P params) {
         return new HelpSingleValue("Usage...");
@@ -43,7 +44,7 @@ abstract class AbstractCmdParser<P extends CmdParams> implements CommandParser {
         List<OptConfig> optConfigList = getParamParser().getOptConfigList();
         if (!optConfigList.isEmpty())
             section.add(
-                    new HelpSection(HelpSection.PADDING_1 + "Command options:", "")
+                    new HelpSection(HelpSection.PADDING_1 + "Command options:\n", "")
                             .add(
                                     HelpUtils.convert(optConfigList)
                             )

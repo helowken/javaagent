@@ -6,12 +6,12 @@ import agent.base.args.parse.OptParser;
 
 import java.util.List;
 
-import static agent.common.args.parse.FilterOptUtils.getFilterAndChainOptParsers;
+import static agent.common.args.parse.FilterOptUtils.getFilterOptParsers;
 
-public class SearchParamParser extends AbstractCmdParamParser<CmdParams> {
+public class InfoParamParser extends AbstractCmdParamParser<CmdParams> {
     @Override
     protected List<OptParser> getOptParsers() {
-        return getFilterAndChainOptParsers();
+        return getFilterOptParsers();
     }
 
     @Override

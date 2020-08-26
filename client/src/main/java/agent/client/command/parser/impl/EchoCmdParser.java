@@ -19,11 +19,6 @@ public class EchoCmdParser extends AbstractCmdParser {
     }
 
     @Override
-    void checkParams(CmdParams params) {
-
-    }
-
-    @Override
     public String[] getCmdNames() {
         return new String[]{"echo"};
     }

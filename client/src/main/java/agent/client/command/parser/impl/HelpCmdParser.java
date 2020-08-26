@@ -24,10 +24,6 @@ public class HelpCmdParser extends AbstractCmdParser<HelpCmdParams> {
     }
 
     @Override
-    void checkParams(HelpCmdParams params) {
-    }
-
-    @Override
     public String[] getCmdNames() {
         return new String[]{"help", "?"};
     }

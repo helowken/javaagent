@@ -4,15 +4,15 @@ import agent.base.args.parse.AbstractCmdParamParser;
 import agent.base.args.parse.ArgsOpts;
 import agent.base.args.parse.KeyValueOptParser;
 import agent.base.args.parse.OptParser;
-import agent.common.args.parse.specific.ChainFilterOptConfigs;
-import agent.common.args.parse.specific.FilterOptConfigs;
+import agent.common.args.parse.ChainFilterOptConfigs;
+import agent.common.args.parse.FilterOptConfigs;
 
 import java.util.Collections;
 import java.util.List;
 
 public class CostTimeCallChainResultParamParser extends AbstractCmdParamParser<CostTimeResultParams> {
     @Override
-    protected List<OptParser> getMoreParsers() {
+    protected List<OptParser> getOptParsers() {
         return Collections.singletonList(
                 new KeyValueOptParser(
                         FilterOptConfigs.getSuite(),

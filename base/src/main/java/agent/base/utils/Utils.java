@@ -195,8 +195,24 @@ public class Utils {
         return null;
     }
 
+    public static <T> String join(String prefix, String suffix, String sep, Collection<T> vs) {
+        return join(prefix, suffix, sep, vs.toArray());
+    }
+
     public static <T> String join(String sep, Collection<T> vs) {
         return join(sep, vs.toArray());
+    }
+
+    public static <T> String join(String prefix, String suffix, String sep, T... vs) {
+        StringBuilder sb = new StringBuilder();
+        if (prefix != null)
+            sb.append(prefix);
+        sb.append(
+                join(sep, vs)
+        );
+        if (suffix != null)
+            sb.append(suffix);
+        return sb.toString();
     }
 
     public static <T> String join(String sep, T... vs) {

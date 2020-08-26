@@ -55,7 +55,7 @@ public class HelpSection extends AbstractHelpInfo {
             sb.append(
                     getParentPadding()
             ).append(header)
-                    .append("\n\n");
+                    .append("\n");
         }
 
         children.forEach(

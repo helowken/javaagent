@@ -1,22 +1,23 @@
 package agent.common.command;
 
-import org.junit.Test;
 import agent.common.buffer.BufferAllocator;
 import agent.common.buffer.ByteUtils;
 import agent.common.message.MessageMgr;
 import agent.common.message.command.Command;
 import agent.common.message.command.impl.EchoCommand;
-import agent.common.message.command.impl.ResetCommand;
+import agent.common.message.command.impl.MapCommand;
+import org.junit.Test;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
+import static agent.common.message.MessageType.CMD_RESET;
 import static org.junit.Assert.assertTrue;
 
 public class CommandTest {
     @Test
     public void test() throws Exception {
-        doTest(new ResetCommand());
+        doTest(new MapCommand(CMD_RESET));
         doTest(new EchoCommand("aaa"));
     }
 

@@ -52,7 +52,7 @@ public class ViewMgrTest extends AbstractInfoTest {
 //        ).map(AsmTestUtils::constructorToString)
 //                .forEach(invokeSet::add);
 //
-//        Map map = (Map) ViewMgr.create(ViewMgr.VIEW_INVOKE, "*A", null, null);
+//        Map map = (Map) ViewMgr.create(ViewMgr.INFO_INVOKE, "*A", null, null);
 //        map = (Map) map.get(contextA);
 //        Collection<String> invokes = (Collection) map.get(A.class.getName());
 //        assertEquals(
@@ -66,7 +66,7 @@ public class ViewMgrTest extends AbstractInfoTest {
 //        ).map(AsmTestUtils::methodToString)
 //                .forEach(invokeSet::add);
 //
-////        map = (Map) ViewMgr.create(ViewMgr.VIEW_INVOKE, "*A", "*A", "[^<]*", null);
+////        map = (Map) ViewMgr.create(ViewMgr.INFO_INVOKE, "*A", "*A", "[^<]*", null);
 ////        map = (Map) map.get(contextA);
 ////        invokes = (Collection) map.get(A.class.getName());
 ////        assertEquals(
@@ -77,7 +77,7 @@ public class ViewMgrTest extends AbstractInfoTest {
 //
 //    @Test
 //    public void testViewProxy() {
-//        Map map = (Map) ViewMgr.create(ViewMgr.VIEW_PROXY, "*A", "*A", null, null);
+//        Map map = (Map) ViewMgr.create(ViewMgr.INFO_PROXY, "*A", "*A", null, null);
 //        map = (Map) map.get(contextA);
 //        map = new TreeMap<>((Map) map.get(A.class.getName()));
 //        System.out.println(map);
@@ -102,12 +102,12 @@ public class ViewMgrTest extends AbstractInfoTest {
 //        allResult.putAll(constructorResult);
 //        assertEquals(allResult, map);
 //
-////        map = (Map) ViewMgr.create(ViewMgr.VIEW_PROXY, "*A", "*A", "[^<]*", null);
+////        map = (Map) ViewMgr.create(ViewMgr.INFO_PROXY, "*A", "*A", "[^<]*", null);
 ////        map = (Map) map.get(contextA);
 ////        map = (Map) map.get(A.class.getName());
 ////        assertEquals(map, methodResult);
 ////
-////        map = (Map) ViewMgr.create(ViewMgr.VIEW_PROXY, "*A", "*A", "<*", null);
+////        map = (Map) ViewMgr.create(ViewMgr.INFO_PROXY, "*A", "*A", "<*", null);
 ////        map = (Map) map.get(contextA);
 ////        map = (Map) map.get(A.class.getName());
 ////        assertEquals(map, constructorResult);
@@ -155,7 +155,7 @@ public class ViewMgrTest extends AbstractInfoTest {
 //
 //    private void validateViewClass(String contextRegexp, String classRegexp,
 //                                   Map<String, List<String>> expectedContextToClasses) {
-//        Map<String, List<String>> contextToClasses = (Map) ViewMgr.create(ViewMgr.VIEW_CLASS, classRegexp, null, null);
+//        Map<String, List<String>> contextToClasses = (Map) ViewMgr.create(ViewMgr.INFO_CLASS, classRegexp, null, null);
 //        assertEquals(
 //                expectedContextToClasses,
 //                sortMap(contextToClasses)

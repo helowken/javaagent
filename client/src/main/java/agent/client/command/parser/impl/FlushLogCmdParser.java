@@ -25,9 +25,4 @@ public class FlushLogCmdParser extends AbstractCmdParser {
     Command createCommand(CmdParams params) {
         return null;
     }
-
-    @Override
-    void checkParams(CmdParams params) {
-
-    }
 }

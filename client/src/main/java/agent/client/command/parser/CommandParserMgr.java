@@ -72,7 +72,7 @@ public class CommandParserMgr {
         List<HelpInfo> rsList = new ArrayList<>();
         headerToParser.forEach(
                 (header, parserList) -> rsList.add(
-                        new HelpSection(header, HelpSection.PADDING_2)
+                        new HelpSection(header + "\n", HelpSection.PADDING_2)
                                 .invoke(
                                         subSection -> parserList.stream()
                                                 .map(

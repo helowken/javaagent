@@ -93,7 +93,7 @@ public class ClassLoaderUtils {
         );
     }
 
-    private static List<URL> findLibUrls(String... libPaths) throws Exception {
+    public static List<URL> findLibUrls(String... libPaths) throws Exception {
         List<File> allFiles = FileUtils.collectFiles(jarFilter, libPaths);
         if (allFiles.isEmpty())
             throw new RuntimeException("No jar file found in lib paths: " + Stream.of(libPaths).collect(Collectors.toList()));
