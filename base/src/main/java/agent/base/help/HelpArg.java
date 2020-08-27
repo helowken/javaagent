@@ -4,26 +4,45 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static agent.base.help.HelpSection.PADDING_2;
+import static agent.base.help.HelpSection.PADDING_1;
 
 public class HelpArg {
     private final String name;
     private final String desc;
+    private final boolean isOpt;
     private final List<HelpArgValue> values = new ArrayList<>();
 
     public HelpArg(String name, String desc) {
-        this.name = name;
-        this.desc = desc;
+        this(name, desc, false);
     }
 
-    public void add(String value, String desc, boolean isDefault) {
+    public HelpArg(String name, String desc, boolean isOptional) {
+        this.name = name;
+        this.desc = desc;
+        this.isOpt = isOptional;
+    }
+
+    public boolean isOptional() {
+        return isOpt;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getUsageName() {
+        return isOpt ? "[<" + name + ">]" : "<" + name + ">";
+    }
+
+    public HelpArg add(String value, String desc, boolean isDefault) {
         values.add(
                 new HelpArgValue(value, desc, isDefault)
         );
+        return this;
     }
 
-    public void add(String value, String desc) {
-        this.add(value, desc, false);
+    public HelpArg add(String value, String desc) {
+        return this.add(value, desc, false);
     }
 
     private String getTitle() {
@@ -41,7 +60,7 @@ public class HelpArg {
     public HelpInfo getHelp() {
         String title = getTitle();
         if (!values.isEmpty()) {
-            return new HelpSection(title, PADDING_2)
+            return new HelpSection(title, PADDING_1)
                     .add(
                             values.stream()
                                     .map(
@@ -52,7 +71,7 @@ public class HelpArg {
                                     )
                     );
         }
-        return new HelpSingleValue(title);
+        return new HelpSingleValue("\n" + title);
     }
 
     private static class HelpArgValue {

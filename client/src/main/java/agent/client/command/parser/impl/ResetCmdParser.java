@@ -1,11 +1,13 @@
 package agent.client.command.parser.impl;
 
 import agent.base.args.parse.CmdParamParser;
+import agent.base.help.HelpArg;
 import agent.client.args.parse.CmdParams;
 import agent.client.args.parse.DefaultCmdParamParser;
 import agent.common.message.command.Command;
 import agent.common.message.command.impl.MapCommand;
 
+import java.util.List;
 import java.util.Map;
 
 import static agent.common.message.MessageType.CMD_RESET;
@@ -28,6 +30,11 @@ public class ResetCmdParser extends AbstractModuleCmdParser<CmdParams> {
 
     @Override
     CmdParamParser<CmdParams> createParamParser() {
-        return new DefaultCmdParamParser<>(CmdParams.class);
+        return DefaultCmdParamParser.DEFAULT;
+    }
+
+    @Override
+    List<HelpArg> createHelpArgList() {
+        return null;
     }
 }

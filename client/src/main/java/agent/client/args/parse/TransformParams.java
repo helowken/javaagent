@@ -8,7 +8,9 @@ public class TransformParams extends CmdParams {
     }
 
     public String getOutputPath() {
-        return argsOpts.getArg(0, "OUTPUT_PATH");
+        if (argsOpts.argSize() > 0)
+            return argsOpts.getArg(0, "OUTPUT_PATH");
+        return null;
     }
 
     public String getTransformerId() {

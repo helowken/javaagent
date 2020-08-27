@@ -2,29 +2,50 @@ package agent.client.command.parser.impl;
 
 import agent.base.args.parse.CmdParamParser;
 import agent.base.args.parse.OptConfig;
+import agent.base.help.HelpArg;
 import agent.base.help.HelpInfo;
 import agent.base.help.HelpSection;
-import agent.base.help.HelpSingleValue;
 import agent.base.help.HelpUtils;
 import agent.client.args.parse.CmdParams;
 import agent.client.command.parser.CmdItem;
 import agent.client.command.parser.CommandParser;
+import agent.client.command.parser.exception.TooFewArgsException;
 import agent.common.message.command.Command;
 
 import java.util.List;
 
 abstract class AbstractCmdParser<P extends CmdParams> implements CommandParser {
     private CmdParamParser<P> paramParser;
+    private List<HelpArg> argList;
 
     abstract CmdParamParser<P> createParamParser();
 
     abstract Command createCommand(P params);
 
-    void checkParams(P params) {
-    }
+    abstract List<HelpArg> createHelpArgList();
 
     HelpInfo getHelpUsage(P params) {
-        return new HelpSingleValue("Usage...");
+        return HelpUtils.getUsage(
+                getCmdNames(),
+                getParamParser().hasOptConfig(),
+                getHelpArgList()
+        );
+    }
+
+    void checkParams(P params) {
+        long requiredCount = getHelpArgList().stream()
+                .filter(
+                        arg -> !arg.isOptional()
+                )
+                .count();
+        if (params.getArgs().length < requiredCount)
+            throw new TooFewArgsException();
+    }
+
+    synchronized List<HelpArg> getHelpArgList() {
+        if (argList == null)
+            argList = createHelpArgList();
+        return argList;
     }
 
     private synchronized CmdParamParser<P> getParamParser() {

@@ -1,11 +1,14 @@
 package agent.client.command.parser.impl;
 
 import agent.base.args.parse.CmdParamParser;
+import agent.base.help.HelpArg;
 import agent.client.args.parse.CmdParams;
 import agent.client.args.parse.SearchParamParser;
 import agent.common.message.command.Command;
 import agent.common.message.command.impl.MapCommand;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 import static agent.common.message.MessageType.CMD_SEARCH;
@@ -19,6 +22,11 @@ public class SearchCmdParser extends AbstractModuleCmdParser<CmdParams> {
     @Override
     CmdParamParser<CmdParams> createParamParser() {
         return new SearchParamParser();
+    }
+
+    @Override
+    List<HelpArg> createHelpArgList() {
+        return Collections.emptyList();
     }
 
     @Override

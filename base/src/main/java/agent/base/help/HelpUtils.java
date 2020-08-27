@@ -3,6 +3,7 @@ package agent.base.help;
 import agent.base.args.parse.OptConfig;
 import agent.base.utils.Utils;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -42,5 +43,32 @@ public class HelpUtils {
         }
         sb.append(")");
         return sb.toString();
+    }
+
+    public static HelpInfo getUsage(String[] cmdNames, boolean hasOpts, List<HelpArg> args, HelpInfo... others) {
+        HelpSection section = new HelpSection();
+        section.add(
+                new HelpSingleValue(
+                        HelpUtils.formatCmdString(cmdNames) +
+                                (hasOpts ? " [OPTIONS] " : " ") +
+                                Utils.join(
+                                        " ",
+                                        args.stream()
+                                                .map(HelpArg::getUsageName)
+                                                .toArray()
+                                )
+                )
+        );
+        if (!args.isEmpty())
+            section.add(
+                    args.stream()
+                            .map(HelpArg::getHelp)
+                            .collect(Collectors.toList())
+            );
+        if (others != null)
+            section.add(
+                    Arrays.asList(others)
+            );
+        return section;
     }
 }

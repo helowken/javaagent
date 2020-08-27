@@ -2,6 +2,7 @@ package agent.client.command.parser.impl;
 
 import agent.base.args.parse.CmdParamParser;
 import agent.base.exception.ArgMissingException;
+import agent.base.help.HelpArg;
 import agent.base.utils.Utils;
 import agent.client.args.parse.TransformParamParser;
 import agent.client.args.parse.TransformParams;
@@ -11,6 +12,7 @@ import agent.common.message.command.Command;
 import agent.common.message.command.impl.MapCommand;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 import static agent.common.message.MessageType.CMD_TRANSFORM;
@@ -19,6 +21,17 @@ abstract class AbstractTransformCmdParser extends AbstractModuleCmdParser<Transf
     private static final String REF_SEP = ":";
 
     abstract String getTransformerKey();
+
+    @Override
+    List<HelpArg> createHelpArgList() {
+        return Collections.singletonList(
+                new HelpArg(
+                        "OUTPUT_PATH",
+                        "File path used to store data.",
+                        true
+                )
+        );
+    }
 
     @Override
     CmdParamParser<TransformParams> createParamParser() {
@@ -80,10 +93,5 @@ abstract class AbstractTransformCmdParser extends AbstractModuleCmdParser<Transf
                         outputPath
                 )
         );
-    }
-
-    @Override
-    String getHelpArgs() {
-        return "<OUTPUT_PATH>";
     }
 }

@@ -11,6 +11,7 @@ import java.util.List;
 import static agent.common.args.parse.FilterOptUtils.getHelpOptParser;
 
 public class DefaultCmdParamParser<P extends CmdParams> extends AbstractCmdParamParser<P> {
+    public static final DefaultCmdParamParser<CmdParams> DEFAULT = new DefaultCmdParamParser<>(CmdParams.class);
     private final Class<P> clazz;
 
     public DefaultCmdParamParser(Class<P> clazz) {

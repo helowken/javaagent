@@ -1,8 +1,14 @@
 package agent.client.command.parser.impl;
 
 import agent.base.args.parse.CmdParamParser;
+import agent.base.help.HelpArg;
 import agent.client.args.parse.CmdParams;
+import agent.client.args.parse.DefaultCmdParamParser;
 import agent.common.message.command.Command;
+import agent.common.message.command.impl.FlushLogCommand;
+
+import java.util.Collections;
+import java.util.List;
 
 public class FlushLogCmdParser extends AbstractCmdParser {
 
@@ -18,11 +24,23 @@ public class FlushLogCmdParser extends AbstractCmdParser {
 
     @Override
     CmdParamParser createParamParser() {
-        return null;
+        return DefaultCmdParamParser.DEFAULT;
     }
 
     @Override
     Command createCommand(CmdParams params) {
-        return null;
+        return new FlushLogCommand();
     }
+
+    @Override
+    List<HelpArg> createHelpArgList() {
+        return Collections.singletonList(
+                new HelpArg(
+                        "OUTPUT_PATH",
+                        "The data file specified in transformation.",
+                        true
+                )
+        );
+    }
+
 }

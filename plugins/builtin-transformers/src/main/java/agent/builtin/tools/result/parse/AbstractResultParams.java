@@ -3,6 +3,8 @@ package agent.builtin.tools.result.parse;
 import agent.base.args.parse.ArgsOpts;
 import agent.base.args.parse.Opts;
 
+import java.io.File;
+
 abstract class AbstractResultParams implements ResultParams {
     private final ArgsOpts argsOpts;
 
@@ -17,7 +19,9 @@ abstract class AbstractResultParams implements ResultParams {
 
     @Override
     public String getInputPath() {
-        return argsOpts.getArg(1, "INPUT_PATH");
+        return new File(
+                argsOpts.getArg(1, "INPUT_PATH")
+        ).getAbsolutePath();
     }
 
     @Override

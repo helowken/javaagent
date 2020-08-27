@@ -1,20 +1,36 @@
 package agent.client.command.parser.impl;
 
 import agent.base.args.parse.CmdParamParser;
+import agent.base.help.HelpArg;
+import agent.base.utils.Utils;
 import agent.client.args.parse.CmdParams;
+import agent.client.args.parse.DefaultCmdParamParser;
 import agent.common.message.command.Command;
 import agent.common.message.command.impl.EchoCommand;
+
+import java.util.Collections;
+import java.util.List;
 
 public class EchoCmdParser extends AbstractCmdParser {
     @Override
     CmdParamParser createParamParser() {
-        return null;
+        return DefaultCmdParamParser.DEFAULT;
     }
 
     @Override
     Command createCommand(CmdParams params) {
         return new EchoCommand(
-                params.getArgs()[0]
+                Utils.join(
+                        " ",
+                        params.getArgs()
+                )
+        );
+    }
+
+    @Override
+    List<HelpArg> createHelpArgList() {
+        return Collections.singletonList(
+                new HelpArg("MESSAGE", "Echo message.")
         );
     }
 

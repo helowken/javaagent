@@ -1,7 +1,6 @@
 package agent.client.command.parser.impl;
 
 import agent.base.help.HelpArg;
-import agent.base.help.HelpInfo;
 import agent.base.utils.TypeObject;
 import agent.base.utils.Utils;
 import agent.client.args.parse.CmdParams;
@@ -13,10 +12,11 @@ import agent.common.message.command.Command;
 import agent.common.message.command.impl.MapCommand;
 import agent.common.utils.JsonUtils;
 
+import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
-import static agent.common.args.parse.FilterOptUtils.getUsageWithFilterRules;
 import static agent.common.config.InfoQuery.*;
 import static agent.common.message.MessageType.CMD_INFO;
 
@@ -25,20 +25,11 @@ public class InfoCmdParser extends AbstractCmdParser<CmdParams> {
     private static final String CATALOG_INVOKE = "invoke";
     private static final String CATALOG_PROXY = "proxy";
     private static final Map<String, Integer> catalogMap = new LinkedHashMap<>();
-    private static HelpArg catalogArg;
 
     static {
         catalogMap.put(CATALOG_CLASS, INFO_CLASS);
         catalogMap.put(CATALOG_INVOKE, INFO_INVOKE);
         catalogMap.put(CATALOG_PROXY, INFO_PROXY);
-
-        catalogArg = new HelpArg(
-                "CATALOG",
-                Utils.join("<", ">", "|", catalogMap.keySet())
-        );
-        catalogArg.add(CATALOG_CLASS, "show transformed classes.");
-        catalogArg.add(CATALOG_INVOKE, "show transformed classes, methods and constructors.");
-        catalogArg.add(CATALOG_PROXY, "show transformed classes, methods, constructors and proxies.", true);
     }
 
     @Override
@@ -48,6 +39,7 @@ public class InfoCmdParser extends AbstractCmdParser<CmdParams> {
 
     @Override
     void checkParams(CmdParams params) {
+        super.checkParams(params);
         String[] args = params.getArgs();
         if (args.length > 0 && !catalogMap.containsKey(args[0]))
             throw new UnknownArgException(args[0]);
@@ -79,6 +71,19 @@ public class InfoCmdParser extends AbstractCmdParser<CmdParams> {
     }
 
     @Override
+    List<HelpArg> createHelpArgList() {
+        return Collections.singletonList(
+                new HelpArg(
+                        "CATALOG",
+                        Utils.join("<", ">", "|", catalogMap.keySet()),
+                        true
+                ).add(CATALOG_CLASS, "show transformed classes.")
+                        .add(CATALOG_INVOKE, "show transformed classes, methods and constructors.")
+                        .add(CATALOG_PROXY, "show transformed classes, methods, constructors and proxies.", true)
+        );
+    }
+
+    @Override
     public String[] getCmdNames() {
         return new String[]{"info", "in"};
     }
@@ -87,14 +92,5 @@ public class InfoCmdParser extends AbstractCmdParser<CmdParams> {
     public String getDesc() {
         return "Print information about transformed classes, \n" +
                 "methods, constructors and proxies.";
-    }
-
-    @Override
-    HelpInfo getHelpUsage(CmdParams params) {
-        return getUsageWithFilterRules(
-                getCmdNames(),
-                "[<CATALOG>]",
-                catalogArg.getHelp()
-        );
     }
 }

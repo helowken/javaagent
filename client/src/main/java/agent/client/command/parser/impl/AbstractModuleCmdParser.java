@@ -1,6 +1,8 @@
 package agent.client.command.parser.impl;
 
 import agent.base.help.HelpInfo;
+import agent.base.help.HelpSection;
+import agent.base.help.HelpSingleValue;
 import agent.base.utils.TypeObject;
 import agent.client.args.parse.CmdParams;
 import agent.common.args.parse.FilterOptConfigs;
@@ -9,10 +11,9 @@ import agent.common.config.ModuleConfig;
 import agent.common.message.command.Command;
 import agent.common.utils.JsonUtils;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
-
-import static agent.common.args.parse.FilterOptUtils.getUsageWithFilterRules;
 
 abstract class AbstractModuleCmdParser<P extends CmdParams> extends AbstractCmdParser<P> {
     abstract Command newCommand(Map<String, Object> data);
@@ -49,14 +50,14 @@ abstract class AbstractModuleCmdParser<P extends CmdParams> extends AbstractCmdP
 
     @Override
     HelpInfo getHelpUsage(P params) {
-        return getUsageWithFilterRules(
-                getCmdNames(),
-                getHelpArgs()
+        return new HelpSection().add(
+                Arrays.asList(
+                        super.getHelpUsage(params),
+                        new HelpSingleValue(
+                                FilterOptConfigs.FILTER_RULE_DESC
+                        )
+                )
         );
-    }
-
-    String getHelpArgs() {
-        return "";
     }
 
 }

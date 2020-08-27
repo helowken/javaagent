@@ -13,6 +13,6 @@ public class TraceCmdParser extends AbstractTransformCmdParser {
 
     @Override
     public String getDesc() {
-        return "Trace arguments, return value and exceptions of methods and constructors.";
+        return "Printf arguments, return value and errors of methods and constructors.";
     }
 }
