@@ -123,7 +123,7 @@ abstract class AbstractClientRunner implements Runner {
                 socketMgr.sendAndReceive(
                         io -> {
                             io.send(cmd);
-                            ExecResult result = MessageMgr.parseResult(
+                            ExecResult result = MessageMgr.parse(
                                     io.receive()
                             );
                             CommandResultHandlerMgr.handleResult(cmd, result);

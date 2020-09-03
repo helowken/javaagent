@@ -3,35 +3,30 @@ package agent.builtin.tools;
 import agent.base.args.parse.CmdParamParser;
 import agent.base.utils.ConsoleLogger;
 import agent.base.utils.Logger;
-import agent.base.utils.SystemConfig;
 import agent.builtin.tools.result.CostTimeCallChainResultHandler;
 import agent.builtin.tools.result.CostTimeInvokeResultHandler;
 import agent.builtin.tools.result.ResultHandler;
 import agent.builtin.tools.result.TraceInvokeResultHandler;
-import agent.builtin.tools.result.parse.*;
+import agent.builtin.tools.result.parse.CostTimeCallChainResultParamParser;
+import agent.builtin.tools.result.parse.CostTimeInvokeResultParamParser;
+import agent.builtin.tools.result.parse.ResultParams;
+import agent.builtin.tools.result.parse.TraceResultParamParser;
 
 public class ResultCalculator {
     private static final Logger logger = Logger.getLogger(ResultCalculator.class);
-    private static final String KEY_LOG_PATH = "result.log.path";
-    private static final String KEY_LOG_LEVEL = "result.log.level";
 
     static {
         Logger.setAsync(false);
-    }
-
-    private static void init(String configFilePath) throws Exception {
-        SystemConfig.load(configFilePath);
-        Logger.init(
-                SystemConfig.get(KEY_LOG_PATH),
-                SystemConfig.get(KEY_LOG_LEVEL)
+        Logger.setSystemLogger(
+                ConsoleLogger.getInstance()
         );
     }
 
     private static <P extends ResultParams> void run(String[] args, CmdParamParser<P> parser, ResultHandler<P> resultHandler) {
         try {
-            P params = parser.parse(args);
-            init(params.getConfigFile());
-            resultHandler.exec(params);
+            resultHandler.exec(
+                    parser.parse(args)
+            );
         } catch (Throwable t) {
             logger.error("Run failed.", t);
             ConsoleLogger.getInstance().error("Error: {}", t.getMessage());

@@ -5,7 +5,7 @@ import agent.base.args.parse.CommonOptConfigs;
 import agent.base.args.parse.Opts;
 
 public class CmdParams {
-    final ArgsOpts argsOpts;
+    private final ArgsOpts argsOpts;
 
     public CmdParams(ArgsOpts argsOpts) {
         this.argsOpts = argsOpts;
@@ -19,6 +19,10 @@ public class CmdParams {
 
     public String[] getArgs() {
         return argsOpts.getArgs();
+    }
+
+    public ArgsOpts getArgsOpts() {
+        return argsOpts;
     }
 
     public Opts getOpts() {

@@ -9,7 +9,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class DependentClassItem {
-    private static final String KEY_DELEGATE_LIB_DIR = "dependent.lib.dir";
+    private static final String KEY_DEPENDENT_LIB_DIR = "dependent.lib.dir";
     private static final DependentClassItem instance = new DependentClassItem();
     private final ClassLoader parentLoader;
     private final Map<String, Class<?>> nameToClass = new ConcurrentHashMap<>();
@@ -32,7 +32,7 @@ public class DependentClassItem {
             loader = new DelegateClassLoader(
                     this.parentLoader,
                     FileUtils.splitPathStringToPathArray(
-                            SystemConfig.splitToSet(KEY_DELEGATE_LIB_DIR),
+                            SystemConfig.splitToSet(KEY_DEPENDENT_LIB_DIR, true),
                             SystemConfig.getBaseDir()
                     )
             );

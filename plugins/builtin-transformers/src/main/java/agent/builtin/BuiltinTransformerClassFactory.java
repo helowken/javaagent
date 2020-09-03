@@ -1,7 +1,6 @@
 package agent.builtin;
 
 import agent.builtin.transformer.CostTimeStatisticsTransformer;
-import agent.builtin.transformer.SaveClassDataTransformer;
 import agent.builtin.transformer.TraceInvokeTransformer;
 import agent.server.transform.ConfigTransformer;
 import agent.server.transform.TransformerClassFactory;
@@ -15,7 +14,6 @@ public class BuiltinTransformerClassFactory implements TransformerClassFactory {
     static {
         keyToTransformerClass.put(CostTimeStatisticsTransformer.REG_KEY, CostTimeStatisticsTransformer.class);
         keyToTransformerClass.put(TraceInvokeTransformer.REG_KEY, TraceInvokeTransformer.class);
-        keyToTransformerClass.put(SaveClassDataTransformer.REG_KEY, SaveClassDataTransformer.class);
     }
 
     @Override

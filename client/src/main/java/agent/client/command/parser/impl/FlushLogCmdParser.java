@@ -19,7 +19,8 @@ public class FlushLogCmdParser extends AbstractCmdParser {
 
     @Override
     public String getDesc() {
-        return "Flush data in memory to file.";
+        return "Flush transformer data from memory to file. Transformer can be specified through OUTPUT_PATH.\n" +
+                "If no OUTPUT_PATH specified, all transformer data will be flushed.";
     }
 
     @Override

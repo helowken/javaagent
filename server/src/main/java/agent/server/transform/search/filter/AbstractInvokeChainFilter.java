@@ -9,8 +9,6 @@ abstract class AbstractInvokeChainFilter implements AgentFilter<InvokeInfo> {
     private final AgentFilter<DestInvoke> constructorFilter;
 
     AbstractInvokeChainFilter(ClassFilter classFilter, InvokeFilter methodFilter, InvokeFilter constructorFilter) {
-        if (classFilter == null && methodFilter == null && constructorFilter == null)
-            throw new IllegalArgumentException("Class filter, method filter and constructor filter can't be both null.");
         this.classFilter = classFilter;
         this.methodFilter = methodFilter;
         this.constructorFilter = constructorFilter;

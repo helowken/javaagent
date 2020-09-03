@@ -4,7 +4,7 @@ import agent.base.utils.Logger;
 import agent.base.utils.ConsoleLogger;
 import agent.common.message.command.Command;
 import agent.common.message.result.ExecResult;
-import agent.common.message.result.handler.ExecResultHandler;
+import agent.client.command.result.ExecResultHandler;
 
 public abstract class AbstractExecResultHandler implements ExecResultHandler {
     private static final Logger logger = Logger.getLogger(AbstractExecResultHandler.class);

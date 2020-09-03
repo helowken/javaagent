@@ -31,11 +31,16 @@ abstract class AbstractTraceTest extends AbstractTest {
 
     void doTest(Class<?> targetClass, String targetMethodName, Map<Class<?>, String> classToMethodFilter,
                 InvokeChainConfig invokeChainConfig, boolean runFirst) throws Exception {
-        if (runFirst)
-            ReflectionUtils.invoke(
-                    targetMethodName,
-                    targetClass.newInstance()
-            );
+        if (runFirst) {
+            try {
+                ReflectionUtils.invoke(
+                        targetMethodName,
+                        targetClass.newInstance()
+                );
+            } catch (Exception e) {
+                e.printStackTrace(System.out);
+            }
+        }
         runWithFile(
                 (outputPath, config) -> {
                     TraceInvokeTransformer transformer = new TraceInvokeTransformer();
@@ -68,21 +73,27 @@ abstract class AbstractTraceTest extends AbstractTest {
                     Object a = nameToClass.get(
                             targetClass.getName()
                     ).newInstance();
-                    ReflectionUtils.invoke(targetMethodName, a);
+                    try {
+                        ReflectionUtils.invoke(targetMethodName, a);
+                    } catch (Exception e) {
+                        e.printStackTrace(System.out);
+                    }
 
                     flushAndWaitMetadata(outputPath);
                     System.out.println(IOUtils.readToString(outputPath));
 
+                    TraceInvokeResultHandler handler = new TraceInvokeResultHandler();
+
                     TraceResultParams params = new TraceResultParamParser().parse(
-                            new String[]{"configFile", outputPath}
+                            new String[]{"configFile", "-s", "10000", outputPath}
                     );
-                    new TraceInvokeResultHandler().exec(params);
+                    handler.exec(params);
 
                     System.out.println("\n==============================");
                     params = new TraceResultParamParser().parse(
                             new String[]{"configFile", "-o", "' '", outputPath}
                     );
-                    new TraceInvokeResultHandler().exec(params);
+                    handler.exec(params);
                 }
         );
     }

@@ -195,13 +195,9 @@ public class FilterUtils {
         InvokeFilter constructorFilter = newInvokeFilter(
                 config.getSearchConstructorFilter()
         );
-        return classFilter != null || methodFilter != null || constructorFilter != null ?
-                new InvokeChainSearchFilter(
-                        classFilter,
-                        methodFilter,
-                        constructorFilter,
-                        config.getMaxLevel()
-                ) :
+        int maxLevel = config.getMaxLevel();
+        return classFilter != null || methodFilter != null || constructorFilter != null || maxLevel > 0 ?
+                new InvokeChainSearchFilter(classFilter, methodFilter, constructorFilter, maxLevel) :
                 null;
     }
 

@@ -36,6 +36,15 @@ public class TraceTest extends AbstractTraceTest {
             );
 
             po.test5(new NewMap(), "newKey");
+
+            po.test7(6);
+            po.test8();
+
+            try {
+                po.test6();
+            } catch (Exception e) {
+                throw new RuntimeException("BBB", e);
+            }
         }
 
     }
@@ -88,6 +97,32 @@ public class TraceTest extends AbstractTraceTest {
 
         public void test5(Map<String, Object> map, String key) {
             System.out.println(key + ": " + map.get(key));
+        }
+
+        public void test6() {
+            throw new RuntimeException("xxx");
+        }
+
+        public void test7(int v) {
+            System.out.println("v: " + v);
+            if (v == 0)
+                return;
+            test7(v - 1);
+        }
+
+        public void test8() {
+            test81();
+        }
+
+        private void test81(){
+            test811();
+        }
+
+        private void test811() {
+            test8111();
+        }
+
+        private void test8111() {
         }
     }
 

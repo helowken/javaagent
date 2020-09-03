@@ -45,19 +45,30 @@ public class ReflectionUtils {
                 Modifier.isFinal(classModifiers));
     }
 
+    public static boolean isSubType(Class<?> baseClass, Class<?> clazz) {
+        return baseClass != clazz && baseClass.isAssignableFrom(clazz);
+    }
+
+    public static boolean isSubClass(Class<?> baseClass, Class<?> clazz) {
+        return baseClass.isInterface() ?
+                Utils.contains(
+                        clazz.getInterfaces(),
+                        baseClass
+                ) :
+                clazz.getSuperclass() == baseClass;
+    }
+
     public static List<Class<?>> findSubTypes(Class<?> baseClass, Collection<Class<?>> candidateClasses) {
         return candidateClasses.stream()
-                .filter(clazz -> baseClass != clazz &&
-                        baseClass.isAssignableFrom(clazz)
+                .filter(
+                        clazz -> isSubType(baseClass, clazz)
                 ).collect(Collectors.toList());
     }
 
     public static List<Class<?>> findSubClasses(Class<?> baseClass, Collection<Class<?>> candidateClasses) {
         return candidateClasses.stream()
                 .filter(
-                        clazz -> baseClass.isInterface() ?
-                                Utils.contains(clazz.getInterfaces(), baseClass) :
-                                clazz.getSuperclass() == baseClass
+                        clazz -> isSubClass(baseClass, clazz)
                 )
                 .collect(Collectors.toList());
     }

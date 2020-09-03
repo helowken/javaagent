@@ -26,7 +26,7 @@ public class CommandTest {
         cmd.serialize(bb);
         byte[] bs = ByteUtils.getBytes(bb);
         bb = ByteBuffer.wrap(bs);
-        Command cmd2 = MessageMgr.parseCommand(bb);
+        Command cmd2 = MessageMgr.parse(bb);
         ByteBuffer bb2 = BufferAllocator.allocate(cmd.bytesSize());
         cmd2.serialize(bb2);
         byte[] bs2 = ByteUtils.getBytes(bb2);

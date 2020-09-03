@@ -11,7 +11,6 @@ import agent.server.transform.impl.InfoMgr;
 
 import static agent.common.message.MessageType.CMD_INFO;
 
-@SuppressWarnings("unchecked")
 class InfoCmdExecutor extends AbstractCmdExecutor {
     @Override
     ExecResult doExec(Command cmd) throws Exception {

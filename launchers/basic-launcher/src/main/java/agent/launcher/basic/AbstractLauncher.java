@@ -19,13 +19,10 @@ public abstract class AbstractLauncher {
     }
 
     protected void init(String configFilePath, Map<String, Object> pvs) throws Exception {
-        SystemConfig.load(configFilePath);
+        SystemConfig.load(configFilePath, pvs);
         Logger.setSystemLogger(null);
         Logger.init(
-                StringParser.eval(
-                        SystemConfig.getNotBlank(KEY_LOG_PATH),
-                        pvs
-                ),
+                SystemConfig.getNotBlank(KEY_LOG_PATH),
                 SystemConfig.get(KEY_LOG_LEVEL)
         );
         loadLibs(

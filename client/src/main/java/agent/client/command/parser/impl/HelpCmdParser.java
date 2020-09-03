@@ -6,8 +6,8 @@ import agent.base.help.HelpArg;
 import agent.base.help.HelpInfo;
 import agent.base.help.HelpSingleValue;
 import agent.base.utils.Utils;
+import agent.client.args.parse.CmdParams;
 import agent.client.args.parse.DefaultCmdParamParser;
-import agent.client.args.parse.HelpCmdParams;
 import agent.client.command.parser.CmdHelpUtils;
 import agent.client.command.parser.CmdItem;
 import agent.client.command.parser.CommandParserMgr;
@@ -16,14 +16,14 @@ import agent.common.message.command.Command;
 import java.util.Collections;
 import java.util.List;
 
-public class HelpCmdParser extends AbstractCmdParser<HelpCmdParams> {
+public class HelpCmdParser extends AbstractCmdParser<CmdParams> {
     @Override
-    CmdParamParser<HelpCmdParams> createParamParser() {
-        return new DefaultCmdParamParser<>(HelpCmdParams.class);
+    CmdParamParser<CmdParams> createParamParser() {
+        return DefaultCmdParamParser.DEFAULT;
     }
 
     @Override
-    Command createCommand(HelpCmdParams params) {
+    Command createCommand(CmdParams params) {
         throw new UnsupportedOperationException();
     }
 
@@ -33,7 +33,7 @@ public class HelpCmdParser extends AbstractCmdParser<HelpCmdParams> {
     }
 
     @Override
-    HelpInfo getHelpUsage(HelpCmdParams params) {
+    HelpInfo getHelpUsage(CmdParams params) {
         throw new UnsupportedOperationException();
     }
 
@@ -48,8 +48,8 @@ public class HelpCmdParser extends AbstractCmdParser<HelpCmdParams> {
     }
 
     @Override
-    HelpInfo createHelpInfo(HelpCmdParams params) {
-        if (params.isHelpSelf())
+    HelpInfo createHelpInfo(CmdParams params) {
+        if (params.isHelp())
             return getHelpSelf();
 
         String[] args = params.getArgs();
@@ -73,4 +73,8 @@ public class HelpCmdParser extends AbstractCmdParser<HelpCmdParams> {
         return new HelpSingleValue("Print help.");
     }
 
+    @Override
+    boolean isHelp(CmdParams params) {
+        return true;
+    }
 }

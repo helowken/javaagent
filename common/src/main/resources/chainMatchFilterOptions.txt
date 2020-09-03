@@ -1,6 +1,0 @@
--lc <chainClassFilter>
-                   Filter rules for classes in chain.
-    -lm <chainMethodFilter>
-                   Filter rules for methods in chain.
-    -li <chainConstructorFilter>
-                   Filter rules for constructors in chain.

@@ -2,7 +2,6 @@ package agent.base.utils;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
@@ -10,28 +9,35 @@ import java.util.Set;
 public class SystemConfig {
     private static final String SEP = ";";
 
-    private static Properties fileProps;
-    private static Map<String, String> userDefineProps = new HashMap<>();
+    private static Properties fileProps = new Properties();
     private static String baseDir;
 
-    public static void load(Properties props) {
-        fileProps = props;
+    public static void load(Properties props, Map<String, Object> pvs) {
+        props.forEach(
+                (key, value) -> {
+                    String sv = value == null ? "" : value.toString();
+                    if (Utils.isNotBlank(sv))
+                        sv = StringParser.eval(sv, pvs);
+                    fileProps.setProperty(key.toString(), sv);
+                }
+        );
     }
 
-    public static void load(String path) throws Exception {
+    public static void load(String path, Map<String, Object> pvs) throws Exception {
         File file = new File(path);
         if (!file.exists())
             throw new FileNotFoundException("File not found: " + path);
         baseDir = file.getParentFile().getParent();
         load(
-                Utils.loadProperties(path)
+                Utils.loadProperties(path),
+                pvs
         );
     }
 
     public static String get(String key) {
         if (fileProps == null)
             throw new RuntimeException("System config need to be init first.");
-        return Utils.blankToNull(fileProps.getProperty(key, userDefineProps.get(key)));
+        return Utils.blankToNull(fileProps.getProperty(key, ""));
     }
 
     public static String getNotBlank(String key) {
@@ -41,20 +47,19 @@ public class SystemConfig {
         return v;
     }
 
-    public static Set<String> splitToSet(String key, String sep) {
-        return Utils.splitToSet(get(key), sep);
+    public static Set<String> splitToSet(String key) {
+        return splitToSet(key, false);
     }
 
-    public static Set<String> splitToSet(String key) {
-        return splitToSet(key, SEP);
+    public static Set<String> splitToSet(String key, boolean withSysProps) {
+        String value = get(key);
+        if (Utils.isBlank(value) && withSysProps)
+            value = System.getProperty(key);
+        return Utils.splitToSet(value, SEP);
     }
 
     public static int getInt(String key) {
         return Utils.parseInt(get(key), key);
-    }
-
-    public static void set(String key, String value) {
-        userDefineProps.put(key, value);
     }
 
     public static String getBaseDir() {

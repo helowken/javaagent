@@ -1,6 +1,8 @@
 package agent.builtin.transformer.utils;
 
+import agent.base.utils.Logger;
 import agent.base.utils.StringItem;
+import agent.base.utils.Utils;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -9,6 +11,7 @@ import java.util.Optional;
 import java.util.function.Function;
 
 public class DefaultValueConverter implements ValueConverter {
+    private static final Logger logger = Logger.getLogger(DefaultValueConverter.class);
     private static final String KEY_INDEX = "index";
     private static final String KEY_CLASS = "class";
     private static final String KEY_VALUE = "value";
@@ -39,9 +42,16 @@ public class DefaultValueConverter implements ValueConverter {
 
     @Override
     public Map<String, Object> convertError(Throwable error) {
+        String errStack;
+        try {
+            errStack = Utils.getErrorStackStrace(error);
+        } catch (Throwable e) {
+            logger.error("get error stack failed.", e);
+            errStack = error.getMessage();
+        }
         return convert(
                 error.getClass(),
-                error.getMessage()
+                errStack
         );
     }
 
@@ -51,7 +61,7 @@ public class DefaultValueConverter implements ValueConverter {
             rv = "null";
         else {
             rv = valueToString(value);
-            if (clazz.equals(String.class) || Throwable.class.isAssignableFrom(clazz))
+            if (clazz.equals(String.class))
                 rv = "\"" + new StringItem(rv).replaceAll("\"", "\\\"").toString() + "\"";
             else if (clazz.equals(char.class) || clazz.equals(Character.class))
                 rv = "'" + rv.replace("'", "\\'") + "'";

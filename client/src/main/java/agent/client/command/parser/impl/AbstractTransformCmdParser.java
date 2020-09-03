@@ -4,8 +4,9 @@ import agent.base.args.parse.CmdParamParser;
 import agent.base.exception.ArgMissingException;
 import agent.base.help.HelpArg;
 import agent.base.utils.Utils;
+import agent.client.args.parse.CmdParams;
+import agent.client.args.parse.TransformOptConfigs;
 import agent.client.args.parse.TransformParamParser;
-import agent.client.args.parse.TransformParams;
 import agent.common.config.ModuleConfig;
 import agent.common.config.TransformerConfig;
 import agent.common.message.command.Command;
@@ -17,7 +18,7 @@ import java.util.Map;
 
 import static agent.common.message.MessageType.CMD_TRANSFORM;
 
-abstract class AbstractTransformCmdParser extends AbstractModuleCmdParser<TransformParams> {
+abstract class AbstractTransformCmdParser extends AbstractModuleCmdParser<CmdParams> {
     private static final String REF_SEP = ":";
 
     abstract String getTransformerKey();
@@ -27,23 +28,22 @@ abstract class AbstractTransformCmdParser extends AbstractModuleCmdParser<Transf
         return Collections.singletonList(
                 new HelpArg(
                         "OUTPUT_PATH",
-                        "File path used to store data.",
-                        true
+                        "File path used to store data."
                 )
         );
     }
 
     @Override
-    CmdParamParser<TransformParams> createParamParser() {
+    CmdParamParser<CmdParams> createParamParser() {
         return new TransformParamParser();
     }
 
     @Override
-    protected void checkParams(TransformParams params) {
+    protected void checkParams(CmdParams params) {
         super.checkParams(params);
         if (Utils.isBlank(getTransformerKey()))
             throw new ArgMissingException("Transformer key");
-        params.getOutputPath();
+        params.getArgsOpts().getArg(0, "OUTPUT_PATH");
     }
 
     @Override
@@ -52,14 +52,16 @@ abstract class AbstractTransformCmdParser extends AbstractModuleCmdParser<Transf
     }
 
     @Override
-    ModuleConfig createModuleConfig(TransformParams params) {
+    ModuleConfig createModuleConfig(CmdParams params) {
         ModuleConfig moduleConfig = super.createModuleConfig(params);
         moduleConfig.setTransformers(
                 Collections.singletonList(
                         createTransformerConfig(
                                 getTransformerKey(),
-                                params.getTransformerId(),
-                                params.getOutputPath()
+                                TransformOptConfigs.getTransformId(
+                                        params.getOpts()
+                                ),
+                                params.getArgs()[0]
                         )
                 )
         );

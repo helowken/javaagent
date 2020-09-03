@@ -12,7 +12,7 @@ class ClientLauncherOptConfigs {
     private static final String KEY_RUNNER_TYPE = "RUNNER_TYPE";
     private static final String DEFAULT_HOST = "127.0.0.1";
     private static final String DEFAULT_RUNNER_TYPE = "clientCmdRunner";
-    private static final int DEFAULT_PORT = 10086;
+    private static final int DEFAULT_PORT = 10100;
     private static final OptConfigSuite suite = new OptConfigSuite(
             new OptConfig(
                     null,

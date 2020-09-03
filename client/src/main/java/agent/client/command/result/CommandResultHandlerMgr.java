@@ -7,7 +7,6 @@ import agent.client.command.result.handler.TransformResultHandler;
 import agent.client.command.result.handler.InfoResultHandler;
 import agent.common.message.command.Command;
 import agent.common.message.result.ExecResult;
-import agent.common.message.result.handler.ExecResultHandler;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -26,6 +25,7 @@ public class CommandResultHandlerMgr {
         regResultHandlerClass(CMD_INFO, infoResultHandler);
         regResultHandlerClass(CMD_TRANSFORM, new TransformResultHandler());
         regResultHandlerClass(CMD_RESET, new ResetResultHandler());
+        regResultHandlerClass(CMD_SAVE_CLASS, infoResultHandler);
     }
 
     private static void regResultHandlerClass(int type, ExecResultHandler rsHandler) {

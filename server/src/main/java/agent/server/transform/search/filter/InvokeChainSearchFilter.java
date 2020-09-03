@@ -12,7 +12,7 @@ public class InvokeChainSearchFilter extends AbstractInvokeChainFilter {
 
     @Override
     public boolean accept(InvokeInfo info) {
-        return info.getLevel() <= maxLevel &&
+        return info.getLevel() < maxLevel &&
                 super.accept(info);
     }
 }

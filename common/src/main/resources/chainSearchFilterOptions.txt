@@ -1,8 +1,0 @@
--lsx <chainSearchLevel>
-                   The max level of chain nested hierarchy to search. It must be > 0.
-    -lsc <chainSearchClassFilter>
-                   Filter rules for classes in chain to see if it need to search downward.
-    -lsm <chainSearchMethodFilter>
-                   Filter rules for methods in chain to see if it need to search downward.
-    -lsi <chainSearchConstructorFilter>
-                   Filter rules for constructors in chain to see if it need to search downward.

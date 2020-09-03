@@ -14,7 +14,7 @@ import java.util.Set;
 public class AgentLoader {
     private static final Logger logger = Logger.getLogger(AgentLoader.class);
     private static final String SEP = "=";
-    private static final int DEFAULT_PORT = 10086;
+    private static final int DEFAULT_PORT = 10100;
 
     static {
         Logger.setSystemLogger(

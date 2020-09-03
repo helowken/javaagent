@@ -45,7 +45,7 @@ public class AgentEndpoint implements Runnable {
 
     private boolean receiveAndSend(MessageIO io) throws Exception {
         try {
-            Command cmd = MessageMgr.parseCommand(io.receive());
+            Command cmd = MessageMgr.parse(io.receive());
             ExecResult result = CmdExecutorMgr.exec(cmd);
             io.send(result);
         } catch (Exception e) {

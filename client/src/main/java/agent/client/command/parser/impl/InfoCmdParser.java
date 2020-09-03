@@ -56,7 +56,7 @@ public class InfoCmdParser extends AbstractCmdParser<CmdParams> {
         String[] args = params.getArgs();
         infoQuery.setLevel(
                 catalogMap.get(
-                        args.length > 0 ? args[0] : CATALOG_PROXY
+                        args.length > 0 ? args[0] : CATALOG_INVOKE
                 )
         );
 
@@ -78,8 +78,8 @@ public class InfoCmdParser extends AbstractCmdParser<CmdParams> {
                         Utils.join("<", ">", "|", catalogMap.keySet()),
                         true
                 ).add(CATALOG_CLASS, "show transformed classes.")
-                        .add(CATALOG_INVOKE, "show transformed classes, methods and constructors.")
-                        .add(CATALOG_PROXY, "show transformed classes, methods, constructors and proxies.", true)
+                        .add(CATALOG_INVOKE, "show transformed classes, methods and constructors.", true)
+                        .add(CATALOG_PROXY, "show transformed classes, methods, constructors and proxies.")
         );
     }
 

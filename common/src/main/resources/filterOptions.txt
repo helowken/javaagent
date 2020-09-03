@@ -1,8 +1,0 @@
-Where options include:
-Filter rules: "^" means exclusion. Multiple items are separated by ",".
-    -c <classFilter>
-                   Filter rules for classes.
-    -m <methodFilter>
-                   Filter rules for methods.
-    -i <constructorFilter>
-                   Filter rules for constructors.

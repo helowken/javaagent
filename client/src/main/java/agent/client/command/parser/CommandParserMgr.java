@@ -31,6 +31,7 @@ public class CommandParserMgr {
                         new SearchCmdParser(),
                         new ResetCmdParser(),
                         new FlushLogCmdParser(),
+                        new SaveClassCmdParser(),
                         new EchoCmdParser()
                 )
         );

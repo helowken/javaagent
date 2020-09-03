@@ -1,4 +1,0 @@
-Usage: search [-options]
-${filterOptions.txt}
-    ${chainMatchFilterOptions.txt}
-    ${chainSearchFilterOptions.txt}

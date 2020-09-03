@@ -50,7 +50,10 @@ public class ClassDataRepository {
                 dir = Utils.wrapToRtError(
                         () -> Files.createTempDirectory(TMP_DIR).toFile().getAbsolutePath()
                 );
-            baseDir = dir;
+            baseDir = new File(
+                    SystemConfig.getBaseDir(),
+                    dir
+            ).getAbsolutePath();
         }
         return baseDir;
     }
@@ -71,7 +74,7 @@ public class ClassDataRepository {
         }
     }
 
-    public void saveClassData(Class<?> clazz, byte[] data) {
+    public void saveClassData(Class<?> clazz, byte[] data) throws Exception {
         currentDataStore.save(clazz, data);
     }
 
@@ -103,7 +106,10 @@ public class ClassDataRepository {
 
     private byte[] getClassDataFromCurrentStore(Class<?> clazz) {
         logger.debug("Get class data from current store: {}", clazz.getName());
-        return currentDataStore.load(clazz);
+        byte[] data = currentDataStore.load(clazz);
+        if (data == null)
+            logger.debug("No data found in current store: {}", clazz.getName());
+        return data;
     }
 
     private byte[] getClassDataFromMemory(Class<?> clazz) {

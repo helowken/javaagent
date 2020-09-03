@@ -76,7 +76,7 @@ abstract class AbstractCmdParser<P extends CmdParams> implements CommandParser {
     @Override
     public CmdItem parse(String[] args) {
         P params = doParse(args);
-        if (params.isHelp()) {
+        if (isHelp(params)) {
             return new CmdItem(
                     createHelpInfo(params)
             );
@@ -86,5 +86,9 @@ abstract class AbstractCmdParser<P extends CmdParams> implements CommandParser {
                     createCommand(params)
             );
         }
+    }
+
+    boolean isHelp(P params) {
+        return params.isHelp();
     }
 }

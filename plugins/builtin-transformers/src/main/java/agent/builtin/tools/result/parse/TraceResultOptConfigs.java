@@ -8,6 +8,7 @@ import agent.base.args.parse.Opts;
 class TraceResultOptConfigs {
     private static final String KEY_OUTPUT = "OUTPUT";
     private static final String KEY_CONTENT_SIZE = "CONTENT_SIZE";
+    private static final int DEFAULT_CONTENT_SIZE = 100;
     private static OptConfigSuite suite = new OptConfigSuite(
             new OptConfig(
                     "-o",
@@ -30,7 +31,7 @@ class TraceResultOptConfigs {
     }
 
     static int getContentSize(Opts opts) {
-        return opts.getNotNull(KEY_CONTENT_SIZE, 50);
+        return opts.getNotNull(KEY_CONTENT_SIZE, DEFAULT_CONTENT_SIZE);
     }
 
     static String getOutput(Opts opts) {

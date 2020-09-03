@@ -67,7 +67,7 @@ public abstract class AbstractTest {
             props.setProperty("invoke.chain.search.cache.max.size", "1000");
             props.setProperty("invoke.chain.search.core.pool.size", "1");
             props.setProperty("invoke.chain.search.max.pool.size", "100");
-            SystemConfig.load(props);
+            SystemConfig.load(props, Collections.emptyMap());
 
             DependentClassItem.getInstance().mock(AsmUtils.ASM_DELEGATE_CLASS, AsmDelegate.class);
             DependentClassItem.getInstance().mock(JsonUtils.JSON_DELEGATE_CLASS, JsonDelegate.class);

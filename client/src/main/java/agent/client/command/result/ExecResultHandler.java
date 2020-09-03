@@ -1,4 +1,4 @@
-package agent.common.message.result.handler;
+package agent.client.command.result;
 
 import agent.common.message.command.Command;
 import agent.common.message.result.ExecResult;

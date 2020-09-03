@@ -10,7 +10,7 @@ public class ClassDataStore {
     private static final Logger logger = Logger.getLogger(ClassDataStore.class);
     private final String dir;
 
-    ClassDataStore(String dir) {
+    public ClassDataStore(String dir) {
         this.dir = dir;
         logger.debug("Class data store dir: {}", dir);
     }
@@ -20,21 +20,17 @@ public class ClassDataStore {
                 .replaceAll(".", File.separator)
                 .replaceAll("$", "#") + "_" +
                 System.identityHashCode(clazz.getClassLoader()) + "_" +
-                System.identityHashCode(clazz);
+                System.identityHashCode(clazz) + ".class";
         return new File(dir, relativePath);
     }
 
-    void save(Class<?> clazz, byte[] data) {
+    public void save(Class<?> clazz, byte[] data) throws Exception {
         File file = getClassDataFile(clazz);
         File parentFile = file.getParentFile();
-        try {
-            if (!parentFile.mkdirs() && !parentFile.exists())
-                throw new RuntimeException("Create dir failed: " + parentFile.getAbsolutePath());
-            logger.debug("Save class {} [loader={}] data to: {}", clazz.getName(), clazz.getClassLoader(), file.getAbsolutePath());
-            IOUtils.writeBytes(file, data, false);
-        } catch (Exception e) {
-            logger.error("Write class data to file failed.", e);
-        }
+        if (!parentFile.mkdirs() && !parentFile.exists())
+            throw new RuntimeException("Create dir failed: " + parentFile.getAbsolutePath());
+        logger.debug("Save class {} [loader={}] data to: {}", clazz.getName(), clazz.getClassLoader(), file.getAbsolutePath());
+        IOUtils.writeBytes(file, data, false);
     }
 
     byte[] load(Class<?> clazz) {

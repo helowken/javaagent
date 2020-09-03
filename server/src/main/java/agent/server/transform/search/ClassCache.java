@@ -25,7 +25,7 @@ public class ClassCache {
                 || skipPackages.stream().anyMatch(namePath::startsWith);
     }
 
-    private Collection<Class<?>> getLoadedClasses() {
+    public Collection<Class<?>> getLoadedClasses() {
         if (loadedClasses == null) {
             synchronized (this) {
                 if (loadedClasses == null)
