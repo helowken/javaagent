@@ -1,0 +1,2 @@
+export AGENT_HOME=$(pwd)
+export PATH=$PATH:$AGENT_HOME/server/bin:$AGENT_HOME/client/bin

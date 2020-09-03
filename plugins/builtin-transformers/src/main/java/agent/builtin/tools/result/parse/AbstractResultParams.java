@@ -1,14 +1,12 @@
 package agent.builtin.tools.result.parse;
 
 import agent.base.args.parse.ArgsOpts;
-import agent.base.args.parse.Opts;
+import agent.base.args.parse.CmdParams;
 import agent.base.utils.FileUtils;
 
-abstract class AbstractResultParams implements ResultParams {
-    private final ArgsOpts argsOpts;
-
+abstract class AbstractResultParams extends CmdParams implements ResultParams {
     AbstractResultParams(ArgsOpts argsOpts) {
-        this.argsOpts = argsOpts;
+        super(argsOpts);
     }
 
     @Override
@@ -16,15 +14,5 @@ abstract class AbstractResultParams implements ResultParams {
         return FileUtils.getAbsolutePath(
                 argsOpts.getArg(0, "INPUT_PATH")
         );
-    }
-
-    @Override
-    public Opts getOpts() {
-        return argsOpts.getOpts();
-    }
-
-    @Override
-    public String toString() {
-        return argsOpts.toString();
     }
 }

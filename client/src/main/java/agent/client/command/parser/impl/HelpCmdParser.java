@@ -6,7 +6,7 @@ import agent.base.help.HelpArg;
 import agent.base.help.HelpInfo;
 import agent.base.help.HelpSingleValue;
 import agent.base.utils.Utils;
-import agent.client.args.parse.CmdParams;
+import agent.base.args.parse.CmdParams;
 import agent.client.args.parse.DefaultCmdParamParser;
 import agent.client.command.parser.CmdHelpUtils;
 import agent.client.command.parser.CmdItem;

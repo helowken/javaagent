@@ -4,7 +4,7 @@ import agent.base.help.HelpInfo;
 import agent.base.help.HelpSection;
 import agent.base.help.HelpSingleValue;
 import agent.base.utils.TypeObject;
-import agent.client.args.parse.CmdParams;
+import agent.base.args.parse.CmdParams;
 import agent.common.args.parse.FilterOptConfigs;
 import agent.common.args.parse.FilterOptUtils;
 import agent.common.config.ModuleConfig;

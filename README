@@ -1,27 +1,33 @@
-server:
-    launch:
-        static:
-            1. embed "server/lib/agent/server-launcher.jar" in java startup
-
-        dynamic:
-            use "server/lib/launcher/agent-launcher.jar" to
-            1. attach java process
-            2. ask java process to use "server/lib/agent/server-launcher.jar" as an agent
+Run:
+    source setenv
 
 
-    "server/lib/agent/server-launcher.jar":
-        contains jars under:
-            common/lib/base
 
-        loads jars under:
-            common/lib/core
-            server/lib/core
-            server/lib/plugin
+Structure:
+    server:
+        launch:
+            static:
+                1. embed "server/lib/agent/server-launcher.jar" in java startup
 
-        uses native so under:
-            server/lib/native
+            dynamic:
+                use "server/lib/launcher/agent-launcher.jar" to
+                1. attach java process
+                2. ask java process to use "server/lib/agent/server-launcher.jar" as an agent
 
-        uses dependent jars under:
-            common/lib/dependent
-            server/lib/dependent
+
+        "server/lib/agent/server-launcher.jar":
+            contains jars under:
+                common/lib/base
+
+            loads jars under:
+                common/lib/core
+                server/lib/core
+                server/lib/plugin
+
+            uses native so under:
+                server/lib/native
+
+            uses dependent jars under:
+                common/lib/dependent
+                server/lib/dependent
 

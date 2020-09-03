@@ -1,10 +1,11 @@
 package agent.client.command.parser.impl;
 
+import agent.base.args.parse.CmdParamParser;
 import agent.base.help.HelpArg;
 import agent.base.utils.TypeObject;
 import agent.base.utils.Utils;
-import agent.client.args.parse.CmdParams;
-import agent.client.args.parse.InfoParamParser;
+import agent.base.args.parse.CmdParams;
+import agent.client.args.parse.DefaultCmdParamParser;
 import agent.client.command.parser.exception.UnknownArgException;
 import agent.common.args.parse.FilterOptUtils;
 import agent.common.config.InfoQuery;
@@ -17,6 +18,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import static agent.common.args.parse.FilterOptUtils.getFilterOptParsers;
 import static agent.common.config.InfoQuery.*;
 import static agent.common.message.MessageType.CMD_INFO;
 
@@ -33,8 +35,10 @@ public class InfoCmdParser extends AbstractCmdParser<CmdParams> {
     }
 
     @Override
-    InfoParamParser createParamParser() {
-        return new InfoParamParser();
+    CmdParamParser createParamParser() {
+        return new DefaultCmdParamParser(
+                getFilterOptParsers()
+        );
     }
 
     @Override

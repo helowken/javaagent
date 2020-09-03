@@ -1,12 +1,13 @@
 package agent.client.command.parser.impl;
 
 import agent.base.args.parse.CmdParamParser;
+import agent.base.args.parse.KeyValueOptParser;
 import agent.base.exception.ArgMissingException;
 import agent.base.help.HelpArg;
 import agent.base.utils.Utils;
-import agent.client.args.parse.CmdParams;
+import agent.base.args.parse.CmdParams;
+import agent.client.args.parse.DefaultCmdParamParser;
 import agent.client.args.parse.TransformOptConfigs;
-import agent.client.args.parse.TransformParamParser;
 import agent.common.config.ModuleConfig;
 import agent.common.config.TransformerConfig;
 import agent.common.message.command.Command;
@@ -16,6 +17,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import static agent.common.args.parse.FilterOptUtils.getFilterAndChainOptParsers;
+import static agent.common.args.parse.FilterOptUtils.merge;
 import static agent.common.message.MessageType.CMD_TRANSFORM;
 
 abstract class AbstractTransformCmdParser extends AbstractModuleCmdParser<CmdParams> {
@@ -35,7 +38,14 @@ abstract class AbstractTransformCmdParser extends AbstractModuleCmdParser<CmdPar
 
     @Override
     CmdParamParser<CmdParams> createParamParser() {
-        return new TransformParamParser();
+        return new DefaultCmdParamParser(
+                merge(
+                        getFilterAndChainOptParsers(),
+                        new KeyValueOptParser(
+                                TransformOptConfigs.getSuite()
+                        )
+                )
+        );
     }
 
     @Override

@@ -6,7 +6,7 @@ import agent.base.help.HelpArg;
 import agent.base.help.HelpInfo;
 import agent.base.help.HelpSection;
 import agent.base.help.HelpUtils;
-import agent.client.args.parse.CmdParams;
+import agent.base.args.parse.CmdParams;
 import agent.client.command.parser.CmdItem;
 import agent.client.command.parser.CommandParser;
 import agent.client.command.parser.exception.TooFewArgsException;

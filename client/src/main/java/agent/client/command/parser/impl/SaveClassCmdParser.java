@@ -1,12 +1,13 @@
 package agent.client.command.parser.impl;
 
+import agent.base.args.parse.BooleanOptParser;
 import agent.base.args.parse.CmdParamParser;
 import agent.base.args.parse.Opts;
 import agent.base.help.HelpArg;
 import agent.base.utils.TypeObject;
-import agent.client.args.parse.CmdParams;
+import agent.base.args.parse.CmdParams;
+import agent.client.args.parse.DefaultCmdParamParser;
 import agent.client.args.parse.SaveClassOptConfigs;
-import agent.client.args.parse.SaveClassParamParser;
 import agent.common.args.parse.FilterOptUtils;
 import agent.common.config.SaveClassConfig;
 import agent.common.message.command.Command;
@@ -17,12 +18,21 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import static agent.common.args.parse.FilterOptUtils.getFilterOptParsers;
+import static agent.common.args.parse.FilterOptUtils.merge;
 import static agent.common.message.MessageType.CMD_SAVE_CLASS;
 
 public class SaveClassCmdParser extends AbstractCmdParser<CmdParams> {
     @Override
     CmdParamParser<CmdParams> createParamParser() {
-        return new SaveClassParamParser();
+        return new DefaultCmdParamParser(
+                merge(
+                        getFilterOptParsers(),
+                        new BooleanOptParser(
+                                SaveClassOptConfigs.getSuite()
+                        )
+                )
+        );
     }
 
     @Override

@@ -1,11 +1,7 @@
-package agent.client.args.parse;
-
-import agent.base.args.parse.ArgsOpts;
-import agent.base.args.parse.CommonOptConfigs;
-import agent.base.args.parse.Opts;
+package agent.base.args.parse;
 
 public class CmdParams {
-    private final ArgsOpts argsOpts;
+    protected final ArgsOpts argsOpts;
 
     public CmdParams(ArgsOpts argsOpts) {
         this.argsOpts = argsOpts;

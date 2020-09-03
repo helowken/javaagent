@@ -18,7 +18,7 @@ public class TransformOptConfigs {
             )
     );
 
-    static OptConfigSuite getSuite() {
+    public static OptConfigSuite getSuite() {
         return suite;
     }
 

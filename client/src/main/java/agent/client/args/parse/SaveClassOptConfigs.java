@@ -23,7 +23,7 @@ public class SaveClassOptConfigs {
             )
     );
 
-    static OptConfigSuite getSuite() {
+    public static OptConfigSuite getSuite() {
         return suite;
     }
 
