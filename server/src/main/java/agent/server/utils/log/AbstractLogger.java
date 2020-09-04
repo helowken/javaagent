@@ -8,7 +8,6 @@ import agent.server.event.AgentEvent;
 import agent.server.event.AgentEventListener;
 import agent.server.event.EventListenerMgr;
 import agent.server.event.impl.FlushLogEvent;
-import agent.server.event.impl.ResetEvent;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -24,7 +23,6 @@ public abstract class AbstractLogger<T extends LogItem> implements FileLogger<T>
 
     protected AbstractLogger() {
         EventListenerMgr.reg(FlushLogEvent.class, this);
-        EventListenerMgr.reg(ResetEvent.class, this);
     }
 
     private Logger getLogger() {
@@ -40,11 +38,7 @@ public abstract class AbstractLogger<T extends LogItem> implements FileLogger<T>
     @Override
     public void onNotify(AgentEvent event) {
         Class<?> eventType = event.getClass();
-        if (eventType.equals(ResetEvent.class)) {
-            ResetEvent resetClassEvent = (ResetEvent) event;
-            if (resetClassEvent.isAllReset())
-                clear();
-        } else if (eventType.equals(FlushLogEvent.class)) {
+        if (eventType.equals(FlushLogEvent.class)) {
             FlushLogEvent flushLogEvent = (FlushLogEvent) event;
             if (flushLogEvent.isFlushAll())
                 flushAll();

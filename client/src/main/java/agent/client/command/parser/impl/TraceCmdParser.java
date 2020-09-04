@@ -8,7 +8,7 @@ public class TraceCmdParser extends AbstractTransformCmdParser {
 
     @Override
     public String[] getCmdNames() {
-        return new String[]{"trace"};
+        return new String[]{"trace", "tr"};
     }
 
     @Override

@@ -12,7 +12,6 @@ import agent.server.event.AgentEventListener;
 import agent.server.event.EventListenerMgr;
 import agent.server.event.impl.DestInvokeMetadataFlushedEvent;
 import agent.server.event.impl.LogFlushedEvent;
-import agent.server.event.impl.ResetEvent;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -89,23 +88,10 @@ public class DestInvokeIdRegistry implements ServerListener, AgentEventListener 
     @Override
     public void onNotify(AgentEvent event) {
         Class<?> eventType = event.getClass();
-        if (eventType.equals(ResetEvent.class)) {
-            handleResetEvent((ResetEvent) event);
-        } else if (eventType.equals(LogFlushedEvent.class)) {
+        if (eventType.equals(LogFlushedEvent.class)) {
             handleLogFlushedEvent((LogFlushedEvent) event);
         } else
             throw new RuntimeException("Unsupported event type: " + eventType);
-    }
-
-    private void handleResetEvent(ResetEvent event) {
-        lo.sync(
-                lock -> {
-                    if (event.isAllReset()) {
-                        outputPaths.clear();
-                        logger.debug("Clear all.");
-                    }
-                }
-        );
     }
 
     private void handleLogFlushedEvent(LogFlushedEvent event) {
@@ -179,7 +165,7 @@ public class DestInvokeIdRegistry implements ServerListener, AgentEventListener 
         );
     }
 
-    public Object run(OpFunc func) {
+    public <V> V run(OpFunc<V> func) {
         return lo.syncValue(
                 lock -> func.run(classToInvokeToId)
         );
@@ -197,7 +183,6 @@ public class DestInvokeIdRegistry implements ServerListener, AgentEventListener 
     @Override
     public void onStartup(Object[] args) {
         EventListenerMgr.reg(LogFlushedEvent.class, this);
-        EventListenerMgr.reg(ResetEvent.class, this);
     }
 
     @Override
@@ -205,8 +190,8 @@ public class DestInvokeIdRegistry implements ServerListener, AgentEventListener 
 
     }
 
-    public interface OpFunc {
-        Object run(Map<Class<?>, Map<DestInvoke, Integer>> classToInvokeToId);
+    public interface OpFunc<V> {
+        V run(Map<Class<?>, Map<DestInvoke, Integer>> classToInvokeToId);
     }
 
     public static class InvokeMetadata {

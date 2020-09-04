@@ -15,7 +15,6 @@ import agent.server.event.EventListenerMgr;
 import agent.server.event.impl.DestInvokeMetadataFlushedEvent;
 import agent.server.event.impl.FlushLogEvent;
 import agent.server.event.impl.LogFlushedEvent;
-import agent.server.event.impl.ResetEvent;
 import agent.server.transform.*;
 import agent.server.transform.impl.DestInvokeIdRegistry;
 import agent.server.transform.revision.ClassDataRepository;
@@ -36,7 +35,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static agent.server.transform.TransformContext.ACTION_MODIFY;
 import static org.junit.Assert.assertFalse;
 
 public abstract class AbstractTest {
@@ -132,8 +130,7 @@ public abstract class AbstractTest {
         invokeSet.forEach(DestInvokeIdRegistry.getInstance()::reg);
         TransformContext transformContext = new TransformContext(
                 invokeSet,
-                Collections.singletonList(transformer),
-                ACTION_MODIFY
+                Collections.singletonList(transformer)
         );
         TransformResult transformResult = TransformMgr.getInstance().transform(transformContext);
         assertFalse(transformResult.hasError());
@@ -165,12 +162,6 @@ public abstract class AbstractTest {
                 new FlushLogEvent(outputPath)
         );
         waitMetadataListener.await();
-    }
-
-    protected void resetAll() throws Exception {
-        EventListenerMgr.fireEvent(
-                new ResetEvent(true)
-        );
     }
 
     protected byte[] getClassData(Class<?> clazz) {
@@ -279,11 +270,7 @@ public abstract class AbstractTest {
                 newModuleConfig(classToMethodFilter, null, invokeChainConfig)
         );
         invokeSet.forEach(DestInvokeIdRegistry.getInstance()::reg);
-        return new TransformContext(
-                invokeSet,
-                transformers,
-                ACTION_MODIFY
-        );
+        return new TransformContext(invokeSet, transformers);
     }
 
     protected void runWithFile(RunFileFunc runFileFunc) throws Exception {

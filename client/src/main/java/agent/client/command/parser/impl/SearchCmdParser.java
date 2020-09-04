@@ -1,9 +1,9 @@
 package agent.client.command.parser.impl;
 
 import agent.base.args.parse.CmdParamParser;
-import agent.base.help.HelpArg;
 import agent.base.args.parse.CmdParams;
-import agent.client.args.parse.DefaultCmdParamParser;
+import agent.base.help.HelpArg;
+import agent.client.args.parse.DefaultParamParser;
 import agent.common.message.command.Command;
 import agent.common.message.command.impl.MapCommand;
 
@@ -14,7 +14,7 @@ import java.util.Map;
 import static agent.common.args.parse.FilterOptUtils.getFilterAndChainOptParsers;
 import static agent.common.message.MessageType.CMD_SEARCH;
 
-public class SearchCmdParser extends AbstractModuleCmdParser<CmdParams> {
+public class SearchCmdParser extends AbstractModuleCmdParser {
     @Override
     Command newCommand(Map<String, Object> data) {
         return new MapCommand(CMD_SEARCH, data);
@@ -22,7 +22,7 @@ public class SearchCmdParser extends AbstractModuleCmdParser<CmdParams> {
 
     @Override
     CmdParamParser<CmdParams> createParamParser() {
-        return new DefaultCmdParamParser(
+        return new DefaultParamParser(
                 getFilterAndChainOptParsers()
         );
     }

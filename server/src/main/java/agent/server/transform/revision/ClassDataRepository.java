@@ -78,6 +78,10 @@ public class ClassDataRepository {
         currentDataStore.save(clazz, data);
     }
 
+    public void removeClassData(Class<?> clazz) {
+        currentDataStore.remove(clazz);
+    }
+
     private byte[] loadClassDataFromResource(Class<?> clazz) {
         return TimeMeasureUtils.run(
                 () -> {

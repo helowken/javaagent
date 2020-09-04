@@ -5,7 +5,7 @@ import agent.base.help.HelpArg;
 import agent.base.utils.TypeObject;
 import agent.base.utils.Utils;
 import agent.base.args.parse.CmdParams;
-import agent.client.args.parse.DefaultCmdParamParser;
+import agent.client.args.parse.DefaultParamParser;
 import agent.client.command.parser.exception.UnknownArgException;
 import agent.common.args.parse.FilterOptUtils;
 import agent.common.config.InfoQuery;
@@ -36,7 +36,7 @@ public class InfoCmdParser extends AbstractCmdParser<CmdParams> {
 
     @Override
     CmdParamParser createParamParser() {
-        return new DefaultCmdParamParser(
+        return new DefaultParamParser(
                 getFilterOptParsers()
         );
     }

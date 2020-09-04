@@ -1,35 +1,26 @@
 package agent.client.command.parser.impl;
 
 import agent.base.args.parse.CmdParamParser;
+import agent.base.args.parse.CmdParams;
 import agent.base.args.parse.CommonOptConfigs;
-import agent.base.help.HelpArg;
 import agent.base.help.HelpInfo;
 import agent.base.help.HelpSingleValue;
 import agent.base.utils.Utils;
-import agent.base.args.parse.CmdParams;
-import agent.client.args.parse.DefaultCmdParamParser;
+import agent.client.args.parse.DefaultParamParser;
 import agent.client.command.parser.CmdHelpUtils;
 import agent.client.command.parser.CmdItem;
 import agent.client.command.parser.CommandParserMgr;
 import agent.common.message.command.Command;
 
-import java.util.Collections;
-import java.util.List;
-
 public class HelpCmdParser extends AbstractCmdParser<CmdParams> {
     @Override
     CmdParamParser<CmdParams> createParamParser() {
-        return DefaultCmdParamParser.DEFAULT;
+        return DefaultParamParser.DEFAULT;
     }
 
     @Override
     Command createCommand(CmdParams params) {
         throw new UnsupportedOperationException();
-    }
-
-    @Override
-    List<HelpArg> createHelpArgList() {
-        return Collections.emptyList();
     }
 
     @Override

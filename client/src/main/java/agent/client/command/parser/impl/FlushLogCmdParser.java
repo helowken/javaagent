@@ -3,7 +3,7 @@ package agent.client.command.parser.impl;
 import agent.base.args.parse.CmdParamParser;
 import agent.base.help.HelpArg;
 import agent.base.args.parse.CmdParams;
-import agent.client.args.parse.DefaultCmdParamParser;
+import agent.client.args.parse.DefaultParamParser;
 import agent.common.message.command.Command;
 import agent.common.message.command.impl.FlushLogCommand;
 
@@ -25,7 +25,7 @@ public class FlushLogCmdParser extends AbstractCmdParser {
 
     @Override
     CmdParamParser createParamParser() {
-        return DefaultCmdParamParser.DEFAULT;
+        return DefaultParamParser.DEFAULT;
     }
 
     @Override

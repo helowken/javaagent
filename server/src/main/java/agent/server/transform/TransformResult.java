@@ -15,7 +15,7 @@ public class TransformResult {
         );
     }
 
-    void addReTransformError(Class<?> clazz, Throwable error) {
+    public void addReTransformError(Class<?> clazz, Throwable error) {
         this.reTransformErrorItemList.add(
                 new ErrorItem(clazz, error, null)
         );

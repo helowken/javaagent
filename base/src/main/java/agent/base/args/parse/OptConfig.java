@@ -1,7 +1,5 @@
 package agent.base.args.parse;
 
-import agent.base.utils.Utils;
-
 public class OptConfig {
     private static final String PREFIX = "-";
     private static final String PREFIX2 = "--";
@@ -45,8 +43,13 @@ public class OptConfig {
         this.allowMulti = allowMulti;
     }
 
-    public String getDisplayName() {
-        return Utils.isBlank(fullName) ? name : fullName;
+    String getDisplayName() {
+        String s = fullName;
+        if (s == null)
+            s = name;
+        else if (name != null)
+            s += ", " + name;
+        return s;
     }
 
     public String getName() {

@@ -1,12 +1,13 @@
 package agent.client.command.parser.impl;
 
 import agent.base.args.parse.CmdParamParser;
+import agent.base.args.parse.CmdParams;
 import agent.base.args.parse.KeyValueOptParser;
 import agent.base.exception.ArgMissingException;
 import agent.base.help.HelpArg;
+import agent.base.utils.FileUtils;
 import agent.base.utils.Utils;
-import agent.base.args.parse.CmdParams;
-import agent.client.args.parse.DefaultCmdParamParser;
+import agent.client.args.parse.DefaultParamParser;
 import agent.client.args.parse.TransformOptConfigs;
 import agent.common.config.ModuleConfig;
 import agent.common.config.TransformerConfig;
@@ -21,7 +22,7 @@ import static agent.common.args.parse.FilterOptUtils.getFilterAndChainOptParsers
 import static agent.common.args.parse.FilterOptUtils.merge;
 import static agent.common.message.MessageType.CMD_TRANSFORM;
 
-abstract class AbstractTransformCmdParser extends AbstractModuleCmdParser<CmdParams> {
+abstract class AbstractTransformCmdParser extends AbstractModuleCmdParser {
     private static final String REF_SEP = ":";
 
     abstract String getTransformerKey();
@@ -38,7 +39,7 @@ abstract class AbstractTransformCmdParser extends AbstractModuleCmdParser<CmdPar
 
     @Override
     CmdParamParser<CmdParams> createParamParser() {
-        return new DefaultCmdParamParser(
+        return new DefaultParamParser(
                 merge(
                         getFilterAndChainOptParsers(),
                         new KeyValueOptParser(
@@ -71,7 +72,9 @@ abstract class AbstractTransformCmdParser extends AbstractModuleCmdParser<CmdPar
                                 TransformOptConfigs.getTransformId(
                                         params.getOpts()
                                 ),
-                                params.getArgs()[0]
+                                FileUtils.getAbsolutePath(
+                                        params.getArgs()[0]
+                                )
                         )
                 )
         );

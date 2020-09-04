@@ -10,15 +10,15 @@ import java.util.List;
 
 import static agent.common.args.parse.FilterOptUtils.getHelpOptParser;
 
-public class DefaultCmdParamParser extends AbstractCmdParamParser<CmdParams> {
-    public static final DefaultCmdParamParser DEFAULT = new DefaultCmdParamParser(
+public class DefaultParamParser extends AbstractCmdParamParser<CmdParams> {
+    public static final DefaultParamParser DEFAULT = new DefaultParamParser(
             Collections.singletonList(
                     getHelpOptParser()
             )
     );
     private final List<OptParser> optParsers;
 
-    public DefaultCmdParamParser(List<OptParser> optParsers) {
+    public DefaultParamParser(List<OptParser> optParsers) {
         this.optParsers = Collections.unmodifiableList(optParsers);
     }
 

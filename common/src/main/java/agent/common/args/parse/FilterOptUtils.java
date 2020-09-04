@@ -10,6 +10,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class FilterOptUtils {
+    public static final String FILTER_RULE_DESC = "\nFilter rules: \"^\" means exclusion. Multiple items are separated by \",\". ";
     private static final String SEP = ",";
     private static final String EXCLUDE = "^";
     private static final int EXCLUDE_LEN = EXCLUDE.length();
@@ -158,6 +159,15 @@ public class FilterOptUtils {
                 new KeyValueOptParser(
                         FilterOptConfigs.getSuite(),
                         ChainFilterOptConfigs.getSuite()
+                )
+        );
+    }
+
+    public static List<OptParser> getMatchClassFilterOptParsers() {
+        return Arrays.asList(
+                getHelpOptParser(),
+                new KeyValueOptParser(
+                        FilterOptConfigs.matchClassOpt
                 )
         );
     }

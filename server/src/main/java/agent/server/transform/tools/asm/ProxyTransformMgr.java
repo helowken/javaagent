@@ -32,6 +32,22 @@ public class ProxyTransformMgr {
         return getCallSite(invokeId).getPosToDisplayStrings();
     }
 
+    public void reset(Collection<Class<?>> classes) {
+        DestInvokeIdRegistry.getInstance().run(
+                classToInvokeToId -> {
+                    classes.forEach(
+                            clazz -> {
+                                Map<DestInvoke, Integer> invokeToId = classToInvokeToId.remove(clazz);
+                                if (invokeToId != null)
+                                    invokeToId.values().forEach(idToCallSite::remove);
+                                ClassDataRepository.getInstance().removeClassData(clazz);
+                            }
+                    );
+                    return null;
+                }
+        );
+    }
+
     public List<ProxyResult> transform(Collection<ProxyRegInfo> regInfos, Function<Class<?>, byte[]> classDataFunc) {
         Map<Class<?>, ProxyItem> classToItem = new HashMap<>();
         regInfos.forEach(

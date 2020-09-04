@@ -5,6 +5,7 @@ import agent.server.ServerListener;
 
 import java.lang.instrument.ClassFileTransformer;
 import java.lang.instrument.Instrumentation;
+import java.util.stream.Stream;
 
 public class InstrumentationMgr implements ServerListener {
     private static final InstrumentationMgr instance = new InstrumentationMgr();
@@ -37,11 +38,28 @@ public class InstrumentationMgr implements ServerListener {
     public synchronized void retransform(ClassFileTransformer transformer, Class<?>... classes) throws Throwable {
         if (classes == null || classes.length == 0)
             throw new IllegalArgumentException("No class!");
+        retransform(
+                instru -> instru.retransformClasses(classes),
+                transformer
+        );
+    }
+
+    public synchronized void retransform(TransformFunc func, ClassFileTransformer... transformers) throws Throwable {
+        if (transformers == null || transformers.length == 0)
+            throw new IllegalArgumentException("No transformers!");
         try {
-            instrumentation.addTransformer(transformer, true);
-            instrumentation.retransformClasses(classes);
+            Stream.of(transformers).forEach(
+                    transformer -> instrumentation.addTransformer(transformer, true)
+            );
+            func.exec(instrumentation);
         } finally {
-            instrumentation.removeTransformer(transformer);
+            Stream.of(transformers).forEach(
+                    transformer -> instrumentation.removeTransformer(transformer)
+            );
         }
+    }
+
+    public interface TransformFunc {
+        void exec(Instrumentation instrumentation) throws Exception;
     }
 }

@@ -3,7 +3,6 @@ package test.server.log;
 import agent.base.utils.FileUtils;
 import agent.server.event.EventListenerMgr;
 import agent.server.event.impl.FlushLogEvent;
-import agent.server.event.impl.ResetEvent;
 import agent.server.utils.log.LogMgr;
 import agent.server.utils.log.binary.BinaryLogItem;
 import agent.server.utils.log.binary.BinaryLogItemPool;
@@ -74,7 +73,6 @@ public class BinaryLogWriterTest {
             endLatch.await();
             long et = System.nanoTime();
             EventListenerMgr.fireEvent(new FlushLogEvent(logFile.getAbsolutePath()));
-            EventListenerMgr.fireEvent(new ResetEvent(true));
             return et - st;
         } finally {
             FileUtils.removeFileOrDir(tmpDir);

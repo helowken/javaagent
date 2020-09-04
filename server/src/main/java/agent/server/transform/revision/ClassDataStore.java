@@ -1,5 +1,6 @@
 package agent.server.transform.revision;
 
+import agent.base.utils.FileUtils;
 import agent.base.utils.IOUtils;
 import agent.base.utils.Logger;
 import agent.base.utils.StringItem;
@@ -31,6 +32,12 @@ public class ClassDataStore {
             throw new RuntimeException("Create dir failed: " + parentFile.getAbsolutePath());
         logger.debug("Save class {} [loader={}] data to: {}", clazz.getName(), clazz.getClassLoader(), file.getAbsolutePath());
         IOUtils.writeBytes(file, data, false);
+    }
+
+    void remove(Class<?> clazz) {
+        FileUtils.removeFileOrDir(
+                getClassDataFile(clazz)
+        );
     }
 
     byte[] load(Class<?> clazz) {

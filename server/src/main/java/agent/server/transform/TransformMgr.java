@@ -8,8 +8,6 @@ import agent.common.config.TransformerConfig;
 import agent.invoke.DestInvoke;
 import agent.invoke.proxy.ProxyRegInfo;
 import agent.invoke.proxy.ProxyResult;
-import agent.server.event.EventListenerMgr;
-import agent.server.event.impl.TransformClassEvent;
 import agent.server.transform.impl.DestInvokeIdRegistry;
 import agent.server.transform.impl.UpdateClassDataTransformer;
 import agent.server.transform.revision.ClassDataRepository;
@@ -20,9 +18,9 @@ import agent.server.transform.search.InvokeSearcher;
 import agent.server.transform.tools.asm.ProxyTransformMgr;
 
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static agent.server.transform.TransformContext.ACTION_MODIFY;
 
 public class TransformMgr {
     private static final Logger logger = Logger.getLogger(TransformMgr.class);
@@ -56,7 +54,7 @@ public class TransformMgr {
                 );
 
         return transform(
-                new TransformContext(invokeSet, transformerList, ACTION_MODIFY)
+                new TransformContext(invokeSet, transformerList)
         );
     }
 
@@ -132,16 +130,7 @@ public class TransformMgr {
                     "t3: {}"
             );
             TimeMeasureUtils.run(
-                    () -> {
-                        ProxyTransformMgr.getInstance().reg(validRsList);
-                        EventListenerMgr.fireEvent(
-                                new TransformClassEvent(
-                                        transformContext.getAction(),
-                                        validRsList.stream()
-                                                .map(ProxyResult::getTargetClass)
-                                                .collect(Collectors.toSet()))
-                        );
-                    },
+                    () -> ProxyTransformMgr.getInstance().reg(validRsList),
                     "t4: {}"
             );
         } else {
@@ -188,23 +177,36 @@ public class TransformMgr {
     }
 
     private List<ProxyResult> reTransform(TransformResult transformResult, List<ProxyResult> proxyResults) {
-        UpdateClassDataTransformer transformer = new UpdateClassDataTransformer(
-                ClassDataRepository.getInstance()::getCurrentClassData
+        return doReTransform(
+                transformResult,
+                new UpdateClassDataTransformer(
+                        ClassDataRepository.getInstance()::getCurrentClassData
+                ),
+                proxyResults,
+                ProxyResult::getTargetClass
         );
-        List<ProxyResult> validRsList = new ArrayList<>();
-        proxyResults.forEach(
-                proxyResult -> {
-                    Class<?> clazz = proxyResult.getTargetClass();
-                    try {
-                        InstrumentationMgr.getInstance().retransform(transformer, clazz);
-                        validRsList.add(proxyResult);
-                    } catch (Throwable t) {
-                        transformResult.addReTransformError(clazz, t);
-                        logger.error("Update class data failed: {}", t, clazz);
-                    }
-                }
+    }
+
+    public <P> List<P> doReTransform(TransformResult transformResult, UpdateClassDataTransformer transformer,
+                                     List<P> dataList, Function<P, Class<?>> convertFunc) {
+        List<P> validRsList = new ArrayList<>();
+        Utils.wrapToRtError(
+                () -> InstrumentationMgr.getInstance().retransform(
+                        instru -> dataList.forEach(
+                                data -> {
+                                    Class<?> clazz = convertFunc.apply(data);
+                                    try {
+                                        instru.retransformClasses(clazz);
+                                        validRsList.add(data);
+                                    } catch (Throwable t) {
+                                        transformResult.addReTransformError(clazz, t);
+                                        logger.error("Update class data failed: {}", t, clazz);
+                                    }
+                                }
+                        ),
+                        transformer
+                )
         );
         return validRsList;
     }
-
 }

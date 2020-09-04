@@ -6,17 +6,17 @@ import agent.base.args.parse.Opts;
 import agent.base.utils.Utils;
 
 public class FilterOptConfigs {
-    public static final String FILTER_RULE_DESC = "\nFilter rules: \"^\" means exclusion. Multiple items are separated by \",\". ";
     private static final String KEY_MATCH_CLASS = "MATCH_CLASS";
     private static final String KEY_MATCH_METHOD = "MATCH_METHOD";
     private static final String KEY_MATCH_CONSTRUCTOR = "MATCH_CONSTRUCTOR";
+    static final OptConfig matchClassOpt = new OptConfig(
+            "-c",
+            "--match-class",
+            KEY_MATCH_CLASS,
+            "Filter rules for classes."
+    );
     private static final OptConfigSuite suite = new OptConfigSuite(
-            new OptConfig(
-                    "-c",
-                    "--match-class",
-                    KEY_MATCH_CLASS,
-                    "Filter rules for classes."
-            ),
+            matchClassOpt,
             new OptConfig(
                     "-m",
                     "--match-method",
@@ -35,6 +35,10 @@ public class FilterOptConfigs {
         return suite;
     }
 
+    public static void checkClassStr(Opts opts) {
+        getClassStr(opts, true);
+    }
+
     public static String getClassStr(Opts opts, boolean notBlank) {
         return suite.get(
                 opts,
@@ -43,11 +47,11 @@ public class FilterOptConfigs {
         );
     }
 
-    public static String getMethodStr(Opts opts) {
+    static String getMethodStr(Opts opts) {
         return opts.get(KEY_MATCH_METHOD);
     }
 
-    public static String getConstructorStr(Opts opts) {
+    static String getConstructorStr(Opts opts) {
         return opts.get(KEY_MATCH_CONSTRUCTOR);
     }
 }

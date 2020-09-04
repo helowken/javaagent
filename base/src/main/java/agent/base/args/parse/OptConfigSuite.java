@@ -22,6 +22,12 @@ public class OptConfigSuite {
         );
     }
 
+    public boolean contains(OptConfig optConfig) {
+        return keyToOptConfig.containsKey(
+                optConfig.getKey()
+        );
+    }
+
     public OptConfig findByKey(String key) {
         OptConfig optConfig = keyToOptConfig.get(key);
         if (optConfig == null)

@@ -1,18 +1,20 @@
 package agent.client.command.parser.impl;
 
 import agent.base.args.parse.CmdParamParser;
-import agent.base.args.parse.OptConfig;
-import agent.base.help.HelpArg;
-import agent.base.help.HelpInfo;
-import agent.base.help.HelpSection;
-import agent.base.help.HelpUtils;
 import agent.base.args.parse.CmdParams;
+import agent.base.args.parse.OptConfig;
+import agent.base.help.*;
 import agent.client.command.parser.CmdItem;
 import agent.client.command.parser.CommandParser;
 import agent.client.command.parser.exception.TooFewArgsException;
+import agent.common.args.parse.ChainFilterOptConfigs;
+import agent.common.args.parse.FilterOptConfigs;
 import agent.common.message.command.Command;
 
+import java.util.Collections;
 import java.util.List;
+
+import static agent.common.args.parse.FilterOptUtils.FILTER_RULE_DESC;
 
 abstract class AbstractCmdParser<P extends CmdParams> implements CommandParser {
     private CmdParamParser<P> paramParser;
@@ -22,13 +24,27 @@ abstract class AbstractCmdParser<P extends CmdParams> implements CommandParser {
 
     abstract Command createCommand(P params);
 
-    abstract List<HelpArg> createHelpArgList();
+    List<HelpArg> createHelpArgList() {
+        return Collections.emptyList();
+    }
 
     HelpInfo getHelpUsage(P params) {
+        HelpInfo[] others = getParamParser().getOptConfigList()
+                .stream()
+                .anyMatch(
+                        optConfig -> FilterOptConfigs.getSuite().contains(optConfig) ||
+                                ChainFilterOptConfigs.getSuite().contains(optConfig)
+                ) ?
+                new HelpInfo[]{
+                        new HelpSingleValue(FILTER_RULE_DESC)
+                } :
+                new HelpInfo[0];
+
         return HelpUtils.getUsage(
                 getCmdNames(),
                 getParamParser().hasOptConfig(),
-                getHelpArgList()
+                getHelpArgList(),
+                others
         );
     }
 
@@ -42,7 +58,7 @@ abstract class AbstractCmdParser<P extends CmdParams> implements CommandParser {
             throw new TooFewArgsException();
     }
 
-    synchronized List<HelpArg> getHelpArgList() {
+    private synchronized List<HelpArg> getHelpArgList() {
         if (argList == null)
             argList = createHelpArgList();
         return argList;
