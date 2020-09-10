@@ -3,6 +3,7 @@ package agent.base.utils;
 import javax.script.*;
 import java.util.Map;
 
+@SuppressWarnings("unchecked")
 public class ScriptUtils {
     private static volatile ScriptEngine engine;
     private static Bindings bindings;
@@ -14,20 +15,17 @@ public class ScriptUtils {
                     engine = new ScriptEngineManager().getEngineByName("nashorn");
                     if (engine == null)
                         throw new RuntimeException("No nashorn engine found.");
-                    ScriptContext context = new SimpleScriptContext();
-                    bindings = context.getBindings(ScriptContext.ENGINE_SCOPE);
+                    bindings = new SimpleScriptContext().getBindings(ScriptContext.ENGINE_SCOPE);
                 }
             }
         }
     }
 
-    @SuppressWarnings("unchecked")
     public static synchronized <T> T eval(String script, Map<String, Object> pvs) throws Exception {
         init();
         bindings.clear();
         bindings.putAll(pvs);
         return (T) engine.eval(script, bindings);
     }
-
 
 }

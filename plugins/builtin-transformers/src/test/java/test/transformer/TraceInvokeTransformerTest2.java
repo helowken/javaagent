@@ -75,25 +75,25 @@ public class TraceInvokeTransformerTest2 extends AbstractTest {
                             TraceResultParamParser parser = new TraceResultParamParser();
                             TraceInvokeResultHandler traceHandler = new TraceInvokeResultHandler();
                             TraceResultParams traceParams = parser.parse(
-                                    new String[]{"configFile", outputPath}
+                                    new String[]{outputPath}
                             );
                             traceHandler.exec(traceParams);
 
                             System.out.println("\n=================");
                             traceParams = parser.parse(
-                                    new String[]{"configFile", "-m", "recursive*", outputPath}
+                                    new String[]{"-m", "recursive*", outputPath}
                             );
                             traceHandler.exec(traceParams);
 
                             System.out.println("\n=================");
                             traceParams = parser.parse(
-                                    new String[]{"configFile", "-m", "recursive*", "-sv", "3", outputPath}
+                                    new String[]{"-m", "recursive*", "-sv", "3", outputPath}
                             );
                             traceHandler.exec(traceParams);
 
                             System.out.println("\n=================");
                             traceParams = parser.parse(
-                                    new String[]{"configFile", "-m", "load", "-sv", "1", outputPath}
+                                    new String[]{"-m", "load", "-sv", "1", outputPath}
                             );
                             traceHandler.exec(traceParams);
 
@@ -101,25 +101,25 @@ public class TraceInvokeTransformerTest2 extends AbstractTest {
                             CostTimeCallChainResultHandler costTimeHandler = new CostTimeCallChainResultHandler();
                             CostTimeCallChainResultParamParser timeParser = new CostTimeCallChainResultParamParser();
                             CostTimeResultParams costTimeParams = timeParser.parse(
-                                    new String[]{"configFile", outputPath2}
+                                    new String[]{outputPath2}
                             );
                             costTimeHandler.exec(costTimeParams);
 
                             System.out.println("\n=================");
                             costTimeParams = timeParser.parse(
-                                    new String[]{"configFile", "-m", "test", outputPath2}
+                                    new String[]{"-m", "test", outputPath2}
                             );
                             costTimeHandler.exec(costTimeParams);
 
                             System.out.println("\n=================");
                             costTimeParams = timeParser.parse(
-                                    new String[]{"configFile", "-cm", "recursive*", outputPath2}
+                                    new String[]{"-cm", "recursive*", outputPath2}
                             );
                             costTimeHandler.exec(costTimeParams);
 
                             System.out.println("\n=================");
                             costTimeParams = timeParser.parse(
-                                    new String[]{"configFile", "-cm", "recursive*", "-sv", "3", outputPath2}
+                                    new String[]{"-cm", "recursive*", "-sv", "3", outputPath2}
                             );
                             costTimeHandler.exec(costTimeParams);
 

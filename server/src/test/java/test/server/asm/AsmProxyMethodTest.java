@@ -18,7 +18,7 @@ public class AsmProxyMethodTest extends AbstractTest {
 
     @Test
     public void testBeforeInnerCall() throws Exception {
-        callWithoutArgs("beforeInnerCall");
+        callWithoutArgs("beforeInnerCall", false);
     }
 
     @Test
@@ -36,57 +36,57 @@ public class AsmProxyMethodTest extends AbstractTest {
     @Test
     public void testThrowException() throws Exception {
         String methodName = "throwException";
-        callError(methodName);
+        callError(methodName, false);
     }
 
     @Test
     public void testCallErrorFunc() throws Exception {
         String methodName = "callErrorFunc";
-        callError(methodName);
+        callError(methodName, false);
     }
 
     @Test
     public void testTryFinally() throws Exception {
         String methodName = "tryFinally";
-        callError(methodName);
+        callError(methodName, false);
     }
 
     @Test
     public void testTryCatch() throws Exception {
-        callWithoutArgs("tryCatch");
+        callWithoutArgs("tryCatch", true);
     }
 
     @Test
     public void testTryCatchThrow() throws Exception {
-        callError("tryCatchThrow");
+        callError("tryCatchThrow", true);
     }
 
     @Test
     public void testTrySyncThrow() throws Exception {
-        callError("trySyncThrow");
+        callError("trySyncThrow", false);
     }
 
     @Test
     public void trySyncMethodThrow() throws Exception {
-        callError("trySyncMethodThrow");
+        callError("trySyncMethodThrow", false);
     }
 
     @Test
     public void testTryNotCatch() throws Exception {
-        callError("tryNotCatch");
+        callError("tryNotCatch", false);
     }
 
     @Test
     public void testReturnPrimitive() throws Exception {
-        callWithoutArgs("returnPrimitive");
+        callWithoutArgs("returnPrimitive", false);
     }
 
     @Test
     public void testReturnVoid() throws Exception {
-        callWithoutArgs("returnVoid");
+        callWithoutArgs("returnVoid", false);
     }
 
-    private void callWithoutArgs(String methodName) throws Exception {
+    private void callWithoutArgs(String methodName, boolean catchError) throws Exception {
         List<String> logList = new ArrayList<>();
         Class<?> newAClass = AsmTestUtils.prepareClassMethod(count, logList, A.class, methodName);
         ReflectionUtils.invoke(
@@ -95,10 +95,10 @@ public class AsmProxyMethodTest extends AbstractTest {
                 new Class[0],
                 newAClass.newInstance()
         );
-        doCheck(count, logList, false);
+        doCheck(count, logList, catchError, false);
     }
 
-    private void callError(String methodName) throws Exception {
+    private void callError(String methodName, boolean catchError) throws Exception {
         List<String> logList = new ArrayList<>();
         Class<?> newAClass = AsmTestUtils.prepareClassMethod(count, logList, A.class, methodName);
         try {
@@ -115,7 +115,7 @@ public class AsmProxyMethodTest extends AbstractTest {
             assertTrue(t instanceof RuntimeException);
             assertEquals(errorMsg, t.getMessage());
         }
-        doCheck(count, logList, true);
+        doCheck(count, logList, catchError, true);
     }
 
     private void callWithArgs(String methodName) throws Exception {
@@ -136,7 +136,7 @@ public class AsmProxyMethodTest extends AbstractTest {
                 "sss",
                 (short) 111
         );
-        doCheck(count, logList, false);
+        doCheck(count, logList, false, false);
     }
 
     public static class A {

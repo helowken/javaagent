@@ -16,13 +16,12 @@ import java.io.File;
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import static agent.builtin.transformer.utils.DefaultValueConverter.*;
+
 
 public class TraceInvokeResultHandler extends AbstractResultHandler<Collection<Tree<TraceItem>>, TraceResultParams> {
     private static final Logger logger = Logger.getLogger(TraceInvokeResultHandler.class);
     private static final String indent = IndentUtils.getIndent(1);
-    private static final String KEY_CLASS = "class";
-    private static final String KEY_INDEX = "index";
-    private static final String KEY_VALUE = "value";
 
     @Override
     public void exec(TraceResultParams params) throws Exception {
@@ -84,7 +83,7 @@ public class TraceInvokeResultHandler extends AbstractResultHandler<Collection<T
                                     rsMap.remove(KEY_CLASS)
                             )
                     )
-            ).append(">:  ");
+            ).append(">");
         }
     }
 
@@ -101,6 +100,7 @@ public class TraceInvokeResultHandler extends AbstractResultHandler<Collection<T
 
     private StringBuilder append(StringBuilder sb, Map<String, Object> rsMap, TraceResultParams params) {
         appendClassName(sb, rsMap);
+        sb.append(": ");
         appendValue(sb, rsMap, params);
         int i = 0;
         for (Map.Entry<String, Object> entry : rsMap.entrySet()) {
@@ -213,6 +213,32 @@ public class TraceInvokeResultHandler extends AbstractResultHandler<Collection<T
         @Override
         protected Node<String> createNode(Node<TraceItem> node, Map<Integer, InvokeMetadata> idToMetadata,
                                           InvokeMetadata metadata, TraceResultParams params) {
+            return node.getData().getType() == TraceItem.TYPE_INVOKE ?
+                    createInvokeNode(node, idToMetadata, metadata, params) :
+                    createCatchNode(node, params);
+        }
+
+        private Node<String> createCatchNode(Node<TraceItem> node, TraceResultParams params) {
+            StringBuilder sb = new StringBuilder();
+            TraceItem item = node.getData();
+            if (params.isDisplayError()) {
+                appendError("Catch Error", sb, item, params);
+            } else {
+                sb.append("Catch Error: ");
+                appendClassName(
+                        sb,
+                        new TreeMap<>(
+                                item.getError()
+                        )
+                );
+            }
+            return new Node<>(
+                    sb.toString()
+            );
+        }
+
+        private Node<String> createInvokeNode(Node<TraceItem> node, Map<Integer, InvokeMetadata> idToMetadata,
+                                              InvokeMetadata metadata, TraceResultParams params) {
             StringBuilder sb = new StringBuilder();
             TraceItem item = node.getData();
             if (params.isDisplayTime())
@@ -252,16 +278,20 @@ public class TraceInvokeResultHandler extends AbstractResultHandler<Collection<T
             }
             if (item.hasError() && params.isDisplayError()) {
                 addWrapIfNeeded(sb);
-                append(
-                        sb.append("Error: \n").append(indent),
-                        new TreeMap<>(
-                                item.getError()
-                        ),
-                        params
-                );
+                appendError("Throw Error", sb, item, params);
             }
             return new Node<>(
                     sb.toString()
+            );
+        }
+
+        private void appendError(String prefix, StringBuilder sb, TraceItem item, TraceResultParams params) {
+            append(
+                    sb.append(prefix).append(": \n").append(indent),
+                    new TreeMap<>(
+                            item.getError()
+                    ),
+                    params
             );
         }
     }

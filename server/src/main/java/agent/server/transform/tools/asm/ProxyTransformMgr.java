@@ -159,7 +159,7 @@ public class ProxyTransformMgr {
         getCallSite(invokeId).invokeBefore(instanceOrNull, args);
     }
 
-    public void onReturning(int invokeId, Object instanceOrNull, Object returnValue) throws Throwable {
+    public void onReturning(int invokeId, Object instanceOrNull, Object returnValue)throws Throwable  {
         getCallSite(invokeId).invokeOnReturning(instanceOrNull, returnValue);
     }
 
@@ -167,7 +167,11 @@ public class ProxyTransformMgr {
         getCallSite(invokeId).invokeOnThrowing(instanceOrNull, error);
     }
 
-    public void onBeforeInnerCall(long callNum, String methodName, Object[] args) throws Throwable {
+    public void onCatching(int invokeId, Object instanceOrNull, Throwable error) {
+        getCallSite(invokeId).invokeOnCatching(instanceOrNull, error);
+    }
+
+    public void onBeforeInnerCall(long callNum, String methodName, Object[] args) {
         String[] ts = methodName.split("#");
         System.out.println(
                 "Before Inner Call " + callNum + ": " + ts[0] + " # " + InvokeDescriptorUtils.descToText(ts[1]) +
@@ -177,7 +181,7 @@ public class ProxyTransformMgr {
         );
     }
 
-    public void onAfterInnerCall(long callNum, Object returnValue) throws Throwable {
+    public void onAfterInnerCall(long callNum, Object returnValue) {
         System.out.println(
                 "After Inner Call " + callNum + ": " + returnValue
         );

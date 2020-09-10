@@ -4,6 +4,7 @@ public enum ProxyPosition {
     ON_BEFORE("onBefore"),
     ON_RETURNING("onReturning"),
     ON_THROWING("onThrowing"),
+    ON_CATCHING("onCatching"),
     ON_AFTER("onAfter");
 
     private final String name;

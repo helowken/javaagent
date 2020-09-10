@@ -30,6 +30,14 @@ public class TestProxyB {
         );
     }
 
+    public void testOnCatching(Throwable error) {
+        this.logList.add("onCatching-" + count);
+        System.out.println(
+                "==== test on catching: " + count +
+                        ", Error: " + error
+        );
+    }
+
     public void testOnThrowing(Throwable error) {
         this.logList.add("onThrowing-" + count);
         System.out.println(

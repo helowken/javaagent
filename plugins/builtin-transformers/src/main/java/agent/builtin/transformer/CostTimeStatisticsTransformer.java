@@ -26,7 +26,7 @@ public class CostTimeStatisticsTransformer extends CallChainTransformer {
     }
 
 
-    private static class Config extends CallChainTimeConfig<InvokeTimeItem> {
+    private static class Config extends CallChainTimeConfig<InvokeTimeItem, InvokeTimeItem> {
         @Override
         protected InvokeTimeItem newData(Object[] args, Class<?>[] argTypes, DestInvoke destInvoke, Object[] otherArgs) {
             return new InvokeTimeItem();
@@ -49,6 +49,11 @@ public class CostTimeStatisticsTransformer extends CallChainTransformer {
                     }
             );
             LogMgr.logBinary(logKey, logItem);
+        }
+
+        @Override
+        protected InvokeTimeItem convertTo(InvokeTimeItem data) {
+            return data;
         }
     }
 

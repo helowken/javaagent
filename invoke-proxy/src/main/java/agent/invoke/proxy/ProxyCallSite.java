@@ -19,6 +19,7 @@ public class ProxyCallSite {
         posToProxyClass.put(ON_BEFORE, ProxyCallBefore.class);
         posToProxyClass.put(ON_RETURNING, ProxyCallOnReturning.class);
         posToProxyClass.put(ON_THROWING, ProxyCallOnThrowing.class);
+        posToProxyClass.put(ON_CATCHING, ProxyCallOnCatching.class);
         posToProxyClass.put(ON_AFTER, ProxyCallAfter.class);
     }
 
@@ -84,6 +85,10 @@ public class ProxyCallSite {
     public void invokeOnThrowing(Object instanceOrNull, Object pv) {
         invoke(ON_THROWING, instanceOrNull, pv);
         invoke(ON_AFTER, instanceOrNull, null);
+    }
+
+    public void invokeOnCatching(Object instanceOrNull, Object pv) {
+        invoke(ON_CATCHING, instanceOrNull, pv);
     }
 
     private static class CallQueue {

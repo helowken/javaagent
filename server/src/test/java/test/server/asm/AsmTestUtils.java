@@ -25,16 +25,18 @@ import static org.junit.Assert.assertFalse;
 
 public class AsmTestUtils {
 
-    static void doCheck(int count, List<String> logList, boolean throwError) {
+    static void doCheck(int count, List<String> logList, boolean catchError, boolean throwError) {
         assertEquals(
-                newExpectedList(count, throwError),
+                newExpectedList(count, catchError, throwError),
                 logList
         );
     }
 
-    private static List<String> newExpectedList(int count, boolean throwError) {
+    private static List<String> newExpectedList(int count, boolean catchError, boolean throwError) {
         List<String> prefixList = new ArrayList<>();
         prefixList.add("before");
+        if (catchError)
+            prefixList.add("onCatching");
         prefixList.add(throwError ? "onThrowing" : "onReturning");
         prefixList.add("after");
 
@@ -125,6 +127,14 @@ public class AsmTestUtils {
                             b,
                             ReflectionUtils.findFirstMethod(TestProxyB.class, "testOnReturning"),
                             DEFAULT_ON_RETURNING,
+                            null,
+                            tag
+                    )
+            ).addOnCatching(
+                    new ProxyCallInfo(
+                            b,
+                            ReflectionUtils.findFirstMethod(TestProxyB.class, "testOnCatching"),
+                            DEFAULT_ON_CATCHING,
                             null,
                             tag
                     )

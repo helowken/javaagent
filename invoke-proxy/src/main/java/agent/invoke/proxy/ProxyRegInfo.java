@@ -44,6 +44,10 @@ public class ProxyRegInfo {
         return add(ON_THROWING, proxyCallInfos);
     }
 
+    public ProxyRegInfo addOnCatching(ProxyCallInfo... proxyCallInfos) {
+        return add(ON_CATCHING, proxyCallInfos);
+    }
+
     public ProxyRegInfo addAfter(ProxyCallInfo... proxyCallInfos) {
         return add(ON_AFTER, proxyCallInfos);
     }

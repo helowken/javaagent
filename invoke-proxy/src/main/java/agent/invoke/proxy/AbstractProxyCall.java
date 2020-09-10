@@ -16,6 +16,7 @@ abstract class AbstractProxyCall implements ProxyCall {
     private static final int MASK_POS_BEFORE = DEFAULT_BEFORE | DEFAULT_METADATA;
     private static final int MASK_POS_ON_RETURNING = DEFAULT_ON_RETURNING | DEFAULT_METADATA;
     private static final int MASK_POS_ON_THROWING = DEFAULT_ON_THROWING | DEFAULT_METADATA;
+    private static final int MASK_POS_ON_CATCHING = DEFAULT_ON_CATCHING | DEFAULT_METADATA;
     private static final int MASK_POS_AFTER = DEFAULT_AFTER | DEFAULT_METADATA;
 
     private final ProxyPosition position;
@@ -65,6 +66,8 @@ abstract class AbstractProxyCall implements ProxyCall {
                 return MASK_POS_BEFORE & mask;
             case ON_RETURNING:
                 return MASK_POS_ON_RETURNING & mask;
+            case ON_CATCHING:
+                return MASK_POS_ON_CATCHING & mask;
             case ON_THROWING:
                 return MASK_POS_ON_THROWING & mask;
             case ON_AFTER:

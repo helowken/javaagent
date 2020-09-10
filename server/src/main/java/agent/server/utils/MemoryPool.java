@@ -31,10 +31,12 @@ public class MemoryPool {
     }
 
     public static void put(ByteBuffer bb) {
-        pool.add(bb);
+        // If queue is full, just ignore it
+        pool.offer(bb);
     }
 
     public static void put(Collection<ByteBuffer> bbs) {
+        // queue status may change between full and have space during this loop
         bbs.forEach(MemoryPool::put);
     }
 }

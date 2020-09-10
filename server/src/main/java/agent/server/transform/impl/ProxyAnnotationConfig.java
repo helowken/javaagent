@@ -2,10 +2,7 @@ package agent.server.transform.impl;
 
 import agent.base.utils.Logger;
 import agent.invoke.DestInvoke;
-import agent.server.transform.tools.asm.annotation.OnAfter;
-import agent.server.transform.tools.asm.annotation.OnBefore;
-import agent.server.transform.tools.asm.annotation.OnReturning;
-import agent.server.transform.tools.asm.annotation.OnThrowing;
+import agent.server.transform.tools.asm.annotation.*;
 
 import java.util.List;
 
@@ -16,7 +13,8 @@ public abstract class ProxyAnnotationConfig<T, R> {
     public static final int ARGS_ON_BEFORE = 1;
     public static final int ARGS_ON_RETURNING = 2;
     public static final int ARGS_ON_THROWING = 3;
-    public static final int ARGS_ON_AFTER = 4;
+    public static final int ARGS_ON_CATCHING = 4;
+    public static final int ARGS_ON_AFTER = 5;
     private static final Logger logger = Logger.getLogger(ProxyAnnotationConfig.class);
     private final static Object dummy = new Object();
 
@@ -45,7 +43,7 @@ public abstract class ProxyAnnotationConfig<T, R> {
         }
         T data = newDataOnBefore(args, argTypes, destInvoke, otherArgs);
         if (data != null)
-            currAroundItem.add(data);
+            currAroundItem.push(data);
     }
 
     @OnReturning(mask = DEFAULT_ON_RETURNING | MASK_INVOKE, argsHint = ARGS_ON_RETURNING)
@@ -56,6 +54,20 @@ public abstract class ProxyAnnotationConfig<T, R> {
         if (currAroundItem != null)
             currAroundItem.complete(
                     data -> processOnReturning(data, returnValue, returnType, destInvoke, otherArgs),
+                    false,
+                    isAddResultToLast(false)
+            );
+    }
+
+    @OnCatching(mask = DEFAULT_ON_CATCHING | MASK_INVOKE, argsHint = ARGS_ON_CATCHING)
+    public void onCatching(Throwable error, DestInvoke destInvoke, Object... otherArgs) {
+        if (isBanning())
+            return;
+        AroundItem<T, R> currAroundItem = getAroundItem("catching", destInvoke);
+        if (currAroundItem != null)
+            currAroundItem.complete(
+                    data -> processOnCatching(data, error, destInvoke, otherArgs),
+                    true,
                     isAddResultToLast(false)
             );
     }
@@ -68,6 +80,7 @@ public abstract class ProxyAnnotationConfig<T, R> {
         if (currAroundItem != null)
             currAroundItem.complete(
                     data -> processOnThrowing(data, error, destInvoke, otherArgs),
+                    false,
                     isAddResultToLast(true)
             );
     }
@@ -109,6 +122,8 @@ public abstract class ProxyAnnotationConfig<T, R> {
     protected abstract T newDataOnBefore(Object[] args, Class<?>[] argTypes, DestInvoke destInvoke, Object[] otherArgs);
 
     protected abstract R processOnReturning(T data, Object returnValue, Class<?> returnType, DestInvoke destInvoke, Object[] otherArgs);
+
+    protected abstract R processOnCatching(T data, Throwable error, DestInvoke destInvoke, Object[] otherArgs);
 
     protected abstract R processOnThrowing(T data, Throwable error, DestInvoke destInvoke, Object[] otherArgs);
 

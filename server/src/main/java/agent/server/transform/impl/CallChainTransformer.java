@@ -25,12 +25,12 @@ public abstract class CallChainTransformer extends ProxyAnnotationConfigTransfor
         return null;
     }
 
-    public abstract static class CallChainConfig<T extends InvokeItem> extends ProxyAnnotationConfig<T, T> {
+    public abstract static class CallChainConfig<T extends InvokeItem, R> extends ProxyAnnotationConfig<T, R> {
 
         @Override
         protected T newDataOnBefore(Object[] args, Class<?>[] argTypes, DestInvoke destInvoke, Object[] otherArgs) {
             int invokeId = Utils.getArgValue(otherArgs, 0);
-            AroundItem<T, T> aroundItem = getAroundItem();
+            AroundItem<T, R> aroundItem = getAroundItem();
             InvokeItem parentItem = aroundItem.peek();
             T data = newData(args, argTypes, destInvoke, otherArgs);
             data.id = aroundItem.nextSeq();
@@ -43,10 +43,16 @@ public abstract class CallChainTransformer extends ProxyAnnotationConfigTransfor
         protected void processOnAfter(DestInvoke destInvoke, Object[] otherArgs) {
         }
 
+        @Override
+        protected R processOnCatching(T data, Throwable error, DestInvoke destInvoke, Object[] otherArgs) {
+            return null;
+        }
+
         protected abstract T newData(Object[] args, Class<?>[] argTypes, DestInvoke destInvoke, Object[] otherArgs);
     }
 
-    public abstract static class CallChainTimeConfig<T extends InvokeTimeItem> extends CallChainConfig<T> {
+    public abstract static class CallChainTimeConfig<T extends InvokeTimeItem, R> extends CallChainConfig<T, R> {
+        protected abstract R convertTo(T data);
 
         @Override
         protected T newDataOnBefore(Object[] args, Class<?>[] argTypes, DestInvoke destInvoke, Object[] otherArgs) {
@@ -57,16 +63,16 @@ public abstract class CallChainTransformer extends ProxyAnnotationConfigTransfor
         }
 
         @Override
-        protected T processOnReturning(T data, Object returnValue, Class<?> returnType, DestInvoke destInvoke, Object[] otherArgs) {
+        protected R processOnReturning(T data, Object returnValue, Class<?> returnType, DestInvoke destInvoke, Object[] otherArgs) {
             data.endTime = System.nanoTime();
-            return data;
+            return convertTo(data);
         }
 
         @Override
-        protected T processOnThrowing(T data, Throwable error, DestInvoke destInvoke, Object[] otherArgs) {
+        protected R processOnThrowing(T data, Throwable error, DestInvoke destInvoke, Object[] otherArgs) {
             data.endTime = System.nanoTime();
             data.error = error;
-            return data;
+            return convertTo(data);
         }
     }
 

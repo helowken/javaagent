@@ -5,10 +5,7 @@ import agent.invoke.DestInvoke;
 import agent.invoke.proxy.ProxyCallInfo;
 import agent.invoke.proxy.ProxyRegInfo;
 import agent.server.transform.AnnotationConfigTransformer;
-import agent.server.transform.tools.asm.annotation.OnAfter;
-import agent.server.transform.tools.asm.annotation.OnBefore;
-import agent.server.transform.tools.asm.annotation.OnReturning;
-import agent.server.transform.tools.asm.annotation.OnThrowing;
+import agent.server.transform.tools.asm.annotation.*;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
@@ -98,6 +95,10 @@ public abstract class AbstractAnnotationConfigTransformer extends AbstractConfig
                     regInfo.addOnThrowing(
                             newCallInfo(destInvoke, anntClass, anntMethod, (OnThrowing) annt)
                     );
+                else if (OnCatching.class.equals(anntType))
+                    regInfo.addOnCatching(
+                            newCallInfo(destInvoke, anntClass, anntMethod, (OnCatching) annt)
+                    );
             }
         }
     }
@@ -133,6 +134,16 @@ public abstract class AbstractAnnotationConfigTransformer extends AbstractConfig
     }
 
     private ProxyCallInfo newCallInfo(DestInvoke destInvoke, Class<?> anntClass, Method anntMethod, OnThrowing annt) {
+        return newCallInfo(
+                destInvoke,
+                anntClass,
+                anntMethod,
+                annt.mask(),
+                annt.argsHint()
+        );
+    }
+
+    private ProxyCallInfo newCallInfo(DestInvoke destInvoke, Class<?> anntClass, Method anntMethod, OnCatching annt) {
         return newCallInfo(
                 destInvoke,
                 anntClass,

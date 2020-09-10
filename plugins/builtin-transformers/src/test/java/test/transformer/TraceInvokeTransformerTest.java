@@ -1,11 +1,8 @@
 package test.transformer;
 
-import agent.common.config.ConstructorFilterConfig;
 import agent.common.config.InvokeChainConfig;
-import agent.common.config.MethodFilterConfig;
 import org.junit.Test;
 
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;

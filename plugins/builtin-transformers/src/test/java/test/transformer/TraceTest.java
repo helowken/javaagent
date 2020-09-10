@@ -2,6 +2,8 @@ package test.transformer;
 
 import org.junit.Test;
 
+import java.io.FileNotFoundException;
+import java.net.NoRouteToHostException;
 import java.util.*;
 import java.util.stream.Stream;
 
@@ -15,6 +17,11 @@ public class TraceTest extends AbstractTraceTest {
     public static class TestFilter3 {
 
         public void doFilter() {
+            try {
+                new ErrorObject();
+            } catch (Exception e) {
+            }
+
             ParamObject po = new ParamObject();
             System.out.println(po.test((byte) 0, (short) 1, 2, 3L, 4.4f, 5, true, "aaa"));
             System.out.println(po.test2(
@@ -49,6 +56,22 @@ public class TraceTest extends AbstractTraceTest {
 
     }
 
+    public static class ErrorObject {
+        public ErrorObject() {
+            try {
+                try {
+                    throw new RuntimeException("YYYYY");
+                } catch (Exception e) {
+                    System.out.println(2222);
+                    throw e;
+                }
+            } catch (Exception e) {
+                System.out.println(3333);
+                throw new IllegalArgumentException("HHHH", e);
+            }
+        }
+    }
+
     public static class ParamObject extends HashMap {
         private int a;
 
@@ -67,6 +90,19 @@ public class TraceTest extends AbstractTraceTest {
                     )
             );
             this.a = a;
+            List<Exception> errorList = Arrays.asList(
+                    new FileNotFoundException("File XXXXX not found."),
+                    new NoRouteToHostException(),
+                    new IllegalArgumentException("Argument aaa is invalid."),
+                    new Exception()
+            );
+            for (Exception error : errorList) {
+                try {
+                    throw error;
+                } catch (FileNotFoundException | NoRouteToHostException | IllegalArgumentException e) {
+                } catch (Exception e) {
+                }
+            }
         }
 
         private static int getCapacity() {
@@ -114,7 +150,7 @@ public class TraceTest extends AbstractTraceTest {
             test81();
         }
 
-        private void test81(){
+        private void test81() {
             test811();
         }
 

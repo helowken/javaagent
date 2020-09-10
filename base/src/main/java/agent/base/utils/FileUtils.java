@@ -97,9 +97,7 @@ public class FileUtils {
                     }
                 }
             }
-            if (!file.delete())
-                return false;
-            return true;
+            return file.delete();
         }
         return false;
     }

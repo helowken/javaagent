@@ -9,9 +9,12 @@ import java.util.List;
 import java.util.Map;
 
 public class TraceItem {
+    public static final int TYPE_INVOKE = 0;
+    public static final int TYPE_CATCH = 1;
     private int id;
     private int parentId;
     private int invokeId;
+    private int type;
     private long startTime;
     private long endTime;
     private List<Map<String, Object>> args;
@@ -94,9 +97,17 @@ public class TraceItem {
         return error != null;
     }
 
+    public int getType() {
+        return type;
+    }
+
+    public void setType(int type) {
+        this.type = type;
+    }
+
     public String costTimeString() {
         NumberFormat df = DecimalFormat.getInstance();
-        df .setRoundingMode(RoundingMode.CEILING);
+        df.setRoundingMode(RoundingMode.CEILING);
         df.setMaximumFractionDigits(3);
         return df.format(
                 ((double) (endTime - startTime)) / (1000 * 1000)

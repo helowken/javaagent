@@ -51,20 +51,20 @@ public class CostTimeStatisticsTransformerTest extends AbstractTest {
 
                     CostTimeCallChainResultParamParser callChainOptParser = new CostTimeCallChainResultParamParser();
                     CostTimeResultParams params = callChainOptParser.parse(
-                            new String[]{"configFile", outputPath}
+                            new String[]{outputPath}
                     );
                     CostTimeCallChainResultHandler chainHandler = new CostTimeCallChainResultHandler();
                     chainHandler.exec(params);
 
                     System.out.println("\n======= Use cache 1 =======");
                     params = callChainOptParser.parse(
-                            new String[]{"configFile", "-m", "service", "-e", "avg > 20", "-cm", "runApi4", outputPath}
+                            new String[]{"-m", "service", "-e", "avg > 20", "-cm", "runApi4", outputPath}
                     );
                     chainHandler.exec(params);
 
                     System.out.println("\n======= Use cache 2 =======");
                     params = callChainOptParser.parse(
-                            new String[]{"configFile", "-ce", "avg > 20", outputPath}
+                            new String[]{"-ce", "avg > 20", outputPath}
                     );
                     chainHandler.exec(params);
 
@@ -72,13 +72,13 @@ public class CostTimeStatisticsTransformerTest extends AbstractTest {
                     CostTimeInvokeResultHandler invokeHandler = new CostTimeInvokeResultHandler();
                     CostTimeInvokeResultParamParser invokeParser = new CostTimeInvokeResultParamParser();
                     params = invokeParser.parse(
-                            new String[]{"configFile", "-m", "runApi*,service", outputPath}
+                            new String[]{"-m", "runApi*,service", outputPath}
                     );
                     invokeHandler.exec(params);
 
                     System.out.println("\n======= Use cache 4 =======");
                     params = invokeParser.parse(
-                            new String[]{"configFile", "-e", "avg > 20", outputPath}
+                            new String[]{"-e", "avg > 20", outputPath}
                     );
                     invokeHandler.exec(params);
                 }

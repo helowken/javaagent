@@ -10,15 +10,15 @@ public class AroundItem<T, R> {
     private Stack<T> undergoing = new Stack<>();
     private LinkedList<R> completed = new LinkedList<>();
 
-    void add(T data) {
+    void push(T data) {
         undergoing.push(data);
     }
 
-    int nextSeq() {
+    public int nextSeq() {
         return ++seq;
     }
 
-    public T peek() {
+    T peek() {
         if (undergoing.isEmpty())
             return null;
         return undergoing.peek();
@@ -28,9 +28,9 @@ public class AroundItem<T, R> {
         return undergoing.size();
     }
 
-    void complete(ProcessDataFunc<T, R> func, boolean addToLast) {
+    void complete(ProcessDataFunc<T, R> func, boolean peek, boolean addToLast) {
         if (!undergoing.isEmpty() && func != null) {
-            T data = undergoing.pop();
+            T data = peek ? undergoing.peek() : undergoing.pop();
             R result = func.process(data);
             if (result != null) {
                 if (addToLast)

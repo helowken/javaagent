@@ -8,6 +8,7 @@ import agent.builtin.tools.result.parse.TraceResultParamParser;
 import agent.builtin.tools.result.parse.TraceResultParams;
 import agent.builtin.transformer.TraceInvokeTransformer;
 import agent.common.config.InvokeChainConfig;
+import agent.server.transform.tools.asm.AsmUtils;
 import test.server.AbstractTest;
 
 import java.util.HashMap;
@@ -64,6 +65,8 @@ abstract class AbstractTraceTest extends AbstractTest {
                                                             data
                                                     )
                                             );
+                                            System.out.println("========================");
+                                            AsmUtils.print(data, System.out);
                                         } catch (Throwable e) {
                                             e.printStackTrace();
                                         }
@@ -85,13 +88,13 @@ abstract class AbstractTraceTest extends AbstractTest {
                     TraceInvokeResultHandler handler = new TraceInvokeResultHandler();
 
                     TraceResultParams params = new TraceResultParamParser().parse(
-                            new String[]{"configFile", "-s", "10000", outputPath}
+                            new String[]{"-s", "10000", outputPath}
                     );
                     handler.exec(params);
 
                     System.out.println("\n==============================");
                     params = new TraceResultParamParser().parse(
-                            new String[]{"configFile", "-o", "' '", outputPath}
+                            new String[]{"-o", "' '", outputPath}
                     );
                     handler.exec(params);
                 }

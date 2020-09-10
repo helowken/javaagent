@@ -11,10 +11,10 @@ import java.util.Optional;
 import java.util.function.Function;
 
 public class DefaultValueConverter implements ValueConverter {
+    public static final String KEY_INDEX = "index";
+    public static final String KEY_CLASS = "class";
+    public static final String KEY_VALUE = "value";
     private static final Logger logger = Logger.getLogger(DefaultValueConverter.class);
-    private static final String KEY_INDEX = "index";
-    private static final String KEY_CLASS = "class";
-    private static final String KEY_VALUE = "value";
     private static final Map<Class<?>, Function<Object, String>> classToStrFunc = new HashMap<>();
 
     static {

@@ -1,6 +1,5 @@
 package agent.server.transform.revision;
 
-import agent.base.utils.FileUtils;
 import agent.base.utils.IOUtils;
 import agent.base.utils.Logger;
 import agent.base.utils.StringItem;
@@ -35,9 +34,17 @@ public class ClassDataStore {
     }
 
     void remove(Class<?> clazz) {
-        FileUtils.removeFileOrDir(
-                getClassDataFile(clazz)
-        );
+        File classFile = getClassDataFile(clazz);
+        classFile.delete();
+        File parentFile = classFile.getParentFile();
+        while (true) {
+            if (parentFile != null &&
+                    !dir.equals(parentFile.getAbsolutePath()) &&
+                    parentFile.delete())
+                parentFile = parentFile.getParentFile();
+            else
+                break;
+        }
     }
 
     byte[] load(Class<?> clazz) {
