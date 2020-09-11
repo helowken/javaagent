@@ -1,5 +1,6 @@
 package agent.server.utils.log.binary;
 
+import agent.common.struct.BBuff;
 import agent.server.utils.MemoryPool;
 import agent.server.utils.log.AbstractLogItem;
 
@@ -7,10 +8,13 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
-public class BinaryLogItem extends AbstractLogItem {
-    private static final int intSize = Integer.BYTES;
-    private static final int shortSize = Short.BYTES;
+public class BinaryLogItem extends AbstractLogItem implements BBuff {
     private static final int byteSize = Byte.BYTES;
+    private static final int shortSize = Short.BYTES;
+    private static final int intSize = Integer.BYTES;
+    private static final int longSize = Integer.BYTES;
+    private static final int floatSize = Float.BYTES;
+    private static final int doubleSize = Double.BYTES;
     private List<ByteBuffer> bufferList = new ArrayList<>();
     private ByteBuffer currBuffer;
     private long size = 0;
@@ -38,14 +42,62 @@ public class BinaryLogItem extends AbstractLogItem {
         updateSize(byteSize);
     }
 
+    @Override
+    public byte get() {
+        throw new UnsupportedOperationException();
+    }
+
     public void putShort(short v) {
         getBuffer(shortSize).putShort(v);
         updateSize(shortSize);
     }
 
+    @Override
+    public short getShort() {
+        throw new UnsupportedOperationException();
+    }
+
     public void putInt(int v) {
         getBuffer(intSize).putInt(v);
         updateSize(intSize);
+    }
+
+    @Override
+    public int getInt() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public float getFloat() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void putFloat(float v) {
+        getBuffer(floatSize).putFloat(v);
+        updateSize(floatSize);
+    }
+
+    @Override
+    public double getDouble() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void putDouble(double v) {
+        getBuffer(doubleSize).putDouble(v);
+        updateSize(doubleSize);
+    }
+
+    @Override
+    public long getLong() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void putLong(long v) {
+        getBuffer(longSize).putLong(v);
+        updateSize(longSize);
     }
 
     public void putIntToMark(int v) {

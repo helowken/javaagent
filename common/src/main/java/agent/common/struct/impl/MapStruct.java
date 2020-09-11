@@ -1,9 +1,9 @@
 package agent.common.struct.impl;
 
+import agent.common.struct.BBuff;
 import agent.common.struct.Struct;
 import agent.common.struct.StructField;
 
-import java.nio.ByteBuffer;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -58,12 +58,12 @@ public class MapStruct<K, V> implements Struct {
     }
 
     @Override
-    public void deserialize(ByteBuffer bb) {
+    public void deserialize(BBuff bb) {
         valueMap.putAll((Map) field.deserialize(bb));
     }
 
     @Override
-    public void serialize(ByteBuffer bb) {
+    public void serialize(BBuff bb) {
         field.serialize(bb, valueMap);
     }
 }

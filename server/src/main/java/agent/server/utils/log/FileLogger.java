@@ -10,4 +10,8 @@ public interface FileLogger<T extends LogItem> {
     LoggerType getType();
 
     LogConfig getLogConfig(String logKey);
+
+    void flushByKey(String logKey);
+
+    void close(String logKey);
 }

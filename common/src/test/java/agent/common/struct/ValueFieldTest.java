@@ -1,9 +1,8 @@
 package agent.common.struct;
 
-import org.junit.Test;
 import agent.common.buffer.BufferAllocator;
-import agent.common.struct.StructField;
 import agent.common.struct.impl.StructFields;
+import org.junit.Test;
 
 import java.nio.ByteBuffer;
 
@@ -25,10 +24,11 @@ public class ValueFieldTest {
 
     private void doTest(StructField field, Object value) {
         ByteBuffer bb = BufferAllocator.allocate(field.bytesSize(value));
+        BBuff buff = new DefaultBBuff(bb);
         assertTrue(field.matchType(value));
-        field.serialize(bb, value);
+        field.serialize(buff, value);
         bb.flip();
-        Object value2 = field.deserialize(bb);
+        Object value2 = field.deserialize(buff);
         assertTrue(field.matchType(value2));
         assertEquals(value, value2);
     }

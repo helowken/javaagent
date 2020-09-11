@@ -3,13 +3,13 @@ package agent.common.config;
 import java.util.Map;
 import java.util.Objects;
 
-public class TransformerConfig extends AbstractAgentConfig {
+public class TransformerConfig extends AbstractValidConfig {
     private String ref;
     private Map<String, Object> config;
 
     @Override
     public void validate() {
-        validate(ref, "Transformer reference");
+        validateNotBlank(ref, "Transformer reference");
     }
 
     public String getRef() {

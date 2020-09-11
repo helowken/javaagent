@@ -18,6 +18,7 @@ public class CmdExecutorMgr {
         registry.reg(CMD_SEARCH, new SearchCmdExecutor());
         registry.reg(CMD_INFO, new InfoCmdExecutor());
         registry.reg(CMD_SAVE_CLASS, new SaveClassCmdExecutor());
+        registry.reg(CMD_STACK_TRACE, new StackTraceCmdExecutor());
     }
 
     public static ExecResult exec(Command cmd) {

@@ -1,6 +1,7 @@
 package agent.common.struct.impl;
 
-import java.nio.ByteBuffer;
+
+import agent.common.struct.BBuff;
 
 class ByteStructField extends AbstractStructField {
     ByteStructField() {
@@ -13,13 +14,13 @@ class ByteStructField extends AbstractStructField {
     }
 
     @Override
-    public void serialize(ByteBuffer bb, Object value) {
+    public void serialize(BBuff bb, Object value) {
         byte v = value == null ? 0 : (byte) value;
         bb.put(v);
     }
 
     @Override
-    public Object deserialize(ByteBuffer bb) {
+    public Object deserialize(BBuff bb) {
         return bb.get();
     }
 }

@@ -19,6 +19,7 @@ class InfoCmdExecutor extends AbstractCmdExecutor {
                 new TypeObject<InfoQuery>() {
                 }
         );
+        infoQuery.validate();
         return DefaultExecResult.toSuccess(
                 CMD_INFO,
                 null,

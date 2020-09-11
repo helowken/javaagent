@@ -1,10 +1,17 @@
 package agent.common.config;
 
-public class SaveClassConfig {
+import static agent.base.utils.AssertUtils.assertNotNull;
+
+public class SaveClassConfig implements ValidConfig {
     private ClassFilterConfig classFilterConfig;
     private boolean withSubClasses;
     private boolean withSubTypes;
     private String outputPath;
+
+    @Override
+    public void validate() {
+        assertNotNull(outputPath);
+    }
 
     public ClassFilterConfig getClassFilterConfig() {
         return classFilterConfig;
@@ -37,4 +44,5 @@ public class SaveClassConfig {
     public void setOutputPath(String outputPath) {
         this.outputPath = outputPath;
     }
+
 }

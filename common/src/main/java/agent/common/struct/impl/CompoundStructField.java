@@ -1,9 +1,8 @@
 package agent.common.struct.impl;
 
-import agent.common.struct.StructField;
 import agent.base.utils.Pair;
-
-import java.nio.ByteBuffer;
+import agent.common.struct.BBuff;
+import agent.common.struct.StructField;
 
 
 abstract class CompoundStructField extends AbstractStructField {
@@ -20,7 +19,7 @@ abstract class CompoundStructField extends AbstractStructField {
         return size;
     }
 
-    void serializeField(ByteBuffer bb, Object value) {
+    void serializeField(BBuff bb, Object value) {
         if (value == null)
             bb.put(StructFields.T_NULL);
         else {
@@ -30,7 +29,7 @@ abstract class CompoundStructField extends AbstractStructField {
         }
     }
 
-    Object deserializeField(ByteBuffer bb) {
+    Object deserializeField(BBuff bb) {
         byte type = bb.get();
         if (type == StructFields.T_NULL)
             return null;

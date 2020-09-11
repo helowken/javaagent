@@ -1,5 +1,5 @@
 package agent.common.config;
 
-public interface AgentConfig {
+public interface ValidConfig {
     void validate();
 }

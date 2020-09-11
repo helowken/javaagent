@@ -30,6 +30,7 @@ class ResetCmdExecutor extends AbstractTransformCmdExecutor {
                 new TypeObject<ResetConfig>() {
                 }
         );
+        config.validate();
 
         TransformResult transformResult = new TransformResult();
         ProxyTransformMgr.getInstance().reset(

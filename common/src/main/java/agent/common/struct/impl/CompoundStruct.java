@@ -1,8 +1,8 @@
 package agent.common.struct.impl;
 
+import agent.common.struct.BBuff;
 import agent.common.struct.Struct;
 
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -17,12 +17,12 @@ public class CompoundStruct implements Struct {
     }
 
     @Override
-    public void deserialize(ByteBuffer bb) {
+    public void deserialize(BBuff bb) {
         structList.forEach(struct -> struct.deserialize(bb));
     }
 
     @Override
-    public void serialize(ByteBuffer bb) {
+    public void serialize(BBuff bb) {
         structList.forEach(struct -> struct.serialize(bb));
     }
 

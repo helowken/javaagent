@@ -1,6 +1,7 @@
 package agent.common.struct.impl;
 
-import java.nio.ByteBuffer;
+import agent.common.struct.BBuff;
+
 import java.util.Map;
 import java.util.function.Supplier;
 
@@ -25,7 +26,7 @@ class MapStructField<T extends Map> extends CompoundStructField {
     }
 
     @Override
-    public void serialize(ByteBuffer bb, Object value) {
+    public void serialize(BBuff bb, Object value) {
         Map map = (Map) value;
         bb.putInt(map.size());
         for (Object key : map.keySet()) {
@@ -35,7 +36,7 @@ class MapStructField<T extends Map> extends CompoundStructField {
     }
 
     @Override
-    public Object deserialize(ByteBuffer bb) {
+    public Object deserialize(BBuff bb) {
         int size = bb.getInt();
         Map map = newInstanceFunc.get();
         for (int i = 0; i < size; ++i) {

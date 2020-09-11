@@ -1,11 +1,9 @@
 package agent.common.struct;
 
-import java.nio.ByteBuffer;
-
 public interface Struct {
-    void deserialize(ByteBuffer bb);
+    void deserialize(BBuff bb);
 
-    void serialize(ByteBuffer bb);
+    void serialize(BBuff bb);
 
     int bytesSize();
 }

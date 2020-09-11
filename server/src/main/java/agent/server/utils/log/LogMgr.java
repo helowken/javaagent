@@ -55,11 +55,11 @@ public class LogMgr {
         return getLogger(loggerType).getLogConfig(logKey);
     }
 
-    public static LogConfig getTextLogConfig(String logKey) {
-        return getLogConfig(LoggerType.TEXT, logKey);
+    public static void flushBinary(String logKey) {
+        getLogger(LoggerType.BINARY).flushByKey(logKey);
     }
 
-    public static LogConfig getBinaryLogConfig(String logKey) {
-        return getLogConfig(LoggerType.BINARY, logKey);
+    public static void closeBinary(String logKey) {
+        getLogger(LoggerType.TEXT).close(logKey);
     }
 }

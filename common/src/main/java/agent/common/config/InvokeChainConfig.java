@@ -3,7 +3,7 @@ package agent.common.config;
 import java.util.Collections;
 import java.util.Objects;
 
-public class InvokeChainConfig extends AbstractAgentConfig {
+public class InvokeChainConfig extends AbstractValidConfig {
     private ClassFilterConfig matchClassFilter;
     private MethodFilterConfig matchMethodFilter;
     private ConstructorFilterConfig matchConstructorFilter;

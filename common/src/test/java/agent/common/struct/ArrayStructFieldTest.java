@@ -1,9 +1,8 @@
 package agent.common.struct;
 
-import org.junit.Test;
 import agent.common.buffer.BufferAllocator;
-import agent.common.struct.StructField;
 import agent.common.struct.impl.StructFields;
+import org.junit.Test;
 import utils.TestUtils;
 
 import java.lang.reflect.Array;
@@ -109,9 +108,10 @@ public class ArrayStructFieldTest {
             assertTrue(len >= 0);
         }
         ByteBuffer bb = BufferAllocator.allocate(field.bytesSize(value));
-        field.serialize(bb, value);
+        BBuff buff = new DefaultBBuff(bb);
+        field.serialize(buff, value);
         bb.flip();
-        Object value2 = field.deserialize(bb);
+        Object value2 = field.deserialize(buff);
         if (value != null) {
             if (Array.getLength(value) == 0)
                 assertNull(value2);

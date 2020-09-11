@@ -1,9 +1,9 @@
 package agent.common.struct.impl;
 
+import agent.common.struct.BBuff;
 import agent.common.struct.Struct;
 import agent.common.struct.StructField;
 
-import java.nio.ByteBuffer;
 import java.util.Collection;
 
 @SuppressWarnings("unchecked")
@@ -45,12 +45,12 @@ abstract class CollectionStruct<V, T extends Collection<V>> implements Struct {
     }
 
     @Override
-    public void deserialize(ByteBuffer bb) {
+    public void deserialize(BBuff bb) {
         coll.addAll((Collection) field.deserialize(bb));
     }
 
     @Override
-    public void serialize(ByteBuffer bb) {
+    public void serialize(BBuff bb) {
         field.serialize(bb, coll);
     }
 

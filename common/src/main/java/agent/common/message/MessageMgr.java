@@ -6,6 +6,7 @@ import agent.common.message.command.impl.EchoCommand;
 import agent.common.message.command.impl.FlushLogCommand;
 import agent.common.message.command.impl.MapCommand;
 import agent.common.message.result.DefaultExecResult;
+import agent.common.struct.DefaultBBuff;
 
 import java.nio.ByteBuffer;
 import java.util.HashMap;
@@ -58,7 +59,9 @@ public class MessageMgr {
         Message message = getMsgSupplier(type).apply(type);
         logger.debug("Message type: {}, version: {}", type, message.getVersion());
         bb.reset();
-        message.deserialize(bb);
+        message.deserialize(
+                new DefaultBBuff(bb)
+        );
         return message;
     }
 

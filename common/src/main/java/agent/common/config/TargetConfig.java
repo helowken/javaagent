@@ -2,7 +2,7 @@ package agent.common.config;
 
 import java.util.Objects;
 
-public class TargetConfig extends AbstractAgentConfig {
+public class TargetConfig extends AbstractValidConfig {
     private ClassFilterConfig classFilter;
     private MethodFilterConfig methodFilter;
     private ConstructorFilterConfig constructorFilter;
@@ -10,7 +10,7 @@ public class TargetConfig extends AbstractAgentConfig {
 
     @Override
     public void validate() {
-        validate(classFilter, "Class filter");
+        validateNotNull(classFilter, "Class filter");
         validateIfNotNull(methodFilter);
         validateIfNotNull(constructorFilter);
         validateIfNotNull(invokeChainConfig);

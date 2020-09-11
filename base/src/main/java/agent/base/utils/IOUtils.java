@@ -58,6 +58,12 @@ public class IOUtils {
         outputStream.write(bs);
     }
 
+    public static void write(String filePath, boolean append, WriteFunc writeFunc) throws IOException {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath, append))) {
+            writeFunc.exec(writer);
+        }
+    }
+
     public static void close(Closeable o) {
         if (o != null) {
             try {
@@ -74,5 +80,9 @@ public class IOUtils {
             } catch (IOException e) {
             }
         }
+    }
+
+    public interface WriteFunc {
+        void exec(Writer writer) throws IOException;
     }
 }

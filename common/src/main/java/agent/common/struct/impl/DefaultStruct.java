@@ -1,9 +1,9 @@
 package agent.common.struct.impl;
 
+import agent.common.struct.BBuff;
 import agent.common.struct.Struct;
 import agent.common.struct.StructField;
 
-import java.nio.ByteBuffer;
 
 public class DefaultStruct implements Struct {
     private StructField field;
@@ -25,12 +25,12 @@ public class DefaultStruct implements Struct {
     }
 
     @Override
-    public void deserialize(ByteBuffer bb) {
+    public void deserialize(BBuff bb) {
         set(field.deserialize(bb));
     }
 
     @Override
-    public void serialize(ByteBuffer bb) {
+    public void serialize(BBuff bb) {
         field.serialize(bb, value);
     }
 

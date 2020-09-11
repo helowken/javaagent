@@ -1,19 +1,18 @@
 package agent.common.message;
 
+import agent.common.struct.BBuff;
 import agent.common.struct.Struct;
-
-import java.nio.ByteBuffer;
 
 public abstract class StructMessage<T extends Struct> implements Message {
     private volatile T struct;
 
     @Override
-    public void deserialize(ByteBuffer bb) {
+    public void deserialize(BBuff bb) {
         getStruct().deserialize(bb);
     }
 
     @Override
-    public void serialize(ByteBuffer bb) {
+    public void serialize(BBuff bb) {
         getStruct().serialize(bb);
     }
 

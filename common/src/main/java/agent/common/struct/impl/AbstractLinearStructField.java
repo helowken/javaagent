@@ -1,7 +1,8 @@
 package agent.common.struct.impl;
 
+import agent.common.struct.BBuff;
+
 import java.lang.reflect.Array;
-import java.nio.ByteBuffer;
 
 abstract class AbstractLinearStructField extends CompoundStructField {
     AbstractLinearStructField(Class<?> valueClass) {
@@ -21,7 +22,7 @@ abstract class AbstractLinearStructField extends CompoundStructField {
     }
 
     @Override
-    public void serialize(ByteBuffer bb, Object value) {
+    public void serialize(BBuff bb, Object value) {
         Object array = valueToArray(value);
         if (array != null) {
             int len = Array.getLength(array);
@@ -35,7 +36,7 @@ abstract class AbstractLinearStructField extends CompoundStructField {
     }
 
     @Override
-    public Object deserialize(ByteBuffer bb) {
+    public Object deserialize(BBuff bb) {
         int len = bb.getInt();
         if (len == 0)
             return null;
@@ -48,9 +49,9 @@ abstract class AbstractLinearStructField extends CompoundStructField {
 
     abstract int elementSize(Object value);
 
-    abstract void serializeElement(ByteBuffer bb, Object value);
+    abstract void serializeElement(BBuff bb, Object value);
 
-    abstract Object deserializeElement(ByteBuffer bb);
+    abstract Object deserializeElement(BBuff bb);
 
     abstract Class<?> getElementClass();
 

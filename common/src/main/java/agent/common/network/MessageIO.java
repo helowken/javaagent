@@ -1,12 +1,13 @@
 package agent.common.network;
 
+import agent.base.utils.IOUtils;
+import agent.base.utils.Logger;
+import agent.base.utils.Utils;
 import agent.common.buffer.BufferAllocator;
 import agent.common.buffer.ByteUtils;
 import agent.common.message.Message;
 import agent.common.network.exception.ConnectionClosedException;
-import agent.base.utils.IOUtils;
-import agent.base.utils.Logger;
-import agent.base.utils.Utils;
+import agent.common.struct.DefaultBBuff;
 
 import java.io.*;
 import java.net.*;
@@ -52,7 +53,7 @@ public class MessageIO implements Closeable {
                 len -= off;
             } else {
                 logger.debug("sleep to wait more data.");
-                Utils.sleep(1000);
+                Utils.sleep(100);
             }
         }
         logger.debug("Rest length: {}", len);
@@ -61,7 +62,9 @@ public class MessageIO implements Closeable {
 
     public void send(Message message) throws Exception {
         ByteBuffer bb = BufferAllocator.allocate(message.bytesSize());
-        message.serialize(bb);
+        message.serialize(
+                new DefaultBBuff(bb)
+        );
         byte[] bs = ByteUtils.getBytes(bb);
         out.writeInt(bs.length);
         out.write(bs);

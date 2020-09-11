@@ -1,8 +1,8 @@
 package agent.common.struct.impl;
 
+import agent.common.struct.BBuff;
 import agent.common.struct.Struct;
 
-import java.nio.ByteBuffer;
 
 public class EmptyStruct implements Struct {
     private static final EmptyStruct instance = new EmptyStruct();
@@ -15,11 +15,11 @@ public class EmptyStruct implements Struct {
     }
 
     @Override
-    public void deserialize(ByteBuffer bb) {
+    public void deserialize(BBuff bb) {
     }
 
     @Override
-    public void serialize(ByteBuffer bb) {
+    public void serialize(BBuff bb) {
     }
 
     @Override

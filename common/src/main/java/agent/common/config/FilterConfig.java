@@ -7,7 +7,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
-public abstract class FilterConfig extends AbstractAgentConfig {
+public abstract class FilterConfig extends AbstractValidConfig {
     private Set<String> includes;
     private Set<String> excludes;
 

@@ -10,4 +10,5 @@ public class MessageType {
     public static final int CMD_SEARCH = 7;
     public static final int CMD_INFO = 8;
     public static final int CMD_SAVE_CLASS = 9;
+    public static final int CMD_STACK_TRACE = 10;
 }

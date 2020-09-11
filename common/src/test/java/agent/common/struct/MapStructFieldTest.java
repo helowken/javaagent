@@ -20,9 +20,10 @@ public class MapStructFieldTest {
 
     private void checkEquals(StructField field, Map<String, Object> map) {
         ByteBuffer bb = BufferAllocator.allocate(field.bytesSize(map));
-        field.serialize(bb, map);
+        BBuff buff = new DefaultBBuff(bb);
+        field.serialize(buff, map);
         bb.flip();
-        Map<String, Object> map2 = (Map) field.deserialize(bb);
+        Map<String, Object> map2 = (Map) field.deserialize(buff);
         TestUtils.checkEquals(map, map2);
         TestUtils.print(map);
         System.out.println("============");

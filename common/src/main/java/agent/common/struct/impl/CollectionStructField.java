@@ -1,7 +1,8 @@
 package agent.common.struct.impl;
 
+import agent.common.struct.BBuff;
+
 import java.lang.reflect.Array;
-import java.nio.ByteBuffer;
 import java.util.Collection;
 
 abstract class CollectionStructField extends AbstractLinearStructField {
@@ -15,12 +16,12 @@ abstract class CollectionStructField extends AbstractLinearStructField {
     }
 
     @Override
-    void serializeElement(ByteBuffer bb, Object value) {
+    void serializeElement(BBuff bb, Object value) {
         serializeField(bb, value);
     }
 
     @Override
-    Object deserializeElement(ByteBuffer bb) {
+    Object deserializeElement(BBuff bb) {
         return deserializeField(bb);
     }
 

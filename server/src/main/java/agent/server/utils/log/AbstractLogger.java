@@ -59,15 +59,30 @@ public abstract class AbstractLogger<T extends LogItem> implements FileLogger<T>
     }
 
     public void log(String key, T item) {
-        try {
-            LogWriter<T> logWriter = keyToLogWriter.get(key);
-            if (logWriter != null)
-                logWriter.write(item);
-            else
-                getLogger().error("No log writer found by key: {}", key);
-        } catch (Exception e) {
-            getLogger().error("Log failed.", e);
-        }
+        LogWriter<T> logWriter = getLogWriter(key);
+        if (logWriter != null)
+            logWriter.write(item);
+    }
+
+    @Override
+    public void flushByKey(String logKey) {
+        LogWriter<T> logWriter = getLogWriter(logKey);
+        if (logWriter != null)
+            logWriter.flush();
+    }
+
+    @Override
+    public void close(String logKey) {
+        LogWriter<T> logWriter = keyToLogWriter.remove(logKey);
+        if (logWriter != null)
+            logWriter.close();
+    }
+
+    private LogWriter<T> getLogWriter(String logKey) {
+        LogWriter<T> writer = keyToLogWriter.get(logKey);
+        if (writer == null)
+            getLogger().error("No log writer found by key: {}", logKey);
+        return writer;
     }
 
     private String formatOutputPath(String outputPath) {
@@ -85,7 +100,7 @@ public abstract class AbstractLogger<T extends LogItem> implements FileLogger<T>
     }
 
     private void doFlush(String outputPath) {
-        List<LogWriter> logWriterList = new ArrayList<>();
+        List<LogWriter<T>> logWriterList = new ArrayList<>();
         keyToLogWriter.forEach((key, logWriter) -> {
             if (outputPath == null ||
                     Objects.equals(outputPath, logWriter.getConfig().getOutputPath()))
@@ -110,10 +125,11 @@ public abstract class AbstractLogger<T extends LogItem> implements FileLogger<T>
 
     @Override
     public LogConfig getLogConfig(String key) {
-        return Optional.ofNullable(keyToLogWriter.get(key))
-                .orElseThrow(
-                        () -> new RuntimeException("No log writer found by key: " + key)
-                ).getConfig();
+        return Optional.ofNullable(
+                getLogWriter(key)
+        ).orElseThrow(
+                () -> new RuntimeException("No log writer found by key: " + key)
+        ).getConfig();
     }
 
 }
