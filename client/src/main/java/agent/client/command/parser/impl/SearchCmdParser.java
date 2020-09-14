@@ -2,13 +2,10 @@ package agent.client.command.parser.impl;
 
 import agent.base.args.parse.CmdParamParser;
 import agent.base.args.parse.CmdParams;
-import agent.base.help.HelpArg;
 import agent.client.args.parse.DefaultParamParser;
 import agent.common.message.command.Command;
 import agent.common.message.command.impl.MapCommand;
 
-import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 
 import static agent.common.args.parse.FilterOptUtils.getFilterAndChainOptParsers;
@@ -25,11 +22,6 @@ public class SearchCmdParser extends AbstractModuleCmdParser {
         return new DefaultParamParser(
                 getFilterAndChainOptParsers()
         );
-    }
-
-    @Override
-    List<HelpArg> createHelpArgList() {
-        return Collections.emptyList();
     }
 
     @Override

@@ -1,11 +1,14 @@
 package agent.client.command.parser;
 
 import agent.base.args.parse.OptConfig;
+import agent.base.help.HelpArg;
 import agent.base.help.HelpSection;
 import agent.base.help.HelpSingleValue;
 import agent.base.help.HelpUtils;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import static agent.base.help.HelpSection.PADDING_1;
 import static agent.base.help.HelpSection.PADDING_2;
@@ -45,6 +48,20 @@ public class CmdHelpUtils {
                         )
         ).add(
                 new HelpSingleValue("\nType 'ja help <COMMAND>' to get command-specific help.")
+        );
+    }
+
+    public static HelpArg getOutputPathHelpArg() {
+        return new HelpArg(
+                "OUTPUT_PATH",
+                "File path used to store data."
+        );
+    }
+
+    public static Map<String, Object> newLogConfig(String outputPath) {
+        return Collections.singletonMap(
+                "outputPath",
+                outputPath
         );
     }
 }

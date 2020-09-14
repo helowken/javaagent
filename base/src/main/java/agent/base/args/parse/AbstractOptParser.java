@@ -53,6 +53,8 @@ abstract class AbstractOptParser implements OptParser {
             switch (optConfig.getValueType()) {
                 case INT:
                     return Integer.parseInt(valueStr);
+                case LONG:
+                    return Long.parseLong(valueStr);
                 case STRING:
                     return valueStr;
             }

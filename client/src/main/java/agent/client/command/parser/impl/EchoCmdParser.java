@@ -1,9 +1,9 @@
 package agent.client.command.parser.impl;
 
 import agent.base.args.parse.CmdParamParser;
+import agent.base.args.parse.CmdParams;
 import agent.base.help.HelpArg;
 import agent.base.utils.Utils;
-import agent.base.args.parse.CmdParams;
 import agent.client.args.parse.DefaultParamParser;
 import agent.common.message.command.Command;
 import agent.common.message.command.impl.EchoCommand;
@@ -11,9 +11,9 @@ import agent.common.message.command.impl.EchoCommand;
 import java.util.Collections;
 import java.util.List;
 
-public class EchoCmdParser extends AbstractCmdParser {
+public class EchoCmdParser extends AbstractCmdParser<CmdParams> {
     @Override
-    CmdParamParser createParamParser() {
+    CmdParamParser<CmdParams> createParamParser() {
         return DefaultParamParser.DEFAULT;
     }
 

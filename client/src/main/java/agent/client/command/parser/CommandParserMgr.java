@@ -31,7 +31,6 @@ public class CommandParserMgr {
                         new SearchCmdParser(),
                         new ResetCmdParser(),
                         new FlushLogCmdParser(),
-                        new SaveClassCmdParser(),
                         new EchoCmdParser()
                 )
         );
@@ -39,7 +38,9 @@ public class CommandParserMgr {
                 "Service Management:",
                 Arrays.asList(
                         new CostTimeCmdParser(),
-                        new TraceCmdParser()
+                        new TraceCmdParser(),
+                        new SaveClassCmdParser(),
+                        new StackTraceCmdParser()
                 )
         );
 

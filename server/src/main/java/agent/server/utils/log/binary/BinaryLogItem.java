@@ -12,7 +12,7 @@ public class BinaryLogItem extends AbstractLogItem implements BBuff {
     private static final int byteSize = Byte.BYTES;
     private static final int shortSize = Short.BYTES;
     private static final int intSize = Integer.BYTES;
-    private static final int longSize = Integer.BYTES;
+    private static final int longSize = Long.BYTES;
     private static final int floatSize = Float.BYTES;
     private static final int doubleSize = Double.BYTES;
     private List<ByteBuffer> bufferList = new ArrayList<>();

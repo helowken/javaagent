@@ -19,6 +19,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import static agent.client.command.parser.CmdHelpUtils.getOutputPathHelpArg;
 import static agent.common.args.parse.FilterOptUtils.getFilterOptParsers;
 import static agent.common.args.parse.FilterOptUtils.merge;
 import static agent.common.message.MessageType.CMD_SAVE_CLASS;
@@ -73,10 +74,7 @@ public class SaveClassCmdParser extends AbstractCmdParser<CmdParams> {
     @Override
     List<HelpArg> createHelpArgList() {
         return Collections.singletonList(
-                new HelpArg(
-                        "OUTPUT_PATH",
-                        "File path used to store data."
-                )
+                getOutputPathHelpArg()
         );
     }
 

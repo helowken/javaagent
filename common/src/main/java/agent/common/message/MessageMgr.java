@@ -32,7 +32,8 @@ public class MessageMgr {
                 CMD_TRANSFORM,
                 CMD_SEARCH,
                 CMD_INFO,
-                CMD_SAVE_CLASS
+                CMD_SAVE_CLASS,
+                CMD_STACK_TRACE
         };
         for (int type : types) {
             reg(type, MapCommand::new);

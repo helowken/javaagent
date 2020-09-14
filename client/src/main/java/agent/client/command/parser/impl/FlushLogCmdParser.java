@@ -10,7 +10,7 @@ import agent.common.message.command.impl.FlushLogCommand;
 import java.util.Collections;
 import java.util.List;
 
-public class FlushLogCmdParser extends AbstractCmdParser {
+public class FlushLogCmdParser extends AbstractCmdParser<CmdParams> {
 
     @Override
     public String[] getCmdNames() {
@@ -24,7 +24,7 @@ public class FlushLogCmdParser extends AbstractCmdParser {
     }
 
     @Override
-    CmdParamParser createParamParser() {
+    CmdParamParser<CmdParams> createParamParser() {
         return DefaultParamParser.DEFAULT;
     }
 

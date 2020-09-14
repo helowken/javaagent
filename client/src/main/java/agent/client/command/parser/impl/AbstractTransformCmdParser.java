@@ -18,6 +18,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import static agent.client.command.parser.CmdHelpUtils.getOutputPathHelpArg;
+import static agent.client.command.parser.CmdHelpUtils.newLogConfig;
 import static agent.common.args.parse.FilterOptUtils.getFilterAndChainOptParsers;
 import static agent.common.args.parse.FilterOptUtils.merge;
 import static agent.common.message.MessageType.CMD_TRANSFORM;
@@ -30,10 +32,7 @@ abstract class AbstractTransformCmdParser extends AbstractModuleCmdParser {
     @Override
     List<HelpArg> createHelpArgList() {
         return Collections.singletonList(
-                new HelpArg(
-                        "OUTPUT_PATH",
-                        "File path used to store data."
-                )
+                getOutputPathHelpArg()
         );
     }
 
@@ -103,10 +102,7 @@ abstract class AbstractTransformCmdParser extends AbstractModuleCmdParser {
     private Map<String, Object> newConfigOfTransformer(String outputPath) {
         return Collections.singletonMap(
                 "log",
-                Collections.singletonMap(
-                        "outputPath",
-                        outputPath
-                )
+                newLogConfig(outputPath)
         );
     }
 }

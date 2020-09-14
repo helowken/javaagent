@@ -160,7 +160,7 @@ public class TraceInvokeTransformerTest2 extends AbstractTest {
 
         static void recursiveLoad(long m) {
             if (m == 0) {
-                System.out.println("recursiveLoad end.");
+                System.out.println("recursiveLoad finish.");
                 return;
             }
             System.out.println("m=" + m);

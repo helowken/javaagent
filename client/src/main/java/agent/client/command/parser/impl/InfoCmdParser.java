@@ -35,7 +35,7 @@ public class InfoCmdParser extends AbstractCmdParser<CmdParams> {
     }
 
     @Override
-    CmdParamParser createParamParser() {
+    CmdParamParser<CmdParams> createParamParser() {
         return new DefaultParamParser(
                 getFilterOptParsers()
         );

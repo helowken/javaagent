@@ -120,7 +120,7 @@ public abstract class AbstractLogger<T extends LogItem> implements FileLogger<T>
         getLogger().debug("Start to clear...");
         keyToLogWriter.forEach((key, logWriter) -> logWriter.close());
         keyToLogWriter.clear();
-        getLogger().debug("Clear end.");
+        getLogger().debug("Clear finish.");
     }
 
     @Override

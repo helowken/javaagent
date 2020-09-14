@@ -84,9 +84,9 @@ public class ScheduleMgr {
 
         void end() {
             try {
-                task.end();
+                task.finish();
             } catch (Throwable e) {
-                logger.error("Schedule task end failed: {}", e, config.getKey());
+                logger.error("Schedule task finish failed: {}", e, config.getKey());
             }
         }
 

@@ -1,6 +1,8 @@
 package agent.server.command.executor;
 
+import agent.base.utils.Logger;
 import agent.base.utils.TypeObject;
+import agent.base.utils.Utils;
 import agent.common.config.StackTraceConfig;
 import agent.common.message.command.Command;
 import agent.common.message.command.impl.MapCommand;
@@ -18,7 +20,9 @@ import agent.server.utils.log.binary.BinaryLogItemPool;
 import java.util.Collections;
 import java.util.Map;
 
-public class StackTraceCmdExecutor extends AbstractCmdExecutor {
+class StackTraceCmdExecutor extends AbstractCmdExecutor {
+    private static final Logger logger = Logger.getLogger(StackTraceCmdExecutor.class);
+
     @Override
     ExecResult doExec(Command cmd) throws Exception {
         StackTraceConfig config = JsonUtils.convert(
@@ -53,13 +57,17 @@ public class StackTraceCmdExecutor extends AbstractCmdExecutor {
         }
 
         @Override
-        public void end() {
+        public void finish() {
+            logger.debug("task finish start: {}", logKey);
             LogMgr.flushBinary(logKey);
+            logger.debug("task finish end: {}", logKey);
         }
 
         @Override
         public void postRun() {
+            logger.debug("post run start: {}", logKey);
             LogMgr.closeBinary(logKey);
+            logger.debug("post run finish: {}", logKey);
         }
 
         @Override
