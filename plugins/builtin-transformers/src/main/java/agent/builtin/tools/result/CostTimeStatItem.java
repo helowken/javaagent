@@ -40,7 +40,7 @@ public class CostTimeStatItem {
         count = count.add(v);
     }
 
-    public synchronized void add(long time) {
+    synchronized void add(long time) {
         checkFrozen();
         if (currTotalTime + time <= 0) {
             updateTotalTime(currTotalTime);
@@ -58,7 +58,7 @@ public class CostTimeStatItem {
             maxTime = time;
     }
 
-    public synchronized void merge(CostTimeStatItem other) {
+    synchronized void merge(CostTimeStatItem other) {
         checkFrozen();
         updateTotalTime(other.totalTime);
         if (this.currTotalTime + other.currTotalTime < 0) {
@@ -103,7 +103,7 @@ public class CostTimeStatItem {
         return avgTime;
     }
 
-    public String getAvgTimeString() {
+    String getAvgTimeString() {
         double avgTime = getAvgTime();
         String s = String.valueOf(avgTime);
         if (avgTime % 1 == 0)
@@ -123,11 +123,11 @@ public class CostTimeStatItem {
         return count;
     }
 
-    public String getCountString() {
+    String getCountString() {
         return "count=" + getCount();
     }
 
-    public String getTimeDistributionString(Set<Float> rates) {
+    String getTimeDistributionString(Set<Float> rates) {
         return "";
     }
 

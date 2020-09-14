@@ -1,5 +1,7 @@
 package agent.server.utils;
 
+import agent.common.buffer.BufferAllocator;
+
 import java.nio.ByteBuffer;
 import java.util.Collection;
 import java.util.Queue;
@@ -18,7 +20,7 @@ public class MemoryPool {
     }
 
     private static ByteBuffer allocate() {
-        return ByteBuffer.allocate(BUFFER_SIZE);
+        return BufferAllocator.allocate(BUFFER_SIZE);
     }
 
     public static ByteBuffer get() {

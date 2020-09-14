@@ -65,12 +65,15 @@ public class Node<T> implements INode<T, Node<T>> {
 
     @Override
     public void removeChild(Node<T> child) {
-        children.remove(child);
+        if (children.remove(child))
+            child.parent = null;
     }
 
     @Override
     public void removeChildAt(int idx) {
-        children.remove(idx);
+        Node<T> child = children.remove(idx);
+        if (child != null)
+            child.parent = null;
     }
 
     @Override

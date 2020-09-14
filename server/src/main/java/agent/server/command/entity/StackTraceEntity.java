@@ -1,9 +1,11 @@
 package agent.server.command.entity;
 
+import java.util.List;
+
 public class StackTraceEntity {
     private long threadId;
     private String threadName;
-    private StackTraceElement[] stackTraceElements;
+    private List<StackTraceElementEntity> stackTraceElements;
 
     public long getThreadId() {
         return threadId;
@@ -21,11 +23,11 @@ public class StackTraceEntity {
         this.threadName = threadName;
     }
 
-    public StackTraceElement[] getStackTraceElements() {
+    public List<StackTraceElementEntity> getStackTraceElements() {
         return stackTraceElements;
     }
 
-    public void setStackTraceElements(StackTraceElement[] stackTraceElements) {
+    public void setStackTraceElements(List<StackTraceElementEntity> stackTraceElements) {
         this.stackTraceElements = stackTraceElements;
     }
 }

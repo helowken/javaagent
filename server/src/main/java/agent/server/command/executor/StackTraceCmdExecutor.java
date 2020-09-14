@@ -2,7 +2,6 @@ package agent.server.command.executor;
 
 import agent.base.utils.Logger;
 import agent.base.utils.TypeObject;
-import agent.base.utils.Utils;
 import agent.common.config.StackTraceConfig;
 import agent.common.message.command.Command;
 import agent.common.message.command.impl.MapCommand;
@@ -10,6 +9,7 @@ import agent.common.message.result.ExecResult;
 import agent.common.struct.impl.MapStruct;
 import agent.common.struct.impl.Structs;
 import agent.common.utils.JsonUtils;
+import agent.server.command.entity.StackTraceElementEntity;
 import agent.server.command.entity.StackTraceEntity;
 import agent.server.schedule.ScheduleMgr;
 import agent.server.schedule.ScheduleTask;
@@ -19,6 +19,8 @@ import agent.server.utils.log.binary.BinaryLogItemPool;
 
 import java.util.Collections;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 class StackTraceCmdExecutor extends AbstractCmdExecutor {
     private static final Logger logger = Logger.getLogger(StackTraceCmdExecutor.class);
@@ -78,7 +80,18 @@ class StackTraceCmdExecutor extends AbstractCmdExecutor {
                         StackTraceEntity entity = new StackTraceEntity();
                         entity.setThreadId(thread.getId());
                         entity.setThreadName(thread.getName());
-                        entity.setStackTraceElements(sfEls);
+                        entity.setStackTraceElements(
+                                sfEls == null ?
+                                        Collections.emptyList() :
+                                        Stream.of(sfEls).map(
+                                                sfEl -> {
+                                                    StackTraceElementEntity el = new StackTraceElementEntity();
+                                                    el.setClassName(sfEl.getClassName());
+                                                    el.setMethodName(sfEl.getMethodName());
+                                                    return el;
+                                                }
+                                        ).collect(Collectors.toList())
+                        );
 
                         Map<String, Object> map = JsonUtils.convert(
                                 entity,
@@ -87,6 +100,9 @@ class StackTraceCmdExecutor extends AbstractCmdExecutor {
                         );
                         struct.putAll(map);
                         BinaryLogItem logItem = BinaryLogItemPool.get(logKey);
+                        logItem.putInt(
+                                struct.bytesSize()
+                        );
                         struct.serialize(logItem);
                         LogMgr.logBinary(logKey, logItem);
                     }

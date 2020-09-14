@@ -67,16 +67,16 @@ public class CostTimeCallChainResultHandler extends AbstractCostTimeResultHandle
 
     @Override
     Tree<CallChainData> calculate(Collection<File> dataFiles, CostTimeResultParams params) {
-        AtomicReference<Tree<CallChainData>> ref = new AtomicReference<>();
+        AtomicReference<Tree<CallChainData>> ref = new AtomicReference<>(null);
         dataFiles.parallelStream()
                 .map(this::doCalculate)
                 .forEach(
                         tree -> {
-                            Tree<CallChainData> sumTree = ref.get();
-                            if (sumTree == null)
-                                ref.set(tree);
-                            else
-                                mergeTrees(sumTree, tree);
+                            if (!ref.compareAndSet(null, tree))
+                                mergeTrees(
+                                        ref.get(),
+                                        tree
+                                );
                         }
                 );
         return Optional.ofNullable(
@@ -189,5 +189,4 @@ public class CostTimeCallChainResultHandler extends AbstractCostTimeResultHandle
                     pn.getData().invokeId;
         }
     }
-
 }

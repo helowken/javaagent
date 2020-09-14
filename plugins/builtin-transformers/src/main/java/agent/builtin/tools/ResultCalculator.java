@@ -3,14 +3,8 @@ package agent.builtin.tools;
 import agent.base.args.parse.CmdParamParser;
 import agent.base.utils.ConsoleLogger;
 import agent.base.utils.Logger;
-import agent.builtin.tools.result.CostTimeCallChainResultHandler;
-import agent.builtin.tools.result.CostTimeInvokeResultHandler;
-import agent.builtin.tools.result.ResultHandler;
-import agent.builtin.tools.result.TraceInvokeResultHandler;
-import agent.builtin.tools.result.parse.CostTimeCallChainResultParamParser;
-import agent.builtin.tools.result.parse.CostTimeInvokeResultParamParser;
-import agent.builtin.tools.result.parse.ResultParams;
-import agent.builtin.tools.result.parse.TraceResultParamParser;
+import agent.builtin.tools.result.*;
+import agent.builtin.tools.result.parse.*;
 
 public class ResultCalculator {
     private static final Logger logger = Logger.getLogger(ResultCalculator.class);
@@ -59,6 +53,16 @@ public class ResultCalculator {
                     args,
                     new TraceResultParamParser(),
                     new TraceInvokeResultHandler()
+            );
+        }
+    }
+
+    public static class StackTrace {
+        public static void main(String[] args) {
+            run(
+                    args,
+                    new StackTraceResultParamParser(),
+                    new StackTraceResultHandler()
             );
         }
     }

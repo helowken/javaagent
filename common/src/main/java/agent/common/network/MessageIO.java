@@ -2,7 +2,6 @@ package agent.common.network;
 
 import agent.base.utils.IOUtils;
 import agent.base.utils.Logger;
-import agent.base.utils.Utils;
 import agent.common.buffer.BufferAllocator;
 import agent.common.buffer.ByteUtils;
 import agent.common.message.Message;
@@ -40,23 +39,10 @@ public class MessageIO implements Closeable {
 
     public ByteBuffer receive() throws Exception {
         int size = in.readInt();
-        logger.debug("Read message bytesSize: {}", size);
         if (size == -1)
             throw new ConnectionClosedException("Connection closed.");
         byte[] b = new byte[size];
-        int offset = 0;
-        int off;
-        int len = size;
-        while ((off = in.read(b, offset, len)) > -1 && len > 0) {
-            if (off > 0) {
-                offset += off;
-                len -= off;
-            } else {
-                logger.debug("sleep to wait more data.");
-                Utils.sleep(100);
-            }
-        }
-        logger.debug("Rest length: {}", len);
+        IOUtils.read(in, b, size);
         return ByteBuffer.wrap(b);
     }
 

@@ -13,6 +13,7 @@
     <artifactId>builtin-transformers</artifactId>
 
     <dependencies>
+        <!-- app -->
         <dependency>
             <groupId>javaagent</groupId>
             <artifactId>server</artifactId>
@@ -33,6 +34,11 @@
             <groupId>javaagent</groupId>
             <artifactId>server</artifactId>
             <type>test-jar</type>
+        </dependency>
+        <dependency>
+            <groupId>javaagent</groupId>
+            <artifactId>client</artifactId>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>javaagent</groupId>

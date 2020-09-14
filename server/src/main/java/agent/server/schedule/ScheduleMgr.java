@@ -55,6 +55,7 @@ public class ScheduleMgr {
         private final ScheduleConfig config;
         private final ScheduleTask task;
         private final Timer timer = new Timer(true);
+        private int count = 0;
 
         ScheduleHandle(ScheduleConfig config, ScheduleTask task) {
             this.config = config;
@@ -76,6 +77,8 @@ public class ScheduleMgr {
 
         void doRun() {
             try {
+                ++count;
+                logger.debug("Schedule task run count: {}", count);
                 task.run();
             } catch (Exception e) {
                 logger.error("Schedule task run failed: {}", e, config.getKey());

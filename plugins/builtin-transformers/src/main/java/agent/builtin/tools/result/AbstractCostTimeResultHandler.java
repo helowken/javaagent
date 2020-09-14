@@ -109,7 +109,7 @@ abstract class AbstractCostTimeResultHandler<T> extends AbstractResultHandler<T,
         Set<Float> range = params.getRange();
         return new Node<>(
                 "[" + item.getAvgTimeString() + ", " + item.getCountString() + "] " +
-                        (range != null ? " " + item.getTimeDistributionString(range) + " " : "") +
+//                        (range != null ? " " + item.getTimeDistributionString(range) + " " : "") +
                         invoke
         );
     }

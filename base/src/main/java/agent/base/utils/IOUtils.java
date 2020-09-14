@@ -64,6 +64,31 @@ public class IOUtils {
         }
     }
 
+    public static void writeToConsole(WriteFunc writeFunc) throws IOException {
+        Writer writer = new BufferedWriter(
+                new OutputStreamWriter(System.out)
+        );
+        writeFunc.exec(writer);
+        writer.flush();
+    }
+
+    public static void read(InputStream in, byte[] b) throws IOException {
+        read(in, b, b.length);
+    }
+
+    public static void read(InputStream in, byte[] b, int size) throws IOException {
+        int offset = 0;
+        int off;
+        int len = size;
+        while ((off = in.read(b, offset, len)) > -1 && len > 0) {
+            if (off > 0) {
+                offset += off;
+                len -= off;
+            } else
+                Utils.sleep(100);
+        }
+    }
+
     public static void close(Closeable o) {
         if (o != null) {
             try {
