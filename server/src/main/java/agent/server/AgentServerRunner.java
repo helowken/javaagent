@@ -12,8 +12,8 @@ public class AgentServerRunner implements Runner {
     @Override
     public void startup(Object... args) {
         Utils.wrapToRtError(() -> {
-            int port = Utils.getArgValue(args, 0);
-            if (AgentServerMgr.startup(port)) {
+            Integer port = Utils.getArgValue(args, 0);
+            if (port == null || AgentServerMgr.startup(port)) {
                 Object[] restArgs = Arrays.copyOfRange(args, 1, args.length);
                 ServerContextMgr.getContext().getServerListeners().forEach(
                         serverListener -> {

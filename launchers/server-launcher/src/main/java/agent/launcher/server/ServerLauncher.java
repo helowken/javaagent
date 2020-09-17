@@ -30,14 +30,24 @@ public class ServerLauncher extends AbstractLauncher {
     private static void initAgent(String agentArgs, Instrumentation instrumentation) throws Exception {
         if (Utils.isBlank(agentArgs))
             throw new IllegalArgumentException("Agent arguments can not be empty.");
-        String[] ts = agentArgs.split(SEP);
-        if (ts.length != 2)
-            throw new IllegalArgumentException("Agent arguments should be: port:configFilePath");
-        int port = Utils.parseInt(ts[0], KEY_PORT);
-        String configFilePath = ts[1];
+
+        int pos = agentArgs.indexOf(SEP);
+        Integer port = null;
+        String configFilePath = agentArgs;
+        if (pos > -1) {
+            port = Utils.parseInt(
+                    agentArgs.substring(0, pos),
+                    KEY_PORT
+            );
+            configFilePath = agentArgs.substring(pos + 1);
+        }
+
         instance.init(
                 configFilePath,
-                Collections.singletonMap(KEY_PORT, port)
+                Collections.singletonMap(
+                        KEY_PORT,
+                        port == null ? "" : port
+                )
         );
         instance.startRunner(
                 getRunner(RUNNER_TYPE),
