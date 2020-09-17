@@ -13,6 +13,9 @@ public class AATest {
     private static final Logger logger = Logger.getLogger(AATest.class);
 
     public static void main(String[] args) {
+        listEngines();
+        System.out.println("==============");
+
         PythonInterpreter pi = new PythonInterpreter();
         pi.set("integer", new PyInteger(42));
         pi.exec("square = integer*integer");

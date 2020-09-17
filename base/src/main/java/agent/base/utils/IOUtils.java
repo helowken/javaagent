@@ -58,18 +58,24 @@ public class IOUtils {
         outputStream.write(bs);
     }
 
-    public static void write(String filePath, boolean append, WriteFunc writeFunc) throws IOException {
+    public static void write(String filePath, boolean append, BufferedWriteFunc writeFunc) throws Exception {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath, append))) {
             writeFunc.exec(writer);
         }
     }
 
-    public static void writeToConsole(WriteFunc writeFunc) throws IOException {
-        Writer writer = new BufferedWriter(
+    public static void writeToConsole(BufferedWriteFunc writeFunc) throws Exception {
+        BufferedWriter writer = new BufferedWriter(
                 new OutputStreamWriter(System.out)
         );
         writeFunc.exec(writer);
         writer.flush();
+    }
+
+    public static void read(String filePath, BufferedReadFunc func) throws Exception {
+        try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
+            func.exec(reader);
+        }
     }
 
     public static void read(InputStream in, byte[] b) throws IOException {
@@ -107,7 +113,11 @@ public class IOUtils {
         }
     }
 
-    public interface WriteFunc {
-        void exec(Writer writer) throws IOException;
+    public interface BufferedWriteFunc {
+        void exec(BufferedWriter writer) throws Exception;
+    }
+
+    public interface BufferedReadFunc {
+        void exec(BufferedReader reader) throws Exception;
     }
 }

@@ -18,6 +18,7 @@ import java.util.Map;
 public class ClientLauncher extends AbstractLauncher {
     private static final String KEY_HOST = "host";
     private static final String KEY_PORT = "port";
+    private static final String DEFAULT_RUNNER_TYPE = "clientRunner";
     private static final ClientLauncher instance = new ClientLauncher();
     private static final ClientLauncherParamParser paramParser = new ClientLauncherParamParser();
 
@@ -47,8 +48,7 @@ public class ClientLauncher extends AbstractLauncher {
                 return;
             }
 
-            String runnerType = getRunnerType(opts);
-            Runner runner = getRunner(runnerType);
+            Runner runner = getRunner(DEFAULT_RUNNER_TYPE);
             if (restArgList.isEmpty())
                 restArgList.add("help");
             else if (CommonOptConfigs.isHelp(opts))
@@ -60,9 +60,7 @@ public class ClientLauncher extends AbstractLauncher {
                     runner,
                     hostAndPort,
                     paramParser.getOptConfigList(),
-                    restArgList.toArray(
-                            new String[0]
-                    )
+                    restArgList
             );
         } catch (Throwable t) {
 //            t.printStackTrace();
@@ -98,13 +96,6 @@ public class ClientLauncher extends AbstractLauncher {
 
     private static String formatHost(String host) {
         return host.replaceAll("\\.", "_");
-    }
-
-    private static String getRunnerType(Opts opts) {
-        String runnerType = ClientLauncherOptConfigs.getRunnerType(opts);
-        if (Utils.isBlank(runnerType))
-            throw new RuntimeException("No client runner type found.");
-        return runnerType;
     }
 
     private static String getConfigFile(List<String> args) {

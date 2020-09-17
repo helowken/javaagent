@@ -10,6 +10,5 @@ $JAVA_HOME/bin/java \
         -cp $classpath \
         $main_class \
         $conf_file \
-        --runner-type clientCmdRunner \
         "$@"
 

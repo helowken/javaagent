@@ -5,14 +5,13 @@ import agent.base.plugin.DefaultPluginInfo;
 import agent.base.plugin.PluginInfo;
 import agent.base.runner.Runner;
 
-public class AgentClientInteractPlugin extends AbstractPlugin {
-
-    public AgentClientInteractPlugin() {
-        reg(Runner.class, new AgentClientInteractRunner());
+public class AgentClientPlugin extends AbstractPlugin {
+    public AgentClientPlugin() {
+        reg(Runner.class, AgentClientRunner.getInstance());
     }
 
     @Override
     protected PluginInfo newPluginInfo() {
-        return new DefaultPluginInfo(Runner.TYPE, "clientInteractRunner");
+        return new DefaultPluginInfo(Runner.TYPE, "clientRunner");
     }
 }
