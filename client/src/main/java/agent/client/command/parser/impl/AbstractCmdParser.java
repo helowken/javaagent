@@ -4,7 +4,7 @@ import agent.base.args.parse.CmdParamParser;
 import agent.base.args.parse.CmdParams;
 import agent.base.args.parse.OptConfig;
 import agent.base.help.*;
-import agent.client.command.parser.CmdItem;
+import agent.common.message.command.CmdItem;
 import agent.client.command.parser.CommandParser;
 import agent.client.command.parser.exception.TooFewArgsException;
 import agent.common.args.parse.ChainFilterOptConfigs;
@@ -70,7 +70,7 @@ abstract class AbstractCmdParser<P extends CmdParams> implements CommandParser {
         return paramParser;
     }
 
-    private P doParse(String[] args) {
+    P doParse(String[] args) {
         return getParamParser().parse(args);
     }
 
@@ -90,18 +90,19 @@ abstract class AbstractCmdParser<P extends CmdParams> implements CommandParser {
     }
 
     @Override
-    public CmdItem parse(String[] args) {
+    public List<CmdItem> parse(String[] args) {
         P params = doParse(args);
+        HelpInfo helpInfo = null;
+        Command cmd = null;
         if (isHelp(params)) {
-            return new CmdItem(
-                    createHelpInfo(params)
-            );
+            helpInfo = createHelpInfo(params);
         } else {
             checkParams(params);
-            return new CmdItem(
-                    createCommand(params)
-            );
+            cmd = createCommand(params);
         }
+        return Collections.singletonList(
+                new CmdItem(cmd, helpInfo)
+        );
     }
 
     boolean isHelp(P params) {

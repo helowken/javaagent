@@ -3,7 +3,7 @@ package agent.client;
 import agent.base.runner.Runner;
 import agent.base.utils.*;
 import agent.client.command.parser.CmdHelpUtils;
-import agent.client.command.parser.CmdItem;
+import agent.common.message.command.CmdItem;
 import agent.client.command.parser.CommandParserMgr;
 import agent.client.command.parser.exception.CommandNotFoundException;
 import agent.client.command.parser.exception.CommandParseException;
@@ -21,18 +21,10 @@ import java.util.List;
 public class AgentClientRunner implements Runner {
     private static final Logger logger = Logger.getLogger(AgentClientRunner.class);
     private static final String KEY_SOCKET_CONNECTION_TIMEOUT = "socket.connection.timeout";
-    private static final AgentClientRunner instance = new AgentClientRunner();
     private SocketMgr socketMgr;
 
     static {
         Logger.setAsync(false);
-    }
-
-    public static AgentClientRunner getInstance() {
-        return instance;
-    }
-
-    private AgentClientRunner() {
     }
 
     @Override
@@ -53,39 +45,36 @@ public class AgentClientRunner implements Runner {
         socketMgr.close();
     }
 
-    private Command parseCommand(List<String> argList) {
-        CmdItem cmdItem = CommandParserMgr.parse(
-                argList.get(0),
-                argList.subList(1, argList.size())
-                        .toArray(new String[0])
-        );
-        if (cmdItem.isHelp()) {
-            printHelp(cmdItem);
-            return null;
-        }
-        return cmdItem.getCmd();
-    }
-
     private void printHelp(CmdItem cmdItem) {
         StringBuilder sb = new StringBuilder();
         cmdItem.getHelpInfo().print(sb);
         ConsoleLogger.getInstance().info("{}", sb);
     }
 
-    public boolean execCmd(List<String> argList) {
+    private void execCmd(List<String> argList) {
         try {
-            Command cmd = parseCommand(argList);
-            if (cmd != null)
-                socketMgr.sendAndReceive(
-                        io -> {
-                            io.send(cmd);
-                            ExecResult result = MessageMgr.parse(
-                                    io.receive()
-                            );
-                            CommandResultHandlerMgr.handleResult(cmd, result);
-                        }
-                );
-            return true;
+            List<CmdItem> cmdItemList = CommandParserMgr.parse(argList);
+            for (CmdItem cmdItem : cmdItemList) {
+                if (cmdItem.isHelp())
+                    printHelp(cmdItem);
+                else {
+                    Command cmd = cmdItem.getCmd();
+                    if (cmd != null) {
+                        cmdItem.print();
+                        boolean rs = socketMgr.sendAndReceive(
+                                io -> {
+                                    io.send(cmd);
+                                    ExecResult result = MessageMgr.parse(
+                                            io.receive()
+                                    );
+                                    CommandResultHandlerMgr.handleResult(cmd, result);
+                                }
+                        );
+                        if (!rs)
+                            break;
+                    }
+                }
+            }
         } catch (CommandNotFoundException e) {
             ConsoleLogger.getInstance().error(
                     "{}\n{}",
@@ -97,7 +86,6 @@ public class AgentClientRunner implements Runner {
         } catch (Exception e) {
             logError("Error occurred.", e);
         }
-        return false;
     }
 
     private static void logError(String msg, Exception e) {
@@ -150,11 +138,13 @@ public class AgentClientRunner implements Runner {
             return msgIO;
         }
 
-        void sendAndReceive(MsgIOFunc func) throws Exception {
+        boolean sendAndReceive(MsgIOFunc func) throws Exception {
             try {
                 MessageIO io = getMsgIO();
-                if (io != null)
+                if (io != null) {
                     func.exec(io);
+                    return true;
+                }
             } catch (Exception e) {
                 if (MessageIO.isNetworkException(e)) {
                     ConsoleLogger.getInstance().error("Disconnected from Agent Server.");
@@ -162,6 +152,7 @@ public class AgentClientRunner implements Runner {
                 } else
                     throw e;
             }
+            return false;
         }
 
         private void close() {

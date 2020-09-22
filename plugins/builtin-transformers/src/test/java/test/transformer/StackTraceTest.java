@@ -25,7 +25,7 @@ public class StackTraceTest extends AbstractTest {
                                             "-c", "100",
                                             outputPath
                                     }
-                            ).getCmd()
+                            ).get(0).getCmd()
                     );
                     assertEquals(ResultStatus.SUCCESS, result.getStatus());
                     Thread.sleep(5000);

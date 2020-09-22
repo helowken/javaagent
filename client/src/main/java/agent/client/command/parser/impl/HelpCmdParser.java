@@ -8,9 +8,11 @@ import agent.base.help.HelpSingleValue;
 import agent.base.utils.Utils;
 import agent.client.args.parse.DefaultParamParser;
 import agent.client.command.parser.CmdHelpUtils;
-import agent.client.command.parser.CmdItem;
+import agent.common.message.command.CmdItem;
 import agent.client.command.parser.CommandParserMgr;
 import agent.common.message.command.Command;
+
+import java.util.List;
 
 public class HelpCmdParser extends AbstractCmdParser<CmdParams> {
     @Override
@@ -51,13 +53,15 @@ public class HelpCmdParser extends AbstractCmdParser<CmdParams> {
         if (Utils.isIn(getCmdNames(), cmdName))
             return getHelpSelf();
 
-        CmdItem item = CommandParserMgr.parse(
+        List<CmdItem> itemList = CommandParserMgr.parse(
                 cmdName,
                 new String[]{
                         CommonOptConfigs.getHelpOptName()
                 }
         );
-        return item.getHelpInfo();
+        if (itemList.isEmpty())
+            throw new RuntimeException("No help info!");
+        return itemList.get(0).getHelpInfo();
     }
 
     private HelpInfo getHelpSelf() {

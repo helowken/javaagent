@@ -7,7 +7,7 @@ import agent.base.runner.Runner;
 
 public class AgentClientPlugin extends AbstractPlugin {
     public AgentClientPlugin() {
-        reg(Runner.class, AgentClientRunner.getInstance());
+        reg(Runner.class, new AgentClientRunner());
     }
 
     @Override

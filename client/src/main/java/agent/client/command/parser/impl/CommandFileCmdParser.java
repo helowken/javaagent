@@ -3,10 +3,13 @@ package agent.client.command.parser.impl;
 import agent.base.args.parse.CmdParamParser;
 import agent.base.args.parse.CmdParams;
 import agent.base.help.HelpArg;
-import agent.base.utils.*;
-import agent.client.AgentClientRunner;
+import agent.base.utils.FileUtils;
+import agent.base.utils.IOUtils;
+import agent.base.utils.StringParser;
+import agent.base.utils.Utils;
 import agent.client.args.parse.DefaultParamParser;
-import agent.client.command.parser.exception.CommandParseException;
+import agent.common.message.command.CmdItem;
+import agent.client.command.parser.CommandParserMgr;
 import agent.common.message.command.Command;
 
 import java.util.ArrayList;
@@ -55,9 +58,16 @@ public class CommandFileCmdParser extends AbstractCmdParser<CmdParams> {
 
     @Override
     Command createCommand(CmdParams params) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public List<CmdItem> parse(String[] args) {
+        CmdParams params = doParse(args);
         String filePath = FileUtils.getAbsolutePath(
                 params.getArgs()[0]
         );
+        List<CmdItem> rsList = new ArrayList<>();
         Utils.wrapToRtError(
                 () -> IOUtils.read(
                         filePath,
@@ -65,19 +75,18 @@ public class CommandFileCmdParser extends AbstractCmdParser<CmdParams> {
                             String line;
                             while ((line = reader.readLine()) != null) {
                                 if (Utils.isNotBlank(line)) {
-                                    List<String> args = splitStringToArgs(line);
-                                    if (args.isEmpty())
-                                        throw new CommandParseException("Invalid command: " + line);
-                                    ConsoleLogger.getInstance().info("\nExec cmd: {}", line);
-                                    boolean v = AgentClientRunner.getInstance().execCmd(args);
-                                    if (!v)
-                                        break;
+                                    List<String> argList = splitStringToArgs(line);
+                                    List<CmdItem> itemList = CommandParserMgr.parse(argList);
+                                    for (CmdItem item : itemList) {
+                                        item.setCmdLine(line);
+                                    }
+                                    rsList.addAll(itemList);
                                 }
                             }
                         }
                 )
         );
-        return null;
+        return rsList;
     }
 
     @Override

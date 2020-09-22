@@ -8,6 +8,7 @@ import agent.base.utils.Utils;
 import agent.client.command.parser.exception.CommandNotFoundException;
 import agent.client.command.parser.exception.CommandParseException;
 import agent.client.command.parser.impl.*;
+import agent.common.message.command.CmdItem;
 import agent.common.utils.Registry;
 
 import java.util.*;
@@ -56,7 +57,16 @@ public class CommandParserMgr {
         }
     }
 
-    public static CmdItem parse(String cmdName, String[] args) {
+    public static List<CmdItem> parse(List<String> argList) {
+        if (argList.isEmpty())
+            throw new CommandParseException("Invalid command: " + argList);
+        return parse(
+                argList.get(0),
+                argList.subList(1, argList.size()).toArray(new String[0])
+        );
+    }
+
+    public static List<CmdItem> parse(String cmdName, String[] args) {
         try {
             return registry.get(cmdName,
                     key -> new CommandNotFoundException("Unknown command '" + key + "'")

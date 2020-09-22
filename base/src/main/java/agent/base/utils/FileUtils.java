@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
 public class FileUtils {
 
     public static String getAbsolutePath(String path) {
-        if (path.startsWith(File.separator))
+        if (new File(path).isAbsolute())
             return path;
         return new File(
                 System.getProperty("user.dir"),

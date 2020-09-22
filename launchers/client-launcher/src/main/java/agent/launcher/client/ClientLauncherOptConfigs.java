@@ -35,7 +35,7 @@ class ClientLauncherOptConfigs {
     static HostAndPort getHostAndPort(Opts opts) {
         return new HostAndPort(
                 opts.getNotNull(KEY_HOST, DEFAULT_HOST),
-                opts.getNotNull(KEY_HOST, DEFAULT_PORT)
+                opts.getNotNull(KEY_PORT, DEFAULT_PORT)
         );
     }
 }

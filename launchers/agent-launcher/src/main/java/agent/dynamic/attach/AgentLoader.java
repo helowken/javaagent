@@ -117,7 +117,7 @@ public class AgentLoader {
                             logger.debug("Load agent with: {}", jarPathAndOptions);
                             jvm.loadAgent(
                                     jarPathAndOptions.jarPath,
-                                    jvmEndpoint.port + ":" + jarPathAndOptions.options
+                                    "port=" + jvmEndpoint.port + ";conf=" + jarPathAndOptions.options
                             );
                         }
                         logger.info("Attached to target JVM and loaded Java agent successfully");
