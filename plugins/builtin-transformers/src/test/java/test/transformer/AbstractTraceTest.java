@@ -53,26 +53,7 @@ abstract class AbstractTraceTest extends AbstractTest {
                     classToData.putAll(
                             getClassToData(transformer)
                     );
-                    Map<String, Class<?>> nameToClass = new HashMap<>();
-                    classToData.forEach(
-                            (clazz, data) -> Utils.wrapToRtError(
-                                    () -> {
-                                        try {
-                                            nameToClass.put(
-                                                    clazz.getName(),
-                                                    loader.loadClass(
-                                                            clazz.getName(),
-                                                            data
-                                                    )
-                                            );
-                                            System.out.println("========================");
-                                            AsmUtils.print(data, System.out);
-                                        } catch (Throwable e) {
-                                            e.printStackTrace();
-                                        }
-                                    }
-                            )
-                    );
+                    Map<String, Class<?>> nameToClass = loadNewClasses(classToData);
                     Object a = nameToClass.get(
                             targetClass.getName()
                     ).newInstance();

@@ -12,6 +12,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -58,13 +59,18 @@ public abstract class ProxyAnnotationConfigTransformer extends AbstractAnnotatio
     protected Object getInstanceForAnntMethod(Class<?> anntClass, Method anntMethod) {
         return getCacheItem().getAnntInstance(
                 getInstanceKey(),
-                () -> newInstanceForClass(anntClass)
+                instanceKey -> newInstanceForClass(anntClass, instanceKey)
         );
     }
 
-    protected Object newInstanceForClass(Class<?> clazz) {
+    private Object newInstanceForClass(Class<?> clazz, String instanceKey) {
         return Utils.wrapToRtError(
-                () -> ReflectionUtils.newInstance(clazz)
+                () -> {
+                    ProxyAnnotationConfig config = ReflectionUtils.newInstance(clazz);
+                    config.setInstanceKey(instanceKey);
+                    config.init();
+                    return config;
+                }
         );
     }
 
@@ -115,12 +121,9 @@ public abstract class ProxyAnnotationConfigTransformer extends AbstractAnnotatio
             return anntClassToMethods;
         }
 
-        private Object getAnntInstance(String key, Supplier<Object> newInstanceFunc) {
+        private Object getAnntInstance(String key, Function<String, Object> newInstanceFunc) {
             return lo.syncValue(
-                    lock -> keyToInstance.computeIfAbsent(
-                            key,
-                            instanceKey -> newInstanceFunc.get()
-                    )
+                    lock -> keyToInstance.computeIfAbsent(key, newInstanceFunc)
             );
         }
 

@@ -20,6 +20,14 @@ public abstract class ProxyAnnotationConfig<T, R> {
 
     private final ThreadLocal<AroundItem<T, R>> local = new ThreadLocal<>();
     private final ThreadLocal<Object> banningLocal = new ThreadLocal<>();
+    protected String instanceKey;
+
+    void setInstanceKey(String key) {
+        this.instanceKey = key;
+    }
+
+    void init() {
+    }
 
     private boolean isBanning() {
         return banningLocal.get() != null;
@@ -54,8 +62,7 @@ public abstract class ProxyAnnotationConfig<T, R> {
         if (currAroundItem != null)
             currAroundItem.complete(
                     data -> processOnReturning(data, returnValue, returnType, destInvoke, otherArgs),
-                    false,
-                    isAddResultToLast(false)
+                    false
             );
     }
 
@@ -67,8 +74,7 @@ public abstract class ProxyAnnotationConfig<T, R> {
         if (currAroundItem != null)
             currAroundItem.complete(
                     data -> processOnCatching(data, error, destInvoke, otherArgs),
-                    true,
-                    isAddResultToLast(false)
+                    true
             );
     }
 
@@ -80,8 +86,7 @@ public abstract class ProxyAnnotationConfig<T, R> {
         if (currAroundItem != null)
             currAroundItem.complete(
                     data -> processOnThrowing(data, error, destInvoke, otherArgs),
-                    false,
-                    isAddResultToLast(true)
+                    false
             );
     }
 
@@ -91,7 +96,7 @@ public abstract class ProxyAnnotationConfig<T, R> {
             return;
         AroundItem<T, R> currAroundItem = getAroundItem("after", destInvoke);
         if (currAroundItem != null) {
-            processOnAfter(destInvoke, args);
+            processOnAfter(currAroundItem.peekResult(), destInvoke, args);
             if (currAroundItem.isCompleted()) {
                 local.remove();
                 try {
@@ -127,7 +132,7 @@ public abstract class ProxyAnnotationConfig<T, R> {
 
     protected abstract R processOnThrowing(T data, Throwable error, DestInvoke destInvoke, Object[] otherArgs);
 
-    protected abstract void processOnAfter(DestInvoke destInvoke, Object[] otherArgs);
+    protected abstract void processOnAfter(R result, DestInvoke destInvoke, Object[] otherArgs);
 
     protected abstract void processOnCompleted(List<R> completed, DestInvoke destInvoke, Object[] otherArgs);
 

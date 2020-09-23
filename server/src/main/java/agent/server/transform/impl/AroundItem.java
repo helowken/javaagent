@@ -24,20 +24,22 @@ public class AroundItem<T, R> {
         return undergoing.peek();
     }
 
+    R peekResult() {
+        if (completed.isEmpty())
+            return null;
+        return completed.peek();
+    }
+
     public int size() {
         return undergoing.size();
     }
 
-    void complete(ProcessDataFunc<T, R> func, boolean peek, boolean addToLast) {
+    void complete(ProcessDataFunc<T, R> func, boolean peek) {
         if (!undergoing.isEmpty() && func != null) {
             T data = peek ? undergoing.peek() : undergoing.pop();
             R result = func.process(data);
-            if (result != null) {
-                if (addToLast)
-                    completed.addLast(result);
-                else
-                    completed.addFirst(result);
-            }
+            if (result != null)
+                completed.addFirst(result);
         }
     }
 

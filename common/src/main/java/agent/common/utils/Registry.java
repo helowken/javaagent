@@ -25,6 +25,10 @@ public class Registry<K, V> {
         );
     }
 
+    public void unreg(K key) {
+        map.remove(key);
+    }
+
     public V regIfAbsent(K key, Function<K, V> valueSupplier) {
         return map.computeIfAbsent(key, valueSupplier);
     }

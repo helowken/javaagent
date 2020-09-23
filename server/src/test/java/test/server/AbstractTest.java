@@ -315,6 +315,30 @@ public abstract class AbstractTest {
         );
     }
 
+    protected Map<String, Class<?>> loadNewClasses(Map<Class<?>, byte[]> classToData) {
+        Map<String, Class<?>> nameToClass = new HashMap<>();
+        classToData.forEach(
+                (clazz, data) -> Utils.wrapToRtError(
+                        () -> {
+                            try {
+                                nameToClass.put(
+                                        clazz.getName(),
+                                        loader.loadClass(
+                                                clazz.getName(),
+                                                data
+                                        )
+                                );
+//                                System.out.println("========================");
+//                                AsmUtils.print(data, System.out);
+                            } catch (Throwable e) {
+                                e.printStackTrace();
+                            }
+                        }
+                )
+        );
+        return nameToClass;
+    }
+
     protected interface RunFileFunc {
         void run(String outputPath, Map<String, Object> config) throws Exception;
     }
@@ -353,4 +377,6 @@ public abstract class AbstractTest {
             finished = false;
         }
     }
+
+
 }

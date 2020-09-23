@@ -40,7 +40,7 @@ public abstract class CallChainTransformer extends ProxyAnnotationConfigTransfor
         }
 
         @Override
-        protected void processOnAfter(DestInvoke destInvoke, Object[] otherArgs) {
+        protected void processOnAfter(R result, DestInvoke destInvoke, Object[] otherArgs) {
         }
 
         @Override
