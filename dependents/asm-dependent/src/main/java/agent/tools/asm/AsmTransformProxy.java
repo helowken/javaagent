@@ -19,7 +19,7 @@ import static org.objectweb.asm.Opcodes.*;
 import static org.objectweb.asm.tree.AbstractInsnNode.*;
 
 class AsmTransformProxy {
-    private static final String TARGET_PROXY_CLASS = "agent.server.transform.tools.asm.ProxyTransformMgr";
+    private static final String TARGET_PROXY_CLASS = "agent.bootstrap.ProxyDelegate";
 
     static void doTransform(ClassNode classNode, Map<Integer, DestInvoke> idToInvoke) {
         Map<String, Map<String, Integer>> nameToDescToId = getNameToDescToId(idToInvoke);

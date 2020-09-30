@@ -1,6 +1,5 @@
 package agent.server.listener;
 
-import agent.base.utils.Logger;
 import agent.base.utils.Utils;
 import agent.common.message.command.CmdItem;
 import agent.common.message.command.Command;
@@ -13,8 +12,6 @@ import java.io.File;
 import java.util.List;
 
 public class StartupScriptListener implements ServerListener {
-    private static final Logger logger = Logger.getLogger(StartupScriptListener.class);
-
     @Override
     public void onStartup(Object[] args) {
         if (args.length < 2)

@@ -1,6 +1,5 @@
 package agent.server.transform.impl;
 
-import agent.base.utils.Logger;
 import agent.common.utils.Registry;
 import jdk.nashorn.api.scripting.ScriptObjectMirror;
 
@@ -9,7 +8,6 @@ import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 
 public class ScriptEngineMgr {
-    private static final Logger logger = Logger.getLogger(ScriptEngineMgr.class);
     private static final Registry<String, ScriptEngine> registry = new Registry<>();
     private static final ScriptEngineManager manager = new ScriptEngineManager();
 
@@ -35,9 +33,7 @@ public class ScriptEngineMgr {
             ScriptObjectMirror som = (ScriptObjectMirror) value;
             if (som.isFunction()) {
                 ((Invocable) engine).invokeFunction(funcName, args);
-                return;
             }
         }
-        logger.debug("No script function found by name: " + funcName + ", key: " + key);
     }
 }

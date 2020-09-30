@@ -33,6 +33,7 @@ public class ClientLauncher extends AbstractLauncher {
                     getConfigFile(restArgList),
                     getInitParams(hostAndPort)
             );
+            instance.loadLibs();
             restArgList.remove(0);
 
             List<String> invalidOpts = getInvalidOpts(restArgList);

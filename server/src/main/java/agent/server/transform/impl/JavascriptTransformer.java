@@ -1,7 +1,9 @@
 package agent.server.transform.impl;
 
 import agent.base.utils.Logger;
+import agent.base.utils.Utils;
 import agent.invoke.DestInvoke;
+import agent.server.transform.exception.InvalidTransformerConfigException;
 
 import java.util.HashMap;
 import java.util.List;
@@ -10,6 +12,7 @@ import java.util.Map;
 public class JavascriptTransformer extends CallChainTransformer {
     public static final String REG_KEY = "@javascript";
     private static final Logger logger = Logger.getLogger(JavascriptTransformer.class);
+    private static final String KEY_CONFIG_SCRIPT = "script";
     private static final String ENGINE_NAME = "nashorn";
     private static final String FUNC_ON_BEFORE = "onBefore";
     private static final String FUNC_ON_RETURN = "onReturn";
@@ -17,6 +20,16 @@ public class JavascriptTransformer extends CallChainTransformer {
     private static final String FUNC_ON_CATCH = "onCatch";
     private static final String FUNC_ON_AFTER = "onAfter";
     private static final String FUNC_ON_COMPLETE = "onComplete";
+
+    @Override
+    protected void doSetConfig(Map<String, Object> config) throws Exception {
+        String script = (String) config.get(KEY_CONFIG_SCRIPT);
+        if (Utils.isBlank(script))
+            throw new InvalidTransformerConfigException("No script found.");
+        String key = getInstanceKey();
+        ScriptEngineMgr.reg(key, ENGINE_NAME);
+        ScriptEngineMgr.eval(key, script);
+    }
 
     @Override
     protected String newLogKey(Map<String, Object> config) {
@@ -31,59 +44,54 @@ public class JavascriptTransformer extends CallChainTransformer {
     private static class Config extends CallChainConfig<JavascriptItem, JavascriptItem> {
 
         @Override
-        public void init() {
-            ScriptEngineMgr.reg(instanceKey, ENGINE_NAME);
-        }
-
-        @Override
-        protected JavascriptItem newData(Object[] args, Class<?>[] argTypes, DestInvoke destInvoke, Object[] otherArgs) {
+        protected JavascriptItem newData(Object[] args, Class<?>[] argTypes, Object instanceOrNull, DestInvoke destInvoke, Object[] otherArgs) {
             JavascriptItem data = new JavascriptItem();
             ignoreError(
-                    () -> ScriptEngineMgr.invoke(instanceKey, FUNC_ON_BEFORE, data, destInvoke, args, argTypes),
+                    () -> ScriptEngineMgr.invoke(instanceKey, FUNC_ON_BEFORE, data, destInvoke, args, argTypes, instanceOrNull),
                     "newData failed."
             );
             return data;
         }
 
         @Override
-        protected JavascriptItem processOnReturning(JavascriptItem data, Object returnValue, Class<?> returnType, DestInvoke destInvoke, Object[] otherArgs) {
+        protected JavascriptItem processOnReturning(JavascriptItem data, Object returnValue, Class<?> returnType, Object instanceOrNull, DestInvoke destInvoke, Object[] otherArgs) {
             ignoreError(
-                    () -> ScriptEngineMgr.invoke(instanceKey, FUNC_ON_RETURN, data, destInvoke, returnValue, returnType),
+                    () -> ScriptEngineMgr.invoke(instanceKey, FUNC_ON_RETURN, data, destInvoke, returnValue, returnType, instanceOrNull),
                     "onReturn failed."
             );
             return data;
         }
 
         @Override
-        protected JavascriptItem processOnThrowing(JavascriptItem data, Throwable error, DestInvoke destInvoke, Object[] otherArgs) {
+        protected JavascriptItem processOnThrowing(JavascriptItem data, Throwable error, Object instanceOrNull, DestInvoke destInvoke, Object[] otherArgs) {
             ignoreError(
-                    () -> ScriptEngineMgr.invoke(instanceKey, FUNC_ON_THROW, data, destInvoke, error),
+                    () -> ScriptEngineMgr.invoke(instanceKey, FUNC_ON_THROW, data, destInvoke, error, instanceOrNull),
                     "onThrow failed."
             );
             return data;
         }
 
         @Override
-        protected JavascriptItem processOnCatching(JavascriptItem data, Throwable error, DestInvoke destInvoke, Object[] otherArgs) {
+        protected JavascriptItem processOnCatching(JavascriptItem data, Throwable error, Object instanceOrNull, DestInvoke destInvoke, Object[] otherArgs) {
             ignoreError(
-                    () -> ScriptEngineMgr.invoke(instanceKey, FUNC_ON_CATCH, data, destInvoke, error),
+                    () -> ScriptEngineMgr.invoke(instanceKey, FUNC_ON_CATCH, data, destInvoke, error, instanceOrNull),
                     "onCatch failed."
             );
             return data;
         }
 
         @Override
-        protected void processOnAfter(JavascriptItem result, DestInvoke destInvoke, Object[] otherArgs) {
+        protected void processOnAfter(JavascriptItem result, Object instanceOrNull, DestInvoke destInvoke, Object[] otherArgs) {
             ignoreError(
-                    () -> ScriptEngineMgr.invoke(instanceKey, FUNC_ON_AFTER, result, destInvoke),
+                    () -> ScriptEngineMgr.invoke(instanceKey, FUNC_ON_AFTER, result, destInvoke, instanceOrNull),
                     "onAfter failed."
             );
         }
 
         @Override
-        protected void processOnCompleted(List<JavascriptItem> completed, DestInvoke destInvoke, Object[] otherArgs) {
+        protected void processOnCompleted(List<JavascriptItem> completed, Object instanceOrNull, DestInvoke destInvoke, Object[] otherArgs) {
             ignoreError(
-                    () -> ScriptEngineMgr.invoke(instanceKey, FUNC_ON_COMPLETE, completed, destInvoke),
+                    () -> ScriptEngineMgr.invoke(instanceKey, FUNC_ON_COMPLETE, completed, destInvoke, instanceOrNull),
                     "onComplete failed."
             );
         }
@@ -106,7 +114,7 @@ public class JavascriptTransformer extends CallChainTransformer {
                     "id=" + id +
                     ", parentId=" + parentId +
                     ", invokeId=" + invokeId +
-                    "kvs=" + kvs +
+                    ", kvs=" + kvs +
                     '}';
         }
     }

@@ -39,10 +39,11 @@ public class CommandParserMgr {
         headerToParser.put(
                 "Service Management:",
                 Arrays.asList(
-                        new CostTimeCmdParser(),
-                        new TraceCmdParser(),
-                        new SaveClassCmdParser(),
-                        new StackTraceCmdParser()
+                        new BuiltInTransformCmdParser.CostTimeCmdParser(),
+                        new BuiltInTransformCmdParser.TraceCmdParser(),
+                        new JavascriptTransformCmdParser(),
+                        new StackTraceCmdParser(),
+                        new SaveClassCmdParser()
                 )
         );
 

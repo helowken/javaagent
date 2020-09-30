@@ -21,7 +21,7 @@ public class ClassCache {
     private volatile List<Class<?>> loadedClasses;
 
     static boolean isIntrinsicPackage(String namePath) {
-        return ReflectionUtils.isJavaIntrinsicPackage(namePath) ||
+        return //ReflectionUtils.isJavaIntrinsicPackage(namePath) ||
                 skipPackages.stream().anyMatch(namePath::startsWith);
     }
 

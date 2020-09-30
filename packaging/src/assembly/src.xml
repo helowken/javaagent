@@ -39,6 +39,13 @@
         </dependencySet>
         <dependencySet>
             <useStrictFiltering>true</useStrictFiltering>
+            <outputDirectory>server/lib/bootstrap</outputDirectory>
+            <includes>
+                <include>javaagent:bootstrap</include>
+            </includes>
+        </dependencySet>
+        <dependencySet>
+            <useStrictFiltering>true</useStrictFiltering>
             <outputDirectory>server/lib/dependent</outputDirectory>
             <includes>
                 <include>javaagent:asm-dependent</include>

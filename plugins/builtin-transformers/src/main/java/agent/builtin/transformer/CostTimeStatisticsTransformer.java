@@ -28,12 +28,12 @@ public class CostTimeStatisticsTransformer extends CallChainTransformer {
 
     private static class Config extends CallChainTimeConfig<InvokeTimeItem, InvokeTimeItem> {
         @Override
-        protected InvokeTimeItem newData(Object[] args, Class<?>[] argTypes, DestInvoke destInvoke, Object[] otherArgs) {
+        protected InvokeTimeItem newData(Object[] args, Class<?>[] argTypes, Object instanceOrNull, DestInvoke destInvoke, Object[] otherArgs) {
             return new InvokeTimeItem();
         }
 
         @Override
-        protected void processOnCompleted(List<InvokeTimeItem> completed, DestInvoke destInvoke, Object[] otherArgs) {
+        protected void processOnCompleted(List<InvokeTimeItem> completed, Object instanceOrNull, DestInvoke destInvoke, Object[] otherArgs) {
             final String logKey = Utils.getArgValue(otherArgs, 0);
             BinaryLogItem logItem = BinaryLogItemPool.get(logKey);
             logItem.putInt(

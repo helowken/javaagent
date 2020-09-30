@@ -3,7 +3,6 @@ package agent.common.message.command;
 import agent.base.help.HelpInfo;
 import agent.base.utils.ConsoleLogger;
 import agent.base.utils.Utils;
-import agent.common.message.command.Command;
 
 public class CmdItem {
     private final Command cmd;

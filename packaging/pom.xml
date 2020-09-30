@@ -36,6 +36,10 @@
         </dependency>
         <dependency>
             <groupId>javaagent</groupId>
+            <artifactId>bootstrap</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>javaagent</groupId>
             <artifactId>server</artifactId>
         </dependency>
         <dependency>

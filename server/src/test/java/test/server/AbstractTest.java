@@ -70,8 +70,10 @@ public abstract class AbstractTest {
             DependentClassItem.getInstance().mock(AsmUtils.ASM_DELEGATE_CLASS, AsmDelegate.class);
             DependentClassItem.getInstance().mock(JsonUtils.JSON_DELEGATE_CLASS, JsonDelegate.class);
 
-            InstrumentationMgr.getInstance().onStartup(new Object[]{instrumentation});
-            DestInvokeIdRegistry.getInstance().onStartup(new Object[0]);
+            Object[] args = new Object[] {instrumentation};
+            InstrumentationMgr.getInstance().onStartup(args);
+            DestInvokeIdRegistry.getInstance().onStartup(args);
+            ProxyTransformMgr.getInstance().onStartup(args);
             String dir = System.getProperty("user.dir");
             String s = "javaagent";
             int pos = dir.indexOf(s);
@@ -280,7 +282,8 @@ public abstract class AbstractTest {
         try {
             Map<String, Object> logConf = new HashMap<>();
             logConf.put("outputPath", outputPath);
-            Map<String, Object> config = Collections.singletonMap("log", logConf);
+            Map<String, Object> config = new HashMap<>();
+            config.put("log", logConf);
             runFileFunc.run(outputPath, config);
         } finally {
             Files.delete(path);

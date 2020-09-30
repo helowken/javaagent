@@ -1,15 +1,16 @@
 package agent.launcher.server;
 
-import agent.base.utils.ClassLoaderUtils;
-import agent.base.utils.Logger;
-import agent.base.utils.Utils;
+import agent.base.utils.*;
 import agent.launcher.basic.AbstractLauncher;
 
+import java.io.File;
 import java.lang.instrument.Instrumentation;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.jar.JarFile;
 
 
 public class ServerLauncher extends AbstractLauncher {
@@ -17,20 +18,18 @@ public class ServerLauncher extends AbstractLauncher {
     private static final String SEP = "=";
     private static final String ENTRY_SEP = ";";
     private static final String RUNNER_TYPE = "serverRunner";
+    private static final String KEY_BOOTSTRAP_LIB_DIR = "bootstrap.lib.dir";
     private static final String KEY_PORT = "port";
     private static final String KEY_CONFIG = "conf";
     private static final String KEY_SCRIPT = "script";
     private static final ServerLauncher instance = new ServerLauncher();
     private static final AtomicBoolean inited = new AtomicBoolean(false);
-    private static AttachType attachType;
 
     public static void premain(String agentArgs, Instrumentation instrumentation) throws Exception {
-        attachType = AttachType.STATIC;
         initAgent(agentArgs, instrumentation);
     }
 
     public static void agentmain(String agentArgs, Instrumentation instrumentation) throws Exception {
-        attachType = AttachType.DYNAMIC;
         initAgent(agentArgs, instrumentation);
     }
 
@@ -85,6 +84,8 @@ public class ServerLauncher extends AbstractLauncher {
                         port == null ? "" : port
                 )
         );
+        instance.loadBootstrapJars(instrumentation);
+        instance.loadLibs();
         instance.startRunner(
                 getRunner(RUNNER_TYPE),
                 port,
@@ -93,19 +94,17 @@ public class ServerLauncher extends AbstractLauncher {
         );
     }
 
-    @Override
-    protected void loadLibs(String[] libPaths) throws Exception {
-        if (AttachType.STATIC.equals(attachType)) {
-            logger.debug("Use static loading.");
-            super.loadLibs(libPaths);
-        } else if (AttachType.DYNAMIC.equals(attachType)) {
-            logger.debug("Use dynamic loading.");
-            ClassLoaderUtils.addLibPaths(libPaths);
-        } else
-            throw new RuntimeException("Unknown attach type: " + attachType);
-    }
-
-    enum AttachType {
-        STATIC, DYNAMIC
+    private void loadBootstrapJars(Instrumentation instrumentation) throws Exception {
+        List<File> fileList = ClassLoaderUtils.findJarFiles(
+                FileUtils.splitPathStringToPathArray(
+                        SystemConfig.splitToSet(KEY_BOOTSTRAP_LIB_DIR),
+                        SystemConfig.getBaseDir()
+                )
+        );
+        for (File file : fileList) {
+            instrumentation.appendToBootstrapClassLoaderSearch(
+                    new JarFile(file)
+            );
+        }
     }
 }

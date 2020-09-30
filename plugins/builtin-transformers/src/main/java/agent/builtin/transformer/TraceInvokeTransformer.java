@@ -51,7 +51,7 @@ public class TraceInvokeTransformer extends CallChainTransformer {
     private static class Config extends CallChainTimeConfig<TraceInvokeInfo, TraceResult> {
 
         @Override
-        protected TraceInvokeInfo newData(Object[] args, Class<?>[] argTypes, DestInvoke destInvoke, Object[] otherArgs) {
+        protected TraceInvokeInfo newData(Object[] args, Class<?>[] argTypes, Object instanceOrNull, DestInvoke destInvoke, Object[] otherArgs) {
             return new TraceInvokeInfo(args, argTypes);
         }
 
@@ -61,14 +61,14 @@ public class TraceInvokeTransformer extends CallChainTransformer {
         }
 
         @Override
-        protected TraceResult processOnReturning(TraceInvokeInfo data, Object returnValue, Class<?> returnType, DestInvoke destInvoke, Object[] otherArgs) {
+        protected TraceResult processOnReturning(TraceInvokeInfo data, Object returnValue, Class<?> returnType, Object instanceOrNull, DestInvoke destInvoke, Object[] otherArgs) {
             data.returnType = returnType;
             data.returnValue = returnValue;
-            return super.processOnReturning(data, returnValue, returnType, destInvoke, otherArgs);
+            return super.processOnReturning(data, returnValue, returnType, instanceOrNull, destInvoke, otherArgs);
         }
 
         @Override
-        protected TraceResult processOnCatching(TraceInvokeInfo data, Throwable error, DestInvoke destInvoke, Object[] otherArgs) {
+        protected TraceResult processOnCatching(TraceInvokeInfo data, Throwable error, Object instanceOrNull, DestInvoke destInvoke, Object[] otherArgs) {
             TraceCatchInfo result = new TraceCatchInfo();
             result.id = getAroundItem().nextSeq();
             result.parentId = data.id;
@@ -78,7 +78,7 @@ public class TraceInvokeTransformer extends CallChainTransformer {
         }
 
         @Override
-        protected void processOnCompleted(List<TraceResult> completed, DestInvoke destInvoke, Object[] otherArgs) {
+        protected void processOnCompleted(List<TraceResult> completed, Object instanceOrNull, DestInvoke destInvoke, Object[] otherArgs) {
             final String logKey = Utils.getArgValue(otherArgs, 0);
             ValueConverter valueConverter = Utils.getArgValue(otherArgs, 1);
             String content = JsonUtils.writeAsString(

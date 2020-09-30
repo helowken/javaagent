@@ -2,11 +2,14 @@ package agent.server.transform.tools.asm;
 
 import agent.base.utils.InvokeDescriptorUtils;
 import agent.base.utils.Logger;
+import agent.bootstrap.ProxyDelegate;
+import agent.bootstrap.ProxyIntf;
 import agent.invoke.DestInvoke;
 import agent.invoke.proxy.ProxyCallSite;
 import agent.invoke.proxy.ProxyItem;
 import agent.invoke.proxy.ProxyRegInfo;
 import agent.invoke.proxy.ProxyResult;
+import agent.server.ServerListener;
 import agent.server.transform.impl.DestInvokeIdRegistry;
 import agent.server.transform.revision.ClassDataRepository;
 
@@ -15,7 +18,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-public class ProxyTransformMgr {
+public class ProxyTransformMgr implements ProxyIntf, ServerListener {
     private static final Logger logger = Logger.getLogger(ProxyTransformMgr.class);
     private static final ProxyTransformMgr instance = new ProxyTransformMgr();
 
@@ -155,15 +158,15 @@ public class ProxyTransformMgr {
         );
     }
 
-    public void onBefore(int invokeId, Object instanceOrNull, Object[] args) throws Throwable {
+    public void onBefore(int invokeId, Object instanceOrNull, Object[] args) {
         getCallSite(invokeId).invokeBefore(instanceOrNull, args);
     }
 
-    public void onReturning(int invokeId, Object instanceOrNull, Object returnValue)throws Throwable  {
+    public void onReturning(int invokeId, Object instanceOrNull, Object returnValue) {
         getCallSite(invokeId).invokeOnReturning(instanceOrNull, returnValue);
     }
 
-    public void onThrowing(int invokeId, Object instanceOrNull, Throwable error) throws Throwable {
+    public void onThrowing(int invokeId, Object instanceOrNull, Throwable error) {
         getCallSite(invokeId).invokeOnThrowing(instanceOrNull, error);
     }
 
@@ -185,5 +188,14 @@ public class ProxyTransformMgr {
         System.out.println(
                 "After Inner Call " + callNum + ": " + returnValue
         );
+    }
+
+    @Override
+    public void onStartup(Object[] args) {
+        ProxyDelegate.getInstance().setProxy(this);
+    }
+
+    @Override
+    public void onShutdown() {
     }
 }

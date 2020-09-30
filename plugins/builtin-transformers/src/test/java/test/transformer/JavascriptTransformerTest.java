@@ -28,8 +28,12 @@ public class JavascriptTransformerTest extends AbstractTest {
         runWithFile(
                 (outputPath, config) -> {
                     final String instanceKey = newTransformerKey();
+                    String script = IOUtils.readToString(
+                            getClass().getClassLoader().getResourceAsStream("test.js")
+                    );
                     JavascriptTransformer transformer = new JavascriptTransformer();
                     transformer.setInstanceKey(instanceKey);
+                    config.put("script", script);
                     doTransform(transformer, config, classToMethodFilter, invokeChainConfig);
 
                     classToData.putAll(
@@ -39,11 +43,6 @@ public class JavascriptTransformerTest extends AbstractTest {
                     Object a = nameToClass.get(
                             targetClass.getName()
                     ).newInstance();
-
-                    String script = IOUtils.readToString(
-                            getClass().getClassLoader().getResourceAsStream("test.js")
-                    );
-                    ScriptEngineMgr.eval(instanceKey, script);
 
                     try {
                         ReflectionUtils.invoke(targetMethodName, a);

@@ -14,10 +14,6 @@ public abstract class AbstractLauncher {
     private static final String KEY_LOG_LEVEL = "log.level";
     private static final String KEY_LIB_DIR = "lib.dir";
 
-    protected void loadLibs(String[] libPaths) throws Exception {
-        ClassLoaderUtils.initContextClassLoader(libPaths);
-    }
-
     protected void init(String configFilePath, Map<String, Object> pvs) throws Exception {
         SystemConfig.load(configFilePath, pvs);
         Logger.setSystemLogger(null);
@@ -25,7 +21,10 @@ public abstract class AbstractLauncher {
                 SystemConfig.getNotBlank(KEY_LOG_PATH),
                 SystemConfig.get(KEY_LOG_LEVEL)
         );
-        loadLibs(
+    }
+
+    protected void loadLibs() throws Exception {
+        ClassLoaderUtils.addLibPaths(
                 FileUtils.splitPathStringToPathArray(
                         SystemConfig.splitToSet(KEY_LIB_DIR),
                         SystemConfig.getBaseDir()

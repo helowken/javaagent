@@ -26,9 +26,6 @@ public abstract class ProxyAnnotationConfig<T, R> {
         this.instanceKey = key;
     }
 
-    void init() {
-    }
-
     private boolean isBanning() {
         return banningLocal.get() != null;
     }
@@ -40,8 +37,8 @@ public abstract class ProxyAnnotationConfig<T, R> {
             banningLocal.remove();
     }
 
-    @OnBefore(mask = DEFAULT_BEFORE | MASK_INVOKE, argsHint = ARGS_ON_BEFORE)
-    public void onBefore(Object[] args, Class<?>[] argTypes, DestInvoke destInvoke, Object... otherArgs) {
+    @OnBefore(mask = DEFAULT_BEFORE | DEFAULT_METADATA, argsHint = ARGS_ON_BEFORE)
+    public void onBefore(Object[] args, Class<?>[] argTypes, Object instanceOrNull, DestInvoke destInvoke, Object... otherArgs) {
         if (isBanning())
             return;
         AroundItem<T, R> currAroundItem = local.get();
@@ -49,68 +46,64 @@ public abstract class ProxyAnnotationConfig<T, R> {
             currAroundItem = new AroundItem<>();
             local.set(currAroundItem);
         }
-        T data = newDataOnBefore(args, argTypes, destInvoke, otherArgs);
+        T data = newDataOnBefore(args, argTypes, instanceOrNull, destInvoke, otherArgs);
         if (data != null)
             currAroundItem.push(data);
     }
 
-    @OnReturning(mask = DEFAULT_ON_RETURNING | MASK_INVOKE, argsHint = ARGS_ON_RETURNING)
-    public void onReturning(Object returnValue, Class<?> returnType, DestInvoke destInvoke, Object... otherArgs) {
+    @OnReturning(mask = DEFAULT_ON_RETURNING | DEFAULT_METADATA, argsHint = ARGS_ON_RETURNING)
+    public void onReturning(Object returnValue, Class<?> returnType, Object instanceOrNull, DestInvoke destInvoke, Object... otherArgs) {
         if (isBanning())
             return;
         AroundItem<T, R> currAroundItem = getAroundItem("returning", destInvoke);
         if (currAroundItem != null)
             currAroundItem.complete(
-                    data -> processOnReturning(data, returnValue, returnType, destInvoke, otherArgs),
+                    data -> processOnReturning(data, returnValue, returnType, instanceOrNull, destInvoke, otherArgs),
                     false
             );
     }
 
-    @OnCatching(mask = DEFAULT_ON_CATCHING | MASK_INVOKE, argsHint = ARGS_ON_CATCHING)
-    public void onCatching(Throwable error, DestInvoke destInvoke, Object... otherArgs) {
+    @OnCatching(mask = DEFAULT_ON_CATCHING | DEFAULT_METADATA, argsHint = ARGS_ON_CATCHING)
+    public void onCatching(Throwable error, Object instanceOrNull, DestInvoke destInvoke, Object... otherArgs) {
         if (isBanning())
             return;
         AroundItem<T, R> currAroundItem = getAroundItem("catching", destInvoke);
         if (currAroundItem != null)
             currAroundItem.complete(
-                    data -> processOnCatching(data, error, destInvoke, otherArgs),
+                    data -> processOnCatching(data, error, instanceOrNull, destInvoke, otherArgs),
                     true
             );
     }
 
-    @OnThrowing(mask = DEFAULT_ON_THROWING | MASK_INVOKE, argsHint = ARGS_ON_THROWING)
-    public void onThrowing(Throwable error, DestInvoke destInvoke, Object... otherArgs) {
+    @OnThrowing(mask = DEFAULT_ON_THROWING | DEFAULT_METADATA, argsHint = ARGS_ON_THROWING)
+    public void onThrowing(Throwable error, Object instanceOrNull, DestInvoke destInvoke, Object... otherArgs) {
         if (isBanning())
             return;
         AroundItem<T, R> currAroundItem = getAroundItem("throwing", destInvoke);
         if (currAroundItem != null)
             currAroundItem.complete(
-                    data -> processOnThrowing(data, error, destInvoke, otherArgs),
+                    data -> processOnThrowing(data, error, instanceOrNull, destInvoke, otherArgs),
                     false
             );
     }
 
-    @OnAfter(mask = MASK_INVOKE, argsHint = ARGS_ON_AFTER)
-    private void onAfter(DestInvoke destInvoke, Object... args) {
+    @OnAfter(mask = DEFAULT_METADATA, argsHint = ARGS_ON_AFTER)
+    private void onAfter(Object instanceOrNull, DestInvoke destInvoke, Object... args) {
         if (isBanning())
             return;
         AroundItem<T, R> currAroundItem = getAroundItem("after", destInvoke);
         if (currAroundItem != null) {
-            processOnAfter(currAroundItem.peekResult(), destInvoke, args);
+            processOnAfter(currAroundItem.peekResult(), instanceOrNull, destInvoke, args);
             if (currAroundItem.isCompleted()) {
                 local.remove();
                 try {
                     setBanning(true);
-                    processOnCompleted(currAroundItem.getCompleted(), destInvoke, args);
+                    processOnCompleted(currAroundItem.getCompleted(), instanceOrNull, destInvoke, args);
                 } finally {
                     setBanning(false);
                 }
             }
         }
-    }
-
-    protected boolean isAddResultToLast(boolean error) {
-        return false;
     }
 
     private AroundItem<T, R> getAroundItem(String stage, DestInvoke destInvoke) {
@@ -124,16 +117,16 @@ public abstract class ProxyAnnotationConfig<T, R> {
         return local.get();
     }
 
-    protected abstract T newDataOnBefore(Object[] args, Class<?>[] argTypes, DestInvoke destInvoke, Object[] otherArgs);
+    protected abstract T newDataOnBefore(Object[] args, Class<?>[] argTypes, Object instanceOrNull, DestInvoke destInvoke, Object[] otherArgs);
 
-    protected abstract R processOnReturning(T data, Object returnValue, Class<?> returnType, DestInvoke destInvoke, Object[] otherArgs);
+    protected abstract R processOnReturning(T data, Object returnValue, Class<?> returnType, Object instanceOrNull, DestInvoke destInvoke, Object[] otherArgs);
 
-    protected abstract R processOnCatching(T data, Throwable error, DestInvoke destInvoke, Object[] otherArgs);
+    protected abstract R processOnCatching(T data, Throwable error, Object instanceOrNull, DestInvoke destInvoke, Object[] otherArgs);
 
-    protected abstract R processOnThrowing(T data, Throwable error, DestInvoke destInvoke, Object[] otherArgs);
+    protected abstract R processOnThrowing(T data, Throwable error, Object instanceOrNull, DestInvoke destInvoke, Object[] otherArgs);
 
-    protected abstract void processOnAfter(R result, DestInvoke destInvoke, Object[] otherArgs);
+    protected abstract void processOnAfter(R result, Object instanceOrNull, DestInvoke destInvoke, Object[] otherArgs);
 
-    protected abstract void processOnCompleted(List<R> completed, DestInvoke destInvoke, Object[] otherArgs);
+    protected abstract void processOnCompleted(List<R> completed, Object instanceOrNull, DestInvoke destInvoke, Object[] otherArgs);
 
 }

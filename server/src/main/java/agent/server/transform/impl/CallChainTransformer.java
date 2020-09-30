@@ -28,11 +28,11 @@ public abstract class CallChainTransformer extends ProxyAnnotationConfigTransfor
     public abstract static class CallChainConfig<T extends InvokeItem, R> extends ProxyAnnotationConfig<T, R> {
 
         @Override
-        protected T newDataOnBefore(Object[] args, Class<?>[] argTypes, DestInvoke destInvoke, Object[] otherArgs) {
+        protected T newDataOnBefore(Object[] args, Class<?>[] argTypes, Object instanceOrNull, DestInvoke destInvoke, Object[] otherArgs) {
             int invokeId = Utils.getArgValue(otherArgs, 0);
             AroundItem<T, R> aroundItem = getAroundItem();
             InvokeItem parentItem = aroundItem.peek();
-            T data = newData(args, argTypes, destInvoke, otherArgs);
+            T data = newData(args, argTypes, instanceOrNull, destInvoke, otherArgs);
             data.id = aroundItem.nextSeq();
             data.parentId = parentItem == null ? -1 : parentItem.id;
             data.invokeId = invokeId;
@@ -40,36 +40,36 @@ public abstract class CallChainTransformer extends ProxyAnnotationConfigTransfor
         }
 
         @Override
-        protected void processOnAfter(R result, DestInvoke destInvoke, Object[] otherArgs) {
+        protected void processOnAfter(R result, Object instanceOrNull, DestInvoke destInvoke, Object[] otherArgs) {
         }
 
         @Override
-        protected R processOnCatching(T data, Throwable error, DestInvoke destInvoke, Object[] otherArgs) {
+        protected R processOnCatching(T data, Throwable error, Object instanceOrNull, DestInvoke destInvoke, Object[] otherArgs) {
             return null;
         }
 
-        protected abstract T newData(Object[] args, Class<?>[] argTypes, DestInvoke destInvoke, Object[] otherArgs);
+        protected abstract T newData(Object[] args, Class<?>[] argTypes, Object instanceOrNull, DestInvoke destInvoke, Object[] otherArgs);
     }
 
     public abstract static class CallChainTimeConfig<T extends InvokeTimeItem, R> extends CallChainConfig<T, R> {
         protected abstract R convertTo(T data);
 
         @Override
-        protected T newDataOnBefore(Object[] args, Class<?>[] argTypes, DestInvoke destInvoke, Object[] otherArgs) {
+        protected T newDataOnBefore(Object[] args, Class<?>[] argTypes, Object instanceOrNull, DestInvoke destInvoke, Object[] otherArgs) {
             long st = System.nanoTime();
-            T data = super.newDataOnBefore(args, argTypes, destInvoke, otherArgs);
+            T data = super.newDataOnBefore(args, argTypes, instanceOrNull, destInvoke, otherArgs);
             data.startTime = st;
             return data;
         }
 
         @Override
-        protected R processOnReturning(T data, Object returnValue, Class<?> returnType, DestInvoke destInvoke, Object[] otherArgs) {
+        protected R processOnReturning(T data, Object returnValue, Class<?> returnType, Object instanceOrNull, DestInvoke destInvoke, Object[] otherArgs) {
             data.endTime = System.nanoTime();
             return convertTo(data);
         }
 
         @Override
-        protected R processOnThrowing(T data, Throwable error, DestInvoke destInvoke, Object[] otherArgs) {
+        protected R processOnThrowing(T data, Throwable error, Object instanceOrNull, DestInvoke destInvoke, Object[] otherArgs) {
             data.endTime = System.nanoTime();
             data.error = error;
             return convertTo(data);

@@ -68,7 +68,6 @@ public abstract class ProxyAnnotationConfigTransformer extends AbstractAnnotatio
                 () -> {
                     ProxyAnnotationConfig config = ReflectionUtils.newInstance(clazz);
                     config.setInstanceKey(instanceKey);
-                    config.init();
                     return config;
                 }
         );
