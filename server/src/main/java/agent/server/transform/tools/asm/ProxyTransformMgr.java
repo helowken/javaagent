@@ -21,8 +21,8 @@ import java.util.stream.Collectors;
 public class ProxyTransformMgr implements ProxyIntf, ServerListener {
     private static final Logger logger = Logger.getLogger(ProxyTransformMgr.class);
     private static final ProxyTransformMgr instance = new ProxyTransformMgr();
-
-    private Map<Integer, ProxyCallSite> idToCallSite = new ConcurrentHashMap<>();
+    private final Map<Integer, ProxyCallSite> idToCallSite = new ConcurrentHashMap<>();
+    private final ProxyController controller = new ProxyController();
 
     public static ProxyTransformMgr getInstance() {
         return instance;
@@ -159,19 +159,31 @@ public class ProxyTransformMgr implements ProxyIntf, ServerListener {
     }
 
     public void onBefore(int invokeId, Object instanceOrNull, Object[] args) {
-        getCallSite(invokeId).invokeBefore(instanceOrNull, args);
+        controller.onBefore(
+                invokeId,
+                () -> getCallSite(invokeId).invokeBefore(instanceOrNull, args)
+        );
     }
 
     public void onReturning(int invokeId, Object instanceOrNull, Object returnValue) {
-        getCallSite(invokeId).invokeOnReturning(instanceOrNull, returnValue);
+        controller.onReturning(
+                invokeId,
+                () -> getCallSite(invokeId).invokeOnReturning(instanceOrNull, returnValue)
+        );
     }
 
     public void onThrowing(int invokeId, Object instanceOrNull, Throwable error) {
-        getCallSite(invokeId).invokeOnThrowing(instanceOrNull, error);
+        controller.onThrowing(
+                invokeId,
+                () -> getCallSite(invokeId).invokeOnThrowing(instanceOrNull, error)
+        );
     }
 
     public void onCatching(int invokeId, Object instanceOrNull, Throwable error) {
-        getCallSite(invokeId).invokeOnCatching(instanceOrNull, error);
+        controller.onCatching(
+                invokeId,
+                () -> getCallSite(invokeId).invokeOnCatching(instanceOrNull, error)
+        );
     }
 
     public void onBeforeInnerCall(long callNum, String methodName, Object[] args) {
@@ -197,5 +209,51 @@ public class ProxyTransformMgr implements ProxyIntf, ServerListener {
 
     @Override
     public void onShutdown() {
+    }
+
+    private static class ProxyController {
+        private final ThreadLocal<Set<Integer>> before = new ThreadLocal<>();
+        private final ThreadLocal<Set<Integer>> throwing = new ThreadLocal<>();
+        private final ThreadLocal<Set<Integer>> catching = new ThreadLocal<>();
+        private final ThreadLocal<Set<Integer>> returning = new ThreadLocal<>();
+
+        void onBefore(int invokeId, Runnable runnable) {
+            run(before, invokeId, runnable);
+        }
+
+        void onReturning(int invokeId, Runnable runnable) {
+            run(returning, invokeId, runnable);
+        }
+
+        void onThrowing(int invokeId, Runnable runnable) {
+            run(throwing, invokeId, runnable);
+        }
+
+        void onCatching(int invokeId, Runnable runnable) {
+            run(catching, invokeId, runnable);
+        }
+
+        private void run(ThreadLocal<Set<Integer>> local, int invokeId, Runnable runnable) {
+            if (mark(local, invokeId)) {
+                runnable.run();
+                remove(local, invokeId);
+            }
+        }
+
+        private boolean mark(ThreadLocal<Set<Integer>> local, int invokeId) {
+            Set<Integer> vs = local.get();
+            if (vs == null) {
+                vs = new HashSet<>();
+                local.set(vs);
+            }
+            return vs.add(invokeId);
+        }
+
+        private void remove(ThreadLocal<Set<Integer>> local, int invokeId) {
+            Set<Integer> vs = local.get();
+            vs.remove(invokeId);
+            if (vs.isEmpty())
+                local.remove();
+        }
     }
 }

@@ -8,8 +8,8 @@ import agent.base.utils.IOUtils;
 import agent.base.utils.StringParser;
 import agent.base.utils.Utils;
 import agent.client.args.parse.DefaultParamParser;
-import agent.common.message.command.CmdItem;
 import agent.client.command.parser.CommandParserMgr;
+import agent.common.message.command.CmdItem;
 import agent.common.message.command.Command;
 
 import java.util.ArrayList;
@@ -74,7 +74,10 @@ public class CommandFileCmdParser extends AbstractCmdParser<CmdParams> {
                         reader -> {
                             String line;
                             while ((line = reader.readLine()) != null) {
-                                if (Utils.isNotBlank(line)) {
+                                line = line.trim();
+                                if (Utils.isNotBlank(line) &&
+                                        !line.startsWith("#") &&
+                                        !line.startsWith("//")) {
                                     List<String> argList = splitStringToArgs(line);
                                     List<CmdItem> itemList = CommandParserMgr.parse(argList);
                                     for (CmdItem item : itemList) {

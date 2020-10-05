@@ -27,3 +27,9 @@ function onCatching_test1(pvs) {
 function commonFunc() {
     print("common ....");
 }
+
+function dump() {
+    print("=======================");
+    Java.type("java.lang.Thread").dumpStack();
+    print("=======================");
+}

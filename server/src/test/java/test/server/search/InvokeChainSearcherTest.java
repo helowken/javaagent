@@ -1,5 +1,6 @@
 package test.server.search;
 
+import agent.common.config.ClassFilterConfig;
 import agent.common.config.InvokeChainConfig;
 import agent.invoke.DestInvoke;
 import agent.invoke.MethodInvoke;
@@ -170,6 +171,9 @@ public class InvokeChainSearcherTest extends AbstractTest {
         assertNotNull(expectation);
         assertTrue(expectation.length > 0);
         InvokeChainConfig filterConfig = InvokeChainConfig.matchAll();
+        ClassFilterConfig classFilterConfig = new ClassFilterConfig();
+        classFilterConfig.setExcludes(Collections.singleton("java.*"));
+        filterConfig.setMatchClassFilter(classFilterConfig);
         Collection<DestInvoke> rsList = InvokeChainSearcher.search(
                 classCache,
                 this::getClassData,

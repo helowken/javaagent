@@ -10,9 +10,13 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class FilterOptUtils {
-    public static final String FILTER_RULE_DESC = "\nFilter rules: \"^\" means exclusion. Multiple items are separated by \",\". ";
-    private static final String SEP = ",";
+    private static final String SEP = ";";
     private static final String EXCLUDE = "^";
+    public static final String FILTER_RULE_DESC = "\nFilter rules: \"" +
+            EXCLUDE +
+            "\" means exclusion. Multiple items are separated by \"" +
+            SEP +
+            "\". ";
     private static final int EXCLUDE_LEN = EXCLUDE.length();
 
     public static TargetConfig createTargetConfig(Opts opts) {
