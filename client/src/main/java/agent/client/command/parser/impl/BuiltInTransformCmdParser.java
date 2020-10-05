@@ -23,8 +23,11 @@ public abstract class BuiltInTransformCmdParser extends AbstractTransformCmdPars
         transformerConfig.setConfig(
                 Collections.singletonMap(
                         "log",
-                        FileUtils.getAbsolutePath(
-                                params.getArgs()[0]
+                        Collections.singletonMap(
+                                "outputPath",
+                                FileUtils.getAbsolutePath(
+                                        params.getArgs()[0]
+                                )
                         )
                 )
         );

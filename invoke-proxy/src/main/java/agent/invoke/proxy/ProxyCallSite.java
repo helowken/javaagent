@@ -21,6 +21,9 @@ public class ProxyCallSite {
         posToProxyClass.put(ON_THROWING, ProxyCallOnThrowing.class);
         posToProxyClass.put(ON_CATCHING, ProxyCallOnCatching.class);
         posToProxyClass.put(ON_AFTER, ProxyCallAfter.class);
+
+        // use to resolve linkage error
+        CallQueue.class.getName();
     }
 
     private DestInvoke destInvoke;

@@ -30,7 +30,7 @@ public abstract class AbstractConfigTransformer extends AbstractTransformer impl
         } catch (InvalidTransformerConfigException e) {
             throw e;
         } catch (Exception e) {
-            throw new InvalidTransformerConfigException("Set config failed.", e);
+            throw new InvalidTransformerConfigException("Set config failed: " + config, e);
         }
     }
 
