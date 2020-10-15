@@ -2,15 +2,16 @@ package agent.server.command.executor;
 
 import agent.common.message.command.Command;
 import agent.common.message.command.impl.StringCommand;
-import agent.common.message.result.DefaultExecResult;
 import agent.common.message.result.ExecResult;
+import agent.server.transform.impl.ScriptEngineMgr;
 
-class EchoCmdExecutor extends AbstractCmdExecutor {
+
+class JavascriptConfigCmdExecutor extends AbstractCmdExecutor {
     @Override
-    ExecResult doExec(Command cmd) {
-        return DefaultExecResult.toSuccess(
-                cmd.getType(),
+    ExecResult doExec(Command cmd) throws Exception {
+        ScriptEngineMgr.javascript().setGlobalBindings(
                 ((StringCommand) cmd).getContent()
         );
+        return null;
     }
 }

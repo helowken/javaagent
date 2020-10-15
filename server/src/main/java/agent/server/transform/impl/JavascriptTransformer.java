@@ -13,7 +13,6 @@ public class JavascriptTransformer extends CallChainTransformer {
     public static final String REG_KEY = "@javascript";
     private static final Logger logger = Logger.getLogger(JavascriptTransformer.class);
     private static final String KEY_CONFIG_SCRIPT = "script";
-    private static final String ENGINE_NAME = "nashorn";
     private static final String FUNC_ON_BEFORE = "onBefore";
     private static final String FUNC_ON_RETURN = "onReturn";
     private static final String FUNC_ON_THROW = "onError";
@@ -27,8 +26,7 @@ public class JavascriptTransformer extends CallChainTransformer {
         if (Utils.isBlank(script))
             throw new InvalidTransformerConfigException("No script found.");
         String key = getInstanceKey();
-        ScriptEngineMgr.reg(key, ENGINE_NAME);
-        ScriptEngineMgr.eval(key, script);
+        ScriptEngineMgr.javascript().setEngineBindings(key, script);
     }
 
     @Override
@@ -47,7 +45,7 @@ public class JavascriptTransformer extends CallChainTransformer {
         protected JavascriptItem newData(Object[] args, Class<?>[] argTypes, Object instanceOrNull, DestInvoke destInvoke, Object[] otherArgs) {
             JavascriptItem data = new JavascriptItem();
             ignoreError(
-                    () -> ScriptEngineMgr.invoke(instanceKey, FUNC_ON_BEFORE, data, destInvoke, args, argTypes, instanceOrNull),
+                    () -> ScriptEngineMgr.javascript().invoke(instanceKey, FUNC_ON_BEFORE, data, destInvoke, args, argTypes, instanceOrNull),
                     "newData failed."
             );
             return data;
@@ -56,7 +54,7 @@ public class JavascriptTransformer extends CallChainTransformer {
         @Override
         protected JavascriptItem processOnReturning(JavascriptItem data, Object returnValue, Class<?> returnType, Object instanceOrNull, DestInvoke destInvoke, Object[] otherArgs) {
             ignoreError(
-                    () -> ScriptEngineMgr.invoke(instanceKey, FUNC_ON_RETURN, data, destInvoke, returnValue, returnType, instanceOrNull),
+                    () -> ScriptEngineMgr.javascript().invoke(instanceKey, FUNC_ON_RETURN, data, destInvoke, returnValue, returnType, instanceOrNull),
                     "onReturn failed."
             );
             return data;
@@ -65,7 +63,7 @@ public class JavascriptTransformer extends CallChainTransformer {
         @Override
         protected JavascriptItem processOnThrowing(JavascriptItem data, Throwable error, Object instanceOrNull, DestInvoke destInvoke, Object[] otherArgs) {
             ignoreError(
-                    () -> ScriptEngineMgr.invoke(instanceKey, FUNC_ON_THROW, data, destInvoke, error, instanceOrNull),
+                    () -> ScriptEngineMgr.javascript().invoke(instanceKey, FUNC_ON_THROW, data, destInvoke, error, instanceOrNull),
                     "onThrow failed."
             );
             return data;
@@ -74,7 +72,7 @@ public class JavascriptTransformer extends CallChainTransformer {
         @Override
         protected JavascriptItem processOnCatching(JavascriptItem data, Throwable error, Object instanceOrNull, DestInvoke destInvoke, Object[] otherArgs) {
             ignoreError(
-                    () -> ScriptEngineMgr.invoke(instanceKey, FUNC_ON_CATCH, data, destInvoke, error, instanceOrNull),
+                    () -> ScriptEngineMgr.javascript().invoke(instanceKey, FUNC_ON_CATCH, data, destInvoke, error, instanceOrNull),
                     "onCatch failed."
             );
             return data;
@@ -83,7 +81,7 @@ public class JavascriptTransformer extends CallChainTransformer {
         @Override
         protected void processOnAfter(JavascriptItem result, Object instanceOrNull, DestInvoke destInvoke, Object[] otherArgs) {
             ignoreError(
-                    () -> ScriptEngineMgr.invoke(instanceKey, FUNC_ON_AFTER, result, destInvoke, instanceOrNull),
+                    () -> ScriptEngineMgr.javascript().invoke(instanceKey, FUNC_ON_AFTER, result, destInvoke, instanceOrNull),
                     "onAfter failed."
             );
         }
@@ -91,7 +89,7 @@ public class JavascriptTransformer extends CallChainTransformer {
         @Override
         protected void processOnCompleted(List<JavascriptItem> completed, Object instanceOrNull, DestInvoke destInvoke, Object[] otherArgs) {
             ignoreError(
-                    () -> ScriptEngineMgr.invoke(instanceKey, FUNC_ON_COMPLETE, completed, destInvoke, instanceOrNull),
+                    () -> ScriptEngineMgr.javascript().invoke(instanceKey, FUNC_ON_COMPLETE, completed, destInvoke, instanceOrNull),
                     "onComplete failed."
             );
         }

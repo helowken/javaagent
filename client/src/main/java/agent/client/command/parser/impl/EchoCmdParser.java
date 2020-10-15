@@ -6,10 +6,12 @@ import agent.base.help.HelpArg;
 import agent.base.utils.Utils;
 import agent.client.args.parse.DefaultParamParser;
 import agent.common.message.command.Command;
-import agent.common.message.command.impl.EchoCommand;
+import agent.common.message.command.impl.StringCommand;
 
 import java.util.Collections;
 import java.util.List;
+
+import static agent.common.message.MessageType.CMD_ECHO;
 
 public class EchoCmdParser extends AbstractCmdParser<CmdParams> {
     @Override
@@ -19,7 +21,8 @@ public class EchoCmdParser extends AbstractCmdParser<CmdParams> {
 
     @Override
     Command createCommand(CmdParams params) {
-        return new EchoCommand(
+        return new StringCommand(
+                CMD_ECHO,
                 Utils.join(
                         " ",
                         params.getArgs()

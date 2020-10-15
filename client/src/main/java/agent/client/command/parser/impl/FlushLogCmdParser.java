@@ -1,14 +1,16 @@
 package agent.client.command.parser.impl;
 
 import agent.base.args.parse.CmdParamParser;
-import agent.base.help.HelpArg;
 import agent.base.args.parse.CmdParams;
+import agent.base.help.HelpArg;
 import agent.client.args.parse.DefaultParamParser;
 import agent.common.message.command.Command;
-import agent.common.message.command.impl.FlushLogCommand;
+import agent.common.message.command.impl.StringCommand;
 
 import java.util.Collections;
 import java.util.List;
+
+import static agent.common.message.MessageType.CMD_FLUSH_LOG;
 
 public class FlushLogCmdParser extends AbstractCmdParser<CmdParams> {
 
@@ -19,7 +21,8 @@ public class FlushLogCmdParser extends AbstractCmdParser<CmdParams> {
 
     @Override
     public String getDesc() {
-        return "Flush transformer data from memory to file. Transformer can be specified through OUTPUT_PATH.\n" +
+        return "Flush transformer data from memory to file.\n" +
+                "Transformer can be specified through OUTPUT_PATH.\n" +
                 "If no OUTPUT_PATH specified, all transformer data will be flushed.";
     }
 
@@ -30,7 +33,7 @@ public class FlushLogCmdParser extends AbstractCmdParser<CmdParams> {
 
     @Override
     Command createCommand(CmdParams params) {
-        return new FlushLogCommand();
+        return new StringCommand(CMD_FLUSH_LOG);
     }
 
     @Override

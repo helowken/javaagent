@@ -2,9 +2,8 @@ package agent.common.message;
 
 import agent.base.utils.LockObject;
 import agent.base.utils.Logger;
-import agent.common.message.command.impl.EchoCommand;
-import agent.common.message.command.impl.FlushLogCommand;
 import agent.common.message.command.impl.MapCommand;
+import agent.common.message.command.impl.StringCommand;
 import agent.common.message.result.DefaultExecResult;
 import agent.common.struct.DefaultBBuff;
 
@@ -23,25 +22,35 @@ public class MessageMgr {
     private static final LockObject typeLock = new LockObject();
 
     static {
-        reg(RESULT_DEFAULT, type -> new DefaultExecResult());
-        reg(CMD_FLUSH_LOG, type -> new FlushLogCommand());
-        reg(CMD_ECHO, type -> new EchoCommand());
+        reg(
+                type -> new DefaultExecResult(),
+                RESULT_DEFAULT
+        );
 
-        int[] types = new int[]{
+        reg(
+                StringCommand::new,
+                CMD_FLUSH_LOG,
+                CMD_ECHO,
+                CMD_JS_CONFIG
+        );
+
+        reg(
+                MapCommand::new,
                 CMD_RESET,
                 CMD_TRANSFORM,
                 CMD_SEARCH,
                 CMD_INFO,
                 CMD_SAVE_CLASS,
                 CMD_STACK_TRACE
-        };
-        for (int type : types) {
-            reg(type, MapCommand::new);
-        }
+        );
     }
 
-    private static void reg(int type, Function<Integer, Message> func) {
-        typeLock.sync(lock -> typeToCreator.put(type, func));
+    private static void reg(Function<Integer, Message> func, int... types) {
+        if (types == null)
+            throw new IllegalArgumentException();
+        for (int type : types) {
+            typeLock.sync(lock -> typeToCreator.put(type, func));
+        }
     }
 
     private static Function<Integer, Message> getMsgSupplier(int type) {

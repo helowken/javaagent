@@ -4,8 +4,8 @@ import agent.common.buffer.BufferAllocator;
 import agent.common.buffer.ByteUtils;
 import agent.common.message.MessageMgr;
 import agent.common.message.command.Command;
-import agent.common.message.command.impl.EchoCommand;
 import agent.common.message.command.impl.MapCommand;
+import agent.common.message.command.impl.StringCommand;
 import agent.common.struct.BBuff;
 import agent.common.struct.DefaultBBuff;
 import org.junit.Test;
@@ -13,6 +13,7 @@ import org.junit.Test;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
+import static agent.common.message.MessageType.CMD_ECHO;
 import static agent.common.message.MessageType.CMD_RESET;
 import static org.junit.Assert.assertTrue;
 
@@ -20,7 +21,7 @@ public class CommandTest {
     @Test
     public void test() throws Exception {
         doTest(new MapCommand(CMD_RESET));
-        doTest(new EchoCommand("aaa"));
+        doTest(new StringCommand(CMD_ECHO, "aaa"));
     }
 
     private void doTest(Command cmd) throws Exception {
