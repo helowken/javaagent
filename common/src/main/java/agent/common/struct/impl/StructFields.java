@@ -8,7 +8,8 @@ import java.util.*;
 
 @SuppressWarnings("unchecked")
 public final class StructFields {
-    static final byte T_NULL = 0;
+    static final byte T_UNKNOWN = -2;
+    static final byte T_NULL = -1;
     private static final byte T_BYTE = 1;
     private static final byte T_SHORT = 2;
     private static final byte T_INT = 3;
@@ -35,10 +36,11 @@ public final class StructFields {
     private static final byte T_STRING_ARRAY = 23;
 
     private static final byte T_LIST = 24;
-    private static final byte T_TREE_SET = 25;
-    private static final byte T_SET = 26;
-    private static final byte T_TREE_MAP = 27;
-    private static final byte T_MAP = 28;
+    private static final byte T_COLLECTION = 25;
+    private static final byte T_TREE_SET = 26;
+    private static final byte T_SET = 27;
+    private static final byte T_TREE_MAP = 28;
+    private static final byte T_MAP = 29;
 
     private static Map<Byte, StructField> typeToField = new TreeMap<>();
 
@@ -68,11 +70,23 @@ public final class StructFields {
         typeToField.put(T_DOUBLE_WRAPPER_ARRAY, newDoubleWrapperArray());
         typeToField.put(T_STRING_ARRAY, newStringArray());
 
-        typeToField.put(T_LIST, newList());
+        StructField collField = newList();
+        typeToField.put(T_LIST, collField);
+        typeToField.put(T_COLLECTION, collField);
         typeToField.put(T_TREE_SET, newTreeSet());
         typeToField.put(T_SET, newSet());
         typeToField.put(T_TREE_MAP, newTreeMap());
         typeToField.put(T_MAP, newMap());
+    }
+
+    static byte detectTypeByClass(Class<?> clazz) {
+        if (clazz == null)
+            throw new IllegalArgumentException();
+        for (Map.Entry<Byte, StructField> entry : typeToField.entrySet()) {
+            if (entry.getValue().match(clazz))
+                return entry.getKey();
+        }
+        return T_UNKNOWN;
     }
 
     private static byte detectType(Object value) {

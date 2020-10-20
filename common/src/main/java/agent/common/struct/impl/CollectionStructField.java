@@ -2,45 +2,49 @@ package agent.common.struct.impl;
 
 import agent.common.struct.BBuff;
 
-import java.lang.reflect.Array;
 import java.util.Collection;
 
-abstract class CollectionStructField extends AbstractLinearStructField {
+@SuppressWarnings("unchecked")
+abstract class CollectionStructField extends CompoundStructField {
     CollectionStructField(Class<?> valueClass) {
         super(valueClass);
     }
 
     @Override
-    int elementSize(Object value) {
-        return computeSize(value);
+    public int bytesSize(Object value) {
+        int size = Integer.BYTES;
+        if (value != null) {
+            Collection<Object> coll = (Collection) value;
+            for (Object el : coll) {
+                size += computeSize(el);
+            }
+        }
+        return size;
     }
 
     @Override
-    void serializeElement(BBuff bb, Object value) {
-        serializeField(bb, value);
+    public void serialize(BBuff bb, Object value) {
+        if (value != null) {
+            Collection<Object> coll = (Collection) value;
+            bb.putInt(coll.size());
+            for (Object el : coll) {
+                serializeField(bb, el);
+            }
+        } else {
+            bb.putInt(StructFields.T_NULL);
+        }
     }
 
     @Override
-    Object deserializeElement(BBuff bb) {
-        return deserializeField(bb);
-    }
-
-    @Override
-    Class<?> getElementClass() {
-        return Object.class;
-    }
-
-    @Override
-    Object valueToArray(Object value) {
-        return ((Collection) value).toArray();
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    Object arrayToValue(Object array) {
-        Collection coll = newCollection();
-        for (int i = 0, len = Array.getLength(array); i < len; ++i) {
-            coll.add(Array.get(array, i));
+    public Object deserialize(BBuff bb) {
+        int len = bb.getInt();
+        if (len == StructFields.T_NULL)
+            return null;
+        Collection<Object> coll = newCollection();
+        for (int i = 0; i < len; ++i) {
+            coll.add(
+                    deserializeField(bb)
+            );
         }
         return coll;
     }

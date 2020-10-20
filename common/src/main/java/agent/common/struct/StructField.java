@@ -1,13 +1,11 @@
 package agent.common.struct;
 
-public interface StructField {
+public interface StructField extends Convertible {
     boolean matchType(Object value);
 
-    int bytesSize(Object value);
-
-    void serialize(BBuff bb, Object value);
-
-    Object deserialize(BBuff bb);
+    default boolean match(Class<?> clazz) {
+        return getValueClass() == clazz;
+    }
 
     Class<?> getValueClass();
 }

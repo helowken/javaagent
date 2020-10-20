@@ -114,7 +114,7 @@ public class ArrayStructFieldTest {
         Object value2 = field.deserialize(buff);
         if (value != null) {
             if (Array.getLength(value) == 0)
-                assertNull(value2);
+                assertEquals(0, Array.getLength(value2));
             else {
                 assertNotNull(value2);
                 assertTrue(Array.getLength(value2) > 0);

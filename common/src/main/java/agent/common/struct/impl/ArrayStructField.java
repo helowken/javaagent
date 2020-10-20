@@ -3,8 +3,10 @@ package agent.common.struct.impl;
 import agent.common.struct.BBuff;
 import agent.common.struct.StructField;
 
+import java.lang.reflect.Array;
 
-class ArrayStructField extends AbstractLinearStructField {
+
+class ArrayStructField extends CompoundStructField {
     private final StructField field;
 
     ArrayStructField(byte type, Class<?> valueClass) {
@@ -13,31 +15,59 @@ class ArrayStructField extends AbstractLinearStructField {
     }
 
     @Override
-    int elementSize(Object value) {
-        return field.bytesSize(value);
+    public int bytesSize(Object value) {
+        Object array = valueToArray(value);
+        int size = Integer.BYTES;
+        if (array != null) {
+            for (int i = 0, len = Array.getLength(array); i < len; ++i) {
+                size += field.bytesSize(
+                        Array.get(array, i)
+                );
+            }
+        }
+        return size;
     }
 
     @Override
-    void serializeElement(BBuff bb, Object value) {
-        field.serialize(bb, value);
+    public void serialize(BBuff bb, Object value) {
+        Object array = valueToArray(value);
+        if (array != null) {
+            int len = Array.getLength(array);
+            bb.putInt(len);
+            for (int i = 0; i < len; ++i) {
+                field.serialize(
+                        bb,
+                        Array.get(array, i)
+                );
+            }
+        } else
+            bb.putInt(StructFields.T_NULL);
     }
 
     @Override
-    Object deserializeElement(BBuff bb) {
-        return field.deserialize(bb);
+    public Object deserialize(BBuff bb) {
+        int len = bb.getInt();
+        if (len == StructFields.T_NULL)
+            return null;
+        Object array = Array.newInstance(getElementClass(), len);
+        for (int i = 0; i < len; ++i) {
+            Array.set(
+                    array,
+                    i,
+                    field.deserialize(bb)
+            );
+        }
+        return arrayToValue(array);
     }
 
-    @Override
     Class<?> getElementClass() {
         return getValueClass().getComponentType();
     }
 
-    @Override
     Object valueToArray(Object value) {
         return value;
     }
 
-    @Override
     Object arrayToValue(Object array) {
         return array;
     }

@@ -3,6 +3,7 @@ package agent.server.transform.impl;
 import jdk.nashorn.api.scripting.ScriptObjectMirror;
 
 import javax.script.*;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -74,5 +75,34 @@ public class ScriptEngineMgr {
         } finally {
             lock.readLock().unlock();
         }
+    }
+
+    public Map<String, String> getGlobalBindings() {
+        lock.readLock().lock();
+        try {
+            return bindingsToMap(
+                    manager.getBindings()
+            );
+        } finally {
+            lock.readLock().unlock();
+        }
+    }
+
+    public Map<String, String> getEngineBindings(String key) {
+        return bindingsToMap(
+                getEngine(key).getBindings(ScriptContext.ENGINE_SCOPE)
+        );
+    }
+
+    private Map<String, String> bindingsToMap(Bindings bindings) {
+        Map<String, String> rsMap = new HashMap<>(
+        );
+        bindings.forEach(
+                (k, v) -> rsMap.put(
+                        k,
+                        String.valueOf(v)
+                )
+        );
+        return rsMap;
     }
 }

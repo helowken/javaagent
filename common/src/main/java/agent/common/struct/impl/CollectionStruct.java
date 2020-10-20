@@ -46,7 +46,9 @@ abstract class CollectionStruct<V, T extends Collection<V>> implements Struct {
 
     @Override
     public void deserialize(BBuff bb) {
-        coll.addAll((Collection) field.deserialize(bb));
+        Object v = field.deserialize(bb);
+        if (v != null)
+            coll.addAll((Collection) v);
     }
 
     @Override

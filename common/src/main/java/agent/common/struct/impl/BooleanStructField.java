@@ -3,7 +3,7 @@ package agent.common.struct.impl;
 import agent.common.struct.BBuff;
 import agent.common.struct.StructField;
 
-class BooleanStructField extends AbstractStructField {
+class BooleanStructField extends PremitiveStructField {
     private static final StructField field = new ByteStructField();
 
     BooleanStructField() {
@@ -24,5 +24,10 @@ class BooleanStructField extends AbstractStructField {
     @Override
     public Object deserialize(BBuff bb) {
         return ((byte) field.deserialize(bb)) == 1;
+    }
+
+    @Override
+    Class<?> getPrimitiveClass() {
+        return boolean.class;
     }
 }

@@ -16,11 +16,11 @@ class MapStructField<T extends Map> extends CompoundStructField {
 
     @Override
     public int bytesSize(Object value) {
-        Map map = (Map) value;
+        Map<Object, Object> map = (Map) value;
         int size = Integer.BYTES;
-        for (Object key : map.keySet()) {
-            size += computeSize(key);
-            size += computeSize(map.get(key));
+        for (Map.Entry<Object, Object> entry : map.entrySet()) {
+            size += computeSize(entry.getKey());
+            size += computeSize(entry.getValue());
         }
         return size;
     }

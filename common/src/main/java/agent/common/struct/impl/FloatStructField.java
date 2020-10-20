@@ -3,7 +3,7 @@ package agent.common.struct.impl;
 
 import agent.common.struct.BBuff;
 
-class FloatStructField extends AbstractStructField {
+class FloatStructField extends PremitiveStructField {
     FloatStructField() {
         super(Float.class);
     }
@@ -22,5 +22,10 @@ class FloatStructField extends AbstractStructField {
     @Override
     public Object deserialize(BBuff bb) {
         return bb.getFloat();
+    }
+
+    @Override
+    Class<?> getPrimitiveClass() {
+        return float.class;
     }
 }

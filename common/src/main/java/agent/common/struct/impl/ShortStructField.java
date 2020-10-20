@@ -3,7 +3,7 @@ package agent.common.struct.impl;
 
 import agent.common.struct.BBuff;
 
-class ShortStructField extends AbstractStructField {
+class ShortStructField extends PremitiveStructField {
     ShortStructField() {
         super(Short.class);
     }
@@ -22,5 +22,10 @@ class ShortStructField extends AbstractStructField {
     @Override
     public Object deserialize(BBuff bb) {
         return bb.getShort();
+    }
+
+    @Override
+    Class<?> getPrimitiveClass() {
+        return short.class;
     }
 }
