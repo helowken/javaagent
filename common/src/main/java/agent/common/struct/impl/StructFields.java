@@ -8,8 +8,9 @@ import java.util.*;
 
 @SuppressWarnings("unchecked")
 public final class StructFields {
-    static final byte T_UNKNOWN = -2;
-    static final byte T_NULL = -1;
+    static final int TYPE_SIZE = Byte.BYTES;
+    static final byte NULL = -1;
+
     private static final byte T_BYTE = 1;
     private static final byte T_SHORT = 2;
     private static final byte T_INT = 3;
@@ -36,11 +37,14 @@ public final class StructFields {
     private static final byte T_STRING_ARRAY = 23;
 
     private static final byte T_LIST = 24;
-    private static final byte T_COLLECTION = 25;
-    private static final byte T_TREE_SET = 26;
-    private static final byte T_SET = 27;
+    private static final byte T_TREE_SET = 25;
+    private static final byte T_SET = 26;
+    private static final byte T_COLLECTION = 27;
     private static final byte T_TREE_MAP = 28;
     private static final byte T_MAP = 29;
+
+    private static final byte T_POJO_ARRAY = 100;
+    private static final byte T_POJO = 101;
 
     private static Map<Byte, StructField> typeToField = new TreeMap<>();
 
@@ -72,21 +76,14 @@ public final class StructFields {
 
         StructField collField = newList();
         typeToField.put(T_LIST, collField);
-        typeToField.put(T_COLLECTION, collField);
         typeToField.put(T_TREE_SET, newTreeSet());
         typeToField.put(T_SET, newSet());
+        typeToField.put(T_COLLECTION, collField);
         typeToField.put(T_TREE_MAP, newTreeMap());
         typeToField.put(T_MAP, newMap());
-    }
 
-    static byte detectTypeByClass(Class<?> clazz) {
-        if (clazz == null)
-            throw new IllegalArgumentException();
-        for (Map.Entry<Byte, StructField> entry : typeToField.entrySet()) {
-            if (entry.getValue().match(clazz))
-                return entry.getKey();
-        }
-        return T_UNKNOWN;
+        typeToField.put(T_POJO, newPojo());
+        typeToField.put(T_POJO_ARRAY, newPojoArray());
     }
 
     private static byte detectType(Object value) {
@@ -251,5 +248,13 @@ public final class StructFields {
 
     public static MapStructField newMap() {
         return new MapStructField(Map.class, HashMap::new);
+    }
+
+    public static StructField newPojo() {
+        return new PojoStructField();
+    }
+
+    public static StructField newPojoArray() {
+        return new ArrayStructField(T_POJO, Object[].class);
     }
 }

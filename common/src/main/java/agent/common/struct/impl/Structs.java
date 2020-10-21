@@ -5,8 +5,8 @@ import agent.common.struct.StructField;
 import java.util.TreeMap;
 
 public class Structs {
-    public static PojoStruct newPojo(Class<?> clazz) {
-        return new PojoStruct(clazz);
+    public static PojoStruct newPojo() {
+        return new PojoStruct();
     }
 
     public static <K, V> MapStruct<K, V> newMap() {

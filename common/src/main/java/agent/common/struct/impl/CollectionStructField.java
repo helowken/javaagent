@@ -31,14 +31,14 @@ abstract class CollectionStructField extends CompoundStructField {
                 serializeField(bb, el);
             }
         } else {
-            bb.putInt(StructFields.T_NULL);
+            bb.putInt(StructFields.NULL);
         }
     }
 
     @Override
     public Object deserialize(BBuff bb) {
         int len = bb.getInt();
-        if (len == StructFields.T_NULL)
+        if (len == StructFields.NULL)
             return null;
         Collection<Object> coll = newCollection();
         for (int i = 0; i < len; ++i) {

@@ -4,7 +4,7 @@ public interface StructField extends Convertible {
     boolean matchType(Object value);
 
     default boolean match(Class<?> clazz) {
-        return getValueClass() == clazz;
+        return getValueClass().isAssignableFrom(clazz);
     }
 
     Class<?> getValueClass();

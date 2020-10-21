@@ -6,7 +6,7 @@ import agent.common.struct.StructField;
 import java.lang.reflect.Array;
 
 
-class ArrayStructField extends CompoundStructField {
+class ArrayStructField extends AbstractStructField {
     private final StructField field;
 
     ArrayStructField(byte type, Class<?> valueClass) {
@@ -41,13 +41,13 @@ class ArrayStructField extends CompoundStructField {
                 );
             }
         } else
-            bb.putInt(StructFields.T_NULL);
+            bb.putInt(StructFields.NULL);
     }
 
     @Override
     public Object deserialize(BBuff bb) {
         int len = bb.getInt();
-        if (len == StructFields.T_NULL)
+        if (len == StructFields.NULL)
             return null;
         Object array = Array.newInstance(getElementClass(), len);
         for (int i = 0; i < len; ++i) {

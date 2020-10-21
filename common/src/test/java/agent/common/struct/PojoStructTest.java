@@ -1,5 +1,6 @@
 package agent.common.struct;
 
+import agent.base.utils.Utils;
 import agent.common.buffer.BufferAllocator;
 import agent.common.struct.impl.PojoStruct;
 import agent.common.struct.impl.Structs;
@@ -89,11 +90,23 @@ public class PojoStructTest {
         }
         b2.setAca(aca);
 
+        Map<A[], Integer> arrayToInt = new HashMap<>();
+        for (int i = 0; i < 3; ++i) {
+            A[] array = new A[4];
+            for (int j = 0; j < 4; ++j) {
+                A a = new A();
+                populateA(a);
+                array[j] = a;
+            }
+            arrayToInt.put(array, i);
+        }
+        b2.setArrayToInt(arrayToInt);
+
         check(b2);
     }
 
     private void check(Object o) {
-        PojoStruct struct = Structs.newPojo(o.getClass());
+        PojoStruct struct = Structs.newPojo();
         struct.setPojo(o);
 
         ByteBuffer bb = BufferAllocator.allocate(
@@ -103,8 +116,11 @@ public class PojoStructTest {
         struct.serialize(buff);
 
         bb.flip();
+        Object o2 = Utils.wrapToRtError(
+                () -> o.getClass().newInstance()
+        );
+        struct.setPojo(o2);
         struct.deserialize(buff);
-        Object o2 = struct.getPojo();
         assertEquals(o, o2);
     }
 
@@ -457,6 +473,16 @@ public class PojoStructTest {
         private A[] as;
         @PojoProperty(index = 5)
         private Map<A, CA> aca;
+        @PojoProperty(index = 6)
+        private Map<A[], Integer> arrayToInt;
+
+        public Map<A[], Integer> getArrayToInt() {
+            return arrayToInt;
+        }
+
+        public void setArrayToInt(Map<A[], Integer> arrayToInt) {
+            this.arrayToInt = arrayToInt;
+        }
 
         public Map<A, CA> getAca() {
             return aca;
@@ -507,6 +533,19 @@ public class PojoStructTest {
         }
 
         @Override
+        public String toString() {
+            return "B2{" +
+                    "aList=" + aList +
+                    ", aMap=" + aMap +
+                    ", aSet=" + aSet +
+                    ", aColl=" + aColl +
+                    ", as=" + Arrays.toString(as) +
+                    ", aca=" + aca +
+                    ", arrayToInt=" + arrayToInt +
+                    '}';
+        }
+
+        @Override
         public boolean equals(Object o) {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
@@ -516,13 +555,14 @@ public class PojoStructTest {
                     Objects.equals(aSet, b2.aSet) &&
                     Objects.equals(aColl, b2.aColl) &&
                     Arrays.equals(as, b2.as) &&
-                    Objects.equals(aca, b2.aca);
+                    Objects.equals(aca, b2.aca) &&
+                    Objects.equals(arrayToInt, b2.arrayToInt);
         }
 
         @Override
         public int hashCode() {
 
-            int result = Objects.hash(aList, aMap, aSet, aColl, aca);
+            int result = Objects.hash(aList, aMap, aSet, aColl, aca, arrayToInt);
             result = 31 * result + Arrays.hashCode(as);
             return result;
         }
