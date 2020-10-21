@@ -89,12 +89,12 @@ class PojoStructCache {
         } else if (Map.class.isAssignableFrom(clazz)) {
             if (argTypes != null && argTypes.length >= 2) {
                 Map<Object, Object> rsMap = (Map) newInstanceForType(clazz, 0);
-                Class<?> keyClass = (Class<?>) argTypes[0];
-                Class<?> valueClass = (Class<?>) argTypes[1];
+                Type keyClass = argTypes[0];
+                Type valueClass = argTypes[1];
                 ((Map) o).forEach(
                         (key, value) -> rsMap.put(
-                                tryToConvertPojo(keyClass, key),
-                                tryToConvertPojo(valueClass, value)
+                                convertValue(keyClass, key),
+                                convertValue(valueClass, value)
                         )
                 );
                 return rsMap;
@@ -105,7 +105,7 @@ class PojoStructCache {
                 Class<?> elClass = (Class<?>) argTypes[0];
                 ((Collection) o).forEach(
                         el -> rsColl.add(
-                                tryToConvertPojo(elClass, el)
+                                convertValue(elClass, el)
                         )
                 );
                 return rsColl;

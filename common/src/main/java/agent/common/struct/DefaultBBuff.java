@@ -1,5 +1,7 @@
 package agent.common.struct;
 
+import agent.common.buffer.ByteUtils;
+
 import java.nio.ByteBuffer;
 
 public class DefaultBBuff implements BBuff {
@@ -31,11 +33,13 @@ public class DefaultBBuff implements BBuff {
 
     @Override
     public void putInt(int v) {
+//        ByteUtils.writeVarInt(v, buffer);
         buffer.putInt(v);
     }
 
     @Override
     public int getInt() {
+//        return ByteUtils.readVarInt(buffer);
         return buffer.getInt();
     }
 

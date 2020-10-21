@@ -5,6 +5,7 @@ import agent.common.buffer.BufferAllocator;
 import agent.common.struct.impl.PojoStruct;
 import agent.common.struct.impl.Structs;
 import agent.common.utils.annotation.PojoProperty;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Test;
 
 import java.nio.ByteBuffer;
@@ -14,6 +15,7 @@ import static org.junit.Assert.assertEquals;
 
 
 public class PojoStructTest {
+    private static final ObjectMapper objectMapper = new ObjectMapper();
     private static final Random random = new Random();
 
     @Test
@@ -35,10 +37,10 @@ public class PojoStructTest {
         CCA cca = new CCA();
         populateCCA(cca);
         check(cca);
+        measureTime(cca);
     }
 
-    @Test
-    public void test4() {
+    private B newB() {
         A a = new A();
         CA ca = new CA();
         CCA cca = new CCA();
@@ -51,8 +53,12 @@ public class PojoStructTest {
         b.setCca(cca);
         b.setB1("b1");
         b.setB2(true);
+        return b;
+    }
 
-        check(b);
+    @Test
+    public void test4() {
+        check(newB());
     }
 
     private Collection<A> newAs() {
@@ -102,20 +108,94 @@ public class PojoStructTest {
         }
         b2.setArrayToInt(arrayToInt);
 
+        LinkedList<B[]> bList = new LinkedList<>();
+        for (int i = 0; i < 4; ++i) {
+            B[] bs = new B[3];
+            for (int j = 0; j < bs.length; ++j) {
+                bs[j] = newB();
+            }
+            bList.add(bs);
+        }
+        b2.setBs(bList);
+
+        TreeMap<String, Boolean> treeMap = new TreeMap<>();
+        for (int i = 0; i < 5; ++i) {
+            treeMap.put("ttt-" + i, i % 2 == 0);
+        }
+        b2.setTreeMap(treeMap);
+
         check(b2);
+
+        measureTime(b2);
+    }
+
+    private void measureTime(Object o) {
+        final int count = 200;
+        useJson(o, count);
+        System.out.println("===========================\n");
+        useStruct(o, count);
+    }
+
+    private void useStruct(Object o, final int count) {
+        PojoStruct struct = Structs.newPojo();
+        struct.setPojo(o);
+        ByteBuffer bb = BufferAllocator.allocate(
+                struct.bytesSize()
+        );
+        BBuff buff = new DefaultBBuff(bb);
+        calculate(
+                () -> struct.serialize(buff),
+                bb::flip,
+                count,
+                "Struct"
+        );
+    }
+
+    private void useJson(Object o, final int count) {
+        ByteBuffer bb2 = BufferAllocator.allocate(1024 * 20);
+        calculate(
+                () -> {
+                    try {
+                        String s = objectMapper.writeValueAsString(o);
+                        bb2.put(s.getBytes());
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                },
+                () -> {
+//                    System.out.println(bb2.position());
+                    bb2.flip();
+                },
+                count,
+                "Json "
+        );
+    }
+
+    private void calculate(Runnable runnable, Runnable postFunc, final int count, String msg) {
+        long total = 0;
+        for (int i = 0; i < count; ++i) {
+            long st = System.nanoTime();
+            runnable.run();
+            long et = System.nanoTime();
+            total += et - st;
+            postFunc.run();
+        }
+        System.out.println(msg + " Avg: " + ((float)total / count / 1000000));
     }
 
     private void check(Object o) {
         PojoStruct struct = Structs.newPojo();
         struct.setPojo(o);
 
+        System.out.println("=====" + struct.bytesSize());
         ByteBuffer bb = BufferAllocator.allocate(
                 struct.bytesSize()
         );
-        BBuff buff = new DefaultBBuff(bb);
+        DefaultBBuff buff = new DefaultBBuff(bb);
         struct.serialize(buff);
-
+        System.out.println("=====" + bb.position());
         bb.flip();
+
         Object o2 = Utils.wrapToRtError(
                 () -> o.getClass().newInstance()
         );
@@ -267,6 +347,21 @@ public class PojoStructTest {
             int result = Objects.hash(a, b, c, d, es, fs, gs, js);
             result = 31 * result + Arrays.hashCode(hs);
             return result;
+        }
+
+        @Override
+        public String toString() {
+            return "A{" +
+                    "a=" + a +
+                    ", b=" + b +
+                    ", c='" + c + '\'' +
+                    ", d=" + d +
+                    ", es=" + es +
+                    ", fs=" + fs +
+                    ", gs=" + gs +
+                    ", hs=" + Arrays.toString(hs) +
+                    ", js=" + js +
+                    '}';
         }
     }
 
@@ -473,8 +568,29 @@ public class PojoStructTest {
         private A[] as;
         @PojoProperty(index = 5)
         private Map<A, CA> aca;
+
+        public TreeMap<String, Boolean> getTreeMap() {
+            return treeMap;
+        }
+
+        public void setTreeMap(TreeMap<String, Boolean> treeMap) {
+            this.treeMap = treeMap;
+        }
+
         @PojoProperty(index = 6)
         private Map<A[], Integer> arrayToInt;
+        @PojoProperty(index = 7)
+        private LinkedList<B[]> bs;
+        @PojoProperty(index = 8)
+        private TreeMap<String, Boolean> treeMap;
+
+        public LinkedList<B[]> getBs() {
+            return bs;
+        }
+
+        public void setBs(LinkedList<B[]> bs) {
+            this.bs = bs;
+        }
 
         public Map<A[], Integer> getArrayToInt() {
             return arrayToInt;
@@ -542,6 +658,8 @@ public class PojoStructTest {
                     ", as=" + Arrays.toString(as) +
                     ", aca=" + aca +
                     ", arrayToInt=" + arrayToInt +
+                    ", bs=" + bs +
+                    ", treeMap=" + treeMap +
                     '}';
         }
 
@@ -550,19 +668,58 @@ public class PojoStructTest {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
             B2 b2 = (B2) o;
-            return Objects.equals(aList, b2.aList) &&
+            boolean v = Objects.equals(aList, b2.aList) &&
                     Objects.equals(aMap, b2.aMap) &&
                     Objects.equals(aSet, b2.aSet) &&
                     Objects.equals(aColl, b2.aColl) &&
                     Arrays.equals(as, b2.as) &&
                     Objects.equals(aca, b2.aca) &&
-                    Objects.equals(arrayToInt, b2.arrayToInt);
+                    Objects.equals(treeMap, b2.treeMap);
+            return v &&
+                    isMapEquals(b2) &&
+                    isListEquals(b2);
+        }
+
+        private boolean isListEquals(B2 b2) {
+            if (bs == b2.bs)
+                return true;
+            if (bs == null || b2.bs == null)
+                return false;
+            if (bs.size() != b2.bs.size())
+                return false;
+            for (int i = 0, len = bs.size(); i < len; ++i) {
+                if (!Arrays.equals(bs.get(i), b2.bs.get(i)))
+                    return false;
+            }
+            return true;
+        }
+
+        private boolean isMapEquals(B2 b2) {
+            if (arrayToInt == b2.arrayToInt)
+                return true;
+            if (arrayToInt == null || b2.arrayToInt == null)
+                return false;
+            if (arrayToInt.size() != b2.arrayToInt.size())
+                return false;
+            for (Map.Entry<A[], Integer> entry : arrayToInt.entrySet()) {
+                boolean keyMatch = false;
+                for (Map.Entry<A[], Integer> entry2 : b2.arrayToInt.entrySet()) {
+                    if (Arrays.equals(entry.getKey(), entry2.getKey())) {
+                        keyMatch = true;
+                        if (!Objects.equals(entry.getValue(), entry2.getValue()))
+                            return false;
+                    }
+                }
+                if (!keyMatch)
+                    return false;
+            }
+            return true;
         }
 
         @Override
         public int hashCode() {
 
-            int result = Objects.hash(aList, aMap, aSet, aColl, aca, arrayToInt);
+            int result = Objects.hash(aList, aMap, aSet, aColl, aca, treeMap);
             result = 31 * result + Arrays.hashCode(as);
             return result;
         }

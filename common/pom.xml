@@ -29,6 +29,11 @@
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
         </dependency>
+        <dependency>
+            <groupId>javaagent</groupId>
+            <artifactId>json-dependent</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
 </project>
