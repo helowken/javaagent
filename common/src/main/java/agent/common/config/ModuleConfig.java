@@ -1,10 +1,14 @@
 package agent.common.config;
 
+import agent.common.utils.annotation.PojoProperty;
+
 import java.util.List;
 import java.util.Objects;
 
 public class ModuleConfig extends AbstractValidConfig {
+    @PojoProperty(index = 0)
     private List<TransformerConfig> transformers;
+    @PojoProperty(index = 1)
     private List<TargetConfig> targets;
 
     public void validate() {

@@ -1,8 +1,11 @@
 package agent.common.config;
 
+import agent.common.utils.annotation.PojoProperty;
+
 import java.util.Map;
 
 public class StackTraceConfig extends AbstractScheduleConfig {
+    @PojoProperty(index = 0)
     private Map<String, Object> logConfig;
 
     @Override

@@ -2,9 +2,10 @@ package agent.common.command;
 
 import agent.common.buffer.BufferAllocator;
 import agent.common.buffer.ByteUtils;
+import agent.common.config.ResetConfig;
 import agent.common.message.MessageMgr;
 import agent.common.message.command.Command;
-import agent.common.message.command.impl.MapCommand;
+import agent.common.message.command.impl.PojoCommand;
 import agent.common.message.command.impl.StringCommand;
 import agent.common.struct.BBuff;
 import agent.common.struct.DefaultBBuff;
@@ -20,7 +21,7 @@ import static org.junit.Assert.assertTrue;
 public class CommandTest {
     @Test
     public void test() throws Exception {
-        doTest(new MapCommand(CMD_RESET));
+        doTest(new PojoCommand(CMD_RESET, new ResetConfig()));
         doTest(new StringCommand(CMD_ECHO, "aaa"));
     }
 

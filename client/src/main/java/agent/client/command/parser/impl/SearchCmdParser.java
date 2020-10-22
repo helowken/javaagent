@@ -4,17 +4,15 @@ import agent.base.args.parse.CmdParamParser;
 import agent.base.args.parse.CmdParams;
 import agent.client.args.parse.DefaultParamParser;
 import agent.common.message.command.Command;
-import agent.common.message.command.impl.MapCommand;
-
-import java.util.Map;
+import agent.common.message.command.impl.PojoCommand;
 
 import static agent.common.args.parse.FilterOptUtils.getFilterAndChainOptParsers;
 import static agent.common.message.MessageType.CMD_SEARCH;
 
 public class SearchCmdParser extends AbstractModuleCmdParser {
     @Override
-    Command newCommand(Map<String, Object> data) {
-        return new MapCommand(CMD_SEARCH, data);
+    Command newCommand(Object data) {
+        return new PojoCommand(CMD_SEARCH, data);
     }
 
     @Override

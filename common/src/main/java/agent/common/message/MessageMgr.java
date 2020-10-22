@@ -2,7 +2,8 @@ package agent.common.message;
 
 import agent.base.utils.LockObject;
 import agent.base.utils.Logger;
-import agent.common.message.command.impl.MapCommand;
+import agent.common.config.*;
+import agent.common.message.command.impl.PojoCommand;
 import agent.common.message.command.impl.StringCommand;
 import agent.common.message.result.DefaultExecResult;
 import agent.common.struct.DefaultBBuff;
@@ -12,6 +13,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 import static agent.common.message.MessageType.*;
 
@@ -34,14 +36,22 @@ public class MessageMgr {
                 CMD_JS_CONFIG
         );
 
+
+        regPojo(CMD_TRANSFORM, ModuleConfig::new);
+        regPojo(CMD_SEARCH, ModuleConfig::new);
+        regPojo(CMD_RESET, ResetConfig::new);
+        regPojo(CMD_INFO, InfoQuery::new);
+        regPojo(CMD_SAVE_CLASS, SaveClassConfig::new);
+        regPojo(CMD_STACK_TRACE, StackTraceConfig::new);
+    }
+
+    private static void regPojo(int type, Supplier<Object> newPojoFunc) {
         reg(
-                MapCommand::new,
-                CMD_RESET,
-                CMD_TRANSFORM,
-                CMD_SEARCH,
-                CMD_INFO,
-                CMD_SAVE_CLASS,
-                CMD_STACK_TRACE
+                cmdType -> new PojoCommand(
+                        cmdType,
+                        newPojoFunc.get()
+                ),
+                type
         );
     }
 

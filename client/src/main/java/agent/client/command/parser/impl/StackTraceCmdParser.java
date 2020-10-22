@@ -5,19 +5,16 @@ import agent.base.args.parse.CmdParams;
 import agent.base.args.parse.KeyValueOptParser;
 import agent.base.args.parse.Opts;
 import agent.base.help.HelpArg;
-import agent.base.utils.TypeObject;
 import agent.base.utils.Utils;
 import agent.client.args.parse.DefaultParamParser;
 import agent.client.args.parse.StackTraceOptConfigs;
 import agent.client.command.parser.exception.CommandParseException;
 import agent.common.config.StackTraceConfig;
 import agent.common.message.command.Command;
-import agent.common.message.command.impl.MapCommand;
-import agent.common.utils.JsonUtils;
+import agent.common.message.command.impl.PojoCommand;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 import static agent.client.command.parser.CmdHelpUtils.getOutputPathHelpArg;
@@ -89,14 +86,7 @@ public class StackTraceCmdParser extends AbstractCmdParser<CmdParams> {
                         params.getArgs()[0]
                 )
         );
-        return new MapCommand(
-                CMD_STACK_TRACE,
-                JsonUtils.convert(
-                        config,
-                        new TypeObject<Map<String, Object>>() {
-                        }
-                )
-        );
+        return new PojoCommand(CMD_STACK_TRACE, config);
     }
 
     @Override

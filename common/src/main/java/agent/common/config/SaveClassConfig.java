@@ -1,11 +1,17 @@
 package agent.common.config;
 
+import agent.common.utils.annotation.PojoProperty;
+
 import static agent.base.utils.AssertUtils.assertNotNull;
 
 public class SaveClassConfig implements ValidConfig {
+    @PojoProperty(index = 0)
     private ClassFilterConfig classFilterConfig;
+    @PojoProperty(index = 1)
     private boolean withSubClasses;
+    @PojoProperty(index = 2)
     private boolean withSubTypes;
+    @PojoProperty(index = 3)
     private String outputPath;
 
     @Override

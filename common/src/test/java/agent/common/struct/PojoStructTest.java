@@ -5,6 +5,7 @@ import agent.common.buffer.BufferAllocator;
 import agent.common.struct.impl.PojoStruct;
 import agent.common.struct.impl.Structs;
 import agent.common.utils.annotation.PojoProperty;
+import com.alibaba.fastjson.JSONObject;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Test;
 
@@ -73,6 +74,18 @@ public class PojoStructTest {
 
     @Test
     public void test5() {
+        check(newB2());
+    }
+
+    @Test
+    public void testMeasure() {
+        if (true) {
+            ByteBuffer bb = BufferAllocator.allocate(1);
+        }
+        measureTime(newB2());
+    }
+
+    private B2 newB2() {
         B2 b2 = new B2();
         b2.setAList(new ArrayList<>(newAs()));
         b2.setAColl(new ArrayList<>(newAs()));
@@ -123,15 +136,14 @@ public class PojoStructTest {
             treeMap.put("ttt-" + i, i % 2 == 0);
         }
         b2.setTreeMap(treeMap);
-
-        check(b2);
-
-        measureTime(b2);
+        return b2;
     }
 
     private void measureTime(Object o) {
         final int count = 200;
         useJson(o, count);
+        System.out.println("===========================\n");
+        useJson2(o, count);
         System.out.println("===========================\n");
         useStruct(o, count);
     }
@@ -157,7 +169,8 @@ public class PojoStructTest {
                 () -> {
                     try {
                         String s = objectMapper.writeValueAsString(o);
-                        bb2.put(s.getBytes());
+                        s.getBytes();
+//                        bb2.put(s.getBytes());
                     } catch (Exception e) {
                         throw new RuntimeException(e);
                     }
@@ -167,7 +180,28 @@ public class PojoStructTest {
                     bb2.flip();
                 },
                 count,
-                "Json "
+                "Jason (no expand key) "
+        );
+    }
+
+    private void useJson2(Object o, final int count) {
+        ByteBuffer bb2 = BufferAllocator.allocate(1024 * 20);
+        calculate(
+                () -> {
+                    try {
+                        String s = JSONObject.toJSONString(o);
+                        s.getBytes();
+//                        bb2.put(s.getBytes());
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                },
+                () -> {
+//                    System.out.println(bb2.position());
+                    bb2.flip();
+                },
+                count,
+                "Fastjson "
         );
     }
 

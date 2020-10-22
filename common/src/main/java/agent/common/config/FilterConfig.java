@@ -1,6 +1,7 @@
 package agent.common.config;
 
 import agent.base.utils.Utils;
+import agent.common.utils.annotation.PojoProperty;
 
 import java.util.HashSet;
 import java.util.Objects;
@@ -8,7 +9,9 @@ import java.util.Optional;
 import java.util.Set;
 
 public abstract class FilterConfig extends AbstractValidConfig {
+    @PojoProperty(index = 0)
     private Set<String> includes;
+    @PojoProperty(index = 1)
     private Set<String> excludes;
 
     public Set<String> getIncludes() {

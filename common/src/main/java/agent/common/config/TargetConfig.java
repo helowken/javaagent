@@ -1,11 +1,17 @@
 package agent.common.config;
 
+import agent.common.utils.annotation.PojoProperty;
+
 import java.util.Objects;
 
 public class TargetConfig extends AbstractValidConfig {
+    @PojoProperty(index = 0)
     private ClassFilterConfig classFilter;
+    @PojoProperty(index = 1)
     private MethodFilterConfig methodFilter;
+    @PojoProperty(index = 2)
     private ConstructorFilterConfig constructorFilter;
+    @PojoProperty(index = 3)
     private InvokeChainConfig invokeChainConfig;
 
     @Override

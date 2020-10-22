@@ -2,13 +2,11 @@ package agent.server.command.executor;
 
 import agent.base.utils.Logger;
 import agent.base.utils.ReflectionUtils;
-import agent.base.utils.TypeObject;
 import agent.common.config.SaveClassConfig;
 import agent.common.message.command.Command;
-import agent.common.message.command.impl.MapCommand;
+import agent.common.message.command.impl.PojoCommand;
 import agent.common.message.result.DefaultExecResult;
 import agent.common.message.result.ExecResult;
-import agent.common.utils.JsonUtils;
 import agent.server.transform.revision.ClassDataRepository;
 import agent.server.transform.revision.ClassDataStore;
 import agent.server.transform.search.ClassCache;
@@ -25,11 +23,7 @@ class SaveClassCmdExecutor extends AbstractCmdExecutor {
 
     @Override
     ExecResult doExec(Command cmd) throws Exception {
-        SaveClassConfig config = JsonUtils.convert(
-                ((MapCommand) cmd).getConfig(),
-                new TypeObject<SaveClassConfig>() {
-                }
-        );
+        SaveClassConfig config = ((PojoCommand) cmd).getPojo();
         return DefaultExecResult.toSuccess(
                 cmd.getType(),
                 null,

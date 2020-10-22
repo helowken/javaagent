@@ -1,11 +1,9 @@
 package agent.server.command.executor;
 
-import agent.base.utils.TypeObject;
 import agent.common.config.ModuleConfig;
 import agent.common.message.command.Command;
-import agent.common.message.command.impl.MapCommand;
+import agent.common.message.command.impl.PojoCommand;
 import agent.common.message.result.ExecResult;
-import agent.common.utils.JsonUtils;
 import agent.server.transform.TransformMgr;
 
 class TransformCmdExecutor extends AbstractTransformCmdExecutor {
@@ -13,11 +11,7 @@ class TransformCmdExecutor extends AbstractTransformCmdExecutor {
 
     @Override
     ExecResult doExec(Command cmd) {
-        ModuleConfig moduleConfig = JsonUtils.convert(
-                ((MapCommand) cmd).getConfig(),
-                new TypeObject<ModuleConfig>() {
-                }
-        );
+        ModuleConfig moduleConfig = ((PojoCommand) cmd).getPojo();
         return convert(
                 TransformMgr.getInstance().transformByConfig(moduleConfig),
                 cmd.getType(),

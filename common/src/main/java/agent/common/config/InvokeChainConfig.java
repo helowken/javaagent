@@ -1,15 +1,24 @@
 package agent.common.config;
 
+import agent.common.utils.annotation.PojoProperty;
+
 import java.util.Collections;
 import java.util.Objects;
 
 public class InvokeChainConfig extends AbstractValidConfig {
+    @PojoProperty(index = 0)
     private ClassFilterConfig matchClassFilter;
+    @PojoProperty(index = 1)
     private MethodFilterConfig matchMethodFilter;
+    @PojoProperty(index = 2)
     private ConstructorFilterConfig matchConstructorFilter;
+    @PojoProperty(index = 3)
     private ClassFilterConfig searchClassFilter;
+    @PojoProperty(index = 4)
     private MethodFilterConfig searchMethodFilter;
+    @PojoProperty(index = 5)
     private ConstructorFilterConfig searchConstructorFilter;
+    @PojoProperty(index = 6)
     private int maxLevel = -1;
 
     public ClassFilterConfig getSearchClassFilter() {

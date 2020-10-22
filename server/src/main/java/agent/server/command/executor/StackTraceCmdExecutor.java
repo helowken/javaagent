@@ -4,7 +4,7 @@ import agent.base.utils.Logger;
 import agent.base.utils.TypeObject;
 import agent.common.config.StackTraceConfig;
 import agent.common.message.command.Command;
-import agent.common.message.command.impl.MapCommand;
+import agent.common.message.command.impl.PojoCommand;
 import agent.common.message.result.ExecResult;
 import agent.common.struct.impl.MapStruct;
 import agent.common.struct.impl.Structs;
@@ -27,13 +27,8 @@ class StackTraceCmdExecutor extends AbstractCmdExecutor {
 
     @Override
     ExecResult doExec(Command cmd) throws Exception {
-        StackTraceConfig config = JsonUtils.convert(
-                ((MapCommand) cmd).getConfig(),
-                new TypeObject<StackTraceConfig>() {
-                }
-        );
+        StackTraceConfig config = ((PojoCommand) cmd).getPojo();
         config.validate();
-
         ScheduleMgr.getInstance().exec(
                 config,
                 new StackTraceTask(config)

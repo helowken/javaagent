@@ -10,10 +10,9 @@ import agent.client.args.parse.TransformOptConfigs;
 import agent.common.config.ModuleConfig;
 import agent.common.config.TransformerConfig;
 import agent.common.message.command.Command;
-import agent.common.message.command.impl.MapCommand;
+import agent.common.message.command.impl.PojoCommand;
 
 import java.util.Collections;
-import java.util.Map;
 
 import static agent.common.args.parse.FilterOptUtils.getFilterAndChainOptParsers;
 import static agent.common.args.parse.FilterOptUtils.merge;
@@ -44,8 +43,8 @@ abstract class AbstractTransformCmdParser extends AbstractModuleCmdParser {
     }
 
     @Override
-    Command newCommand(Map<String, Object> data) {
-        return new MapCommand(CMD_TRANSFORM, data);
+    Command newCommand(Object data) {
+        return new PojoCommand(CMD_TRANSFORM, data);
     }
 
     @Override

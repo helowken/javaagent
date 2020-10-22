@@ -1,5 +1,7 @@
 package agent.common.config;
 
+import agent.common.utils.annotation.PojoProperty;
+
 import java.util.HashSet;
 import java.util.Set;
 
@@ -17,7 +19,9 @@ public class InfoQuery extends AbstractValidConfig {
         validLevels.add(INFO_PROXY);
     }
 
+    @PojoProperty(index = 0)
     private int level;
+    @PojoProperty(index = 1)
     private TargetConfig targetConfig;
 
     @Override

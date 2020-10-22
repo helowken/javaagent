@@ -5,19 +5,16 @@ import agent.base.args.parse.CmdParamParser;
 import agent.base.args.parse.CmdParams;
 import agent.base.args.parse.Opts;
 import agent.base.help.HelpArg;
-import agent.base.utils.TypeObject;
 import agent.client.args.parse.DefaultParamParser;
 import agent.client.args.parse.SaveClassOptConfigs;
 import agent.common.args.parse.FilterOptConfigs;
 import agent.common.args.parse.FilterOptUtils;
 import agent.common.config.SaveClassConfig;
 import agent.common.message.command.Command;
-import agent.common.message.command.impl.MapCommand;
-import agent.common.utils.JsonUtils;
+import agent.common.message.command.impl.PojoCommand;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 import static agent.client.command.parser.CmdHelpUtils.getOutputPathHelpArg;
 import static agent.common.args.parse.FilterOptUtils.getFilterOptParsers;
@@ -54,14 +51,7 @@ public class SaveClassCmdParser extends AbstractCmdParser<CmdParams> {
                 FilterOptUtils.createTargetConfig(opts)
                         .getClassFilter()
         );
-        return new MapCommand(
-                CMD_SAVE_CLASS,
-                JsonUtils.convert(
-                        config,
-                        new TypeObject<Map<String, Object>>() {
-                        }
-                )
-        );
+        return new PojoCommand(CMD_SAVE_CLASS, config);
     }
 
     @Override

@@ -1,12 +1,19 @@
 package agent.common.config;
 
+import agent.common.utils.annotation.PojoProperty;
+
 import static agent.base.utils.AssertUtils.assertTrue;
 
 public abstract class AbstractScheduleConfig extends AbstractValidConfig implements ScheduleConfig {
+    @PojoProperty(index = 0)
     private String key;
+    @PojoProperty(index = 1)
     private long delayMs;
+    @PojoProperty(index = 2)
     private long intervalMs;
+    @PojoProperty(index = 3)
     private int repeatCount;
+    @PojoProperty(index = 4)
     private long totalTimeMs;
 
     @Override

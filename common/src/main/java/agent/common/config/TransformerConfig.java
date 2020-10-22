@@ -1,10 +1,14 @@
 package agent.common.config;
 
+import agent.common.utils.annotation.PojoProperty;
+
 import java.util.Map;
 import java.util.Objects;
 
 public class TransformerConfig extends AbstractValidConfig {
+    @PojoProperty(index = 0)
     private String ref;
+    @PojoProperty(index = 1)
     private Map<String, Object> config;
 
     @Override
