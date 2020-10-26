@@ -30,7 +30,7 @@ public class TraceInvokeTransformerTest extends AbstractTraceTest {
                 A.class,
                 "service",
                 classToMethodFilter,
-                InvokeChainConfig.matchAll(),
+                InvokeChainConfig.matchAll("test.*", "test.*"),
                 true
         );
     }

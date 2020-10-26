@@ -122,34 +122,42 @@ public class InvokeChainConfig extends AbstractValidConfig {
                 '}';
     }
 
-    public static InvokeChainConfig matchAll() {
+    public static InvokeChainConfig matchAll(String searchClassStr, String matchClassStr) {
         ConstructorFilterConfig constructorFilterConfig = new ConstructorFilterConfig();
         constructorFilterConfig.setIncludes(Collections.singleton("*"));
 
         MethodFilterConfig methodFilterConfig = new MethodFilterConfig();
         methodFilterConfig.setIncludes(Collections.singleton("*"));
 
+        ClassFilterConfig searchClassFilter = new ClassFilterConfig();
+        searchClassFilter.setIncludes(Collections.singleton(searchClassStr));
+
+        ClassFilterConfig matchClassFilter = new ClassFilterConfig();
+        matchClassFilter.setIncludes(Collections.singleton(matchClassStr));
+
         InvokeChainConfig invokeChainConfig = new InvokeChainConfig();
+        invokeChainConfig.setSearchClassFilter(searchClassFilter);
+        invokeChainConfig.setMatchClassFilter(matchClassFilter);
         invokeChainConfig.setMatchConstructorFilter(constructorFilterConfig);
         invokeChainConfig.setMatchMethodFilter(methodFilterConfig);
         return invokeChainConfig;
     }
 
-    public static InvokeChainConfig matchAllMethods() {
+    public static InvokeChainConfig matchAllMethods(String searchClassStr, String matchClassStr) {
+        ClassFilterConfig searchClassFilter = new ClassFilterConfig();
+        searchClassFilter.setIncludes(Collections.singleton(searchClassStr));
+
+        ClassFilterConfig matchClassFilter = new ClassFilterConfig();
+        matchClassFilter.setIncludes(Collections.singleton(matchClassStr));
+
         MethodFilterConfig methodFilterConfig = new MethodFilterConfig();
         methodFilterConfig.setIncludes(Collections.singleton("*"));
 
         InvokeChainConfig invokeChainConfig = new InvokeChainConfig();
+        invokeChainConfig.setSearchClassFilter(searchClassFilter);
+        invokeChainConfig.setMatchClassFilter(matchClassFilter);
         invokeChainConfig.setMatchMethodFilter(methodFilterConfig);
         return invokeChainConfig;
     }
 
-    public static InvokeChainConfig matchAllConstructors() {
-        ConstructorFilterConfig constructorFilterConfig = new ConstructorFilterConfig();
-        constructorFilterConfig.setIncludes(Collections.singleton("*"));
-
-        InvokeChainConfig invokeChainConfig = new InvokeChainConfig();
-        invokeChainConfig.setMatchConstructorFilter(constructorFilterConfig);
-        return invokeChainConfig;
-    }
 }

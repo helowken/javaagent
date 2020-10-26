@@ -6,7 +6,10 @@ import agent.common.config.*;
 import agent.common.message.command.impl.PojoCommand;
 import agent.common.message.command.impl.StringCommand;
 import agent.common.message.result.DefaultExecResult;
+import agent.common.message.result.entity.CmdResultEntity;
+import agent.common.message.result.entity.TransformResultEntity;
 import agent.common.struct.DefaultBBuff;
+import agent.common.struct.impl.PojoStructCache;
 
 import java.nio.ByteBuffer;
 import java.util.HashMap;
@@ -27,6 +30,19 @@ public class MessageMgr {
         reg(
                 type -> new DefaultExecResult(),
                 RESULT_DEFAULT
+        );
+        PojoStructCache.setFieldTypeConverter(
+                CmdResultEntity.class,
+                (pojo, currType, fieldIndex, level, isKey) -> {
+                    if (fieldIndex == 3) {
+                        switch (pojo.getCmdType()) {
+                            case CMD_TRANSFORM:
+                            case CMD_RESET:
+                                return TransformResultEntity.class;
+                        }
+                    }
+                    return currType;
+                }
         );
 
         reg(
@@ -74,18 +90,24 @@ public class MessageMgr {
     }
 
     private static synchronized Message doParse(ByteBuffer bb) {
-        bb.mark();
-        int type = bb.getInt();
-        Message message = getMsgSupplier(type).apply(type);
-        logger.debug("Message type: {}, version: {}", type, message.getVersion());
-        bb.reset();
-        message.deserialize(
-                new DefaultBBuff(bb)
-        );
-        return message;
+        try {
+            bb.mark();
+            int type = bb.getInt();
+            Message message = getMsgSupplier(type).apply(type);
+            logger.debug("Message type: {}, version: {}", type, message.getVersion());
+            bb.reset();
+            message.deserialize(
+                    new DefaultBBuff(bb)
+            );
+            return message;
+        } catch (Throwable t) {
+            t.printStackTrace();
+            throw (RuntimeException) t;
+        }
     }
 
     public static <T extends Message> T parse(ByteBuffer bb) {
         return (T) doParse(bb);
     }
+
 }

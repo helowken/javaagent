@@ -29,7 +29,7 @@ public class CostTimeStatisticsTransformerTest extends AbstractTest {
         classToMethodFilter.put(A.class, "service");
         doTest(
                 classToMethodFilter,
-                InvokeChainConfig.matchAllMethods()
+                InvokeChainConfig.matchAllMethods("test.*", "test.*")
         );
     }
 

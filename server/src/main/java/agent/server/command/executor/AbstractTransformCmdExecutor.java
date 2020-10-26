@@ -1,16 +1,13 @@
 package agent.server.command.executor;
 
-import agent.base.utils.TypeObject;
 import agent.base.utils.Utils;
 import agent.common.message.result.DefaultExecResult;
 import agent.common.message.result.ExecResult;
 import agent.common.message.result.entity.ErrorEntity;
 import agent.common.message.result.entity.TransformResultEntity;
-import agent.common.utils.JsonUtils;
 import agent.server.transform.TransformResult;
 
 import java.util.List;
-import java.util.Map;
 
 abstract class AbstractTransformCmdExecutor extends AbstractCmdExecutor {
     ExecResult convert(TransformResult result, final int cmdType, String msgPrefix) {
@@ -38,12 +35,7 @@ abstract class AbstractTransformCmdExecutor extends AbstractCmdExecutor {
             );
 
         return failed ?
-                DefaultExecResult.toError(cmdType, msgPrefix + " failed.",
-                        JsonUtils.convert(entity,
-                                new TypeObject<Map>() {
-                                }
-                        )
-                ) :
+                DefaultExecResult.toError(cmdType, msgPrefix + " failed.", entity) :
                 DefaultExecResult.toSuccess(cmdType, msgPrefix + " successfully.");
     }
 

@@ -1,12 +1,10 @@
 package agent.client.command.result.handler;
 
-import agent.base.utils.TypeObject;
-import agent.base.utils.Utils;
 import agent.base.utils.ConsoleLogger;
+import agent.base.utils.Utils;
 import agent.common.message.result.ExecResult;
 import agent.common.message.result.entity.ErrorEntity;
 import agent.common.message.result.entity.TransformResultEntity;
-import agent.common.utils.JsonUtils;
 
 import static agent.base.utils.IndentUtils.INDENT_1;
 import static agent.common.message.result.entity.TransformResultEntity.*;
@@ -14,11 +12,7 @@ import static agent.common.message.result.entity.TransformResultEntity.*;
 abstract class AbstractTransformResultHandler extends AbstractExecResultHandler {
 
     void handleFailResult(ExecResult result, String msgPrefix) {
-        TransformResultEntity entity = JsonUtils.convert(
-                result.getContent(),
-                new TypeObject<TransformResultEntity>() {
-                }
-        );
+        TransformResultEntity entity = result.getContent();
         if (entity.hasError()) {
             StringBuilder sb = new StringBuilder();
             entity.getTypeToErrorList().forEach(

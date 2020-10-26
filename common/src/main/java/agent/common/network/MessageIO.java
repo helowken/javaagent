@@ -71,5 +71,7 @@ public class MessageIO implements Closeable {
     public void close() {
         IOUtils.close(in);
         IOUtils.close(out);
+        in = null;
+        out = null;
     }
 }

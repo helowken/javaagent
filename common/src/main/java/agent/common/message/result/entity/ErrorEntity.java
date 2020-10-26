@@ -1,8 +1,13 @@
 package agent.common.message.result.entity;
 
+import agent.common.utils.annotation.PojoProperty;
+
 public class ErrorEntity {
+    @PojoProperty(index = 0)
     private String className;
+    @PojoProperty(index = 1)
     private String transformerKey;
+    @PojoProperty(index = 2)
     private String errMsg;
 
     public ErrorEntity() {

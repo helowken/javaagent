@@ -118,20 +118,20 @@ public class TransformMgr {
         TransformResult transformResult = new TransformResult();
         List<ProxyRegInfo> regInfos = TimeMeasureUtils.run(
                 () -> prepareRegInfos(transformContext, transformResult),
-                "t1: {}"
+                "time-pre-transform: {}"
         );
         List<ProxyResult> proxyResults = TimeMeasureUtils.run(
                 () -> compile(regInfos, transformResult),
-                "t2: {}"
+                "time-bytecode-compile: {}"
         );
         if (!proxyResults.isEmpty()) {
             List<ProxyResult> validRsList = TimeMeasureUtils.run(
                     () -> reTransform(transformResult, proxyResults),
-                    "t3: {}"
+                    "time-instrument-retransform: {}"
             );
             TimeMeasureUtils.run(
                     () -> ProxyTransformMgr.getInstance().reg(validRsList),
-                    "t4: {}"
+                    "time-proxy-register: {}"
             );
         } else {
             logger.debug("No class need to be retransformed.");
@@ -146,7 +146,7 @@ public class TransformMgr {
                         transformer.transform(transformContext);
                     } catch (Throwable t) {
                         logger.error("transform failed.", t);
-                        transformResult.addTransformError(t, transformer);
+                        transformResult.addTransformError(t, transformer.getRegKey());
                     }
                 }
         );
@@ -192,11 +192,11 @@ public class TransformMgr {
         List<P> validRsList = new ArrayList<>();
         Utils.wrapToRtError(
                 () -> InstrumentationMgr.getInstance().retransform(
-                        instru -> dataList.forEach(
+                        instrumentation -> dataList.forEach(
                                 data -> {
                                     Class<?> clazz = convertFunc.apply(data);
                                     try {
-                                        instru.retransformClasses(clazz);
+                                        instrumentation.retransformClasses(clazz);
                                         validRsList.add(data);
                                     } catch (Throwable t) {
                                         transformResult.addReTransformError(clazz, t);

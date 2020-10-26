@@ -9,9 +9,9 @@ public class TransformResult {
     private final List<ErrorItem> compileErrorList = new ArrayList<>();
     private final List<ErrorItem> reTransformErrorItemList = new ArrayList<>();
 
-    void addTransformError(Throwable error, AgentTransformer transformer) {
+    public void addTransformError(Throwable error, String transformerKey) {
         this.transformErrorList.add(
-                new ErrorItem(null, error, transformer.getRegKey())
+                new ErrorItem(null, error, transformerKey)
         );
     }
 
@@ -21,7 +21,7 @@ public class TransformResult {
         );
     }
 
-    void addCompileError(Class<?> clazz, Throwable error) {
+    public void addCompileError(Class<?> clazz, Throwable error) {
         this.compileErrorList.add(
                 new ErrorItem(clazz, error, null)
         );

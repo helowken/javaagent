@@ -9,8 +9,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 @SuppressWarnings("unchecked")
-class PojoStructCache {
-    private static final Map<Class<?>, List<FieldProperty>> classToFieldProperties = new ConcurrentHashMap<>();
+public class PojoStructCache {
+    private static final Map<Class<?>, List<FieldProperty>> classToFieldPropertyList = new ConcurrentHashMap<>();
+    private static final Map<Class<?>, FieldTypeConverter> classToFieldTypeConverter = new ConcurrentHashMap<>();
     private static final Comparator<FieldProperty> comparator = (o1, o2) -> {
         if (o1.index > o2.index)
             return 1;
@@ -20,99 +21,127 @@ class PojoStructCache {
     };
 
     public static void clear() {
-        classToFieldProperties.clear();
+        classToFieldPropertyList.clear();
     }
 
-    static void setPojoValues(Object o, List<Object> pojoValues) {
-        List<FieldProperty> fieldPropertyList = getTotalFieldPropertyList(o.getClass());
-        if (pojoValues.size() != fieldPropertyList.size())
-            throw new RuntimeException("Pojo values size is: " + pojoValues.size() + ", but field list size is: " + fieldPropertyList.size());
+    public static <T> void setFieldTypeConverter(Class<T> pojoClass, FieldTypeConverter<T> fieldTypeConverter) {
+        classToFieldTypeConverter.put(pojoClass, fieldTypeConverter);
+    }
+
+    static void setPojoValues(Object pojo, List<Object> fieldValues) {
+        List<FieldProperty> fieldPropertyList = getTotalFieldPropertyList(pojo.getClass());
+        if (fieldValues.size() != fieldPropertyList.size())
+            throw new RuntimeException("Field values size is: " + fieldValues.size() +
+                    ", but field list size is: " + fieldPropertyList.size() +
+                    ", Pojo to be populated: " + pojo);
         Utils.wrapToRtError(
                 () -> {
                     FieldProperty fieldProperty;
+                    Object fieldValue;
                     for (int i = 0, len = fieldPropertyList.size(); i < len; ++i) {
                         fieldProperty = fieldPropertyList.get(i);
-                        fieldProperty.setter.invoke(
-                                o,
-                                convertValue(
-                                        fieldProperty.type,
-                                        pojoValues.get(i)
-                                )
+                        fieldValue = convertValue(
+                                pojo,
+                                fieldProperty.index,
+                                fieldProperty.type,
+                                fieldValues.get(i),
+                                0,
+                                false
                         );
+                        fieldProperty.setter.invoke(pojo, fieldValue);
                     }
                 }
         );
     }
 
-    private static Object tryToConvertPojo(Class<?> clazz, Object value) {
-        if (isPojoValues(value)) {
-            PojoValues pojoValues = (PojoValues) value;
+    private static Object convertValue(Object pojo, int fieldIndex, Type currType, Object originalValue, int level, boolean isKey) {
+        if (originalValue == null)
+            return null;
+
+        Type[] argTypes = null;
+        Class<?> currClass = null;
+        if (currType instanceof ParameterizedType) {
+            ParameterizedType paramType = (ParameterizedType) currType;
+            currClass = (Class<?>) paramType.getRawType();
+            argTypes = paramType.getActualTypeArguments();
+        } else if (currType instanceof Class) {
+            currClass = (Class<?>) currType;
+        }
+
+        if (currClass != null) {
+            if (currClass.isArray()) {
+                int len = Array.getLength(originalValue);
+                Class<?> elClass = currClass.getComponentType();
+                Object array = Array.newInstance(elClass, len);
+                Object el;
+                for (int i = 0; i < len; ++i) {
+                    el = Array.get(originalValue, i);
+                    Array.set(
+                            array,
+                            i,
+                            convertValue(pojo, fieldIndex, elClass, el, level + 1, false)
+                    );
+                }
+                return array;
+            } else if (Map.class.isAssignableFrom(currClass)) {
+                Type keyType = null;
+                Type valueType = null;
+                if (argTypes != null && argTypes.length >= 2) {
+                    keyType = argTypes[0];
+                    valueType = argTypes[1];
+                }
+
+                Map<Object, Object> rsMap = (Map) newInstanceForType(currClass, 0);
+                for (Map.Entry<Object, Object> entry : ((Map<Object, Object>) originalValue).entrySet()) {
+                    rsMap.put(
+                            convertValue(pojo, fieldIndex, keyType, entry.getKey(), level + 1, true),
+                            convertValue(pojo, fieldIndex, valueType, entry.getValue(), level + 1, false)
+                    );
+                }
+                return rsMap;
+            } else if (Collection.class.isAssignableFrom(currClass)) {
+                Type valueType = null;
+                if (argTypes != null && argTypes.length >= 1)
+                    valueType = argTypes[0];
+                Collection<Object> rsColl = (Collection) newInstanceForType(currClass, 0);
+                for (Object value : ((Collection) originalValue)) {
+                    rsColl.add(
+                            convertValue(pojo, fieldIndex, valueType, value, level + 1, false)
+                    );
+                }
+                return rsColl;
+            }
+        }
+
+        if (isPojoValues(originalValue)) {
+            PojoValues pojoValues = (PojoValues) originalValue;
             Object pojoOfField = newInstanceForType(
-                    clazz,
+                    convertPojoFieldType(pojo, fieldIndex, currClass, level, isKey),
                     pojoValues.size()
             );
             setPojoValues(pojoOfField, pojoValues);
             return pojoOfField;
         }
-        return value;
+        return originalValue;
     }
 
-    private static Object convertValue(Type classType, Object o) {
-        if (o == null)
-            return null;
+    private static Class<?> convertPojoFieldType(Object pojo, int fieldIndex, Type currType, int level, boolean isKey) {
+        FieldTypeConverter converter = classToFieldTypeConverter.get(pojo.getClass());
+        Type rsType = null;
+        if (converter != null)
+            rsType = converter.convert(pojo, currType, fieldIndex, level, isKey);
+        else if (currType instanceof Class)
+            rsType = currType;
 
-        Type[] argTypes = null;
-        Class<?> clazz;
-        if (classType instanceof ParameterizedType) {
-            ParameterizedType paramType = (ParameterizedType) classType;
-            clazz = (Class<?>) paramType.getRawType();
-            argTypes = paramType.getActualTypeArguments();
-        } else {
-            clazz = (Class<?>) classType;
-        }
+        if (rsType instanceof Class)
+            return (Class<?>) rsType;
 
-        if (clazz.isArray()) {
-            int len = Array.getLength(o);
-            Class<?> elClass = clazz.getComponentType();
-            Object array = Array.newInstance(elClass, len);
-            for (int i = 0; i < len; ++i) {
-                Array.set(
-                        array,
-                        i,
-                        tryToConvertPojo(
-                                elClass,
-                                Array.get(o, i)
-                        )
-                );
-            }
-            return array;
-        } else if (Map.class.isAssignableFrom(clazz)) {
-            if (argTypes != null && argTypes.length >= 2) {
-                Map<Object, Object> rsMap = (Map) newInstanceForType(clazz, 0);
-                Type keyClass = argTypes[0];
-                Type valueClass = argTypes[1];
-                ((Map) o).forEach(
-                        (key, value) -> rsMap.put(
-                                convertValue(keyClass, key),
-                                convertValue(valueClass, value)
-                        )
-                );
-                return rsMap;
-            }
-        } else if (Collection.class.isAssignableFrom(clazz)) {
-            if (argTypes != null && argTypes.length >= 1) {
-                Collection<Object> rsColl = (Collection) newInstanceForType(clazz, 0);
-                Class<?> elClass = (Class<?>) argTypes[0];
-                ((Collection) o).forEach(
-                        el -> rsColl.add(
-                                convertValue(elClass, el)
-                        )
-                );
-                return rsColl;
-            }
-        }
-
-        return tryToConvertPojo(clazz, o);
+        throw new RuntimeException("No Class found! FieldIndex: " + fieldIndex +
+                ", currType: " + currType +
+                ", level: " + level +
+                ", isKey: " + isKey +
+                ", pojo: " + pojo
+        );
     }
 
     static Collection<Object> getPojoValues(Object o) {
@@ -156,7 +185,7 @@ class PojoStructCache {
     }
 
     private static List<FieldProperty> getTotalFieldPropertyList(Class<?> pojoClass) {
-        return classToFieldProperties.computeIfAbsent(
+        return classToFieldPropertyList.computeIfAbsent(
                 pojoClass,
                 clazz -> {
                     Set<String> nameSet = new HashSet<>();
@@ -196,7 +225,6 @@ class PojoStructCache {
 
                     fieldPropertyList.add(
                             new FieldProperty(
-                                    field.getType(),
                                     field.getGenericType(),
                                     index,
                                     getMethod(clazz, propertyName, field.getType()),
@@ -238,15 +266,13 @@ class PojoStructCache {
         );
     }
 
-    static class FieldProperty {
-        final Class<?> clazz;
+    private static class FieldProperty {
         final Type type;
         final int index;
         final Method setter;
         final Method getter;
 
-        private FieldProperty(Class<?> clazz, Type type, int index, Method setter, Method getter) {
-            this.clazz = clazz;
+        private FieldProperty(Type type, int index, Method setter, Method getter) {
             this.type = type;
             this.index = index;
             this.setter = setter;
@@ -256,8 +282,7 @@ class PojoStructCache {
         @Override
         public String toString() {
             return "FieldProperty{" +
-                    "class=" + clazz +
-                    ", type=" + type +
+                    "type=" + type +
                     ", index=" + index +
                     ", setter=" + setter +
                     ", getter=" + getter +
@@ -270,4 +295,10 @@ class PojoStructCache {
             super(values);
         }
     }
+
+    public interface FieldTypeConverter<T> {
+        Type convert(T pojo, Type currType, int fieldIndex, int level, boolean isKey);
+    }
+
+
 }

@@ -2,16 +2,11 @@ package agent.common.message.result;
 
 import agent.common.message.AbstractMessage;
 import agent.common.message.MessageType;
-import agent.common.struct.impl.MapStruct;
+import agent.common.message.result.entity.CmdResultEntity;
+import agent.common.struct.impl.PojoStruct;
 import agent.common.struct.impl.Structs;
 
-@SuppressWarnings("unchecked")
-public class DefaultExecResult extends AbstractMessage<MapStruct<String, Object>> implements ExecResult {
-    private static final String FIELD_CMD_TYPE = "cmdType";
-    private static final String FIELD_STATUS = "status";
-    private static final String FIELD_CONTENT = "content";
-    private static final String FIELD_MESSAGE = "message";
-
+public class DefaultExecResult extends AbstractMessage<PojoStruct> implements ExecResult {
     public static DefaultExecResult toSuccess(int cmdType) {
         return toSuccess(cmdType, null);
     }
@@ -37,34 +32,42 @@ public class DefaultExecResult extends AbstractMessage<MapStruct<String, Object>
     }
 
     public DefaultExecResult() {
-        super(MessageType.RESULT_DEFAULT, Structs.newTreeMap());
+        super(MessageType.RESULT_DEFAULT, Structs.newPojo());
+        this.getBody().setPojo(new CmdResultEntity());
     }
 
     private DefaultExecResult(ResultStatus resultStatus, int cmdType, String msg, Object content) {
         this();
-        getBody().put(FIELD_CMD_TYPE, cmdType);
-        getBody().put(FIELD_STATUS, resultStatus.status);
-        getBody().put(FIELD_MESSAGE, msg);
-        getBody().put(FIELD_CONTENT, content);
+        CmdResultEntity entity = getEntity();
+        entity.setCmdType(cmdType);
+        entity.setStatus(resultStatus.status);
+        entity.setMessage(msg);
+        entity.setContent(content);
+    }
+
+    private CmdResultEntity getEntity() {
+        return getBody().getPojo();
     }
 
     @Override
     public ResultStatus getStatus() {
-        return ResultStatus.parse((Byte) getBody().get(FIELD_STATUS));
+        return ResultStatus.parse(
+                getEntity().getStatus()
+        );
     }
 
     @Override
     public int getCmdType() {
-        return (int) getBody().get(FIELD_CMD_TYPE);
+        return getEntity().getCmdType();
     }
 
     @Override
     public String getMessage() {
-        return (String) getBody().get(FIELD_MESSAGE);
+        return getEntity().getMessage();
     }
 
     public <T> T getContent() {
-        return (T) getBody().get(FIELD_CONTENT);
+        return (T) getEntity().getContent();
     }
 
 }

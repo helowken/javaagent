@@ -46,7 +46,7 @@ public abstract class ProxyAnnotationConfig<T, R> {
             currAroundItem = new AroundItem<>();
             local.set(currAroundItem);
         }
-        T data = newDataOnBefore(args, argTypes, instanceOrNull, destInvoke, otherArgs);
+        T data = newDataOnBefore(currAroundItem, args, argTypes, instanceOrNull, destInvoke, otherArgs);
         if (data != null)
             currAroundItem.push(data);
     }
@@ -117,7 +117,8 @@ public abstract class ProxyAnnotationConfig<T, R> {
         return local.get();
     }
 
-    protected abstract T newDataOnBefore(Object[] args, Class<?>[] argTypes, Object instanceOrNull, DestInvoke destInvoke, Object[] otherArgs);
+    protected abstract T newDataOnBefore(AroundItem<T, R> aroundItem, Object[] args, Class<?>[] argTypes, Object instanceOrNull,
+                                         DestInvoke destInvoke, Object[] otherArgs);
 
     protected abstract R processOnReturning(T data, Object returnValue, Class<?> returnType, Object instanceOrNull, DestInvoke destInvoke, Object[] otherArgs);
 

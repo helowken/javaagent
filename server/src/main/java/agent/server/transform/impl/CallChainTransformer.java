@@ -28,9 +28,9 @@ public abstract class CallChainTransformer extends ProxyAnnotationConfigTransfor
     public abstract static class CallChainConfig<T extends InvokeItem, R> extends ProxyAnnotationConfig<T, R> {
 
         @Override
-        protected T newDataOnBefore(Object[] args, Class<?>[] argTypes, Object instanceOrNull, DestInvoke destInvoke, Object[] otherArgs) {
+        protected T newDataOnBefore(AroundItem<T, R> aroundItem, Object[] args, Class<?>[] argTypes, Object instanceOrNull,
+                                    DestInvoke destInvoke, Object[] otherArgs) {
             int invokeId = Utils.getArgValue(otherArgs, 0);
-            AroundItem<T, R> aroundItem = getAroundItem();
             InvokeItem parentItem = aroundItem.peek();
             T data = newData(args, argTypes, instanceOrNull, destInvoke, otherArgs);
             data.id = aroundItem.nextSeq();
@@ -55,9 +55,10 @@ public abstract class CallChainTransformer extends ProxyAnnotationConfigTransfor
         protected abstract R convertTo(T data);
 
         @Override
-        protected T newDataOnBefore(Object[] args, Class<?>[] argTypes, Object instanceOrNull, DestInvoke destInvoke, Object[] otherArgs) {
+        protected T newDataOnBefore(AroundItem<T, R> aroundItem, Object[] args, Class<?>[] argTypes, Object instanceOrNull,
+                                    DestInvoke destInvoke, Object[] otherArgs) {
             long st = System.nanoTime();
-            T data = super.newDataOnBefore(args, argTypes, instanceOrNull, destInvoke, otherArgs);
+            T data = super.newDataOnBefore(aroundItem, args, argTypes, instanceOrNull, destInvoke, otherArgs);
             data.startTime = st;
             return data;
         }

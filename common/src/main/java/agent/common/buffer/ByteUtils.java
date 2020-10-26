@@ -7,7 +7,8 @@ public class ByteUtils {
     public static byte[] getBytes(ByteBuffer bb) {
         if (bb.hasArray())
             return bb.array();
-        byte[] bs = new byte[bb.remaining()];
+        byte[] bs = new byte[bb.position()];
+        bb.flip();
         bb.get(bs);
         return bs;
     }

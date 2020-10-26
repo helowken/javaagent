@@ -1,26 +1,25 @@
 package agent.invoke.proxy;
 
 
-import agent.base.utils.ReflectionUtils;
-import agent.base.utils.Utils;
 import agent.invoke.DestInvoke;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static agent.invoke.proxy.ProxyPosition.*;
 
 public class ProxyCallSite {
-    private static final Map<ProxyPosition, Class<? extends ProxyCall>> posToProxyClass = new HashMap<>();
+    private static final Map<ProxyPosition, Function<ProxyCallInfo, ProxyCall>> posToProxyClass = new HashMap<>();
 
     static {
-        posToProxyClass.put(ON_BEFORE, ProxyCallBefore.class);
-        posToProxyClass.put(ON_RETURNING, ProxyCallOnReturning.class);
-        posToProxyClass.put(ON_THROWING, ProxyCallOnThrowing.class);
-        posToProxyClass.put(ON_CATCHING, ProxyCallOnCatching.class);
-        posToProxyClass.put(ON_AFTER, ProxyCallAfter.class);
+        posToProxyClass.put(ON_BEFORE, ProxyCallBefore::new);
+        posToProxyClass.put(ON_RETURNING, ProxyCallOnReturning::new);
+        posToProxyClass.put(ON_THROWING, ProxyCallOnThrowing::new);
+        posToProxyClass.put(ON_CATCHING, ProxyCallOnCatching::new);
+        posToProxyClass.put(ON_AFTER, ProxyCallAfter::new);
 
         // use to resolve linkage error
         CallQueue.class.getName();
@@ -111,19 +110,12 @@ public class ProxyCallSite {
         }
 
         private ProxyCall newProxyCall(ProxyPosition pos, ProxyCallInfo callInfo) {
-            Class<?> clazz = Optional.ofNullable(
+            return Optional.ofNullable(
                     posToProxyClass.get(pos)
+            ).map(
+                    func -> func.apply(callInfo)
             ).orElseThrow(
                     () -> new IllegalArgumentException("Invalid proxy position: " + pos)
-            );
-            return Utils.wrapToRtError(
-                    () -> ReflectionUtils.newInstance(
-                            clazz,
-                            new Class[]{
-                                    ProxyCallInfo.class
-                            },
-                            callInfo
-                    )
             );
         }
     }

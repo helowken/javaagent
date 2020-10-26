@@ -18,6 +18,11 @@
             <groupId>javaagent</groupId>
             <artifactId>server</artifactId>
         </dependency>
+        <dependency>
+            <groupId>javaagent</groupId>
+            <artifactId>bootstrap</artifactId>
+            <scope>provided</scope>
+        </dependency>
 
         <!-- test 3pp -->
         <dependency>

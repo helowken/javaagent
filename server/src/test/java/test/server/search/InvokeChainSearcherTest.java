@@ -170,7 +170,7 @@ public class InvokeChainSearcherTest extends AbstractTest {
     private void doTest(Object... expectation) {
         assertNotNull(expectation);
         assertTrue(expectation.length > 0);
-        InvokeChainConfig filterConfig = InvokeChainConfig.matchAll();
+        InvokeChainConfig filterConfig = InvokeChainConfig.matchAll("test.*", "test.*");
         ClassFilterConfig classFilterConfig = new ClassFilterConfig();
         classFilterConfig.setExcludes(Collections.singleton("java.*"));
         filterConfig.setMatchClassFilter(classFilterConfig);

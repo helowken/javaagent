@@ -3,6 +3,7 @@ package agent.common.struct;
 import agent.base.utils.Utils;
 import agent.common.buffer.BufferAllocator;
 import agent.common.struct.impl.PojoStruct;
+import agent.common.struct.impl.PojoStructCache;
 import agent.common.struct.impl.Structs;
 import agent.common.utils.annotation.PojoProperty;
 import com.alibaba.fastjson.JSONObject;
@@ -79,10 +80,109 @@ public class PojoStructTest {
 
     @Test
     public void testMeasure() {
-        if (true) {
-            ByteBuffer bb = BufferAllocator.allocate(1);
-        }
         measureTime(newB2());
+    }
+
+    @Test
+    public void testTypeConvert() {
+        PojoStructCache.setFieldTypeConverter(
+                B3.class,
+                (pojo, currType, fieldIndex, level, isKey) -> A.class
+        );
+        B3 b = new B3();
+        A a = new A();
+        populateA(a);
+        b.setValue(a);
+        check(b);
+
+        PojoStructCache.setFieldTypeConverter(
+                B3.class,
+                (pojo, currType, fieldIndex, level, isKey) -> CA.class
+        );
+        CA ca = new CA();
+        populateCA(ca);
+        b.setValue(ca);
+        check(b);
+
+        PojoStructCache.setFieldTypeConverter(
+                B3.class,
+                (pojo, currType, fieldIndex, level, isKey) -> CCA.class
+        );
+        CCA cca = new CCA();
+        populateCCA(cca);
+        b.setValue(cca);
+        check(b);
+    }
+
+    @Test
+    public void testWildcardType() {
+        B4 b = new B4();
+        Map<String, String> map = new HashMap<>();
+        for (int i = 0; i < 3; ++i) {
+            map.put("k-" + i, "v-" + i);
+        }
+        b.setA(map);
+        b.setA2(map);
+        b.setA3(map);
+        Set<Integer> set = new HashSet<>(Arrays.asList(1, 2, 3, 4, 5));
+        b.setB(set);
+        b.setB2(set);
+        List<Float> list = Arrays.asList(1.1F, 2.2F, 3.3F);
+        b.setC(list);
+        b.setC2(list);
+        check(b);
+    }
+
+    @Test
+    public void testWildcardType2() {
+        PojoStructCache.setFieldTypeConverter(
+                B4.class,
+                (pojo, currType, fieldIndex, level, isKey) -> {
+                    switch (fieldIndex) {
+                        case 0:
+                            return isKey ? A.class : CCA.class;
+                        case 1:
+                            return A.class;
+                        case 2:
+                        case 4:
+                        case 6:
+                            return CA.class;
+                        case 3:
+                        case 5:
+                            return CCA.class;
+                    }
+                    return currType;
+                }
+        );
+        B4 b = new B4();
+        Map<String, A> map = new HashMap<>();
+        Map<CA, String> map2 = new HashMap<>();
+        Map<A, CCA> map3 = new HashMap<>();
+        List<CCA> list = new ArrayList<>();
+        List<CA> list2 = new ArrayList<>();
+        for (int i = 0; i < 3; ++i) {
+            A a = new A();
+            populateA(a);
+            CA ca = new CA();
+            populateCA(ca);
+            CCA cca = new CCA();
+            populateCCA(cca);
+
+            map.put("k-" + i, a);
+            map2.put(ca, "v-" + i);
+            map3.put(a, cca);
+            list.add(cca);
+            list2.add(ca);
+        }
+        b.setA(map3);
+        b.setA2(map);
+        b.setA3(map2);
+
+        b.setB(new HashSet<>(new HashSet<>(list)));
+        b.setB2(new HashSet<>(list2));
+        b.setC(list);
+        b.setC2(list2);
+        check(b);
     }
 
     private B2 newB2() {
@@ -214,7 +314,7 @@ public class PojoStructTest {
             total += et - st;
             postFunc.run();
         }
-        System.out.println(msg + " Avg: " + ((float)total / count / 1000000));
+        System.out.println(msg + " Avg: " + ((float) total / count / 1000000));
     }
 
     private void check(Object o) {
@@ -758,4 +858,153 @@ public class PojoStructTest {
             return result;
         }
     }
+
+    public static class B3 {
+        @PojoProperty(index = 0)
+        Object value;
+
+        public Object getValue() {
+            return value;
+        }
+
+        public void setValue(Object value) {
+            this.value = value;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            B3 b3 = (B3) o;
+            return Objects.equals(value, b3.value);
+        }
+
+        @Override
+        public int hashCode() {
+
+            return Objects.hash(value);
+        }
+
+        @Override
+        public String toString() {
+            return "B3{" +
+                    "value=" + value +
+                    '}';
+        }
+    }
+
+    public static class B4 {
+        @PojoProperty(index = 0)
+        private Map a;
+        @PojoProperty(index = 1)
+        private Map<String, ?> a2;
+        @PojoProperty(index = 2)
+        private Map<?, String> a3;
+        @PojoProperty(index = 3)
+        private Set b;
+        @PojoProperty(index = 4)
+        private Set<?> b2;
+        @PojoProperty(index = 5)
+        private List c;
+        @PojoProperty(index = 6)
+        private List<?> c2;
+
+        public Map getA() {
+            return a;
+        }
+
+        public void setA(Map a) {
+            this.a = a;
+        }
+
+        public Map<String, ?> getA2() {
+            return a2;
+        }
+
+        public void setA2(Map<String, ?> a2) {
+            this.a2 = a2;
+        }
+
+        public Map<?, String> getA3() {
+            return a3;
+        }
+
+        public void setA3(Map<?, String> a3) {
+            this.a3 = a3;
+        }
+
+        public Set getB() {
+            return b;
+        }
+
+        public void setB(Set b) {
+            this.b = b;
+        }
+
+        public Set<?> getB2() {
+            return b2;
+        }
+
+        public void setB2(Set<?> b2) {
+            this.b2 = b2;
+        }
+
+        public List getC() {
+            return c;
+        }
+
+        public void setC(List c) {
+            this.c = c;
+        }
+
+        public List<?> getC2() {
+            return c2;
+        }
+
+        public void setC2(List<?> c2) {
+            this.c2 = c2;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            B4 b4 = (B4) o;
+            return Objects.equals(a, b4.a) &&
+                    Objects.equals(a2, b4.a2) &&
+                    Objects.equals(a3, b4.a3) &&
+                    Objects.equals(b, b4.b) &&
+                    Objects.equals(b2, b4.b2) &&
+                    Objects.equals(c, b4.c) &&
+                    Objects.equals(c2, b4.c2);
+        }
+
+        @Override
+        public int hashCode() {
+
+            return Objects.hash(a, a2, a3, b, b2, c, c2);
+        }
+
+        @Override
+        public String toString() {
+            return "B4{" +
+                    "a=" + a +
+                    ", a2=" + a2 +
+                    ", a3=" + a3 +
+                    ", b=" + b +
+                    ", b2=" + b2 +
+                    ", c=" + c +
+                    ", c2=" + c2 +
+                    '}';
+        }
+    }
+
+    public static class B5<T, V extends String> {
+        private T a;
+        private V b;
+        private Map<List<T>, T[]> c;
+        private Map<?, Map<T, V>> d;
+        private V[] e;
+    }
+
 }

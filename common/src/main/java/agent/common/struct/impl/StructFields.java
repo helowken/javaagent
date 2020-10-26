@@ -147,7 +147,7 @@ public final class StructFields {
 
             @Override
             Object valueToArray(Object value) {
-                return value == null ? new byte[0] : ((String) value).getBytes();
+                return value == null ? null : ((String) value).getBytes();
             }
 
             @Override

@@ -9,6 +9,15 @@ import java.util.Arrays;
 public class AgentServerRunner implements Runner {
     private static final Logger logger = Logger.getLogger(AgentServerRunner.class);
 
+    static {
+        Thread.setDefaultUncaughtExceptionHandler(
+                (thread, error) -> error.printStackTrace()
+//
+//                    logger.error("Uncaught Error in Thread: {}-{}", error, thread.getName(), thread.getId());
+//                }
+        );
+    }
+
     @Override
     public void startup(Object... args) {
         Utils.wrapToRtError(() -> {

@@ -25,7 +25,7 @@ abstract class AbstractTraceTest extends AbstractTest {
                 clazz,
                 methodName,
                 classToMethodFilter,
-                InvokeChainConfig.matchAll(),
+                InvokeChainConfig.matchAll("test.*", "test.*"),
                 runFirst
         );
     }

@@ -11,8 +11,8 @@ public class PojoStruct implements Struct {
     private final StructField field = StructFields.newPojo();
     private Object pojo;
 
-    public Object getPojo() {
-        return pojo;
+    public <T> T getPojo() {
+        return (T) pojo;
     }
 
     public void setPojo(Object pojo) {

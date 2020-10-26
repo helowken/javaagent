@@ -20,7 +20,7 @@ public class JavascriptTransformerTest extends AbstractTest {
         new JsService();
         Map<Class<?>, String> classToMethodFilter = new HashMap<>();
         classToMethodFilter.put(JsService.class, "test");
-        doTest(JsService.class, "test", classToMethodFilter, InvokeChainConfig.matchAll());
+        doTest(JsService.class, "test", classToMethodFilter, InvokeChainConfig.matchAll("test.*", "test.*"));
     }
 
     void doTest(Class<?> targetClass, String targetMethodName, Map<Class<?>, String> classToMethodFilter,

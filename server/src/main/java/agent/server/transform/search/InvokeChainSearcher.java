@@ -192,10 +192,8 @@ public class InvokeChainSearcher {
 
     private void collectInnerInvokes(InvokeInfo info, int searchFlags, InvokeChainMatchFilter matchFilter, InvokeChainSearchFilter searchFilter) {
         debug(info, "Collect ");
-        boolean isIntrinsic = info.isIntrinsicPackage();
-        if (isIntrinsic) {
+        if (info.isIntrinsicPackage()) {
             debug(info, "@ Skip intrinsic package: ");
-            searchDownward(info, matchFilter, searchFilter);
             return;
         } else if (info.isLambdaClass()) {
             debug(info, "@ Skip Lambda: ");

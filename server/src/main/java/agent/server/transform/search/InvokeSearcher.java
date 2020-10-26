@@ -98,7 +98,8 @@ public class InvokeSearcher {
     private static boolean isInvokeMeaningful(int methodModifiers) {
         return (SYNTHETIC & methodModifiers) == 0 &&
                 (BRIDGE & methodModifiers) == 0 &&
-                !Modifier.isAbstract(methodModifiers);
+                !Modifier.isAbstract(methodModifiers) &&
+                !Modifier.isNative(methodModifiers);
     }
 
     private interface InvokeGetter {
