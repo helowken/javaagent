@@ -4,7 +4,7 @@ import agent.base.utils.IOUtils;
 import agent.base.utils.LockObject;
 import agent.base.utils.Logger;
 import agent.base.utils.Utils;
-import agent.common.utils.JsonUtils;
+import agent.common.struct.impl.Structs;
 import agent.invoke.DestInvoke;
 import agent.server.ServerListener;
 import agent.server.event.AgentEvent;
@@ -18,8 +18,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
-
-import static agent.server.utils.log.LogConfig.STDOUT;
 
 public class DestInvokeIdRegistry implements ServerListener, AgentEventListener {
     private static final String SEP = "#";
@@ -99,16 +97,12 @@ public class DestInvokeIdRegistry implements ServerListener, AgentEventListener 
         lo.sync(
                 lock -> {
                     String path = getMetadataFile(outputPath);
-                    boolean isStd = STDOUT.equals(outputPath);
-                    if (isStd || outputPaths.contains(outputPath)) {
+                    if (outputPaths.contains(outputPath)) {
                         try {
-                            String content = JsonUtils.writeAsString(
+                            byte[] bs = Structs.serializeMap(
                                     convertMetadata()
                             );
-                            if (isStd)
-                                System.out.println(content);
-                            else
-                                IOUtils.writeString(path, content, false);
+                            IOUtils.writeBytes(path, bs, false);
                             logger.debug("Metadata is flushed for log: {}", outputPath);
                         } catch (Throwable e) {
                             logger.error("Write metadata to " + path + " is failed.");

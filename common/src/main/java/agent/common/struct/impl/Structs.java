@@ -1,7 +1,12 @@
 package agent.common.struct.impl;
 
+import agent.common.buffer.BufferAllocator;
+import agent.common.buffer.ByteUtils;
+import agent.common.struct.DefaultBBuff;
 import agent.common.struct.StructField;
 
+import java.nio.ByteBuffer;
+import java.util.Map;
 import java.util.TreeMap;
 
 public class Structs {
@@ -122,5 +127,27 @@ public class Structs {
 
     public static DefaultStruct newDoubleWrapperArray() {
         return create(StructFields.newDoubleWrapperArray());
+    }
+
+    public static <K, V> byte[] serializeMap(Map<K, V> map) {
+        MapStruct<K, V> mapStruct = Structs.newMap();
+        mapStruct.putAll(map);
+        ByteBuffer bb = BufferAllocator.allocate(
+                mapStruct.bytesSize()
+        );
+        mapStruct.serialize(
+                new DefaultBBuff(bb)
+        );
+        bb.flip();
+        return ByteUtils.getBytes(bb);
+    }
+
+    public static <K, V> Map<K, V> deserializeMap(byte[] bs) {
+        ByteBuffer bb = ByteBuffer.wrap(bs);
+        MapStruct<K, V> mapStruct = Structs.newMap();
+        mapStruct.deserialize(
+                new DefaultBBuff(bb)
+        );
+        return mapStruct.getAll();
     }
 }

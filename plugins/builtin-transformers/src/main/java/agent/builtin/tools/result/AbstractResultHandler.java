@@ -3,7 +3,7 @@ package agent.builtin.tools.result;
 import agent.base.utils.*;
 import agent.base.utils.InvokeDescriptorUtils.TextConfig;
 import agent.builtin.tools.result.parse.ResultParams;
-import agent.common.utils.JsonUtils;
+import agent.common.struct.impl.Structs;
 import agent.server.transform.impl.DestInvokeIdRegistry;
 import agent.server.transform.impl.DestInvokeIdRegistry.InvokeMetadata;
 
@@ -66,15 +66,12 @@ abstract class AbstractResultHandler<T, P extends ResultParams> implements Resul
     }
 
     Map<Integer, InvokeMetadata> readMetadata(String inputPath) throws IOException {
-        Map<Integer, String> idToClassInvoke = JsonUtils.read(
-                IOUtils.readToString(
-                        FileUtils.getValidFile(
-                                DestInvokeIdRegistry.getMetadataFile(inputPath)
-                        ).getAbsolutePath()
-                ),
-                new TypeObject<Map<Integer, String>>() {
-                }
+        byte[] bs = IOUtils.readBytes(
+                FileUtils.getValidFile(
+                        DestInvokeIdRegistry.getMetadataFile(inputPath)
+                ).getAbsolutePath()
         );
+        Map<Integer, String> idToClassInvoke = Structs.deserializeMap(bs);
         Map<Integer, InvokeMetadata> rsMap = new HashMap<>();
         idToClassInvoke.forEach(
                 (id, classInvoke) -> rsMap.put(

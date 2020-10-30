@@ -1,7 +1,5 @@
 package agent.common.struct;
 
-import agent.common.buffer.ByteUtils;
-
 import java.nio.ByteBuffer;
 
 public class DefaultBBuff implements BBuff {
