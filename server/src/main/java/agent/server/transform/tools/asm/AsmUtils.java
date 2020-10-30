@@ -8,25 +8,49 @@ import agent.invoke.data.ClassInvokeItem;
 import agent.invoke.data.TypeItem;
 
 import java.io.OutputStream;
+import java.lang.reflect.Method;
 import java.util.Map;
 
 public class AsmUtils {
     public static final String ASM_DELEGATE_CLASS = "agent.tools.asm.AsmDelegate";
     private static final DependentClassItem item = DependentClassItem.getInstance();
+    private static Method transformMethod;
+    private static Method parseTypeMethod;
+    private static Method collectMethod;
+
+    static {
+        try {
+            transformMethod = ReflectionUtils.getMethod(
+                    getDelegateClass(),
+                    "transform",
+                    Class.class,
+                    byte[].class,
+                    Map.class
+            );
+            parseTypeMethod = ReflectionUtils.getMethod(
+                    getDelegateClass(),
+                    "parseType",
+                    String.class
+            );
+            collectMethod = ReflectionUtils.getMethod(
+                    getDelegateClass(),
+                    "collect",
+                    byte[].class
+            );
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static Class<?> getDelegateClass() {
+        return item.getDelegateClass(ASM_DELEGATE_CLASS);
+    }
 
     public static byte[] transform(Class<?> sourceClass, byte[] classData, Map<Integer, DestInvoke> idToInvoke) {
         return Utils.wrapToRtError(
-                () -> ReflectionUtils.invokeStatic(
-                        item.getDelegateClass(ASM_DELEGATE_CLASS),
-                        "transform",
-                        new Class[]{
-                                Class.class,
-                                byte[].class,
-                                Map.class
-                        },
-                        sourceClass,
-                        classData,
-                        idToInvoke
+                () -> (byte[]) ReflectionUtils.exec(
+                        transformMethod,
+                        () -> transformMethod.invoke(null, sourceClass, classData, idToInvoke)
                 )
         );
     }
@@ -34,7 +58,7 @@ public class AsmUtils {
     public static void verifyAndPrintResult(ClassLoader loader, byte[] bs, OutputStream out) {
         Utils.wrapToRtError(
                 () -> ReflectionUtils.invokeStatic(
-                        item.getDelegateClass(ASM_DELEGATE_CLASS),
+                        getDelegateClass(),
                         "verifyAndPrintResult",
                         new Class[]{
                                 ClassLoader.class,
@@ -51,7 +75,7 @@ public class AsmUtils {
     public static void print(byte[] bs, OutputStream out) {
         Utils.wrapToRtError(
                 () -> ReflectionUtils.invokeStatic(
-                        item.getDelegateClass(ASM_DELEGATE_CLASS),
+                        getDelegateClass(),
                         "print",
                         new Class[]{
                                 byte[].class,
@@ -65,23 +89,13 @@ public class AsmUtils {
 
     public static TypeItem parseType(String invokeOwner) {
         return Utils.wrapToRtError(
-                () -> ReflectionUtils.invokeStatic(
-                        item.getDelegateClass(ASM_DELEGATE_CLASS),
-                        "parseType",
-                        new Class[]{String.class},
-                        invokeOwner
-                )
+                () -> (TypeItem) parseTypeMethod.invoke(null, invokeOwner)
         );
     }
 
     public static ClassInvokeItem collect(byte[] classData) {
         return Utils.wrapToRtError(
-                () -> ReflectionUtils.invokeStatic(
-                        item.getDelegateClass(ASM_DELEGATE_CLASS),
-                        "collect",
-                        new Class[]{byte[].class},
-                        new Object[]{classData}
-                )
+                () -> (ClassInvokeItem) collectMethod.invoke(null, new Object[]{classData})
         );
     }
 }

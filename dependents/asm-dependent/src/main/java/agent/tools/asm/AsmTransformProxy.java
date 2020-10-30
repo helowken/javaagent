@@ -209,6 +209,10 @@ class AsmTransformProxy {
                 }
             }
         }
+        if (startLabelNode == null) {
+            startLabelNode = newLabel();
+            methodNode.instructions.insert(startLabelNode);
+        }
         methodNode.instructions.insert(
                 newBeforeList(invokeId, invoke, false)
         );
@@ -217,8 +221,7 @@ class AsmTransformProxy {
                     newInitInnerCallNum(innerCallLocalIdx)
             );
         processTryCatch(useNull, methodNode, invokeId, newLocalIdx);
-        if (startLabelNode != null)
-            addTryCatchForFunc(useNull, methodNode, startLabelNode, invokeId, newLocalIdx);
+        addTryCatchForFunc(useNull, methodNode, startLabelNode, invokeId, newLocalIdx);
     }
 
     private static InsnList newInitInnerCallNum(int innerCallIdx) {

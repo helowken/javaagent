@@ -5,6 +5,7 @@ import agent.base.args.parse.CmdParamParser;
 import agent.base.args.parse.CmdParams;
 import agent.base.args.parse.Opts;
 import agent.base.help.HelpArg;
+import agent.base.utils.FileUtils;
 import agent.client.args.parse.DefaultParamParser;
 import agent.client.args.parse.SaveClassOptConfigs;
 import agent.common.args.parse.FilterOptConfigs;
@@ -39,7 +40,9 @@ public class SaveClassCmdParser extends AbstractCmdParser<CmdParams> {
         Opts opts = params.getOpts();
         SaveClassConfig config = new SaveClassConfig();
         config.setOutputPath(
-                params.getArgs()[0]
+                FileUtils.getAbsolutePath(
+                        params.getArgs()[0]
+                )
         );
         config.setWithSubClasses(
                 SaveClassOptConfigs.isWithSubClasses(opts)

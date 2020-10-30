@@ -53,8 +53,8 @@ public class TraceTest extends AbstractTraceTest {
                 throw new RuntimeException("BBB", e);
             }
         }
-
     }
+
 
     public static class ErrorObject {
         public ErrorObject() {

@@ -171,9 +171,6 @@ public class InvokeChainSearcherTest extends AbstractTest {
         assertNotNull(expectation);
         assertTrue(expectation.length > 0);
         InvokeChainConfig filterConfig = InvokeChainConfig.matchAll("test.*", "test.*");
-        ClassFilterConfig classFilterConfig = new ClassFilterConfig();
-        classFilterConfig.setExcludes(Collections.singleton("java.*"));
-        filterConfig.setMatchClassFilter(classFilterConfig);
         Collection<DestInvoke> rsList = InvokeChainSearcher.search(
                 classCache,
                 this::getClassData,

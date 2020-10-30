@@ -87,14 +87,6 @@ public class InvokeSearcher {
         );
     }
 
-    public static class InvokeSearchResult {
-        public final Collection<DestInvoke> invokes;
-
-        private InvokeSearchResult(Collection<DestInvoke> invokes) {
-            this.invokes = Collections.unmodifiableCollection(invokes);
-        }
-    }
-
     private static boolean isInvokeMeaningful(int methodModifiers) {
         return (SYNTHETIC & methodModifiers) == 0 &&
                 (BRIDGE & methodModifiers) == 0 &&
@@ -111,13 +103,9 @@ public class InvokeSearcher {
         public Collection<DestInvoke> get(Class<?> clazz) {
             return Stream.of(
                     clazz.getDeclaredMethods()
-            )
-                    .filter(
-                            method -> isInvokeMeaningful(
-                                    method.getModifiers()
-                            )
-                    )
-                    .map(MethodInvoke::new)
+            ).filter(
+                    method -> isInvokeMeaningful(method.getModifiers())
+            ).map(MethodInvoke::new)
                     .collect(
                             Collectors.toList()
                     );

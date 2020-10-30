@@ -192,8 +192,8 @@ public class InvokeChainSearcher {
 
     private void collectInnerInvokes(InvokeInfo info, int searchFlags, InvokeChainMatchFilter matchFilter, InvokeChainSearchFilter searchFilter) {
         debug(info, "Collect ");
-        if (info.isIntrinsicPackage()) {
-            debug(info, "@ Skip intrinsic package: ");
+        if (info.isIntrinsic()) {
+            debug(info, "@ Skip intrinsic: ");
             return;
         } else if (info.isLambdaClass()) {
             debug(info, "@ Skip Lambda: ");
@@ -332,9 +332,7 @@ public class InvokeChainSearcher {
     private DestInvoke traverseInvoke(InvokeInfo info, InvokeChainMatchFilter matchFilter, InvokeChainSearchFilter searchFilter) {
         boolean matched = matchFilter == null || matchFilter.accept(info);
         DestInvoke invoke = matched ?
-                addInvoke(
-                        info.getInvoke()
-                ) :
+                addInvoke(info.getInvoke()) :
                 null;
 
         boolean toSearch = searchFilter == null || searchFilter.accept(info);
@@ -352,7 +350,8 @@ public class InvokeChainSearcher {
                     info.clazz.getClassLoader(),
                     innerInvoke.getOwner()
             );
-            if (innerInvokeClass != null) {
+            if (innerInvokeClass != null &&
+                    !ClassCache.isIntrinsic(innerInvokeClass)) {
                 InvokeInfo innerInfo = new InvokeInfo(
                         innerInvokeClass,
                         innerInvoke.getInvokeKey(),
@@ -537,10 +536,8 @@ public class InvokeChainSearcher {
             return clazz;
         }
 
-        private boolean isIntrinsicPackage() {
-            return ClassCache.isIntrinsicPackage(
-                    clazz.getName()
-            );
+        private boolean isIntrinsic() {
+            return ClassCache.isIntrinsic(clazz);
         }
 
         public boolean isConstructor() {

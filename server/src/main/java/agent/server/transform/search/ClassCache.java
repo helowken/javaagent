@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 public class ClassCache {
     private static Collection<String> skipPackages = Collections.unmodifiableList(
             Arrays.asList(
+                    "java.*",
                     "org.objectweb.asm.",
                     "agent."
             )
@@ -20,9 +21,8 @@ public class ClassCache {
     private final Map<Class<?>, List<Class<?>>> classToSubTypes = new ConcurrentHashMap<>();
     private volatile List<Class<?>> loadedClasses;
 
-    static boolean isIntrinsicPackage(String namePath) {
-        return //ReflectionUtils.isJavaIntrinsicPackage(namePath) ||
-                skipPackages.stream().anyMatch(namePath::startsWith);
+    static boolean isIntrinsic(Class<?> clazz) {
+        return skipPackages.stream().anyMatch(clazz.getName()::startsWith);
     }
 
     public Collection<Class<?>> getLoadedClasses() {
@@ -32,7 +32,7 @@ public class ClassCache {
                     loadedClasses = Arrays.stream(
                             InstrumentationMgr.getInstance().getAllLoadedClasses()
                     ).filter(
-                            clazz -> !isIntrinsicPackage(clazz.getName())
+                            clazz -> !isIntrinsic(clazz)
                     ).collect(
                             Collectors.toList()
                     );

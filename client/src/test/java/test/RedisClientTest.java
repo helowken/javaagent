@@ -14,6 +14,10 @@ public class RedisClientTest {
     private static final boolean debugEnable = false;
 
     public static void main(String[] args) throws Exception {
+        if (true) {
+            test();
+            return;
+        }
         if (args.length < 3) {
             System.err.println("Usage: host port cmd");
             System.exit(-1);
@@ -28,9 +32,9 @@ public class RedisClientTest {
     private static void test() throws Exception {
         access("localhost", 6379, "LLEN mylist");
         System.out.println("--------------------------------");
-        access("localhost", 26379, "sentinel get-master-addr-by-name mymaster");
+        access("::1", 26379, "sentinel get-master-addr-by-name mymaster");
         System.out.println("--------------------------------");
-        access("localhost", 26379, "sentinel sentinels mymaster");
+        access("::1", 26380, "sentinel sentinels mymaster");
     }
 
     private static void access(String host, int port, String cmd) throws Exception {

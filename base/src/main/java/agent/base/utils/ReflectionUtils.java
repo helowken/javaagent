@@ -175,7 +175,7 @@ public class ReflectionUtils {
         return exec(method, () -> (T) method.invoke(target, args));
     }
 
-    private static <T extends AccessibleObject, V> V exec(T ao, AccessibleObjectValueSupplier<V> supplier) throws Exception {
+    public static <T extends AccessibleObject, V> V exec(T ao, AccessibleObjectValueSupplier<V> supplier) throws Exception {
         boolean old = ao.isAccessible();
         ao.setAccessible(true);
         try {
@@ -242,7 +242,7 @@ public class ReflectionUtils {
                 rsEntities;
     }
 
-    private static Method getMethod(Object classOrClassName, String methodName, Object... argClassOrClassNames) throws Exception {
+    public static Method getMethod(Object classOrClassName, String methodName, Object... argClassOrClassNames) throws Exception {
         Class<?> clazz = convert(classOrClassName);
         Class[] argTypes = convertArray(argClassOrClassNames);
         return findFromClassCascade(clazz,
@@ -307,7 +307,7 @@ public class ReflectionUtils {
         Pair<V, TraverseFlag> find(Class<?> clazz) throws Exception;
     }
 
-    private interface AccessibleObjectValueSupplier<V> {
+    public interface AccessibleObjectValueSupplier<V> {
         V supply() throws Exception;
     }
 
