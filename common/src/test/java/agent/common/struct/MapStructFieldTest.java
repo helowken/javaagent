@@ -1,6 +1,6 @@
 package agent.common.struct;
 
-import agent.common.buffer.BufferAllocator;
+import agent.common.struct.impl.Struct;
 import agent.common.struct.impl.StructFields;
 import org.junit.Test;
 import utils.TestUtils;
@@ -14,16 +14,13 @@ public class MapStructFieldTest {
     public void test() {
         Map map = newMap("");
         map.put("Map", newMap("sub-"));
-        StructField field = StructFields.newMap();
-        checkEquals(field, map);
+        checkEquals(map);
     }
 
-    private void checkEquals(StructField field, Map<String, Object> map) {
-        ByteBuffer bb = BufferAllocator.allocate(field.bytesSize(map));
-        BBuff buff = new DefaultBBuff(bb);
-        field.serialize(buff, map);
+    private void checkEquals(Map<String, Object> map) {
+        ByteBuffer bb = Struct.serialize(map);
         bb.flip();
-        Map<String, Object> map2 = (Map) field.deserialize(buff);
+        Map<String, Object> map2 = Struct.deserialize(bb);
         TestUtils.checkEquals(map, map2);
         TestUtils.print(map);
         System.out.println("============");
@@ -78,6 +75,6 @@ public class MapStructFieldTest {
         cm.put("doAfter2()", "void");
         cm.put("testBefore()", "void");
         map.put("xxxx", cm);
-        checkEquals(StructFields.newTreeMap(), map);
+        checkEquals(map);
     }
 }

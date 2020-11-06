@@ -1,23 +1,25 @@
 package agent.common.struct.impl;
 
-import agent.base.utils.Pair;
 import agent.common.struct.StructField;
 
 import java.util.*;
+import java.util.function.Supplier;
 
 
 @SuppressWarnings("unchecked")
 public final class StructFields {
     static final int TYPE_SIZE = Byte.BYTES;
-    static final byte NULL = -1;
+    static final int LENGTH_SIZE = Integer.BYTES;
 
-    private static final byte T_BYTE = 1;
-    private static final byte T_SHORT = 2;
-    private static final byte T_INT = 3;
-    private static final byte T_LONG = 4;
-    private static final byte T_FLOAT = 5;
-    private static final byte T_DOUBLE = 6;
-    private static final byte T_BOOLEAN = 7;
+    static final byte T_NULL = -1;
+
+    static final byte T_BYTE = 1;
+    static final byte T_SHORT = 2;
+    static final byte T_INT = 3;
+    static final byte T_LONG = 4;
+    static final byte T_FLOAT = 5;
+    static final byte T_DOUBLE = 6;
+    static final byte T_BOOLEAN = 7;
     private static final byte T_STRING = 8;
 
     private static final byte T_BYTE_ARRAY = 9;
@@ -36,7 +38,7 @@ public final class StructFields {
     private static final byte T_DOUBLE_WRAPPER_ARRAY = 22;
     private static final byte T_STRING_ARRAY = 23;
 
-    private static final byte T_LIST = 24;
+    static final byte T_LIST = 24;
     private static final byte T_TREE_SET = 25;
     private static final byte T_SET = 26;
     private static final byte T_COLLECTION = 27;
@@ -44,110 +46,131 @@ public final class StructFields {
     private static final byte T_MAP = 29;
 
     private static final byte T_POJO_ARRAY = 100;
-    private static final byte T_POJO = 101;
+    static final byte T_POJO = 101;
 
     private static Map<Byte, StructField> typeToField = new TreeMap<>();
+    private static Map<Class<?>, StructField> classToField = new HashMap<>();
+    private static List<StructField> complexFields = new ArrayList<>();
 
     static {
-        typeToField.put(T_BYTE, newByte());
-        typeToField.put(T_SHORT, newShort());
-        typeToField.put(T_INT, newInt());
-        typeToField.put(T_LONG, newLong());
-        typeToField.put(T_FLOAT, newFloat());
-        typeToField.put(T_DOUBLE, newDouble());
-        typeToField.put(T_BOOLEAN, newBoolean());
-        typeToField.put(T_STRING, newString());
+        regBaseField(newByte());
+        regBaseField(newShort());
+        regBaseField(newInt());
+        regBaseField(newLong());
+        regBaseField(newFloat());
+        regBaseField(newDouble());
+        regBaseField(newBoolean());
+        regBaseField(newString());
 
-        typeToField.put(T_BYTE_ARRAY, newByteArray());
-        typeToField.put(T_BYTE_WRAPPER_ARRAY, newByteWrapperArray());
-        typeToField.put(T_BOOLEAN_ARRAY, newBooleanArray());
-        typeToField.put(T_BOOLEAN_WRAPPER_ARRAY, newBooleanWrapperArray());
-        typeToField.put(T_SHORT_ARRAY, newShortArray());
-        typeToField.put(T_SHORT_WRAPPER_ARRAY, newShortWrapperArray());
-        typeToField.put(T_INT_ARRAY, newIntArray());
-        typeToField.put(T_INT_WRAPPER_ARRAY, newIntWrapperArray());
-        typeToField.put(T_LONG_ARRAY, newLongArray());
-        typeToField.put(T_LONG_WRAPPER_ARRAY, newLongWrapperArray());
-        typeToField.put(T_FLOAT_ARRAY, newFloatArray());
-        typeToField.put(T_FLOAT_WRAPPER_ARRAY, newFloatWrapperArray());
-        typeToField.put(T_DOUBLE_ARRAY, newDoubleArray());
-        typeToField.put(T_DOUBLE_WRAPPER_ARRAY, newDoubleWrapperArray());
-        typeToField.put(T_STRING_ARRAY, newStringArray());
+        regBaseField(newByteArray());
+        regBaseField(newByteWrapperArray());
+        regBaseField(newBooleanArray());
+        regBaseField(newBooleanWrapperArray());
+        regBaseField(newShortArray());
+        regBaseField(newShortWrapperArray());
+        regBaseField(newIntArray());
+        regBaseField(newIntWrapperArray());
+        regBaseField(newLongArray());
+        regBaseField(newLongWrapperArray());
+        regBaseField(newFloatArray());
+        regBaseField(newFloatWrapperArray());
+        regBaseField(newDoubleArray());
+        regBaseField(newDoubleWrapperArray());
+        regBaseField(newStringArray());
 
-        StructField collField = newList();
-        typeToField.put(T_LIST, collField);
-        typeToField.put(T_TREE_SET, newTreeSet());
-        typeToField.put(T_SET, newSet());
-        typeToField.put(T_COLLECTION, collField);
-        typeToField.put(T_TREE_MAP, newTreeMap());
-        typeToField.put(T_MAP, newMap());
+        regComplexField(T_LIST, newList());
+        regComplexField(T_TREE_SET, newTreeSet());
+        regComplexField(T_SET, newSet());
+        regComplexField(T_COLLECTION, newCollection());
+        regComplexField(T_TREE_MAP, newTreeMap());
+        regComplexField(T_MAP, newMap());
 
-        typeToField.put(T_POJO, newPojo());
-        typeToField.put(T_POJO_ARRAY, newPojoArray());
+        regComplexField(T_POJO_ARRAY, newPojoArray());
+        regComplexField(T_POJO, newPojo());
+
+        regFieldType(T_NULL, newNull());
     }
 
-    private static byte detectType(Object value) {
+    private static void regBaseField(StructField field) {
+        for (Class<?> valueClass : field.getValueClasses()) {
+            if (classToField.containsKey(valueClass))
+                throw new RuntimeException("Duplicated value class for field. Value class: " + valueClass + ", Field: " + field);
+            classToField.put(valueClass, field);
+        }
+        regFieldType(field.getType(), field);
+    }
+
+    private static void regComplexField(byte type, StructField field) {
+        if (complexFields.contains(field))
+            throw new RuntimeException("Duplicated field: " + field);
+        complexFields.add(field);
+        regFieldType(type, field);
+    }
+
+    private static void regFieldType(byte type, StructField field) {
+        if (typeToField.containsKey(type))
+            throw new RuntimeException("Duplicated field type: " + type);
+        typeToField.put(type, field);
+    }
+
+    static StructField getField(byte type) {
+        return Optional.ofNullable(
+                typeToField.get(type)
+        ).orElseThrow(
+                () -> new RuntimeException("Unknown type: " + type)
+        );
+    }
+
+    static StructField detectField(Object value) {
         if (value == null)
-            throw new IllegalArgumentException("Value can not be null!");
-        for (Map.Entry<Byte, StructField> entry : typeToField.entrySet()) {
-            if (entry.getValue().matchType(value))
-                return entry.getKey();
+            return getField(T_NULL);
+        StructField field = classToField.get(value.getClass());
+        if (field != null)
+            return field;
+        for (StructField complexField : complexFields) {
+            if (complexField.matchType(value))
+                return complexField;
         }
         throw new RuntimeException("Unsupported value type: " + value.getClass());
     }
 
-    static StructField getField(byte type) {
-        return Optional.ofNullable(typeToField.get(type))
-                .orElseThrow(() -> new RuntimeException("Unknown type: " + type));
+    private static StructField newNull() {
+        return new NullStructField();
     }
 
-    static StructField detectField(Object value) {
-        return getField(detectType(value));
-    }
-
-    static Pair<Byte, StructField> detectTypeAndField(Object value) {
-        byte type = detectType(value);
-        return new Pair<>(type, getField(type));
-    }
-
-    public static StructField newByte() {
+    private static StructField newByte() {
         return new ByteStructField();
     }
 
-    public static StructField newBoolean() {
+    private static StructField newBoolean() {
         return new BooleanStructField();
     }
 
-    public static StructField newShort() {
+    private static StructField newShort() {
         return new ShortStructField();
     }
 
-    public static StructField newInt() {
+    private static StructField newInt() {
         return new IntStructField();
     }
 
-    public static StructField newLong() {
+    private static StructField newLong() {
         return new LongStructField();
     }
 
-    public static StructField newFloat() {
+    private static StructField newFloat() {
         return new FloatStructField();
     }
 
-    public static StructField newDouble() {
+    private static StructField newDouble() {
         return new DoubleStructField();
     }
 
-    public static StructField newString() {
-        return new ArrayStructField(T_BYTE, String.class) {
-            @Override
-            Class<?> getElementClass() {
-                return byte.class;
-            }
-
+    private static StructField newString() {
+        return new ArrayStructField(T_STRING, T_BYTE, String.class, byte.class, true) {
             @Override
             Object valueToArray(Object value) {
-                return value == null ? null : ((String) value).getBytes();
+                return ((String) value).getBytes();
             }
 
             @Override
@@ -157,104 +180,116 @@ public final class StructFields {
         };
     }
 
-    public static StructField newStringArray() {
-        return new ArrayStructField(T_STRING, String[].class);
+    private static StructField newStringArray() {
+        return new ArrayStructField(T_STRING_ARRAY, T_STRING, String[].class, String.class, false);
     }
 
-    public static StructField newByteArray() {
-        return new ArrayStructField(T_BYTE, byte[].class);
+    private static StructField newByteArray() {
+        return new ArrayStructField(T_BYTE_ARRAY, T_BYTE, byte[].class, true);
     }
 
-    public static StructField newByteWrapperArray() {
-        return new ArrayStructField(T_BYTE, Byte[].class);
+    private static StructField newByteWrapperArray() {
+        return new ArrayStructField(T_BYTE_WRAPPER_ARRAY, T_BYTE, Byte[].class, false);
     }
 
-    public static StructField newBooleanArray() {
-        return new ArrayStructField(T_BOOLEAN, boolean[].class);
+    private static StructField newBooleanArray() {
+        return new ArrayStructField(T_BOOLEAN_ARRAY, T_BOOLEAN, boolean[].class, true);
     }
 
-    public static StructField newBooleanWrapperArray() {
-        return new ArrayStructField(T_BOOLEAN, Boolean[].class);
+    private static StructField newBooleanWrapperArray() {
+        return new ArrayStructField(T_BOOLEAN_WRAPPER_ARRAY, T_BOOLEAN, Boolean[].class, false);
     }
 
-    public static StructField newShortArray() {
-        return new ArrayStructField(T_SHORT, short[].class);
+    private static StructField newShortArray() {
+        return new ArrayStructField(T_SHORT_ARRAY, T_SHORT, short[].class, true);
     }
 
-    public static StructField newShortWrapperArray() {
-        return new ArrayStructField(T_SHORT, Short[].class);
+    private static StructField newShortWrapperArray() {
+        return new ArrayStructField(T_SHORT_WRAPPER_ARRAY, T_SHORT, Short[].class, false);
     }
 
-    public static StructField newIntArray() {
-        return new ArrayStructField(T_INT, int[].class);
+    private static StructField newIntArray() {
+        return new ArrayStructField(T_INT_ARRAY, T_INT, int[].class, true);
     }
 
-    public static StructField newIntWrapperArray() {
-        return new ArrayStructField(T_INT, Integer[].class);
+    private static StructField newIntWrapperArray() {
+        return new ArrayStructField(T_INT_WRAPPER_ARRAY, T_INT, Integer[].class, false);
     }
 
-    public static StructField newLongArray() {
-        return new ArrayStructField(T_LONG, long[].class);
+    private static StructField newLongArray() {
+        return new ArrayStructField(T_LONG_ARRAY, T_LONG, long[].class, true);
     }
 
-    public static StructField newLongWrapperArray() {
-        return new ArrayStructField(T_LONG, Long[].class);
+    private static StructField newLongWrapperArray() {
+        return new ArrayStructField(T_LONG_WRAPPER_ARRAY, T_LONG, Long[].class, false);
     }
 
-    public static StructField newFloatArray() {
-        return new ArrayStructField(T_FLOAT, float[].class);
+    private static StructField newFloatArray() {
+        return new ArrayStructField(T_FLOAT_ARRAY, T_FLOAT, float[].class, true);
     }
 
-    public static StructField newFloatWrapperArray() {
-        return new ArrayStructField(T_FLOAT, Float[].class);
+    private static StructField newFloatWrapperArray() {
+        return new ArrayStructField(T_FLOAT_WRAPPER_ARRAY, T_FLOAT, Float[].class, false);
     }
 
-    public static StructField newDoubleArray() {
-        return new ArrayStructField(T_DOUBLE, double[].class);
+    private static StructField newDoubleArray() {
+        return new ArrayStructField(T_DOUBLE_ARRAY, T_DOUBLE, double[].class, true);
     }
 
-    public static StructField newDoubleWrapperArray() {
-        return new ArrayStructField(T_DOUBLE, Double[].class);
+    private static StructField newDoubleWrapperArray() {
+        return new ArrayStructField(T_DOUBLE_WRAPPER_ARRAY, T_DOUBLE, Double[].class, false);
     }
 
-    public static <T extends Collection> StructField newCollection(Class<T> valueClass, Class<? extends T> instanceClass) {
-        return new CollectionStructField(valueClass) {
-            @Override
-            Collection newCollection() {
-                try {
-                    return instanceClass.newInstance();
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        };
+    private static <T extends Collection> StructField newCollection() {
+        return newCollection(T_COLLECTION, Collection.class, ArrayList::new);
     }
 
-    public static StructField newList() {
-        return newCollection(List.class, ArrayList.class);
+    private static <T extends Collection> StructField newCollection(Class<T> valueClass, Supplier<T> newInstanceFunc) {
+        return newCollection(T_COLLECTION, valueClass, newInstanceFunc);
     }
 
-    public static StructField newTreeSet() {
-        return newCollection(TreeSet.class, TreeSet.class);
+    private static <T extends Collection> StructField newCollection(byte type, Class<T> valueClass, Supplier<T> newInstanceFunc) {
+        return new CollectionStructField(type, valueClass, newInstanceFunc);
     }
 
-    public static StructField newSet() {
-        return newCollection(Set.class, HashSet.class);
+    private static StructField newList() {
+        return newList(ArrayList.class, ArrayList::new);
     }
 
-    public static MapStructField newTreeMap() {
-        return new MapStructField(TreeMap.class, TreeMap::new);
+    private static <T extends List> StructField newList(Class<T> clazz, Supplier<T> newInstanceFunc) {
+        return newCollection(T_LIST, clazz, newInstanceFunc);
     }
 
-    public static MapStructField newMap() {
-        return new MapStructField(Map.class, HashMap::new);
+    private static StructField newTreeSet() {
+        return newCollection(T_TREE_SET, TreeSet.class, TreeSet::new);
     }
 
-    public static StructField newPojo() {
+    private static StructField newSet() {
+        return newSet(Set.class, HashSet::new);
+    }
+
+    private static <T extends Set> StructField newSet(Class<T> clazz, Supplier<T> newInstanceFunc) {
+        return newCollection(T_SET, clazz, newInstanceFunc);
+    }
+
+    private static MapStructField newTreeMap() {
+        return new MapStructField(T_TREE_MAP, TreeMap.class, TreeMap::new);
+    }
+
+    private static MapStructField newMap() {
+        return newMap(Map.class, HashMap::new);
+    }
+
+    private static <T extends Map> MapStructField newMap(Class<T> clazz, Supplier<T> newInstanceFunc) {
+        return new MapStructField(T_MAP, clazz, newInstanceFunc);
+    }
+
+    private static StructField newPojo() {
         return new PojoStructField();
     }
 
-    public static StructField newPojoArray() {
-        return new ArrayStructField(T_POJO, Object[].class);
+    private static StructField newPojoArray() {
+        return new ArrayStructField(T_POJO_ARRAY, T_POJO, Object[].class, false);
     }
+
 }

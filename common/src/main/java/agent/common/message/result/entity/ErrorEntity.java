@@ -1,6 +1,6 @@
 package agent.common.message.result.entity;
 
-import agent.common.utils.annotation.PojoProperty;
+import agent.common.struct.impl.annotation.PojoProperty;
 
 public class ErrorEntity {
     @PojoProperty(index = 0)

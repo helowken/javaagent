@@ -1,11 +1,9 @@
 package agent.common.struct;
 
-import agent.base.utils.Utils;
 import agent.common.buffer.BufferAllocator;
-import agent.common.struct.impl.PojoStruct;
-import agent.common.struct.impl.PojoStructCache;
-import agent.common.struct.impl.Structs;
-import agent.common.utils.annotation.PojoProperty;
+import agent.common.struct.impl.*;
+import agent.common.struct.impl.annotation.PojoClass;
+import agent.common.struct.impl.annotation.PojoProperty;
 import com.alibaba.fastjson.JSONObject;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Test;
@@ -13,7 +11,8 @@ import org.junit.Test;
 import java.nio.ByteBuffer;
 import java.util.*;
 
-import static org.junit.Assert.assertEquals;
+import static utils.TestUtils.checkEquals;
+import static utils.TestUtils.isEquals;
 
 
 public class PojoStructTest {
@@ -85,29 +84,17 @@ public class PojoStructTest {
 
     @Test
     public void testTypeConvert() {
-        PojoStructCache.setFieldTypeConverter(
-                B3.class,
-                (pojo, currType, fieldIndex, level, isKey) -> A.class
-        );
         B3 b = new B3();
         A a = new A();
         populateA(a);
         b.setValue(a);
         check(b);
 
-        PojoStructCache.setFieldTypeConverter(
-                B3.class,
-                (pojo, currType, fieldIndex, level, isKey) -> CA.class
-        );
         CA ca = new CA();
         populateCA(ca);
         b.setValue(ca);
         check(b);
 
-        PojoStructCache.setFieldTypeConverter(
-                B3.class,
-                (pojo, currType, fieldIndex, level, isKey) -> CCA.class
-        );
         CCA cca = new CCA();
         populateCCA(cca);
         b.setValue(cca);
@@ -135,25 +122,6 @@ public class PojoStructTest {
 
     @Test
     public void testWildcardType2() {
-        PojoStructCache.setFieldTypeConverter(
-                B4.class,
-                (pojo, currType, fieldIndex, level, isKey) -> {
-                    switch (fieldIndex) {
-                        case 0:
-                            return isKey ? A.class : CCA.class;
-                        case 1:
-                            return A.class;
-                        case 2:
-                        case 4:
-                        case 6:
-                            return CA.class;
-                        case 3:
-                        case 5:
-                            return CCA.class;
-                    }
-                    return currType;
-                }
-        );
         B4 b = new B4();
         Map<String, A> map = new HashMap<>();
         Map<CA, String> map2 = new HashMap<>();
@@ -183,6 +151,132 @@ public class PojoStructTest {
         b.setC(list);
         b.setC2(list2);
         check(b);
+    }
+
+    @Test
+    public void test6() {
+        final int threadType = 1;
+        final int stElementType = 2;
+        StructContext context = new StructContext();
+        context.addPojoInfo(
+                Thread.class::isAssignableFrom,
+                new PojoInfo<>(
+                        threadType,
+                        null,
+                        new PojoFieldPropertyList<>(
+                                new PojoFieldProperty<>(Long.class, 0, null, Thread::getId),
+                                new PojoFieldProperty<>(String.class, 1, null, Thread::getName)
+                        )
+                )
+        ).addPojoInfo(
+                StackTraceElement.class,
+                new PojoInfo<>(
+                        stElementType,
+                        null,
+                        new PojoFieldPropertyList<>(
+                                new PojoFieldProperty<>(String.class, 0, null, StackTraceElement::getClassName),
+                                new PojoFieldProperty<>(String.class, 1, null, StackTraceElement::getMethodName)
+                        )
+                )
+        );
+
+        Map<Thread, StackTraceElement[]> m = Thread.getAllStackTraces();
+        Map<StEntity, StElement[]> stMap = new HashMap<>();
+        m.forEach(
+                (t, els) -> {
+                    StEntity entity = new StEntity();
+                    entity.setThreadId(t.getId());
+                    entity.setThreadName(t.getName());
+                    List<StElement> elements = new ArrayList<>();
+                    for (StackTraceElement el : els) {
+                        StElement element = new StElement();
+                        element.setClazz(el.getClassName());
+                        element.setMethod(el.getMethodName());
+                        elements.add(element);
+                    }
+                    stMap.put(entity, elements.toArray(new StElement[0]));
+                }
+        );
+        ByteBuffer bb = Struct.serialize(m, context);
+        bb.flip();
+
+        context.clear();
+        context.setPojoCreator(
+                type -> {
+                    switch (type) {
+                        case threadType:
+                            return new StEntity();
+                        case stElementType:
+                            return new StElement();
+                        default:
+                            return null;
+                    }
+                }
+        );
+        Map<Object, Object[]> map = Struct.deserialize(bb, context);
+        map.forEach(
+                (key, value) -> System.out.println(key + " = " + Arrays.toString(value))
+        );
+        checkEquals(stMap, map);
+    }
+
+    @Test
+    public void test7() {
+        List<A> v1 = new ArrayList<>();
+        Map<B, A> v2 = new HashMap<>();
+        List<Set<A>> v3 = new LinkedList<>();
+        Collection<A[]> v4 = new HashSet<>();
+        for (int i = 0; i < 5; ++i) {
+            CCA cca = new CCA();
+            populateCCA(cca);
+            v1.add(cca);
+
+            B b = newB();
+            v2.put(b, cca);
+
+            Set<A> vs = new HashSet<>();
+            for (int j = 0; j < 3; ++j) {
+                CA ca = new CA();
+                populateCA(ca);
+                vs.add(ca);
+            }
+            v3.add(vs);
+            v4.add(vs.toArray(new A[0]));
+        }
+//        check(v1);
+//        check(v2);
+//        check(v3);
+//        check(v4);
+
+    }
+
+    @Test
+    public void test8() {
+        C c = new C();
+        List<A[]> aList = new ArrayList<>();
+        List<Collection<A[]>> aListList = new ArrayList<>();
+        for (int i = 0; i < 3; ++i) {
+            aList.add(newAArray());
+
+            List<A[]> list = new ArrayList<>();
+            for (int j = 0; j < 4; ++j) {
+                list.add(newAArray());
+            }
+            aListList.add(list);
+        }
+        c.setA(aList);
+        c.setB(aListList);
+        check(c);
+    }
+
+    private A[] newAArray() {
+        A[] as = new A[3];
+        for (int i = 0; i < as.length; ++i) {
+            A a = new A();
+            populateA(a);
+            as[i] = a;
+        }
+        return as;
     }
 
     private B2 newB2() {
@@ -249,57 +343,50 @@ public class PojoStructTest {
     }
 
     private void useStruct(Object o, final int count) {
-        PojoStruct struct = Structs.newPojo();
-        struct.setPojo(o);
+        StructContext context = new StructContext();
         ByteBuffer bb = BufferAllocator.allocate(
-                struct.bytesSize()
+                Struct.bytesSize(o, context)
         );
         BBuff buff = new DefaultBBuff(bb);
         calculate(
-                () -> struct.serialize(buff),
-                bb::flip,
+                () -> Struct.serialize(buff, o, context),
+                () -> {
+                    System.out.println("======: " + bb.position());
+                    bb.flip();
+                    context.clearCache();
+                },
                 count,
                 "Struct"
         );
     }
 
     private void useJson(Object o, final int count) {
-        ByteBuffer bb2 = BufferAllocator.allocate(1024 * 20);
         calculate(
                 () -> {
                     try {
                         String s = objectMapper.writeValueAsString(o);
-                        s.getBytes();
-//                        bb2.put(s.getBytes());
+                        System.out.println("####: " + s.getBytes().length);
                     } catch (Exception e) {
                         throw new RuntimeException(e);
                     }
                 },
-                () -> {
-//                    System.out.println(bb2.position());
-                    bb2.flip();
-                },
+                null,
                 count,
                 "Jason (no expand key) "
         );
     }
 
     private void useJson2(Object o, final int count) {
-        ByteBuffer bb2 = BufferAllocator.allocate(1024 * 20);
         calculate(
                 () -> {
                     try {
                         String s = JSONObject.toJSONString(o);
-                        s.getBytes();
-//                        bb2.put(s.getBytes());
+                        System.out.println("======: " + s.getBytes().length);
                     } catch (Exception e) {
                         throw new RuntimeException(e);
                     }
                 },
-                () -> {
-//                    System.out.println(bb2.position());
-                    bb2.flip();
-                },
+                null,
                 count,
                 "Fastjson "
         );
@@ -312,30 +399,23 @@ public class PojoStructTest {
             runnable.run();
             long et = System.nanoTime();
             total += et - st;
-            postFunc.run();
+            if (postFunc != null)
+                postFunc.run();
         }
         System.out.println(msg + " Avg: " + ((float) total / count / 1000000));
     }
 
     private void check(Object o) {
-        PojoStruct struct = Structs.newPojo();
-        struct.setPojo(o);
+        StructContext context = new StructContext();
+        ByteBuffer bb = Struct.serialize(o, context);
 
-        System.out.println("=====" + struct.bytesSize());
-        ByteBuffer bb = BufferAllocator.allocate(
-                struct.bytesSize()
-        );
-        DefaultBBuff buff = new DefaultBBuff(bb);
-        struct.serialize(buff);
-        System.out.println("=====" + bb.position());
         bb.flip();
-
-        Object o2 = Utils.wrapToRtError(
-                () -> o.getClass().newInstance()
-        );
-        struct.setPojo(o2);
-        struct.deserialize(buff);
-        assertEquals(o, o2);
+        Object o2 = Struct.deserialize(bb, context);
+        if (o2.getClass().isArray())
+            System.out.println(Arrays.toString((Object[]) o2));
+        else
+            System.out.println(o2);
+        checkEquals(o, o2);
     }
 
     private void populateA(A a) {
@@ -367,6 +447,7 @@ public class PojoStructTest {
         cca.setH((byte) random.nextInt());
     }
 
+    @PojoClass(type = 1)
     public static class A {
         @PojoProperty(index = 0)
         private int a;
@@ -499,6 +580,7 @@ public class PojoStructTest {
         }
     }
 
+    @PojoClass(type = 2)
     public static class CA extends A {
         @PojoProperty(index = 0)
         private int a;
@@ -556,10 +638,12 @@ public class PojoStructTest {
                     "a=" + a +
                     ", e=" + e +
                     ", f=" + f +
+                    ", " + super.toString() +
                     '}';
         }
     }
 
+    @PojoClass(type = 3)
     public static class CCA extends CA {
         @PojoProperty(index = -1)
         private short g;
@@ -603,10 +687,12 @@ public class PojoStructTest {
             return "CCA{" +
                     "g=" + g +
                     ", h=" + h +
+                    ", " + super.toString() +
                     '}';
         }
     }
 
+    @PojoClass(type = 4)
     public static class B {
         @PojoProperty(index = 100)
         private A a;
@@ -689,6 +775,7 @@ public class PojoStructTest {
         }
     }
 
+    @PojoClass(type = 5)
     public static class B2 {
         @PojoProperty(index = 0)
         private List<A> aList;
@@ -859,6 +946,7 @@ public class PojoStructTest {
         }
     }
 
+    @PojoClass(type = 6)
     public static class B3 {
         @PojoProperty(index = 0)
         Object value;
@@ -893,6 +981,7 @@ public class PojoStructTest {
         }
     }
 
+    @PojoClass(type = 7)
     public static class B4 {
         @PojoProperty(index = 0)
         private Map a;
@@ -999,6 +1088,7 @@ public class PojoStructTest {
         }
     }
 
+    @PojoClass(type = 8)
     public static class B5<T, V extends String> {
         private T a;
         private V b;
@@ -1007,4 +1097,144 @@ public class PojoStructTest {
         private V[] e;
     }
 
+    @PojoClass(type = 9)
+    public static class StEntity {
+        @PojoProperty(index = 0)
+        private long threadId;
+        @PojoProperty(index = 1)
+        private String threadName;
+
+        public long getThreadId() {
+            return threadId;
+        }
+
+        public void setThreadId(long threadId) {
+            this.threadId = threadId;
+        }
+
+        public String getThreadName() {
+            return threadName;
+        }
+
+        public void setThreadName(String threadName) {
+            this.threadName = threadName;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            StEntity stEntity = (StEntity) o;
+            return threadId == stEntity.threadId &&
+                    Objects.equals(threadName, stEntity.threadName);
+        }
+
+        @Override
+        public int hashCode() {
+
+            return Objects.hash(threadId, threadName);
+        }
+
+        @Override
+        public String toString() {
+            return "StEntity{" +
+                    "threadId=" + threadId +
+                    ", threadName='" + threadName + '\'' +
+                    '}';
+        }
+    }
+
+    @PojoClass(type = 10)
+    public static class StElement {
+        @PojoProperty(index = 0)
+        private String clazz;
+        @PojoProperty(index = 1)
+        private String method;
+
+        public String getClazz() {
+            return clazz;
+        }
+
+        public void setClazz(String clazz) {
+            this.clazz = clazz;
+        }
+
+        public String getMethod() {
+            return method;
+        }
+
+        public void setMethod(String method) {
+            this.method = method;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            StElement stElement = (StElement) o;
+            return Objects.equals(clazz, stElement.clazz) &&
+                    Objects.equals(method, stElement.method);
+        }
+
+        @Override
+        public int hashCode() {
+
+            return Objects.hash(clazz, method);
+        }
+
+        @Override
+        public String toString() {
+            return "StElement{" +
+                    "clazz='" + clazz + '\'' +
+                    ", method='" + method + '\'' +
+                    '}';
+        }
+    }
+
+    @PojoClass(type = 11)
+    public static class C {
+        @PojoProperty(index = 0)
+        private List<A[]> a;
+        @PojoProperty(index = 1)
+        private List<Collection<A[]>> b;
+
+        public List<A[]> getA() {
+            return a;
+        }
+
+        public void setA(List<A[]> a) {
+            this.a = a;
+        }
+
+        public List<Collection<A[]>> getB() {
+            return b;
+        }
+
+        public void setB(List<Collection<A[]>> b) {
+            this.b = b;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            C c = (C) o;
+            return isEquals(a, c.a) &&
+                    isEquals(b, c.b);
+        }
+
+        @Override
+        public int hashCode() {
+
+            return Objects.hash(a, b);
+        }
+
+        @Override
+        public String toString() {
+            return "C{" +
+                    "a=" + a +
+                    ", b=" + b +
+                    '}';
+        }
+    }
 }

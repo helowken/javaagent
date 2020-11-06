@@ -1,35 +1,30 @@
 package agent.common.struct;
 
-import agent.common.buffer.BufferAllocator;
-import agent.common.struct.impl.StructFields;
+import agent.common.struct.impl.Struct;
 import org.junit.Test;
 
 import java.nio.ByteBuffer;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 public class ValueFieldTest {
     @Test
-    public void testByte() {
-        doTest(StructFields.newByte(), (byte) 22);
-        doTest(StructFields.newBoolean(), true);
-        doTest(StructFields.newShort(), (short) 33);
-        doTest(StructFields.newInt(), 44);
-        doTest(StructFields.newLong(), 55L);
-        doTest(StructFields.newFloat(), 6.6F);
-        doTest(StructFields.newDouble(), 7.7);
-        doTest(StructFields.newString(), "8888");
+    public void test() {
+        doTest((byte) 22);
+        doTest(true);
+        doTest((short) 33);
+        doTest(44);
+        doTest(55L);
+        doTest(6.6F);
+        doTest(7.7);
+        doTest("8888");
+        doTest(null);
     }
 
-    private void doTest(StructField field, Object value) {
-        ByteBuffer bb = BufferAllocator.allocate(field.bytesSize(value));
-        BBuff buff = new DefaultBBuff(bb);
-        assertTrue(field.matchType(value));
-        field.serialize(buff, value);
+    private void doTest(Object value) {
+        ByteBuffer bb = Struct.serialize(value);
         bb.flip();
-        Object value2 = field.deserialize(buff);
-        assertTrue(field.matchType(value2));
+        Object value2 = Struct.deserialize(bb);
         assertEquals(value, value2);
     }
 }

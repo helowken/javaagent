@@ -4,10 +4,11 @@ import agent.base.utils.IndentUtils;
 
 import java.lang.reflect.Array;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.Objects;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 
 @SuppressWarnings("unchecked")
 public class TestUtils {
@@ -71,33 +72,58 @@ public class TestUtils {
     public static void checkEquals(Map v1, Map v2) {
         assertNotNull(v1);
         assertNotNull(v2);
-        assertEquals(v1.size(), v2.size());
+        assertTrue(isMapEquals(v1, v2));
+    }
+
+    public static boolean isMapEquals(Map v1, Map v2) {
+        if (v1.size() != v2.size())
+            return false;
         for (Object key : v1.keySet()) {
-            checkEquals(v1.get(key), v2.get(key));
+            if (!isEquals(v1.get(key), v2.get(key)))
+                return false;
         }
+        return true;
     }
 
     public static void checkEquals(Object v1, Object v2) {
-        if (v1 == null && v2 == null)
-            return;
-        assertNotNull(v1);
-        assertNotNull(v2);
-        if (v1.getClass().isArray() && v2.getClass().isArray())
-            checkArrayEquals(v1, v2);
-        else if (v1 instanceof Map && v2 instanceof Map)
-            checkEquals((Map) v1, (Map) v2);
-        else
-            assertEquals(v1, v2);
+        assertTrue(isEquals(v1, v2));
     }
 
-    private static void checkArrayEquals(Object v1, Object v2) {
-        assertNotNull(v1);
-        assertNotNull(v2);
+    public static boolean isEquals(Object v1, Object v2) {
+        if (v1 == null && v2 == null)
+            return true;
+        if (v1 == null || v2 == null)
+            return false;
+        if (v1.getClass().isArray() && v2.getClass().isArray())
+            return isArrayEquals(v1, v2);
+        else if (v1 instanceof Map && v2 instanceof Map)
+            return isMapEquals((Map) v1, (Map) v2);
+        else if (v1 instanceof Collection && v2 instanceof Collection)
+            return isCollectionEquals((Collection) v1, (Collection) v2);
+        return Objects.equals(v1, v2);
+    }
+
+    private static boolean isArrayEquals(Object v1, Object v2) {
         int len = Array.getLength(v1);
-        assertEquals(len, Array.getLength(v2));
+        if (len != Array.getLength(v2))
+            return false;
         for (int i = 0; i < len; ++i) {
-            assertEquals(Array.get(v1, i), Array.get(v2, i));
+            if (!isEquals(Array.get(v1, i), Array.get(v2, i)))
+                return false;
         }
+        return true;
+    }
+
+    public static boolean isCollectionEquals(Collection c1, Collection c2) {
+        if (!c1.getClass().equals(c2.getClass()) || c1.size() != c2.size())
+            return false;
+        Iterator iter = c1.iterator();
+        Iterator iter2 = c2.iterator();
+        while (iter.hasNext()) {
+            if (!isEquals(iter.next(), iter2.next()))
+                return false;
+        }
+        return true;
     }
 
     public static void main(String[] args) {

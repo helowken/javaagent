@@ -1,33 +1,32 @@
 package agent.common.struct.impl;
 
 import agent.common.struct.BBuff;
-import agent.common.struct.StructField;
 
-class BooleanStructField extends PremitiveStructField {
-    private static final StructField field = new ByteStructField();
+import static agent.common.struct.impl.StructFields.T_BOOLEAN;
+
+class BooleanStructField extends PrimitiveStructField {
+    private static final ByteStructField field = new ByteStructField();
 
     BooleanStructField() {
-        super(Boolean.class);
+        super(T_BOOLEAN, Boolean.class, boolean.class);
     }
 
     @Override
-    public int bytesSize(Object value) {
-        return field.bytesSize(value);
+    int fixedSize() {
+        return field.fixedSize();
     }
 
     @Override
-    public void serialize(BBuff bb, Object value) {
-        int v = value != null && (boolean) value ? 1 : 0;
-        field.serialize(bb, (byte) v);
+    void serializeObject(BBuff bb, Object value, StructContext context) {
+        byte v = 0;
+        if ((Boolean) value)
+            v = 1;
+        field.serializeObject(bb, v, context);
     }
 
     @Override
-    public Object deserialize(BBuff bb) {
-        return ((byte) field.deserialize(bb)) == 1;
-    }
-
-    @Override
-    Class<?> getPrimitiveClass() {
-        return boolean.class;
+    Object deserializeObject(BBuff bb, StructContext context) {
+        byte v = (Byte) field.deserializeObject(bb, context);
+        return v == 1;
     }
 }

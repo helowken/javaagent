@@ -3,51 +3,47 @@ package agent.common.struct.impl;
 import agent.common.struct.BBuff;
 
 import java.util.Collection;
+import java.util.function.Supplier;
+
+import static agent.common.struct.impl.StructFields.LENGTH_SIZE;
 
 @SuppressWarnings("unchecked")
-abstract class CollectionStructField extends CompoundStructField {
-    CollectionStructField(Class<?> valueClass) {
-        super(valueClass);
+class CollectionStructField<T extends Collection> extends AbstractStructField {
+    private final Supplier<T> newInstanceFunc;
+
+    CollectionStructField(byte type, Class<?> valueClass, Supplier<T> newInstanceFunc) {
+        super(type, valueClass);
+        this.newInstanceFunc = newInstanceFunc;
     }
 
     @Override
-    public int bytesSize(Object value) {
-        int size = Integer.BYTES;
-        if (value != null) {
-            Collection<Object> coll = (Collection) value;
-            for (Object el : coll) {
-                size += computeSize(el);
-            }
+    int sizeOf(Object value, StructContext context) {
+        int size = LENGTH_SIZE;
+        Collection<Object> coll = (Collection) value;
+        for (Object el : coll) {
+            size += Struct.bytesSize(el, context);
         }
         return size;
     }
 
     @Override
-    public void serialize(BBuff bb, Object value) {
-        if (value != null) {
-            Collection<Object> coll = (Collection) value;
-            bb.putInt(coll.size());
-            for (Object el : coll) {
-                serializeField(bb, el);
-            }
-        } else {
-            bb.putInt(StructFields.NULL);
+    void serializeObject(BBuff bb, Object value, StructContext context) {
+        Collection<Object> coll = (Collection) value;
+        bb.putInt(coll.size());
+        for (Object el : coll) {
+            Struct.serialize(bb, el, context);
         }
     }
 
     @Override
-    public Object deserialize(BBuff bb) {
+    Object deserializeObject(BBuff bb, StructContext context) {
         int len = bb.getInt();
-        if (len == StructFields.NULL)
-            return null;
-        Collection<Object> coll = newCollection();
+        T coll = newInstanceFunc.get();
         for (int i = 0; i < len; ++i) {
             coll.add(
-                    deserializeField(bb)
+                    Struct.deserialize(bb, context)
             );
         }
         return coll;
     }
-
-    abstract Collection newCollection();
 }

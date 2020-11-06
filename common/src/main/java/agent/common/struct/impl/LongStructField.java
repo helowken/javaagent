@@ -3,29 +3,25 @@ package agent.common.struct.impl;
 
 import agent.common.struct.BBuff;
 
-class LongStructField extends PremitiveStructField {
+import static agent.common.struct.impl.StructFields.T_LONG;
+
+class LongStructField extends PrimitiveStructField {
     LongStructField() {
-        super(Long.class);
+        super(T_LONG, Long.class, long.class);
     }
 
     @Override
-    public int bytesSize(Object value) {
+    int fixedSize() {
         return Long.BYTES;
     }
 
     @Override
-    public void serialize(BBuff bb, Object value) {
-        long v = value == null ? 0 : (long) value;
-        bb.putLong(v);
+    void serializeObject(BBuff bb, Object value, StructContext context) {
+        bb.putLong((Long) value);
     }
 
     @Override
-    public Object deserialize(BBuff bb) {
+    Object deserializeObject(BBuff bb, StructContext context) {
         return bb.getLong();
-    }
-
-    @Override
-    Class<?> getPrimitiveClass() {
-        return long.class;
     }
 }

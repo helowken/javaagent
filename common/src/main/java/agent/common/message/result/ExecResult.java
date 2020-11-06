@@ -1,12 +1,17 @@
 package agent.common.message.result;
 
-import agent.common.message.Message;
+public interface ExecResult {
+    byte SUCCESS = 0;
+    byte ERROR = 1;
 
-public interface ExecResult extends Message {
-    ResultStatus getStatus();
+    byte getStatus();
 
     default boolean isSuccess() {
-        return ResultStatus.SUCCESS.equals(getStatus());
+        return getStatus() == SUCCESS;
+    }
+
+    default boolean isError() {
+        return getStatus() == ERROR;
     }
 
     int getCmdType();

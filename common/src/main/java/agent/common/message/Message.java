@@ -1,10 +1,11 @@
 package agent.common.message;
 
-import agent.common.message.version.APIVersion;
-import agent.common.struct.Struct;
+import agent.common.message.version.ApiVersion;
 
-public interface Message extends Struct {
+public interface Message {
     int getType();
 
-    APIVersion getVersion();
+    ApiVersion getApiVersion();
+
+    <T> T getBody();
 }

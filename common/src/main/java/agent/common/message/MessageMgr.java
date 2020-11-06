@@ -1,113 +1,65 @@
 package agent.common.message;
 
-import agent.base.utils.LockObject;
 import agent.base.utils.Logger;
-import agent.common.config.*;
-import agent.common.message.command.impl.PojoCommand;
-import agent.common.message.command.impl.StringCommand;
-import agent.common.message.result.DefaultExecResult;
-import agent.common.message.result.entity.CmdResultEntity;
-import agent.common.message.result.entity.TransformResultEntity;
-import agent.common.struct.DefaultBBuff;
-import agent.common.struct.impl.PojoStructCache;
+import agent.base.utils.Utils;
+import agent.common.struct.impl.Struct;
 
 import java.nio.ByteBuffer;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.function.Function;
-import java.util.function.Supplier;
 
-import static agent.common.message.MessageType.*;
-
-@SuppressWarnings("unchecked")
 public class MessageMgr {
     private static final Logger logger = Logger.getLogger(MessageMgr.class);
-    private static final Map<Integer, Function<Integer, Message>> typeToCreator = new HashMap<>();
-    private static final LockObject typeLock = new LockObject();
 
     static {
-        reg(
-                type -> new DefaultExecResult(),
-                RESULT_DEFAULT
-        );
-        PojoStructCache.setFieldTypeConverter(
-                CmdResultEntity.class,
-                (pojo, currType, fieldIndex, level, isKey) -> {
-                    if (fieldIndex == 3) {
-                        switch (pojo.getCmdType()) {
-                            case CMD_TRANSFORM:
-                            case CMD_RESET:
-                                return TransformResultEntity.class;
-                        }
-                    }
-                    return currType;
+//        PojoStructCache.addFieldTypeConverter(
+//                DefaultMessage.class,
+//                (pojo, currType, fieldIndex, level, isKey) -> {
+//                    if (fieldIndex == 0) {
+//                        switch (pojo.getType()) {
+//                            case RESULT_DEFAULT:
+//                                return CmdResultEntity.class;
+//                            case CMD_TRANSFORM:
+//                            case CMD_SEARCH:
+//                                return ModuleConfig.class;
+//                            case CMD_RESET:
+//                                return ResetConfig.class;
+//                            case CMD_INFO:
+//                                return InfoQuery.class;
+//                            case CMD_SAVE_CLASS:
+//                                return SaveClassConfig.class;
+//                            case CMD_STACK_TRACE:
+//                                return StackTraceConfig.class;
+//                            case CMD_FLUSH_LOG:
+//                            case CMD_ECHO:
+//                            case CMD_JS_CONFIG:
+//                                return String.class;
+//                        }
+//                    }
+//                    return currType;
+//                }
+//        );
+//        PojoStructCache.addFieldTypeConverter(
+//                CmdResultEntity.class,
+//                (pojo, currType, fieldIndex, level, isKey) -> {
+//                    if (fieldIndex == 3) {
+//                        switch (pojo.getCmdType()) {
+//                            case CMD_TRANSFORM:
+//                            case CMD_RESET:
+//                                return TransformResultEntity.class;
+//                        }
+//                    }
+//                    return currType;
+//                }
+//        );
+    }
+
+    public static synchronized Message parse(ByteBuffer bb) {
+        return Utils.wrapToRtError(
+                () -> {
+                    Message message = Struct.deserialize(bb);
+                    logger.debug("Message type: {}, version: {}", message.getType(), message.getApiVersion());
+                    return message;
                 }
         );
-
-        reg(
-                StringCommand::new,
-                CMD_FLUSH_LOG,
-                CMD_ECHO,
-                CMD_JS_CONFIG
-        );
-
-
-        regPojo(CMD_TRANSFORM, ModuleConfig::new);
-        regPojo(CMD_SEARCH, ModuleConfig::new);
-        regPojo(CMD_RESET, ResetConfig::new);
-        regPojo(CMD_INFO, InfoQuery::new);
-        regPojo(CMD_SAVE_CLASS, SaveClassConfig::new);
-        regPojo(CMD_STACK_TRACE, StackTraceConfig::new);
-    }
-
-    private static void regPojo(int type, Supplier<Object> newPojoFunc) {
-        reg(
-                cmdType -> new PojoCommand(
-                        cmdType,
-                        newPojoFunc.get()
-                ),
-                type
-        );
-    }
-
-    private static void reg(Function<Integer, Message> func, int... types) {
-        if (types == null)
-            throw new IllegalArgumentException();
-        for (int type : types) {
-            typeLock.sync(lock -> typeToCreator.put(type, func));
-        }
-    }
-
-    private static Function<Integer, Message> getMsgSupplier(int type) {
-        return typeLock.syncValue(lock ->
-                Optional.ofNullable(
-                        typeToCreator.get(type)
-                ).orElseThrow(
-                        () -> new RuntimeException("Unknown message type: " + type)
-                )
-        );
-    }
-
-    private static synchronized Message doParse(ByteBuffer bb) {
-        try {
-            bb.mark();
-            int type = bb.getInt();
-            Message message = getMsgSupplier(type).apply(type);
-            logger.debug("Message type: {}, version: {}", type, message.getVersion());
-            bb.reset();
-            message.deserialize(
-                    new DefaultBBuff(bb)
-            );
-            return message;
-        } catch (Throwable t) {
-            t.printStackTrace();
-            throw (RuntimeException) t;
-        }
-    }
-
-    public static <T extends Message> T parse(ByteBuffer bb) {
-        return (T) doParse(bb);
     }
 
 }

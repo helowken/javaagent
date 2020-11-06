@@ -1,8 +1,9 @@
 package agent.common.message.result.entity;
 
-import agent.common.utils.annotation.PojoProperty;
+import agent.common.message.result.ExecResult;
+import agent.common.struct.impl.annotation.PojoProperty;
 
-public class CmdResultEntity {
+public class CmdResultEntity implements ExecResult {
     @PojoProperty(index = 0)
     private int cmdType;
     @PojoProperty(index = 1)
@@ -12,6 +13,7 @@ public class CmdResultEntity {
     @PojoProperty(index = 3)
     private Object content;
 
+    @Override
     public int getCmdType() {
         return cmdType;
     }
@@ -20,6 +22,7 @@ public class CmdResultEntity {
         this.cmdType = cmdType;
     }
 
+    @Override
     public byte getStatus() {
         return status;
     }
@@ -28,6 +31,7 @@ public class CmdResultEntity {
         this.status = status;
     }
 
+    @Override
     public String getMessage() {
         return message;
     }
@@ -36,8 +40,9 @@ public class CmdResultEntity {
         this.message = message;
     }
 
-    public Object getContent() {
-        return content;
+    @Override
+    public <T> T getContent() {
+        return (T) content;
     }
 
     public void setContent(Object content) {

@@ -1,11 +1,17 @@
 package agent.common.struct;
 
-public interface StructField extends Convertible {
+import agent.common.struct.impl.StructContext;
+
+public interface StructField {
+    byte getType();
+
     boolean matchType(Object value);
 
-    default boolean match(Class<?> clazz) {
-        return getValueClass().isAssignableFrom(clazz);
-    }
+    Class<?>[] getValueClasses();
 
-    Class<?> getValueClass();
+    int bytesSize(Object value, StructContext context);
+
+    void serialize(BBuff bb, Object value, StructContext context);
+
+    Object deserialize(BBuff bb, StructContext context);
 }

@@ -2,11 +2,10 @@ package agent.common.network;
 
 import agent.base.utils.IOUtils;
 import agent.base.utils.Logger;
-import agent.common.buffer.BufferAllocator;
 import agent.common.buffer.ByteUtils;
 import agent.common.message.Message;
 import agent.common.network.exception.ConnectionClosedException;
-import agent.common.struct.DefaultBBuff;
+import agent.common.struct.impl.Struct;
 
 import java.io.*;
 import java.net.*;
@@ -41,23 +40,21 @@ public class MessageIO implements Closeable {
         int size = in.readInt();
         if (size == -1)
             throw new ConnectionClosedException("Connection closed.");
+        logger.debug("Read message bytesSize: {}", size);
         byte[] b = new byte[size];
         IOUtils.read(in, b, size);
         return ByteBuffer.wrap(b);
     }
 
     public void send(Message message) throws Exception {
-        ByteBuffer bb = BufferAllocator.allocate(message.bytesSize());
-        message.serialize(
-                new DefaultBBuff(bb)
+        byte[] bs = ByteUtils.getBytes(
+                Struct.serialize(message)
         );
-        byte[] bs = ByteUtils.getBytes(bb);
         out.writeInt(bs.length);
         out.write(bs);
         out.flush();
         logger.debug("Write message bytesSize: {}", bs.length);
     }
-
 
     public static boolean isNetworkException(Throwable e) {
         for (Class<? extends Exception> errorClass : networkErrorClassList) {

@@ -3,29 +3,25 @@ package agent.common.struct.impl;
 
 import agent.common.struct.BBuff;
 
-class FloatStructField extends PremitiveStructField {
+import static agent.common.struct.impl.StructFields.T_FLOAT;
+
+class FloatStructField extends PrimitiveStructField {
     FloatStructField() {
-        super(Float.class);
+        super(T_FLOAT, Float.class, float.class);
     }
 
     @Override
-    public int bytesSize(Object value) {
+    int fixedSize() {
         return Float.BYTES;
     }
 
     @Override
-    public void serialize(BBuff bb, Object value) {
-        float v = value == null ? 0 : (float) value;
-        bb.putFloat(v);
+    void serializeObject(BBuff bb, Object value, StructContext context) {
+        bb.putFloat((Float) value);
     }
 
     @Override
-    public Object deserialize(BBuff bb) {
+    Object deserializeObject(BBuff bb, StructContext context) {
         return bb.getFloat();
-    }
-
-    @Override
-    Class<?> getPrimitiveClass() {
-        return float.class;
     }
 }

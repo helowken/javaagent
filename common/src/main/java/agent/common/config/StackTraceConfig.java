@@ -1,6 +1,6 @@
 package agent.common.config;
 
-import agent.common.utils.annotation.PojoProperty;
+import agent.common.struct.impl.annotation.PojoProperty;
 
 import java.util.Map;
 

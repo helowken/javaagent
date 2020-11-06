@@ -1,41 +1,41 @@
 package agent.common.struct.impl;
 
 import agent.common.struct.BBuff;
-import agent.common.struct.StructField;
 
-import java.util.Collection;
+import static agent.common.struct.impl.StructFields.T_LIST;
+import static agent.common.struct.impl.StructFields.T_POJO;
 
-public class PojoStructField extends AbstractStructField {
-    private static final StructField field = StructFields.newList();
+@SuppressWarnings("unchecked")
+class PojoStructField extends AbstractStructField {
+    private static final int POJO_TYPE_SIZE = Integer.BYTES;
 
     PojoStructField() {
-        super(Object.class);
+        super(T_POJO, Object.class);
     }
 
     @Override
-    public boolean match(Class<?> clazz) {
-        return Object.class.isAssignableFrom(clazz);
+    int sizeOf(Object value, StructContext context) {
+        return POJO_TYPE_SIZE + StructFields.getField(T_LIST)
+                .bytesSize(
+                        context.getPojoValues(value),
+                        context
+                );
     }
 
     @Override
-    public int bytesSize(Object value) {
-        return field.bytesSize(
-                value == null ? null : PojoStructCache.getPojoValues(value)
+    void serializeObject(BBuff bb, Object value, StructContext context) {
+        PojoValues pojoValues = context.getPojoValues(value);
+        bb.putInt(pojoValues.type);
+        StructFields.getField(T_LIST).serialize(bb, pojoValues, context);
+    }
+
+    @Override
+    Object deserializeObject(BBuff bb, StructContext context) {
+        int type = bb.getInt();
+        PojoValues pojoValues = new PojoValues(
+                type,
+                Struct.deserialize(bb, context)
         );
-    }
-
-    @Override
-    public void serialize(BBuff bb, Object value) {
-        field.serialize(
-                bb,
-                value == null ? null : PojoStructCache.getPojoValues(value)
-        );
-    }
-
-    @Override
-    public Object deserialize(BBuff bb) {
-        return new PojoStructCache.PojoValues(
-                (Collection) field.deserialize(bb)
-        );
+        return context.createPojo(pojoValues);
     }
 }

@@ -5,44 +5,61 @@ import agent.common.struct.BBuff;
 import java.util.Map;
 import java.util.function.Supplier;
 
+import static agent.common.struct.impl.StructFields.LENGTH_SIZE;
+
 @SuppressWarnings("unchecked")
-class MapStructField<T extends Map> extends CompoundStructField {
+class MapStructField<T extends Map> extends AbstractStructField {
     private final Supplier<T> newInstanceFunc;
 
-    MapStructField(Class<T> valueClass, Supplier<T> newInstanceFunc) {
-        super(valueClass);
+    MapStructField(byte type, Class<T> valueClass, Supplier<T> newInstanceFunc) {
+        super(type, valueClass);
         this.newInstanceFunc = newInstanceFunc;
     }
 
     @Override
-    public int bytesSize(Object value) {
+    int sizeOf(Object value, StructContext context) {
         Map<Object, Object> map = (Map) value;
-        int size = Integer.BYTES;
+        int size = LENGTH_SIZE;
         for (Map.Entry<Object, Object> entry : map.entrySet()) {
-            size += computeSize(entry.getKey());
-            size += computeSize(entry.getValue());
+            size += Struct.bytesSize(
+                    entry.getKey(),
+                    context
+            );
+            size += Struct.bytesSize(
+                    entry.getValue(),
+                    context
+            );
         }
         return size;
     }
 
     @Override
-    public void serialize(BBuff bb, Object value) {
-        Map map = (Map) value;
+    void serializeObject(BBuff bb, Object value, StructContext context) {
+        Map<Object, Object> map = (Map) value;
         bb.putInt(map.size());
-        for (Object key : map.keySet()) {
-            serializeField(bb, key);
-            serializeField(bb, map.get(key));
+        for (Map.Entry<Object, Object> entry : map.entrySet()) {
+            Struct.serialize(
+                    bb,
+                    entry.getKey(),
+                    context
+            );
+            Struct.serialize(
+                    bb,
+                    entry.getValue(),
+                    context
+            );
         }
     }
 
     @Override
-    public Object deserialize(BBuff bb) {
+    Object deserializeObject(BBuff bb, StructContext context) {
         int size = bb.getInt();
-        Map map = newInstanceFunc.get();
+        T map = newInstanceFunc.get();
         for (int i = 0; i < size; ++i) {
-            Object key = deserializeField(bb);
-            Object value = deserializeField(bb);
-            map.put(key, value);
+            map.put(
+                    Struct.deserialize(bb, context),
+                    Struct.deserialize(bb, context)
+            );
         }
         return map;
     }
