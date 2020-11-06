@@ -8,7 +8,7 @@ import agent.common.struct.StructField;
 import java.nio.ByteBuffer;
 
 @SuppressWarnings("unchecked")
-public class Struct {
+public abstract class Struct {
     public static int bytesSize(Object o, StructContext context) {
         return StructFields.detectField(o).bytesSize(o, context);
     }

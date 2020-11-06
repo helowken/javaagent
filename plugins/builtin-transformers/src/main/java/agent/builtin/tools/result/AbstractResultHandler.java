@@ -3,11 +3,12 @@ package agent.builtin.tools.result;
 import agent.base.utils.*;
 import agent.base.utils.InvokeDescriptorUtils.TextConfig;
 import agent.builtin.tools.result.parse.ResultParams;
-import agent.common.struct.impl.Structs;
+import agent.common.struct.impl.Struct;
 import agent.server.transform.impl.DestInvokeIdRegistry;
 import agent.server.transform.impl.DestInvokeIdRegistry.InvokeMetadata;
 
 import java.io.*;
+import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.concurrent.ForkJoinPool;
 import java.util.stream.Collectors;
@@ -71,7 +72,9 @@ abstract class AbstractResultHandler<T, P extends ResultParams> implements Resul
                         DestInvokeIdRegistry.getMetadataFile(inputPath)
                 ).getAbsolutePath()
         );
-        Map<Integer, String> idToClassInvoke = Structs.deserializeMap(bs);
+        Map<Integer, String> idToClassInvoke = Struct.deserialize(
+                ByteBuffer.wrap(bs)
+        );
         Map<Integer, InvokeMetadata> rsMap = new HashMap<>();
         idToClassInvoke.forEach(
                 (id, classInvoke) -> rsMap.put(
@@ -96,7 +99,7 @@ abstract class AbstractResultHandler<T, P extends ResultParams> implements Resul
         return result;
     }
 
-    void calculateBytesFile(File dataFile, CalculateBytesFunc calculateFunc) {
+    void calculateBinaryFile(File dataFile, CalculateBytesFunc calculateFunc) {
         calculateFile(
                 dataFile,
                 inputFile -> {

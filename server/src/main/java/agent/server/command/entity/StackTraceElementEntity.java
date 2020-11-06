@@ -1,8 +1,13 @@
 package agent.server.command.entity;
 
-import agent.common.utils.annotation.PojoProperty;
+import agent.common.struct.impl.annotation.PojoClass;
+import agent.common.struct.impl.annotation.PojoProperty;
 
+import static agent.server.command.entity.StackTraceElementEntity.TYPE;
+
+@PojoClass(type = TYPE)
 public class StackTraceElementEntity {
+    public static final int TYPE = 2;
     @PojoProperty(index = 0)
     private String className;
     @PojoProperty(index = 1)

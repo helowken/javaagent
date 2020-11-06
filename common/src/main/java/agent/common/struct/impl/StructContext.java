@@ -12,12 +12,12 @@ import java.util.stream.Collectors;
 
 @SuppressWarnings("unchecked")
 public class StructContext {
-    private final Map<Integer, PojoConfig> pojoConfigMap = new ConcurrentHashMap<>();
+    private final Map<Integer, PojoConfig> typeToPojoConfig = new ConcurrentHashMap<>();
     private PojoCreator pojoCreator = null;
     private final Map<Object, PojoValues> cache = new ConcurrentHashMap<>();
 
     public void clear() {
-        pojoConfigMap.clear();
+        typeToPojoConfig.clear();
         pojoCreator = null;
         clearCache();
     }
@@ -26,14 +26,20 @@ public class StructContext {
         cache.clear();
     }
 
-    public <T> void addPojoInfo(Class<T> pojoClass, PojoInfo<T> pojoInfo) {
+    public <T> PojoInfo<T> addPojoInfo(Class<T> pojoClass, int pojoType) {
+        PojoInfo<T> pojoInfo = createPojoInfo(pojoClass, pojoType);
         addPojoInfo(pojoClass::equals, pojoInfo);
+        return pojoInfo;
+    }
+
+    public <T> StructContext addPojoInfo(Class<T> pojoClass, PojoInfo<T> pojoInfo) {
+        return addPojoInfo(pojoClass::equals, pojoInfo);
     }
 
     public <T> StructContext addPojoInfo(Predicate<Class<T>> predicate, PojoInfo<T> pojoInfo) {
         if (pojoInfo == null)
             throw new IllegalArgumentException();
-        pojoConfigMap.compute(
+        typeToPojoConfig.compute(
                 pojoInfo.getType(),
                 (pojoType, oldValue) -> {
                     if (oldValue != null)
@@ -57,7 +63,7 @@ public class StructContext {
                     null;
         }
         if (pojo == null) {
-            PojoConfig config = pojoConfigMap.get(type);
+            PojoConfig config = typeToPojoConfig.get(type);
             if (config != null)
                 pojo = config.pojoInfo.newPojo();
         }
@@ -200,16 +206,19 @@ public class StructContext {
     }
 
     private <T> PojoInfo<T> getPojoInfo(Class<T> pojoClass) {
-        for (PojoConfig config : pojoConfigMap.values()) {
+        for (PojoConfig config : typeToPojoConfig.values()) {
             if (config.predicate.test(pojoClass))
                 return config.pojoInfo;
         }
 
         PojoClass pojoAnnt = pojoClass.getAnnotation(PojoClass.class);
         if (pojoAnnt == null)
-            throw new RuntimeException("No pojo class annotation found on class: " + pojoClass);
+            throw new RuntimeException("No pojo type found for class: " + pojoClass);
         int pojoType = pojoAnnt.type();
+        return addPojoInfo(pojoClass, pojoType);
+    }
 
+    private <T> PojoInfo<T> createPojoInfo(Class<T> pojoClass, int pojoType) {
         Set<String> nameSet = new HashSet<>();
         List<PojoFieldPropertyList<T>> fieldPropertiesList = new ArrayList<>();
         Class<?> clazz = pojoClass;
@@ -219,13 +228,11 @@ public class StructContext {
             );
             clazz = clazz.getSuperclass();
         }
-        PojoInfo<T> pojoInfo = new PojoInfo<>(
+        return new PojoInfo<>(
                 pojoType,
                 () -> Utils.wrapToRtError(pojoClass::newInstance),
                 fieldPropertiesList
         );
-        addPojoInfo(pojoClass::equals, pojoInfo);
-        return pojoInfo;
     }
 
     private <T> PojoFieldPropertyList<T> getFieldPropertyList(Class<?> clazz, Set<String> nameSet) {

@@ -2,7 +2,6 @@ package agent.server.command.executor;
 
 import agent.common.config.ResetConfig;
 import agent.common.message.command.Command;
-import agent.common.message.command.impl.PojoCommand;
 import agent.common.message.result.ExecResult;
 import agent.server.transform.TransformMgr;
 import agent.server.transform.TransformResult;
@@ -23,7 +22,7 @@ class ResetCmdExecutor extends AbstractTransformCmdExecutor {
 
     @Override
     ExecResult doExec(Command cmd) {
-        ResetConfig config = ((PojoCommand)cmd).getPojo();
+        ResetConfig config = cmd.getContent();
         config.validate();
 
         TransformResult transformResult = new TransformResult();

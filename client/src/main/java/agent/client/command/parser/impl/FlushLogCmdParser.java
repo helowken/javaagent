@@ -5,7 +5,7 @@ import agent.base.args.parse.CmdParams;
 import agent.base.help.HelpArg;
 import agent.client.args.parse.DefaultParamParser;
 import agent.common.message.command.Command;
-import agent.common.message.command.impl.StringCommand;
+import agent.common.message.command.DefaultCommand;
 
 import java.util.Collections;
 import java.util.List;
@@ -33,7 +33,7 @@ public class FlushLogCmdParser extends AbstractCmdParser<CmdParams> {
 
     @Override
     Command createCommand(CmdParams params) {
-        return new StringCommand(CMD_FLUSH_LOG);
+        return new DefaultCommand(CMD_FLUSH_LOG, null);
     }
 
     @Override

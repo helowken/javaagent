@@ -3,12 +3,12 @@ package agent.client;
 import agent.base.runner.Runner;
 import agent.base.utils.*;
 import agent.client.command.parser.CmdHelpUtils;
-import agent.common.message.command.CmdItem;
 import agent.client.command.parser.CommandParserMgr;
 import agent.client.command.parser.exception.CommandNotFoundException;
 import agent.client.command.parser.exception.CommandParseException;
 import agent.client.command.result.CommandResultHandlerMgr;
-import agent.common.message.MessageMgr;
+import agent.common.message.DefaultMessage;
+import agent.common.message.command.CmdItem;
 import agent.common.message.command.Command;
 import agent.common.message.result.ExecResult;
 import agent.common.network.MessageIO;
@@ -63,10 +63,10 @@ public class AgentClientRunner implements Runner {
                         cmdItem.print();
                         boolean rs = socketMgr.sendAndReceive(
                                 io -> {
-                                    io.send(cmd);
-                                    ExecResult result = MessageMgr.parse(
-                                            io.receive()
+                                    io.send(
+                                            DefaultMessage.toMessage(cmd)
                                     );
+                                    ExecResult result = io.receive().getBody();
                                     CommandResultHandlerMgr.handleResult(cmd, result);
                                 }
                         );

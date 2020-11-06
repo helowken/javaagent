@@ -4,8 +4,8 @@ import agent.base.utils.IOUtils;
 import agent.base.utils.Logger;
 import agent.common.buffer.ByteUtils;
 import agent.common.message.Message;
+import agent.common.message.MessageMgr;
 import agent.common.network.exception.ConnectionClosedException;
-import agent.common.struct.impl.Struct;
 
 import java.io.*;
 import java.net.*;
@@ -36,19 +36,21 @@ public class MessageIO implements Closeable {
         this.out = new DataOutputStream(out);
     }
 
-    public ByteBuffer receive() throws Exception {
+    public Message receive() throws Exception {
         int size = in.readInt();
         if (size == -1)
             throw new ConnectionClosedException("Connection closed.");
         logger.debug("Read message bytesSize: {}", size);
         byte[] b = new byte[size];
         IOUtils.read(in, b, size);
-        return ByteBuffer.wrap(b);
+        return MessageMgr.deserialize(
+                ByteBuffer.wrap(b)
+        );
     }
 
     public void send(Message message) throws Exception {
         byte[] bs = ByteUtils.getBytes(
-                Struct.serialize(message)
+                MessageMgr.serialize(message)
         );
         out.writeInt(bs.length);
         out.write(bs);

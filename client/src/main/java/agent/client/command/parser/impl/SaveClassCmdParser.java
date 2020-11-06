@@ -12,7 +12,7 @@ import agent.common.args.parse.FilterOptConfigs;
 import agent.common.args.parse.FilterOptUtils;
 import agent.common.config.SaveClassConfig;
 import agent.common.message.command.Command;
-import agent.common.message.command.impl.PojoCommand;
+import agent.common.message.command.DefaultCommand;
 
 import java.util.Collections;
 import java.util.List;
@@ -54,7 +54,7 @@ public class SaveClassCmdParser extends AbstractCmdParser<CmdParams> {
                 FilterOptUtils.createTargetConfig(opts)
                         .getClassFilter()
         );
-        return new PojoCommand(CMD_SAVE_CLASS, config);
+        return new DefaultCommand(CMD_SAVE_CLASS, config);
     }
 
     @Override

@@ -5,12 +5,11 @@ import agent.builtin.tools.result.parse.StackTraceResultParamParser;
 import agent.builtin.tools.result.parse.StackTraceResultParams;
 import agent.client.command.parser.CommandParserMgr;
 import agent.common.message.result.ExecResult;
-import agent.common.message.result.ResultStatus;
 import agent.server.command.executor.CmdExecutorMgr;
 import org.junit.Test;
 import test.server.AbstractTest;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class StackTraceTest extends AbstractTest {
     @Test
@@ -27,7 +26,7 @@ public class StackTraceTest extends AbstractTest {
                                     }
                             ).get(0).getCmd()
                     );
-                    assertEquals(ResultStatus.SUCCESS, result.getStatus());
+                    assertTrue(result.isSuccess());
                     Thread.sleep(5000);
 
                     StackTraceResultParams params = new StackTraceResultParamParser().parse(

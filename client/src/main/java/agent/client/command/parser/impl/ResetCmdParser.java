@@ -6,7 +6,7 @@ import agent.client.args.parse.DefaultParamParser;
 import agent.common.args.parse.FilterOptUtils;
 import agent.common.config.ResetConfig;
 import agent.common.message.command.Command;
-import agent.common.message.command.impl.PojoCommand;
+import agent.common.message.command.DefaultCommand;
 
 import static agent.common.args.parse.FilterOptUtils.getMatchClassFilterOptParsers;
 import static agent.common.message.MessageType.CMD_RESET;
@@ -37,6 +37,6 @@ public class ResetCmdParser extends AbstractCmdParser<CmdParams> {
                         params.getOpts()
                 )
         );
-        return new PojoCommand(CMD_RESET, config);
+        return new DefaultCommand(CMD_RESET, config);
     }
 }

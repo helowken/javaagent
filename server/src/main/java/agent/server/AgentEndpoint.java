@@ -1,12 +1,11 @@
 package agent.server;
 
-import agent.server.command.executor.CmdExecutorMgr;
-import agent.common.message.MessageMgr;
-import agent.common.message.command.Command;
-import agent.common.message.result.DefaultExecResult;
-import agent.common.message.result.ExecResult;
-import agent.common.network.MessageIO;
 import agent.base.utils.Logger;
+import agent.common.message.DefaultMessage;
+import agent.common.message.command.Command;
+import agent.common.message.result.entity.DefaultExecResult;
+import agent.common.network.MessageIO;
+import agent.server.command.executor.CmdExecutorMgr;
 
 import java.io.IOException;
 import java.net.Socket;
@@ -43,20 +42,33 @@ public class AgentEndpoint implements Runnable {
         }
     }
 
-    private boolean receiveAndSend(MessageIO io) throws Exception {
+    private boolean receiveAndSend(MessageIO io) {
         try {
-            Command cmd = MessageMgr.parse(io.receive());
-            ExecResult result = CmdExecutorMgr.exec(cmd);
-            io.send(result);
+            Command cmd = io.receive().getBody();
+            io.send(
+                    DefaultMessage.toMessage(
+                            CmdExecutorMgr.exec(cmd)
+                    )
+            );
         } catch (Exception e) {
             if (MessageIO.isNetworkException(e))
                 return false;
             else {
                 logger.error("receiveAndSend failed.", e);
-                io.send(DefaultExecResult.toRuntimeError(e.getMessage()));
+                try {
+                    io.send(
+                            DefaultMessage.toMessage(
+                                    DefaultExecResult.toRuntimeError(
+                                            e.getMessage()
+                                    )
+                            )
+                    );
+                } catch (Exception e2) {
+                    logger.error("receiveAndSend reply error failed.", e2);
+                    return false;
+                }
             }
         }
         return true;
     }
-
 }

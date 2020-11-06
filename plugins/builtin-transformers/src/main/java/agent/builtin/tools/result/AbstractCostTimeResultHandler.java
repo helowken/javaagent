@@ -85,7 +85,7 @@ abstract class AbstractCostTimeResultHandler<T> extends AbstractResultHandler<T,
     }
 
     void doCalculateFile(File dataFile, CostTimeCalculateFunc calculateFunc) {
-        calculateBytesFile(
+        calculateBinaryFile(
                 dataFile,
                 in -> {
                     int totalSize = 0;

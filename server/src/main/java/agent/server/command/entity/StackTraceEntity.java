@@ -1,16 +1,17 @@
 package agent.server.command.entity;
 
-import agent.common.utils.annotation.PojoProperty;
+import agent.common.struct.impl.annotation.PojoClass;
+import agent.common.struct.impl.annotation.PojoProperty;
 
-import java.util.List;
+import static agent.server.command.entity.StackTraceEntity.TYPE;
 
+@PojoClass(type = TYPE)
 public class StackTraceEntity {
+    public static final int TYPE = 1;
     @PojoProperty(index = 0)
     private long threadId;
     @PojoProperty(index = 1)
     private String threadName;
-    @PojoProperty(index = 2)
-    private List<StackTraceElementEntity> stackTraceElements;
 
     public long getThreadId() {
         return threadId;
@@ -26,13 +27,5 @@ public class StackTraceEntity {
 
     public void setThreadName(String threadName) {
         this.threadName = threadName;
-    }
-
-    public List<StackTraceElementEntity> getStackTraceElements() {
-        return stackTraceElements;
-    }
-
-    public void setStackTraceElements(List<StackTraceElementEntity> stackTraceElements) {
-        this.stackTraceElements = stackTraceElements;
     }
 }

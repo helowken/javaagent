@@ -1,14 +1,10 @@
 package agent.server.command.executor;
 
 import agent.base.utils.Logger;
-import agent.base.utils.TypeObject;
 import agent.common.config.StackTraceConfig;
 import agent.common.message.command.Command;
-import agent.common.message.command.impl.PojoCommand;
 import agent.common.message.result.ExecResult;
-import agent.common.struct.impl.MapStruct;
-import agent.common.struct.impl.Structs;
-import agent.common.utils.JsonUtils;
+import agent.common.struct.impl.*;
 import agent.server.command.entity.StackTraceElementEntity;
 import agent.server.command.entity.StackTraceEntity;
 import agent.server.schedule.ScheduleMgr;
@@ -19,15 +15,38 @@ import agent.server.utils.log.binary.BinaryLogItemPool;
 
 import java.util.Collections;
 import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 class StackTraceCmdExecutor extends AbstractCmdExecutor {
     private static final Logger logger = Logger.getLogger(StackTraceCmdExecutor.class);
+    private static final StructContext context = new StructContext();
+
+    static {
+        context.addPojoInfo(
+                Thread.class::isAssignableFrom,
+                new PojoInfo<>(
+                        StackTraceEntity.TYPE,
+                        null,
+                        new PojoFieldPropertyList<>(
+                                new PojoFieldProperty<>(Long.class, 0, null, Thread::getId),
+                                new PojoFieldProperty<>(String.class, 1, null, Thread::getName)
+                        )
+                )
+        ).addPojoInfo(
+                StackTraceElement.class,
+                new PojoInfo<>(
+                        StackTraceElementEntity.TYPE,
+                        null,
+                        new PojoFieldPropertyList<>(
+                                new PojoFieldProperty<>(String.class, 0, null, StackTraceElement::getClassName),
+                                new PojoFieldProperty<>(String.class, 1, null, StackTraceElement::getMethodName)
+                        )
+                )
+        );
+    }
 
     @Override
     ExecResult doExec(Command cmd) throws Exception {
-        StackTraceConfig config = ((PojoCommand) cmd).getPojo();
+        StackTraceConfig config = cmd.getContent();
         config.validate();
         ScheduleMgr.getInstance().exec(
                 config,
@@ -69,39 +88,17 @@ class StackTraceCmdExecutor extends AbstractCmdExecutor {
 
         @Override
         public void run() {
-            MapStruct<String, Object> struct = Structs.newMap();
-            Thread.getAllStackTraces().forEach(
-                    (thread, sfEls) -> {
-                        StackTraceEntity entity = new StackTraceEntity();
-                        entity.setThreadId(thread.getId());
-                        entity.setThreadName(thread.getName());
-                        entity.setStackTraceElements(
-                                sfEls == null ?
-                                        Collections.emptyList() :
-                                        Stream.of(sfEls).map(
-                                                sfEl -> {
-                                                    StackTraceElementEntity el = new StackTraceElementEntity();
-                                                    el.setClassName(sfEl.getClassName());
-                                                    el.setMethodName(sfEl.getMethodName());
-                                                    return el;
-                                                }
-                                        ).collect(Collectors.toList())
-                        );
-
-                        Map<String, Object> map = JsonUtils.convert(
-                                entity,
-                                new TypeObject<Map<String, Object>>() {
-                                }
-                        );
-                        struct.putAll(map);
-                        BinaryLogItem logItem = BinaryLogItemPool.get(logKey);
-                        logItem.putInt(
-                                struct.bytesSize()
-                        );
-                        struct.serialize(logItem);
-                        LogMgr.logBinary(logKey, logItem);
-                    }
+            BinaryLogItem logItem = BinaryLogItemPool.get(logKey);
+            logItem.markAndPosition(Integer.BYTES);
+            Struct.serialize(
+                    logItem,
+                    Thread.getAllStackTraces(),
+                    context
             );
+            logItem.putIntToMark(
+                    (int) logItem.getSize()
+            );
+            LogMgr.logBinary(logKey, logItem);
         }
     }
 }

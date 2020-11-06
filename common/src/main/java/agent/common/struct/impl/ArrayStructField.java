@@ -2,6 +2,7 @@ package agent.common.struct.impl;
 
 import agent.base.utils.Pair;
 import agent.common.struct.BBuff;
+import agent.common.struct.StructField;
 
 import java.lang.reflect.Array;
 
@@ -34,9 +35,10 @@ class ArrayStructField extends AbstractStructField {
         );
         if (p == null)
             throw new RuntimeException("Not an array: " + value);
-//        byte type = StructFields.detectType(p.left);
-//        bb.put(type);
-//        bb.putInt(p.right);
+
+//        StructField field = StructFields.detectType(p.left);
+//        field.serializeArray(bb, p.right);
+
 //        context.createPojo()
     }
 

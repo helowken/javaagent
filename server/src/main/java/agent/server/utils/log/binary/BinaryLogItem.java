@@ -21,7 +21,8 @@ public class BinaryLogItem extends AbstractLogItem implements BBuff {
     private ByteBuffer markBuffer;
     private int markPosition = -1;
 
-    long getSize() {
+    @Override
+    public long getSize() {
         return size;
     }
 
@@ -101,19 +102,31 @@ public class BinaryLogItem extends AbstractLogItem implements BBuff {
     }
 
     public void putIntToMark(int v) {
+        putToMark(
+                () -> markBuffer.putInt(markPosition, v)
+        );
+    }
+
+    public void putLongToMark(long v) {
+        putToMark(
+                () -> markBuffer.putLong(markPosition, v)
+        );
+    }
+
+    private void putToMark(Runnable runnable) {
         if (markBuffer == null || markPosition < 0)
             throw new RuntimeException("No mark buffer or position found.");
-        markBuffer.putInt(markPosition, v);
+        runnable.run();
         markBuffer = null;
         markPosition = -1;
     }
 
     public void markAndPosition(int v) {
-        ByteBuffer buffer = getBuffer(intSize);
+        ByteBuffer buffer = getBuffer(v);
         markBuffer = buffer;
         markPosition = markBuffer.position();
         buffer.position(markPosition + v);
-        updateSize(intSize);
+        updateSize(v);
     }
 
     ByteBuffer[] getBuffers() {

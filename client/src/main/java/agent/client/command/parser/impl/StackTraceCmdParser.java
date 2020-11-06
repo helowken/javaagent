@@ -11,7 +11,7 @@ import agent.client.args.parse.StackTraceOptConfigs;
 import agent.client.command.parser.exception.CommandParseException;
 import agent.common.config.StackTraceConfig;
 import agent.common.message.command.Command;
-import agent.common.message.command.impl.PojoCommand;
+import agent.common.message.command.DefaultCommand;
 
 import java.util.Collections;
 import java.util.List;
@@ -86,7 +86,7 @@ public class StackTraceCmdParser extends AbstractCmdParser<CmdParams> {
                         params.getArgs()[0]
                 )
         );
-        return new PojoCommand(CMD_STACK_TRACE, config);
+        return new DefaultCommand(CMD_STACK_TRACE, config);
     }
 
     @Override

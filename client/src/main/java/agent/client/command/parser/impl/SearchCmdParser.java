@@ -4,7 +4,7 @@ import agent.base.args.parse.CmdParamParser;
 import agent.base.args.parse.CmdParams;
 import agent.client.args.parse.DefaultParamParser;
 import agent.common.message.command.Command;
-import agent.common.message.command.impl.PojoCommand;
+import agent.common.message.command.DefaultCommand;
 
 import static agent.common.args.parse.FilterOptUtils.getFilterAndChainOptParsers;
 import static agent.common.message.MessageType.CMD_SEARCH;
@@ -12,7 +12,7 @@ import static agent.common.message.MessageType.CMD_SEARCH;
 public class SearchCmdParser extends AbstractModuleCmdParser {
     @Override
     Command newCommand(Object data) {
-        return new PojoCommand(CMD_SEARCH, data);
+        return new DefaultCommand(CMD_SEARCH, data);
     }
 
     @Override

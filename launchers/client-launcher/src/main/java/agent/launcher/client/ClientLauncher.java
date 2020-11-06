@@ -64,7 +64,7 @@ public class ClientLauncher extends AbstractLauncher {
                     restArgList
             );
         } catch (Throwable t) {
-//            t.printStackTrace();
+            t.printStackTrace();
             ConsoleLogger.getInstance().error("Error: {}", t.getMessage());
         }
     }

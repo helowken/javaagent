@@ -1,6 +1,7 @@
 package agent.common.message.command;
 
-import agent.common.message.Message;
+public interface Command {
+    int getType();
 
-public interface Command extends Message {
+    <T> T getContent();
 }

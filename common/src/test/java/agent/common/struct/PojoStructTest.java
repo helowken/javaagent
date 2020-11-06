@@ -246,7 +246,7 @@ public class PojoStructTest {
 //        check(v1);
 //        check(v2);
 //        check(v3);
-//        check(v4);
+        check(v4);
 
     }
 

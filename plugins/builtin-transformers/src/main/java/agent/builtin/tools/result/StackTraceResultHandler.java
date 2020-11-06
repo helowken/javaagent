@@ -2,16 +2,13 @@ package agent.builtin.tools.result;
 
 import agent.base.utils.IOUtils;
 import agent.base.utils.Logger;
-import agent.base.utils.TypeObject;
 import agent.base.utils.Utils;
 import agent.builtin.tools.result.parse.StackTraceResultParams;
-import agent.common.struct.DefaultBBuff;
-import agent.common.struct.impl.MapStruct;
-import agent.common.struct.impl.Structs;
+import agent.common.struct.impl.Struct;
+import agent.common.struct.impl.StructContext;
 import agent.common.tree.Node;
 import agent.common.tree.Tree;
 import agent.common.tree.TreeUtils;
-import agent.common.utils.JsonUtils;
 import agent.server.command.entity.StackTraceElementEntity;
 import agent.server.command.entity.StackTraceEntity;
 
@@ -22,6 +19,22 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public class StackTraceResultHandler extends AbstractResultHandler<Tree<StackTraceCountItem>, StackTraceResultParams> {
     private static final Logger logger = Logger.getLogger(StackTraceResultHandler.class);
+    private static final StructContext context = new StructContext();
+
+    static {
+        context.setPojoCreator(
+                type -> {
+                    switch (type) {
+                        case StackTraceEntity.TYPE:
+                            return new StackTraceEntity();
+                        case StackTraceElementEntity.TYPE:
+                            return new StackTraceElementEntity();
+                        default:
+                            return null;
+                    }
+                }
+        );
+    }
 
     @Override
     Tree<StackTraceCountItem> calculate(Collection<File> dataFiles, StackTraceResultParams params) {
@@ -45,30 +58,30 @@ public class StackTraceResultHandler extends AbstractResultHandler<Tree<StackTra
     }
 
     private Tree<StackTraceCountItem> doCalculate(File dataFile) {
+        AtomicReference<byte[]> ref = new AtomicReference<>(
+                new byte[256 * 1024]
+        );
         Tree<StackTraceCountItem> tree = new Tree<>();
-        MapStruct<String, Object> struct = Structs.newMap();
-        calculateBytesFile(
+        calculateBinaryFile(
                 dataFile,
                 in -> {
                     int totalSize = 0;
                     int size = in.readInt();
-                    byte[] bs = new byte[size];
-                    IOUtils.read(in, bs);
+                    byte[] bs = ref.get();
+                    if (bs.length < size) {
+                        bs = new byte[bs.length * 2];
+                        ref.set(bs);
+                    }
+
+                    IOUtils.read(in, bs, size);
                     totalSize += Integer.BYTES;
                     totalSize += size;
 
-                    struct.clear();
-                    struct.deserialize(
-                            new DefaultBBuff(
-                                    ByteBuffer.wrap(bs)
-                            )
-                    );
                     convertStackTraceToTree(
                             tree,
-                            JsonUtils.convert(
-                                    struct.getAll(),
-                                    new TypeObject<StackTraceEntity>() {
-                                    }
+                            Struct.deserialize(
+                                    ByteBuffer.wrap(bs, 0, size),
+                                    context
                             )
                     );
 
@@ -78,17 +91,21 @@ public class StackTraceResultHandler extends AbstractResultHandler<Tree<StackTra
         return tree;
     }
 
-    private void convertStackTraceToTree(Tree<StackTraceCountItem> tree, StackTraceEntity entity) {
-        String name = entity.getThreadName() + "-" + entity.getThreadId();
-        Node<StackTraceCountItem> node = getOrCreateNode(tree, name);
-        List<StackTraceElementEntity> els = entity.getStackTraceElements();
-        if (els != null) {
-            Collections.reverse(els);
-            for (StackTraceElementEntity el : els) {
-                String elName = formatClassName(el.getClassName()) + ":" + el.getMethodName();
-                node = getOrCreateNode(node, elName);
-            }
-        }
+    private void convertStackTraceToTree(Tree<StackTraceCountItem> tree, Map<StackTraceEntity, Object[]> stMap) {
+        stMap.forEach(
+                (entity, els) -> {
+                    String name = entity.getThreadName() + "-" + entity.getThreadId();
+                    Node<StackTraceCountItem> node = getOrCreateNode(tree, name);
+                    if (els != null) {
+                        List<StackTraceElementEntity> elList = (List) Arrays.asList(els);
+                        Collections.reverse(elList);
+                        for (StackTraceElementEntity el : elList) {
+                            String elName = formatClassName(el.getClassName()) + ":" + el.getMethodName();
+                            node = getOrCreateNode(node, elName);
+                        }
+                    }
+                }
+        );
     }
 
     private Node<StackTraceCountItem> getOrCreateNode(Node<StackTraceCountItem> node, String name) {

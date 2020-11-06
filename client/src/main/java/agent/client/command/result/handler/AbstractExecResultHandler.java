@@ -1,10 +1,10 @@
 package agent.client.command.result.handler;
 
-import agent.base.utils.Logger;
 import agent.base.utils.ConsoleLogger;
+import agent.base.utils.Logger;
+import agent.client.command.result.ExecResultHandler;
 import agent.common.message.command.Command;
 import agent.common.message.result.ExecResult;
-import agent.client.command.result.ExecResultHandler;
 
 public abstract class AbstractExecResultHandler implements ExecResultHandler {
     private static final Logger logger = Logger.getLogger(AbstractExecResultHandler.class);
@@ -12,7 +12,7 @@ public abstract class AbstractExecResultHandler implements ExecResultHandler {
     @Override
     public void handle(Command command, ExecResult result) {
         try {
-            if (result.getStatus().isSuccess())
+            if (result.isSuccess())
                 handleSuccess(command, result);
             else if (result.getCmdType() == command.getType())
                 handleFail(command, result);

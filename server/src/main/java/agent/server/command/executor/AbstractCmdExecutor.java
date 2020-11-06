@@ -4,8 +4,8 @@ import agent.base.utils.Logger;
 import agent.base.utils.Utils;
 import agent.common.message.command.Command;
 import agent.common.message.command.CommandExecutor;
-import agent.common.message.result.DefaultExecResult;
 import agent.common.message.result.ExecResult;
+import agent.common.message.result.entity.DefaultExecResult;
 
 import java.util.Optional;
 
@@ -15,8 +15,13 @@ public abstract class AbstractCmdExecutor implements CommandExecutor {
     @Override
     public ExecResult exec(Command cmd) {
         try {
-            return Optional.ofNullable(doExec(cmd))
-                    .orElse(DefaultExecResult.toSuccess(cmd.getType()));
+            return Optional.ofNullable(
+                    doExec(cmd)
+            ).orElse(
+                    DefaultExecResult.toSuccess(
+                            cmd.getType()
+                    )
+            );
         } catch (Exception e) {
             logger.error("Execute command {} failed.", e, getClass().getName());
             return handleError(e, cmd);
@@ -24,7 +29,9 @@ public abstract class AbstractCmdExecutor implements CommandExecutor {
     }
 
     private ExecResult handleError(Exception e, Command cmd) {
-        return DefaultExecResult.toRuntimeError(Utils.getMergedErrorMessage(e));
+        return DefaultExecResult.toRuntimeError(
+                Utils.getMergedErrorMessage(e)
+        );
     }
 
     abstract ExecResult doExec(Command cmd) throws Exception;

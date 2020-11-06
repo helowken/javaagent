@@ -8,7 +8,7 @@ import agent.base.utils.IOUtils;
 import agent.base.utils.Utils;
 import agent.client.args.parse.DefaultParamParser;
 import agent.common.message.command.Command;
-import agent.common.message.command.impl.StringCommand;
+import agent.common.message.command.DefaultCommand;
 
 import java.util.Collections;
 import java.util.List;
@@ -40,7 +40,7 @@ public class JavascriptConfigCmdParser extends AbstractCmdParser<CmdParams> {
                         )
                 )
         );
-        return new StringCommand(CMD_JS_CONFIG, script);
+        return new DefaultCommand(CMD_JS_CONFIG, script);
     }
 
     @Override

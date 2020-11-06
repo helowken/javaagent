@@ -10,7 +10,7 @@ import agent.client.args.parse.TransformOptConfigs;
 import agent.common.config.ModuleConfig;
 import agent.common.config.TransformerConfig;
 import agent.common.message.command.Command;
-import agent.common.message.command.impl.PojoCommand;
+import agent.common.message.command.DefaultCommand;
 
 import java.util.Collections;
 
@@ -44,7 +44,7 @@ abstract class AbstractTransformCmdParser extends AbstractModuleCmdParser {
 
     @Override
     Command newCommand(Object data) {
-        return new PojoCommand(CMD_TRANSFORM, data);
+        return new DefaultCommand(CMD_TRANSFORM, data);
     }
 
     @Override

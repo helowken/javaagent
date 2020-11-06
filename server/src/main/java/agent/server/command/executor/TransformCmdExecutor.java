@@ -1,8 +1,6 @@
 package agent.server.command.executor;
 
-import agent.common.config.ModuleConfig;
 import agent.common.message.command.Command;
-import agent.common.message.command.impl.PojoCommand;
 import agent.common.message.result.ExecResult;
 import agent.server.transform.TransformMgr;
 
@@ -11,9 +9,10 @@ class TransformCmdExecutor extends AbstractTransformCmdExecutor {
 
     @Override
     ExecResult doExec(Command cmd) {
-        ModuleConfig moduleConfig = ((PojoCommand) cmd).getPojo();
         return convert(
-                TransformMgr.getInstance().transformByConfig(moduleConfig),
+                TransformMgr.getInstance().transformByConfig(
+                        cmd.getContent()
+                ),
                 cmd.getType(),
                 PREFIX
         );

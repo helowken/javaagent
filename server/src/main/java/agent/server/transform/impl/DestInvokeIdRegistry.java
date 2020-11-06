@@ -4,7 +4,8 @@ import agent.base.utils.IOUtils;
 import agent.base.utils.LockObject;
 import agent.base.utils.Logger;
 import agent.base.utils.Utils;
-import agent.common.struct.impl.Structs;
+import agent.common.buffer.ByteUtils;
+import agent.common.struct.impl.Struct;
 import agent.invoke.DestInvoke;
 import agent.server.ServerListener;
 import agent.server.event.AgentEvent;
@@ -99,8 +100,10 @@ public class DestInvokeIdRegistry implements ServerListener, AgentEventListener 
                     String path = getMetadataFile(outputPath);
                     if (outputPaths.contains(outputPath)) {
                         try {
-                            byte[] bs = Structs.serializeMap(
-                                    convertMetadata()
+                            byte[] bs = ByteUtils.getBytes(
+                                    Struct.serialize(
+                                            convertMetadata()
+                                    )
                             );
                             IOUtils.writeBytes(path, bs, false);
                             logger.debug("Metadata is flushed for log: {}", outputPath);

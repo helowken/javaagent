@@ -4,9 +4,11 @@ import java.nio.ByteBuffer;
 
 public class DefaultBBuff implements BBuff {
     private final ByteBuffer buffer;
+    private int initPos;
 
     public DefaultBBuff(ByteBuffer buffer) {
         this.buffer = buffer;
+        this.initPos = buffer.position();
     }
 
     @Override
@@ -69,5 +71,10 @@ public class DefaultBBuff implements BBuff {
     @Override
     public void putLong(long v) {
         buffer.putLong(v);
+    }
+
+    @Override
+    public long getSize() {
+        return buffer.position() - initPos;
     }
 }

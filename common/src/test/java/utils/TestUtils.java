@@ -3,12 +3,10 @@ package utils;
 import agent.base.utils.IndentUtils;
 
 import java.lang.reflect.Array;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 @SuppressWarnings("unchecked")
 public class TestUtils {
@@ -79,8 +77,10 @@ public class TestUtils {
         if (v1.size() != v2.size())
             return false;
         for (Object key : v1.keySet()) {
-            if (!isEquals(v1.get(key), v2.get(key)))
+            if (!isEquals(v1.get(key), v2.get(key))) {
+                System.out.println("Not Equal Key: " + key);
                 return false;
+            }
         }
         return true;
     }
@@ -98,9 +98,23 @@ public class TestUtils {
             return isArrayEquals(v1, v2);
         else if (v1 instanceof Map && v2 instanceof Map)
             return isMapEquals((Map) v1, (Map) v2);
+        else if (v1 instanceof Set && v2 instanceof Set)
+            return isSetEquals((Set) v1, (Set) v2);
         else if (v1 instanceof Collection && v2 instanceof Collection)
             return isCollectionEquals((Collection) v1, (Collection) v2);
         return Objects.equals(v1, v2);
+    }
+
+    private static boolean isSetEquals(Set v1, Set v2) {
+        if (v1.size() != v2.size())
+            return false;
+        for (Object e : v1) {
+            for (Object e2 : v2) {
+                if (isEquals(e, e2))
+                    return true;
+            }
+        }
+        return false;
     }
 
     private static boolean isArrayEquals(Object v1, Object v2) {
@@ -115,7 +129,10 @@ public class TestUtils {
     }
 
     public static boolean isCollectionEquals(Collection c1, Collection c2) {
-        if (!c1.getClass().equals(c2.getClass()) || c1.size() != c2.size())
+        if (c1.size() != c2.size())
+            return false;
+        if (!Collection.class.isInstance(c1) &&
+                !Collection.class.isInstance(c2))
             return false;
         Iterator iter = c1.iterator();
         Iterator iter2 = c2.iterator();

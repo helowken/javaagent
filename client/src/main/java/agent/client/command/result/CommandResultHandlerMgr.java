@@ -2,9 +2,9 @@ package agent.client.command.result;
 
 import agent.base.utils.LockObject;
 import agent.client.command.result.handler.DefaultExecResultHandler;
+import agent.client.command.result.handler.InfoResultHandler;
 import agent.client.command.result.handler.ResetResultHandler;
 import agent.client.command.result.handler.TransformResultHandler;
-import agent.client.command.result.handler.InfoResultHandler;
 import agent.common.message.command.Command;
 import agent.common.message.result.ExecResult;
 
@@ -34,9 +34,13 @@ public class CommandResultHandlerMgr {
 
     public static void handleResult(Command cmd, ExecResult result) {
         resultHandlerLock.sync(lock ->
-                Optional.ofNullable(typeToResultHandler.get(cmd.getType()))
-                        .orElse(DefaultExecResultHandler.getInstance())
-                        .handle(cmd, result)
+                Optional.ofNullable(
+                        typeToResultHandler.get(
+                                cmd.getType()
+                        )
+                ).orElse(
+                        DefaultExecResultHandler.getInstance()
+                ).handle(cmd, result)
         );
     }
 }

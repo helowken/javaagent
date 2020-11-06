@@ -4,9 +4,8 @@ import agent.base.utils.Logger;
 import agent.base.utils.ReflectionUtils;
 import agent.common.config.SaveClassConfig;
 import agent.common.message.command.Command;
-import agent.common.message.command.impl.PojoCommand;
-import agent.common.message.result.DefaultExecResult;
 import agent.common.message.result.ExecResult;
+import agent.common.message.result.entity.DefaultExecResult;
 import agent.server.transform.revision.ClassDataRepository;
 import agent.server.transform.revision.ClassDataStore;
 import agent.server.transform.search.ClassCache;
@@ -23,7 +22,7 @@ class SaveClassCmdExecutor extends AbstractCmdExecutor {
 
     @Override
     ExecResult doExec(Command cmd) throws Exception {
-        SaveClassConfig config = ((PojoCommand) cmd).getPojo();
+        SaveClassConfig config = cmd.getContent();
         return DefaultExecResult.toSuccess(
                 cmd.getType(),
                 null,
