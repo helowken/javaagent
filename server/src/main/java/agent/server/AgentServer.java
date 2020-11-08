@@ -1,7 +1,9 @@
 package agent.server;
 
+import agent.base.utils.Constants;
 import agent.base.utils.LockObject;
 import agent.base.utils.Logger;
+import agent.base.utils.Utils;
 import agent.server.exception.AgentServerException;
 
 import java.io.IOException;
@@ -15,8 +17,14 @@ import java.util.concurrent.TimeUnit;
 
 class AgentServer {
     private static final Logger logger = Logger.getLogger(AgentServer.class);
-    private final ExecutorService executorService = new ThreadPoolExecutor(10, 20, 30,
-            TimeUnit.SECONDS, new LinkedBlockingDeque<>());
+    private final ExecutorService executorService = new ThreadPoolExecutor(
+            10,
+            20,
+            30,
+            TimeUnit.SECONDS,
+            new LinkedBlockingDeque<>(),
+            Utils.newThreadFactory("Server-endpoint")
+    );
     private boolean running = false;
     private boolean end = false;
     private Throwable error;
@@ -35,32 +43,35 @@ class AgentServer {
     }
 
     void startup() {
-        t = new Thread(() -> {
-            try {
-                serverSocket = new ServerSocket();
-                serverSocket.bind(new InetSocketAddress(port));
-                lockObject.syncAndNotifyAll(lock -> {
-                    running = true;
-                    end = true;
-                });
-                logger.info("Agent server started at port: {}", port);
-                while (!shutdown) {
+        t = new Thread(
+                () -> {
                     try {
-                        Socket socket = serverSocket.accept();
-                        executorService.execute(new AgentEndpoint(socket));
+                        serverSocket = new ServerSocket();
+                        serverSocket.bind(new InetSocketAddress(port));
+                        lockObject.syncAndNotifyAll(lock -> {
+                            running = true;
+                            end = true;
+                        });
+                        logger.info("Agent server started at port: {}", port);
+                        while (!shutdown) {
+                            try {
+                                Socket socket = serverSocket.accept();
+                                executorService.execute(new AgentEndpoint(socket));
+                            } catch (Exception e) {
+                                logger.error("Server accept failed.", e);
+                            }
+                        }
+                        executorService.shutdownNow();
                     } catch (Exception e) {
-                        logger.error("Server accept failed.", e);
+                        logger.error("Server startup failed.", e);
+                        lockObject.syncAndNotifyAll(lock -> {
+                            end = true;
+                            error = e;
+                        });
                     }
-                }
-                executorService.shutdownNow();
-            } catch (Exception e) {
-                logger.error("Server startup failed.", e);
-                lockObject.syncAndNotifyAll(lock -> {
-                    end = true;
-                    error = e;
-                });
-            }
-        });
+                },
+                Constants.THREAD_PREFIX + "Server"
+        );
         t.setDaemon(true);
         t.start();
         lockObject.sync(lock -> {

@@ -21,7 +21,6 @@ public class BinaryLogItem extends AbstractLogItem implements BBuff {
     private ByteBuffer markBuffer;
     private int markPosition = -1;
 
-    @Override
     public long getSize() {
         return size;
     }

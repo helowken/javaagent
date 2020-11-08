@@ -1,5 +1,6 @@
 package agent.server.utils.log;
 
+import agent.base.utils.Constants;
 import agent.base.utils.LockObject;
 import agent.base.utils.Logger;
 import agent.server.event.EventListenerMgr;
@@ -46,23 +47,26 @@ public abstract class AbstractLogWriter<T extends LogConfig, V extends LogItem> 
     }
 
     private void startThread() {
-        writerThread = new Thread(() -> {
-            while (!closed.get()) {
-                ItemBuffer itemBuffer = null;
-                try {
-                    tryToRollFile();
-                    itemBuffer = taskQueue.take();
-                    itemBuffer.write();
-                } catch (InterruptedException e) {
-                    logger.error("Write thread is interrupted.", e);
-                } catch (Throwable e) {
-                    logger.error("Write thread meets unknown error.", e);
-                } finally {
-                    if (itemBuffer != null)
-                        itemBuffer.clear();
-                }
-            }
-        });
+        writerThread = new Thread(
+                () -> {
+                    while (!closed.get()) {
+                        ItemBuffer itemBuffer = null;
+                        try {
+                            tryToRollFile();
+                            itemBuffer = taskQueue.take();
+                            itemBuffer.write();
+                        } catch (InterruptedException e) {
+                            logger.error("Write thread is interrupted.", e);
+                        } catch (Throwable e) {
+                            logger.error("Write thread meets unknown error.", e);
+                        } finally {
+                            if (itemBuffer != null)
+                                itemBuffer.clear();
+                        }
+                    }
+                },
+                Constants.THREAD_PREFIX + "Writer"
+        );
         writerThread.start();
     }
 

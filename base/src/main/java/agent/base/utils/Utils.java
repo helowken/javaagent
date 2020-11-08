@@ -4,6 +4,7 @@ import java.io.*;
 import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
+import java.util.concurrent.ThreadFactory;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -281,6 +282,10 @@ public class Utils {
                 return true;
         }
         return false;
+    }
+
+    public static ThreadFactory newThreadFactory(String name) {
+        return runnable -> new Thread(runnable, Constants.THREAD_PREFIX + name);
     }
 
     public interface WithValueFunc<T> {

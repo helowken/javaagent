@@ -1,5 +1,6 @@
 package agent.server.command.executor;
 
+import agent.base.utils.Constants;
 import agent.base.utils.Logger;
 import agent.common.config.StackTraceConfig;
 import agent.common.message.command.Command;
@@ -14,6 +15,7 @@ import agent.server.utils.log.binary.BinaryLogItem;
 import agent.server.utils.log.binary.BinaryLogItemPool;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 class StackTraceCmdExecutor extends AbstractCmdExecutor {
@@ -90,15 +92,29 @@ class StackTraceCmdExecutor extends AbstractCmdExecutor {
         public void run() {
             BinaryLogItem logItem = BinaryLogItemPool.get(logKey);
             logItem.markAndPosition(Integer.BYTES);
+            long startPos = logItem.getSize();
             Struct.serialize(
                     logItem,
-                    Thread.getAllStackTraces(),
+                    getStackTraces(),
                     context
             );
-            logItem.putIntToMark(
-                    (int) logItem.getSize()
-            );
+            long endPos = logItem.getSize();
+            int size = (int) (endPos - startPos);
+            logItem.putIntToMark(size);
             LogMgr.logBinary(logKey, logItem);
+        }
+
+        private Map<Thread, StackTraceElement[]> getStackTraces() {
+            Map<Thread, StackTraceElement[]> stMap = Thread.getAllStackTraces();
+            Map<Thread, StackTraceElement[]> rsMap = new HashMap<>();
+            stMap.forEach(
+                    (thread, stEls) -> {
+                        String name = thread.getName();
+                        if (name == null || !name.startsWith(Constants.THREAD_PREFIX))
+                            rsMap.put(thread, stEls);
+                    }
+            );
+            return rsMap;
         }
     }
 }

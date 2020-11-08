@@ -50,12 +50,13 @@ public class InvokeChainSearcher {
             SystemConfig.getInt(KEY_MAX_POOL_SIZE),
             5,
             TimeUnit.MINUTES,
-            new LinkedBlockingQueue<>()
+            new LinkedBlockingQueue<>(),
+            Utils.newThreadFactory("ChainSearcher")
     );
 
     static {
         Runtime.getRuntime().addShutdownHook(
-                new Thread(executor::shutdownNow)
+                new Thread(executor::shutdownNow, Constants.THREAD_PREFIX + "ChainSearcher-shutdown")
         );
     }
 

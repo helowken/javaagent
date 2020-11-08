@@ -1,7 +1,9 @@
 package agent.server.event;
 
+import agent.base.utils.Constants;
 import agent.base.utils.LockObject;
 import agent.base.utils.Logger;
+import agent.base.utils.Utils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -15,11 +17,19 @@ public class EventListenerMgr {
     private static final Logger logger = Logger.getLogger(EventListenerMgr.class);
     private static final Map<Class<? extends AgentEvent>, List<AgentEventListener>> eventToListenerList = new HashMap<>();
     private static final LockObject listenerLock = new LockObject();
-    private static final ThreadPoolExecutor executor = new ThreadPoolExecutor(2, 10,
-            5, TimeUnit.MINUTES, new ArrayBlockingQueue<>(100));
+    private static final ThreadPoolExecutor executor = new ThreadPoolExecutor(
+            2,
+            10,
+            5,
+            TimeUnit.MINUTES,
+            new ArrayBlockingQueue<>(100),
+            Utils.newThreadFactory("Event")
+    );
 
     static {
-        Runtime.getRuntime().addShutdownHook(new Thread(executor::shutdown));
+        Runtime.getRuntime().addShutdownHook(
+                new Thread(executor::shutdown, Constants.THREAD_PREFIX + "Event-shutdown")
+        );
     }
 
     public static void reg(Class<? extends AgentEvent> eventType, AgentEventListener listener) {

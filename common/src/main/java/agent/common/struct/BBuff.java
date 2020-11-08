@@ -24,6 +24,4 @@ public interface BBuff {
     long getLong();
 
     void putLong(long v);
-
-    long getSize();
 }

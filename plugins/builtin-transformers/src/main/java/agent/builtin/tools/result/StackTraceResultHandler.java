@@ -67,6 +67,7 @@ public class StackTraceResultHandler extends AbstractResultHandler<Tree<StackTra
                 in -> {
                     int totalSize = 0;
                     int size = in.readInt();
+                    System.out.println("-----: " + size);
                     byte[] bs = ref.get();
                     if (bs.length < size) {
                         bs = new byte[bs.length * 2];
