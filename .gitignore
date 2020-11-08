@@ -2,8 +2,10 @@ target/
 logs/
 .idea/
 .settings/
+.jython_cache/
 **/*.iml
 .classpath
 .project
 .metadata
 **/*.toDelete
+*.log

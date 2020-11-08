@@ -64,7 +64,6 @@ abstract class AbstractTraceTest extends AbstractTest {
                     }
 
                     flushAndWaitMetadata(outputPath);
-                    System.out.println(IOUtils.readToString(outputPath));
 
                     TraceInvokeResultHandler handler = new TraceInvokeResultHandler();
 

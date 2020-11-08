@@ -11,13 +11,15 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-@SuppressWarnings("unchecked")
 public class CostTimeStatisticsTransformer extends CallChainTransformer {
     public static final String REG_KEY = "@costTimeStat";
 
     @Override
     protected String newLogKey(Map<String, Object> logConf) {
-        return regLogBinary(logConf, Collections.EMPTY_MAP);
+        return regLogBinary(
+                logConf,
+                Collections.emptyMap()
+        );
     }
 
     @Override

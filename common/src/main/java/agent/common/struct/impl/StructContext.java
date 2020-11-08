@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
 public class StructContext {
     private final Map<Integer, PojoConfig> typeToPojoConfig = new ConcurrentHashMap<>();
     private PojoCreator pojoCreator = null;
-    private final Map<Object, PojoValues> cache = new ConcurrentHashMap<>();
+    private final ThreadLocal<Map<Object, PojoValues>> cacheLocal = new ThreadLocal<>();
 
     public void clear() {
         typeToPojoConfig.clear();
@@ -23,7 +23,11 @@ public class StructContext {
     }
 
     public void clearCache() {
-        cache.clear();
+        Map<Object, PojoValues> cache = cacheLocal.get();
+        if (cache != null) {
+            cache.clear();
+            cacheLocal.remove();
+        }
     }
 
     public <T> PojoInfo<T> addPojoInfo(Class<T> pojoClass, int pojoType) {
@@ -163,6 +167,11 @@ public class StructContext {
     PojoValues getPojoValues(Object v) {
         if (v == null)
             throw new IllegalArgumentException();
+        Map<Object, PojoValues> cache = cacheLocal.get();
+        if (cache == null) {
+            cache = new ConcurrentHashMap<>();
+            cacheLocal.set(cache);
+        }
         return cache.computeIfAbsent(
                 v,
                 o -> {
@@ -210,7 +219,6 @@ public class StructContext {
             if (config.predicate.test(pojoClass))
                 return config.pojoInfo;
         }
-
         PojoClass pojoAnnt = pojoClass.getAnnotation(PojoClass.class);
         if (pojoAnnt == null)
             throw new RuntimeException("No pojo type found for class: " + pojoClass);

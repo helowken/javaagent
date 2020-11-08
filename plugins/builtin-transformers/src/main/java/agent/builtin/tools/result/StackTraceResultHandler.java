@@ -13,7 +13,6 @@ import agent.server.command.entity.StackTraceElementEntity;
 import agent.server.command.entity.StackTraceEntity;
 
 import java.io.File;
-import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -58,36 +57,16 @@ public class StackTraceResultHandler extends AbstractResultHandler<Tree<StackTra
     }
 
     private Tree<StackTraceCountItem> doCalculate(File dataFile) {
-        AtomicReference<byte[]> ref = new AtomicReference<>(
-                new byte[256 * 1024]
-        );
         Tree<StackTraceCountItem> tree = new Tree<>();
         calculateBinaryFile(
                 dataFile,
-                in -> {
-                    int totalSize = 0;
-                    int size = in.readInt();
-                    System.out.println("-----: " + size);
-                    byte[] bs = ref.get();
-                    if (bs.length < size) {
-                        bs = new byte[bs.length * 2];
-                        ref.set(bs);
-                    }
-
-                    IOUtils.read(in, bs, size);
-                    totalSize += Integer.BYTES;
-                    totalSize += size;
-
-                    convertStackTraceToTree(
-                            tree,
-                            Struct.deserialize(
-                                    ByteBuffer.wrap(bs, 0, size),
-                                    context
-                            )
-                    );
-
-                    return totalSize;
-                }
+                in -> deserializeBytes(
+                        in,
+                        bb -> convertStackTraceToTree(
+                                tree,
+                                Struct.deserialize(bb, context)
+                        )
+                )
         );
         return tree;
     }

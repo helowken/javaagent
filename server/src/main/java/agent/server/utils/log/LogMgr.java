@@ -1,12 +1,15 @@
 package agent.server.utils.log;
 
+import agent.common.struct.BBuff;
 import agent.common.utils.Registry;
 import agent.server.utils.log.binary.BinaryLogItem;
+import agent.server.utils.log.binary.BinaryLogItemPool;
 import agent.server.utils.log.binary.BinaryLogger;
 import agent.server.utils.log.text.TextLogItem;
 import agent.server.utils.log.text.TextLogger;
 
 import java.util.Map;
+import java.util.function.Consumer;
 
 public class LogMgr {
     private static final Registry<LoggerType, FileLogger> typeToLogger = new Registry<>();
@@ -61,5 +64,16 @@ public class LogMgr {
 
     public static void closeBinary(String logKey) {
         getLogger(LoggerType.TEXT).close(logKey);
+    }
+
+    public static void logBinary(String logKey, Consumer<BBuff> consumer) {
+        BinaryLogItem logItem = BinaryLogItemPool.get(logKey);
+        logItem.markAndPosition(Integer.BYTES);
+        long startPos = logItem.getSize();
+        consumer.accept(logItem);
+        long endPos = logItem.getSize();
+        int size = (int) (endPos - startPos);
+        logItem.putIntToMark(size);
+        LogMgr.logBinary(logKey, logItem);
     }
 }

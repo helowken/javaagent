@@ -1,6 +1,8 @@
 package agent.builtin.transformer.utils;
 
 import agent.base.utils.Utils;
+import agent.common.struct.impl.annotation.PojoClass;
+import agent.common.struct.impl.annotation.PojoProperty;
 
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
@@ -8,17 +10,30 @@ import java.text.NumberFormat;
 import java.util.List;
 import java.util.Map;
 
+import static agent.builtin.transformer.utils.TraceItem.POJO_TYPE;
+
+@PojoClass(type = POJO_TYPE)
 public class TraceItem {
+    public static final int POJO_TYPE = 0;
     public static final int TYPE_INVOKE = 0;
     public static final int TYPE_CATCH = 1;
+    @PojoProperty(index = 0)
     private int id;
+    @PojoProperty(index = 1)
     private int parentId;
+    @PojoProperty(index = 2)
     private int invokeId;
+    @PojoProperty(index = 3)
     private int type;
+    @PojoProperty(index = 4)
     private long startTime;
+    @PojoProperty(index = 5)
     private long endTime;
+    @PojoProperty(index = 6)
     private List<Map<String, Object>> args;
+    @PojoProperty(index = 7)
     private Map<String, Object> returnValue;
+    @PojoProperty(index = 8)
     private Map<String, Object> error;
 
     public int getId() {

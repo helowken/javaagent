@@ -11,10 +11,16 @@ import java.io.*;
 import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 abstract class AbstractResultHandler<T, P extends ResultParams> implements ResultHandler<P> {
+    AtomicReference<byte[]> bufRef = new AtomicReference<>(
+            new byte[256 * 1024]
+    );
+
     abstract T calculate(Collection<File> dataFiles, P params);
 
     List<File> findDataFiles(String dataFilePath) {
@@ -113,6 +119,23 @@ abstract class AbstractResultHandler<T, P extends ResultParams> implements Resul
                     }
                 }
         );
+    }
+
+    int deserializeBytes(DataInputStream in, Consumer<ByteBuffer> consumer) throws IOException {
+        int totalSize = 0;
+        int size = in.readInt();
+        byte[] bs = bufRef.get();
+        if (bs.length < size) {
+            bs = new byte[bs.length * 2];
+            bufRef.set(bs);
+        }
+        IOUtils.read(in, bs, size);
+        totalSize += Integer.BYTES;
+        totalSize += size;
+        consumer.accept(
+                ByteBuffer.wrap(bs, 0, size)
+        );
+        return totalSize;
     }
 
     void calculateTextFile(File dataFile, CalculateTextFunc calculateTextFunc) {

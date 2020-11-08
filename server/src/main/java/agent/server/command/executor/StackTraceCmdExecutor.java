@@ -11,8 +11,6 @@ import agent.server.command.entity.StackTraceEntity;
 import agent.server.schedule.ScheduleMgr;
 import agent.server.schedule.ScheduleTask;
 import agent.server.utils.log.LogMgr;
-import agent.server.utils.log.binary.BinaryLogItem;
-import agent.server.utils.log.binary.BinaryLogItemPool;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -90,18 +88,11 @@ class StackTraceCmdExecutor extends AbstractCmdExecutor {
 
         @Override
         public void run() {
-            BinaryLogItem logItem = BinaryLogItemPool.get(logKey);
-            logItem.markAndPosition(Integer.BYTES);
-            long startPos = logItem.getSize();
-            Struct.serialize(
-                    logItem,
-                    getStackTraces(),
-                    context
+            Object o = getStackTraces();
+            LogMgr.logBinary(
+                    logKey,
+                    buf -> Struct.serialize(buf, o, context)
             );
-            long endPos = logItem.getSize();
-            int size = (int) (endPos - startPos);
-            logItem.putIntToMark(size);
-            LogMgr.logBinary(logKey, logItem);
         }
 
         private Map<Thread, StackTraceElement[]> getStackTraces() {

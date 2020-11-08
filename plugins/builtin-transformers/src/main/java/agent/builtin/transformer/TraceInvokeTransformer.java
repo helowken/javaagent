@@ -4,7 +4,8 @@ import agent.base.utils.Utils;
 import agent.builtin.transformer.utils.DefaultValueConverter;
 import agent.builtin.transformer.utils.TraceItem;
 import agent.builtin.transformer.utils.ValueConverter;
-import agent.common.utils.JsonUtils;
+import agent.common.struct.impl.Struct;
+import agent.common.struct.impl.StructContext;
 import agent.invoke.DestInvoke;
 import agent.server.transform.impl.CallChainTransformer;
 import agent.server.utils.log.LogMgr;
@@ -22,12 +23,12 @@ import static agent.server.transform.impl.ProxyAnnotationConfig.ARGS_ON_AFTER;
 
 public class TraceInvokeTransformer extends CallChainTransformer {
     public static final String REG_KEY = "@traceInvoke";
-
     private static final ValueConverter valueConverter = new DefaultValueConverter();
+    private static final StructContext context = new StructContext();
 
     @Override
     protected String newLogKey(Map<String, Object> logConf) {
-        return regLogText(
+        return regLogBinary(
                 logConf,
                 Collections.emptyMap()
         );
@@ -81,16 +82,17 @@ public class TraceInvokeTransformer extends CallChainTransformer {
         protected void processOnCompleted(List<TraceResult> completed, Object instanceOrNull, DestInvoke destInvoke, Object[] otherArgs) {
             final String logKey = Utils.getArgValue(otherArgs, 0);
             ValueConverter valueConverter = Utils.getArgValue(otherArgs, 1);
-            String content = JsonUtils.writeAsString(
-                    completed.stream()
-                            .map(
-                                    item -> item.convert(valueConverter)
-                            )
-                            .collect(
-                                    Collectors.toList()
-                            )
+            Object o = completed.stream()
+                    .map(
+                            item -> item.convert(valueConverter)
+                    )
+                    .collect(
+                            Collectors.toList()
+                    );
+            LogMgr.logBinary(
+                    logKey,
+                    buf -> Struct.serialize(buf, o, context)
             );
-            LogMgr.logText(logKey, content + '\n');
         }
     }
 

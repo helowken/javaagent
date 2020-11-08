@@ -1,18 +1,22 @@
 package agent.builtin.tools.result;
 
-import agent.base.utils.*;
+import agent.base.utils.IndentUtils;
+import agent.base.utils.InvokeDescriptorUtils;
+import agent.base.utils.Logger;
 import agent.builtin.tools.result.filter.TraceResultFilter;
 import agent.builtin.tools.result.filter.TreeResultConverter;
 import agent.builtin.tools.result.parse.TraceResultParams;
 import agent.builtin.transformer.utils.TraceItem;
+import agent.common.struct.impl.Struct;
+import agent.common.struct.impl.StructContext;
 import agent.common.tree.INode;
 import agent.common.tree.Node;
 import agent.common.tree.Tree;
 import agent.common.tree.TreeUtils;
-import agent.common.utils.JsonUtils;
 import agent.server.transform.impl.DestInvokeIdRegistry.InvokeMetadata;
 
 import java.io.File;
+import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -22,6 +26,13 @@ import static agent.builtin.transformer.utils.DefaultValueConverter.*;
 public class TraceInvokeResultHandler extends AbstractResultHandler<Collection<Tree<TraceItem>>, TraceResultParams> {
     private static final Logger logger = Logger.getLogger(TraceInvokeResultHandler.class);
     private static final String indent = IndentUtils.getIndent(1);
+    private static final StructContext context = new StructContext();
+
+    static {
+        context.setPojoCreator(
+                type -> type == TraceItem.POJO_TYPE ? new TraceItem() : null
+        );
+    }
 
     @Override
     public void exec(TraceResultParams params) throws Exception {
@@ -141,29 +152,21 @@ public class TraceInvokeResultHandler extends AbstractResultHandler<Collection<T
 
     private List<Tree<TraceItem>> doCalculate(File dataFile) {
         List<Tree<TraceItem>> trees = new ArrayList<>();
-        calculateTextFile(
+        calculateBinaryFile(
                 dataFile,
-                reader -> {
-                    String line;
-                    while ((line = reader.readLine()) != null) {
-                        line = line.trim();
-                        if (Utils.isNotBlank(line))
-                            trees.add(
-                                    processRow(line)
-                            );
-                    }
-                }
+                in -> deserializeBytes(
+                        in,
+                        bb -> trees.add(
+                                processTree(bb)
+                        )
+                )
         );
         return trees;
     }
 
-    private Tree<TraceItem> processRow(String row) {
+    private Tree<TraceItem> processTree(ByteBuffer bb) {
         Map<Integer, Node<TraceItem>> idToNode = new HashMap<>();
-        List<TraceItem> traceItemList = JsonUtils.read(
-                row,
-                new TypeObject<List<TraceItem>>() {
-                }
-        );
+        List<TraceItem> traceItemList = Struct.deserialize(bb, context);
         Tree<TraceItem> tree = new Tree<>();
         idToNode.put(-1, tree);
         traceItemList.forEach(
