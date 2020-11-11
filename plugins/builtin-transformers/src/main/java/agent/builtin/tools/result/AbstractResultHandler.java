@@ -17,7 +17,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 abstract class AbstractResultHandler<T, P extends ResultParams> implements ResultHandler<P> {
-    AtomicReference<byte[]> bufRef = new AtomicReference<>(
+    private static final Logger logger = Logger.getLogger(AbstractResultHandler.class);
+    private final AtomicReference<byte[]> bufRef = new AtomicReference<>(
             new byte[256 * 1024]
     );
 
@@ -25,16 +26,19 @@ abstract class AbstractResultHandler<T, P extends ResultParams> implements Resul
 
     List<File> findDataFiles(String dataFilePath) {
         File dir = new File(dataFilePath).getParentFile();
+        List<File> rsList = null;
         if (dir != null && dir.exists() && dir.isDirectory()) {
             File[] files = dir.listFiles();
             if (files != null)
-                return Stream.of(files)
+                rsList = Stream.of(files)
                         .filter(
                                 file -> filterDataFile(file, dataFilePath)
                         )
                         .collect(Collectors.toList());
         }
-        return Collections.emptyList();
+        if (rsList == null || rsList.isEmpty())
+            throw new RuntimeException("No data files found for: " + dataFilePath);
+        return rsList;
     }
 
     private boolean filterDataFile(File file, String dataFilePath) {
@@ -73,32 +77,41 @@ abstract class AbstractResultHandler<T, P extends ResultParams> implements Resul
     }
 
     Map<Integer, InvokeMetadata> readMetadata(String inputPath) throws IOException {
-        byte[] bs = IOUtils.readBytes(
-                FileUtils.getValidFile(
-                        DestInvokeIdRegistry.getMetadataFile(inputPath)
-                ).getAbsolutePath()
-        );
-        Map<Integer, String> idToClassInvoke = Struct.deserialize(
-                ByteBuffer.wrap(bs)
-        );
-        Map<Integer, InvokeMetadata> rsMap = new HashMap<>();
-        idToClassInvoke.forEach(
-                (id, classInvoke) -> rsMap.put(
-                        id,
-                        DestInvokeIdRegistry.parse(classInvoke)
-                )
-        );
-        return rsMap;
+        try {
+            byte[] bs = IOUtils.readBytes(
+                    FileUtils.getValidFile(
+                            DestInvokeIdRegistry.getMetadataFile(inputPath)
+                    ).getAbsolutePath()
+            );
+            Map<Integer, String> idToClassInvoke = Struct.deserialize(
+                    ByteBuffer.wrap(bs)
+            );
+            Map<Integer, InvokeMetadata> rsMap = new HashMap<>();
+            idToClassInvoke.forEach(
+                    (id, classInvoke) -> rsMap.put(
+                            id,
+                            DestInvokeIdRegistry.parse(classInvoke)
+                    )
+            );
+            return rsMap;
+        } catch (Exception e) {
+            logger.error("Read metadata failed.", e);
+            return Collections.emptyMap();
+        }
     }
 
-    String formatInvoke(String method) {
+    String formatInvoke(InvokeMetadata metadata) {
+        if (metadata.isUnknown())
+            return metadata.invoke;
         TextConfig config = new TextConfig();
         config.withReturnType = false;
         config.withPkg = false;
-        return InvokeDescriptorUtils.descToText(method, config);
+        return InvokeDescriptorUtils.descToText(metadata.invoke, config);
     }
 
     String formatClassName(InvokeMetadata metadata) {
+        if (metadata.isUnknown())
+            return metadata.clazz;
         String result = InvokeDescriptorUtils.getSimpleName(metadata.clazz);
         if (metadata.idx > 1)
             result += "#" + metadata.idx + "";
@@ -116,6 +129,8 @@ abstract class AbstractResultHandler<T, P extends ResultParams> implements Resul
                             if (length < 0)
                                 throw new RuntimeException("Invalid calculation.");
                         }
+                    } catch (Exception e) {
+                        throw new RuntimeException("Calculate data file failed: " + inputFile, e);
                     }
                 }
         );
@@ -150,24 +165,28 @@ abstract class AbstractResultHandler<T, P extends ResultParams> implements Resul
     }
 
     InvokeMetadata getMetadata(Map<Integer, InvokeMetadata> idToInvoke, Integer invokeId) {
-        return Optional.ofNullable(
-                idToInvoke.get(invokeId)
-        ).orElseThrow(
-                () -> new RuntimeException("No metadata found for invoke id: " + invokeId)
-        );
+        InvokeMetadata invokeMetadata = idToInvoke.get(invokeId);
+        if (invokeMetadata == null) {
+            logger.error("No metadata found for invoke id: {}", invokeId);
+            invokeMetadata = InvokeMetadata.unknown(invokeId);
+        }
+        return invokeMetadata;
     }
 
     String convertInvoke(Integer parentInvokeId, Map<Integer, InvokeMetadata> idToInvoke, InvokeMetadata metadata) {
-        String invoke = formatInvoke(metadata.invoke);
+        String invoke = formatInvoke(metadata);
+        String className = null;
         if (parentInvokeId == null)
-            invoke = formatClassName(metadata) + " # " + invoke;
+            className = formatClassName(metadata);
         else {
             InvokeMetadata parentMetadata = getMetadata(idToInvoke, parentInvokeId);
             if (!parentMetadata.clazz.equals(metadata.clazz) ||
                     parentMetadata.idx != metadata.idx)
-                invoke = formatClassName(metadata) + " # " + invoke;
+                className = formatClassName(metadata);
         }
-        return invoke;
+        return Utils.isNotBlank(className) ?
+                className + " # " + invoke :
+                invoke;
     }
 
     private void calculateFile(File dataFile, ProcessFileFunc processFileFunc) {

@@ -45,20 +45,10 @@ public class FilterOptUtils {
             );
 
         InvokeChainConfig chainConfig = createInvokeChainConfig(opts);
-        if (!isEmpty(chainConfig))
+        if (!chainConfig.isEmpty())
             targetConfig.setInvokeChainConfig(chainConfig);
 
         return targetConfig;
-    }
-
-    private static boolean isEmpty(InvokeChainConfig chainConfig) {
-        return chainConfig.getMatchClassFilter() == null &&
-                chainConfig.getMatchMethodFilter() == null &&
-                chainConfig.getMatchConstructorFilter() == null &&
-                chainConfig.getSearchClassFilter() == null &&
-                chainConfig.getSearchMethodFilter() == null &&
-                chainConfig.getSearchConstructorFilter() == null &&
-                chainConfig.getMaxLevel() <= 0;
     }
 
     private static <T extends FilterConfig> T newFilterConfig(String str, Supplier<T> supplier, Function<String, String> convertFunc) {

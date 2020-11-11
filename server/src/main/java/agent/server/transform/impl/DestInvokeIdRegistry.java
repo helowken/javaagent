@@ -195,11 +195,30 @@ public class DestInvokeIdRegistry implements ServerListener, AgentEventListener 
         public final String clazz;
         public final int idx;
         public final String invoke;
+        private final boolean unknown;
 
         InvokeMetadata(String clazz, int idx, String invoke) {
+            this(clazz, idx, invoke, false);
+        }
+
+        InvokeMetadata(String clazz, int idx, String invoke, boolean unknown) {
             this.clazz = clazz;
             this.idx = idx;
             this.invoke = invoke;
+            this.unknown = unknown;
+        }
+
+        public boolean isUnknown() {
+            return unknown;
+        }
+
+        public static InvokeMetadata unknown(int invokeId) {
+            return new InvokeMetadata(
+                    "",
+                    1,
+                    "invokeId=" + invokeId,
+                    true
+            );
         }
     }
 }

@@ -11,7 +11,7 @@ public class TransformOptConfigs {
             "Without this option, the default transformer is used to do the transformation.";
     private static final OptConfigSuite suite = new OptConfigSuite(
             new OptConfig(
-                    "-ti",
+                    "-tid",
                     "--transformer-id",
                     KEY_TRANSFORMER_ID,
                     DESC

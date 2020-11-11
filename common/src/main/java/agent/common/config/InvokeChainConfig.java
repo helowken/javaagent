@@ -21,6 +21,16 @@ public class InvokeChainConfig extends AbstractValidConfig {
     @PojoProperty(index = 6)
     private int maxLevel = -1;
 
+    public boolean isEmpty() {
+        return getMatchClassFilter() == null &&
+                getMatchMethodFilter() == null &&
+                getMatchConstructorFilter() == null &&
+                getSearchClassFilter() == null &&
+                getSearchMethodFilter() == null &&
+                getSearchConstructorFilter() == null &&
+                getMaxLevel() <= 0;
+    }
+
     public ClassFilterConfig getSearchClassFilter() {
         return searchClassFilter;
     }

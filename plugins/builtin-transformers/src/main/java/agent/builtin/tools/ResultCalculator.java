@@ -22,8 +22,8 @@ public class ResultCalculator {
                     parser.parse(args)
             );
         } catch (Throwable t) {
+//            t.printStackTrace();
             logger.error("Run failed.", t);
-            ConsoleLogger.getInstance().error("Error: {}", t.getMessage());
         }
     }
 
@@ -39,6 +39,7 @@ public class ResultCalculator {
 
     public static class CostTimeByInvoke {
         public static void main(String[] args) {
+            args = new String[] {"/home/helowken/cost-time/ctt"};
             run(
                     args,
                     new CostTimeInvokeResultParamParser(),
