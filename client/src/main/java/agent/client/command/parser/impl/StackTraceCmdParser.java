@@ -5,6 +5,7 @@ import agent.base.args.parse.CmdParams;
 import agent.base.args.parse.KeyValueOptParser;
 import agent.base.args.parse.Opts;
 import agent.base.help.HelpArg;
+import agent.base.utils.FileUtils;
 import agent.base.utils.Utils;
 import agent.client.args.parse.DefaultParamParser;
 import agent.client.args.parse.StackTraceOptConfigs;
@@ -83,7 +84,9 @@ public class StackTraceCmdParser extends AbstractCmdParser<CmdParams> {
         );
         config.setLogConfig(
                 newLogConfig(
-                        params.getArgs()[0]
+                        FileUtils.getAbsolutePath(
+                                params.getArgs()[0]
+                        )
                 )
         );
         return new DefaultCommand(CMD_STACK_TRACE, config);

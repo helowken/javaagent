@@ -5,6 +5,7 @@ import agent.base.utils.Utils;
 import agent.common.config.ClassFilterConfig;
 import agent.common.config.FilterConfig;
 import agent.common.config.InvokeChainConfig;
+import agent.common.config.StringFilterConfig;
 import agent.invoke.DestInvoke;
 
 import java.util.ArrayList;
@@ -33,6 +34,10 @@ public class FilterUtils {
                 .replaceAll("$", "\\$")
                 .replaceAll("*", ".*")
                 .toString();
+    }
+
+    public static String parseForString(String fs) {
+        return "^" + parse(fs) + "$";
     }
 
     private static String parseForClass(String fs) {
@@ -141,6 +146,26 @@ public class FilterUtils {
 
     public static AgentFilter<String> newInvokeStringFilter(List<AgentFilter<String>> filters, Collection<String> includes, Collection<String> excludes) {
         return newStringFilter(filters, includes, excludes, FilterUtils::parseForInvoke);
+    }
+
+    public static AgentFilter<String> newStringFilter(StringFilterConfig config, Function<String, String> parseFunc) {
+        return config == null ?
+                null :
+                newStringFilter(
+                        config.getIncludes(),
+                        config.getExcludes(),
+                        parseFunc
+                );
+    }
+
+    public static AgentFilter<String> newStringFilter(Collection<String> includes, Collection<String> excludes,
+                                                      Function<String, String> parseFunc) {
+        return newStringFilter(
+                new ArrayList<>(),
+                includes,
+                excludes,
+                parseFunc
+        );
     }
 
     public static AgentFilter<String> newStringFilter(List<AgentFilter<String>> filters, Collection<String> includes, Collection<String> excludes,

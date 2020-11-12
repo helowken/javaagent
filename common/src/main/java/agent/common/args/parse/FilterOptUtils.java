@@ -51,7 +51,7 @@ public class FilterOptUtils {
         return targetConfig;
     }
 
-    private static <T extends FilterConfig> T newFilterConfig(String str, Supplier<T> supplier, Function<String, String> convertFunc) {
+    public static <T extends FilterConfig> T newFilterConfig(String str, Supplier<T> supplier, Function<String, String> convertFunc) {
         Set<String> ss = Utils.splitToSet(str, SEP);
         Set<String> includes = new HashSet<>();
         Set<String> excludes = new HashSet<>();

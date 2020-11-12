@@ -11,16 +11,14 @@ import java.io.*;
 import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 abstract class AbstractResultHandler<T, P extends ResultParams> implements ResultHandler<P> {
     private static final Logger logger = Logger.getLogger(AbstractResultHandler.class);
-    private final AtomicReference<byte[]> bufRef = new AtomicReference<>(
-            new byte[256 * 1024]
-    );
+    private static final int BUF_INIT_SIZE = 256 * 1024;
+    private final ThreadLocal<byte[]> bufLocal = new ThreadLocal<>();
 
     abstract T calculate(Collection<File> dataFiles, P params);
 
@@ -136,14 +134,23 @@ abstract class AbstractResultHandler<T, P extends ResultParams> implements Resul
         );
     }
 
+    private byte[] getBuf(int destSize) {
+        byte[] bs = bufLocal.get();
+        int size = bs == null ? BUF_INIT_SIZE : bs.length;
+        while (size < destSize) {
+            size *= 2;
+        }
+        if (bs == null || size > bs.length) {
+            bs = new byte[size];
+            bufLocal.set(bs);
+        }
+        return bs;
+    }
+
     int deserializeBytes(DataInputStream in, Consumer<ByteBuffer> consumer) throws IOException {
         int totalSize = 0;
         int size = in.readInt();
-        byte[] bs = bufRef.get();
-        if (bs.length < size) {
-            bs = new byte[bs.length * 2];
-            bufRef.set(bs);
-        }
+        byte[] bs = getBuf(size);
         IOUtils.read(in, bs, size);
         totalSize += Integer.BYTES;
         totalSize += size;

@@ -43,13 +43,9 @@ public class StructContext {
     public <T> StructContext addPojoInfo(Predicate<Class<T>> predicate, PojoInfo<T> pojoInfo) {
         if (pojoInfo == null)
             throw new IllegalArgumentException();
-        typeToPojoConfig.compute(
+        typeToPojoConfig.computeIfAbsent(
                 pojoInfo.getType(),
-                (pojoType, oldValue) -> {
-                    if (oldValue != null)
-                        throw new RuntimeException("Duplicated pojo type: " + pojoType);
-                    return new PojoConfig<>(predicate, pojoInfo);
-                }
+                key -> new PojoConfig<>(predicate, pojoInfo)
         );
         return this;
     }

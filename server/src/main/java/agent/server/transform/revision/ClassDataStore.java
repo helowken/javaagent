@@ -17,8 +17,10 @@ public class ClassDataStore {
 
     File getClassDataFile(Class<?> clazz) {
         String relativePath = new StringItem(clazz.getName())
-                .replaceAll(".", File.separator)
-                .replaceAll("$", "#") + "_" +
+                .replaceAll("/", "_")
+                .replaceAll("\\", "_")
+                .replaceAll("$", "#")
+                .replaceAll(".", File.separator) + "_" +
                 System.identityHashCode(clazz.getClassLoader()) + "_" +
                 System.identityHashCode(clazz) + ".class";
         return new File(dir, relativePath);
