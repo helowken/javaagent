@@ -40,7 +40,7 @@ abstract class AbstractCostTimeResultHandler<T> extends AbstractResultHandler<T,
             cacheResult(cacheFilePath, result);
         }
         doPrint(
-                readMetadata(inputPath),
+                readInvokeMetadata(inputPath),
                 result,
                 params
         );

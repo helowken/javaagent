@@ -4,6 +4,7 @@ import agent.base.utils.*;
 import agent.common.config.*;
 import agent.common.utils.DependentClassItem;
 import agent.common.utils.JsonUtils;
+import agent.common.utils.MetadataUtils;
 import agent.invoke.DestInvoke;
 import agent.invoke.MethodInvoke;
 import agent.invoke.proxy.ProxyRegInfo;
@@ -290,7 +291,7 @@ public abstract class AbstractTest {
             new File(outputPath + ".invoke_cache").delete();
             new File(outputPath + ".chain_cache").delete();
             Stream.of(
-                    DestInvokeIdRegistry.getMetadataFile(outputPath)
+                    MetadataUtils.getMetadataFile(outputPath)
             ).map(File::new)
                     .forEach(File::delete);
         }

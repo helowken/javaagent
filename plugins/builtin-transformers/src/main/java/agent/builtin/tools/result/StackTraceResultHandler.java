@@ -43,6 +43,21 @@ public class StackTraceResultHandler extends AbstractResultHandler<Tree<StackTra
     }
 
     @Override
+    Map<Integer, String> readMetadata(String inputPath) {
+        try {
+            Map<String, Integer> nameToId = super.readMetadata(inputPath);
+            Map<Integer, String> idToName = new HashMap<>();
+            nameToId.forEach(
+                    (name, id) -> idToName.put(id, name)
+            );
+            return idToName;
+        } catch (Exception e) {
+            logger.error("Read metadata failed.", e);
+            return Collections.emptyMap();
+        }
+    }
+
+    @Override
     Tree<StackTraceCountItem> calculate(Collection<File> dataFiles, StackTraceResultParams params) {
         AtomicReference<Tree<StackTraceCountItem>> ref = new AtomicReference<>(null);
         dataFiles.parallelStream()
@@ -69,9 +84,13 @@ public class StackTraceResultHandler extends AbstractResultHandler<Tree<StackTra
         AgentFilter<String> stackFilter = newFilter(
                 StackTraceOptConfigs.getStackExpr(opts)
         );
-        AgentFilter<String> elementFilter = newFilter(
-                StackTraceOptConfigs.getElementExpr(opts)
+        AgentFilter<String> classFilter = newFilter(
+                StackTraceOptConfigs.getElementClassExpr(opts)
         );
+        AgentFilter<String> methodFilter = newFilter(
+                StackTraceOptConfigs.getElementMethodExpr(opts)
+        );
+        Map<Integer, String> metadata = params.getMetadata();
         Tree<StackTraceCountItem> tree = new Tree<>();
         calculateBinaryFile(
                 dataFile,
@@ -82,8 +101,11 @@ public class StackTraceResultHandler extends AbstractResultHandler<Tree<StackTra
                                 filterStackTrace(
                                         Struct.deserialize(bb, context),
                                         stackFilter,
-                                        elementFilter
-                                )
+                                        classFilter,
+                                        methodFilter,
+                                        metadata
+                                ),
+                                metadata
                         )
                 )
         );
@@ -92,26 +114,34 @@ public class StackTraceResultHandler extends AbstractResultHandler<Tree<StackTra
 
     private AgentFilter<String> newFilter(String s) {
         if (Utils.isNotBlank(s)) {
-            StringFilterConfig filterConfig = FilterOptUtils.newFilterConfig(s, StringFilterConfig::new, null);
+            StringFilterConfig filterConfig = FilterOptUtils.newStringFilterConfig(s);
             if (filterConfig != null)
-                return FilterUtils.newStringFilter(filterConfig, FilterUtils::parseForString);
+                return FilterUtils.newStringFilter(filterConfig);
         }
         return null;
     }
 
-    private Map<StackTraceEntity, List<StackTraceElementEntity>> filterStackTrace(Map<StackTraceEntity, Object[]> stMap,
-                                                                                  AgentFilter<String> stackFilter, AgentFilter<String> elementFilter) {
+    private Map<StackTraceEntity, List<StackTraceElementEntity>> filterStackTrace(Map<StackTraceEntity, List<StackTraceElementEntity>> stMap,
+                                                                                  AgentFilter<String> stackFilter, AgentFilter<String> classFilter,
+                                                                                  AgentFilter<String> methodFilter, Map<Integer, String> metadata) {
         Map<StackTraceEntity, List<StackTraceElementEntity>> rsMap = new HashMap<>();
         stMap.forEach(
                 (entity, els) -> {
-                    if (els != null && els.length > 0) {
+                    if (els != null && !els.isEmpty()) {
                         boolean flag = false;
                         List<StackTraceElementEntity> rsList = new ArrayList<>();
                         String className;
+                        String methodName;
                         for (Object o : els) {
                             StackTraceElementEntity el = (StackTraceElementEntity) o;
-                            className = el.getClassName();
-                            if (elementFilter == null || elementFilter.accept(className))
+                            className = metadata.get(
+                                    el.getClassId()
+                            );
+                            methodName = metadata.get(
+                                    el.getMethodId()
+                            );
+                            if ((classFilter == null || classFilter.accept(className)) &&
+                                    (methodFilter == null || methodFilter.accept(methodName)))
                                 rsList.add(el);
                             if (stackFilter == null || stackFilter.accept(className))
                                 flag = true;
@@ -124,14 +154,23 @@ public class StackTraceResultHandler extends AbstractResultHandler<Tree<StackTra
         return rsMap;
     }
 
-    private void convertStackTraceToTree(Tree<StackTraceCountItem> tree, Map<StackTraceEntity, List<StackTraceElementEntity>> stMap) {
+    private void convertStackTraceToTree(Tree<StackTraceCountItem> tree, Map<StackTraceEntity, List<StackTraceElementEntity>> stMap,
+                                         Map<Integer, String> metadata) {
         stMap.forEach(
                 (entity, els) -> {
-                    String name = entity.getThreadName() + "-" + entity.getThreadId();
+                    String name = metadata.get(
+                            entity.getNameId()
+                    ) + "-" + entity.getThreadId();
                     Node<StackTraceCountItem> node = getOrCreateNode(tree, name);
                     Collections.reverse(els);
                     for (StackTraceElementEntity el : els) {
-                        String elName = formatClassName(el.getClassName()) + ":" + el.getMethodName();
+                        String elName = formatClassName(
+                                metadata.get(
+                                        el.getClassId()
+                                )
+                        ) + ":" + metadata.get(
+                                el.getMethodId()
+                        );
                         node = getOrCreateNode(node, elName);
                     }
                 }
@@ -181,6 +220,9 @@ public class StackTraceResultHandler extends AbstractResultHandler<Tree<StackTra
     public void exec(StackTraceResultParams params) throws Exception {
         logger.debug("Params: {}", params);
         String inputPath = params.getInputPath();
+        params.setMetadata(
+                readMetadata(inputPath)
+        );
         List<File> dataFiles = findDataFiles(inputPath);
         Tree<StackTraceCountItem> tree = calculateStats(dataFiles, params);
         IOUtils.writeToConsole(

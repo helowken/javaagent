@@ -285,7 +285,7 @@ public class Utils {
     }
 
     public static ThreadFactory newThreadFactory(String name) {
-        return runnable -> new Thread(runnable, Constants.THREAD_PREFIX + name);
+        return runnable -> new Thread(runnable, Constants.AGENT_THREAD_PREFIX + name);
     }
 
     public interface WithValueFunc<T> {

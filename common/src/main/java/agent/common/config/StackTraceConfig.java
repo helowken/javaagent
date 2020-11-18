@@ -7,6 +7,12 @@ import java.util.Map;
 public class StackTraceConfig extends AbstractScheduleConfig {
     @PojoProperty(index = 0)
     private Map<String, Object> logConfig;
+    @PojoProperty(index = 1)
+    private StringFilterConfig elementFilterConfig;
+    @PojoProperty(index = 2)
+    private StringFilterConfig threadFilterConfig;
+    @PojoProperty(index = 3)
+    private StringFilterConfig stackFilterConfig;
 
     @Override
     public void validate() {
@@ -20,5 +26,29 @@ public class StackTraceConfig extends AbstractScheduleConfig {
 
     public void setLogConfig(Map<String, Object> logConfig) {
         this.logConfig = logConfig;
+    }
+
+    public StringFilterConfig getThreadFilterConfig() {
+        return threadFilterConfig;
+    }
+
+    public void setThreadFilterConfig(StringFilterConfig threadFilterConfig) {
+        this.threadFilterConfig = threadFilterConfig;
+    }
+
+    public StringFilterConfig getStackFilterConfig() {
+        return stackFilterConfig;
+    }
+
+    public void setStackFilterConfig(StringFilterConfig stackFilterConfig) {
+        this.stackFilterConfig = stackFilterConfig;
+    }
+
+    public StringFilterConfig getElementFilterConfig() {
+        return elementFilterConfig;
+    }
+
+    public void setElementFilterConfig(StringFilterConfig elementFilterConfig) {
+        this.elementFilterConfig = elementFilterConfig;
     }
 }

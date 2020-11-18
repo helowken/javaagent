@@ -27,6 +27,7 @@ public class MessageMgr {
                 ErrorEntity.class,
                 TransformResultEntity.class,
 
+                StringFilterConfig.class,
                 ClassFilterConfig.class,
                 MethodFilterConfig.class,
                 ConstructorFilterConfig.class,

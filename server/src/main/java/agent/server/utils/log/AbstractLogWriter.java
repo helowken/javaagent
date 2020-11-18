@@ -65,7 +65,7 @@ public abstract class AbstractLogWriter<T extends LogConfig, V extends LogItem> 
                         }
                     }
                 },
-                Constants.THREAD_PREFIX + "Writer"
+                Constants.AGENT_THREAD_PREFIX + "Writer"
         );
         writerThread.start();
     }

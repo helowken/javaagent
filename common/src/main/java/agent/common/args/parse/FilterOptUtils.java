@@ -51,6 +51,11 @@ public class FilterOptUtils {
         return targetConfig;
     }
 
+
+    public static StringFilterConfig newStringFilterConfig(String str) {
+        return FilterOptUtils.newFilterConfig(str, StringFilterConfig::new, null);
+    }
+
     public static <T extends FilterConfig> T newFilterConfig(String str, Supplier<T> supplier, Function<String, String> convertFunc) {
         Set<String> ss = Utils.splitToSet(str, SEP);
         Set<String> includes = new HashSet<>();

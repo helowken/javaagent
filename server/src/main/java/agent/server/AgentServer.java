@@ -70,7 +70,7 @@ class AgentServer {
                         });
                     }
                 },
-                Constants.THREAD_PREFIX + "Server"
+                Constants.AGENT_THREAD_PREFIX + "Server"
         );
         t.setDaemon(true);
         t.start();

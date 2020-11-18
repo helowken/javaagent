@@ -11,7 +11,15 @@ public class StackTraceEntity {
     @PojoProperty(index = 0)
     private long threadId;
     @PojoProperty(index = 1)
-    private String threadName;
+    private int nameId;
+
+    public int getNameId() {
+        return nameId;
+    }
+
+    public void setNameId(int nameId) {
+        this.nameId = nameId;
+    }
 
     public long getThreadId() {
         return threadId;
@@ -21,11 +29,4 @@ public class StackTraceEntity {
         this.threadId = threadId;
     }
 
-    public String getThreadName() {
-        return threadName;
-    }
-
-    public void setThreadName(String threadName) {
-        this.threadName = threadName;
-    }
 }

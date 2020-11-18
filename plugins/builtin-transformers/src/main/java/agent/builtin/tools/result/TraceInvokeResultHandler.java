@@ -38,7 +38,7 @@ public class TraceInvokeResultHandler extends AbstractResultHandler<Collection<T
     public void exec(TraceResultParams params) throws Exception {
         logger.debug("Params: {}", params);
         String inputPath = params.getInputPath();
-        Map<Integer, InvokeMetadata> idToMetadata = readMetadata(inputPath);
+        Map<Integer, InvokeMetadata> idToMetadata = readInvokeMetadata(inputPath);
         List<File> dataFiles = findDataFiles(inputPath);
         TraceResultTreeConverter converter = new TraceResultTreeConverter();
         calculateStats(dataFiles, params)

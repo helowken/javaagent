@@ -4,6 +4,7 @@ import agent.base.utils.*;
 import agent.base.utils.InvokeDescriptorUtils.TextConfig;
 import agent.builtin.tools.result.parse.ResultParams;
 import agent.common.struct.impl.Struct;
+import agent.common.utils.MetadataUtils;
 import agent.server.transform.impl.DestInvokeIdRegistry;
 import agent.server.transform.impl.DestInvokeIdRegistry.InvokeMetadata;
 
@@ -15,6 +16,7 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+@SuppressWarnings("unchecked")
 abstract class AbstractResultHandler<T, P extends ResultParams> implements ResultHandler<P> {
     private static final Logger logger = Logger.getLogger(AbstractResultHandler.class);
     private static final int BUF_INIT_SIZE = 256 * 1024;
@@ -51,7 +53,7 @@ abstract class AbstractResultHandler<T, P extends ResultParams> implements Resul
     }
 
     protected boolean acceptFile(String filePath) {
-        return !DestInvokeIdRegistry.isMetadataFile(filePath);
+        return !MetadataUtils.isMetadataFile(filePath);
     }
 
     T calculateStats(List<File> dataFiles, P params) {
@@ -74,16 +76,20 @@ abstract class AbstractResultHandler<T, P extends ResultParams> implements Resul
         );
     }
 
-    Map<Integer, InvokeMetadata> readMetadata(String inputPath) throws IOException {
+    <T> T readMetadata(String inputPath) throws IOException {
+        byte[] bs = IOUtils.readBytes(
+                FileUtils.getValidFile(
+                        MetadataUtils.getMetadataFile(inputPath)
+                ).getAbsolutePath()
+        );
+        return (T) Struct.deserialize(
+                ByteBuffer.wrap(bs)
+        );
+    }
+
+    Map<Integer, InvokeMetadata> readInvokeMetadata(String inputPath) {
         try {
-            byte[] bs = IOUtils.readBytes(
-                    FileUtils.getValidFile(
-                            DestInvokeIdRegistry.getMetadataFile(inputPath)
-                    ).getAbsolutePath()
-            );
-            Map<Integer, String> idToClassInvoke = Struct.deserialize(
-                    ByteBuffer.wrap(bs)
-            );
+            Map<Integer, String> idToClassInvoke = readMetadata(inputPath);
             Map<Integer, InvokeMetadata> rsMap = new HashMap<>();
             idToClassInvoke.forEach(
                     (id, classInvoke) -> rsMap.put(

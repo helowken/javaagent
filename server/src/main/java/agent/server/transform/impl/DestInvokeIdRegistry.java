@@ -6,6 +6,7 @@ import agent.base.utils.Logger;
 import agent.base.utils.Utils;
 import agent.common.buffer.ByteUtils;
 import agent.common.struct.impl.Struct;
+import agent.common.utils.MetadataUtils;
 import agent.invoke.DestInvoke;
 import agent.server.ServerListener;
 import agent.server.event.AgentEvent;
@@ -22,7 +23,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class DestInvokeIdRegistry implements ServerListener, AgentEventListener {
     private static final String SEP = "#";
-    private static final String METADATA_FILE = ".metadata";
     private static final Logger logger = Logger.getLogger(DestInvokeIdRegistry.class);
     private static final DestInvokeIdRegistry instance = new DestInvokeIdRegistry();
 
@@ -33,14 +33,6 @@ public class DestInvokeIdRegistry implements ServerListener, AgentEventListener 
 
     public static DestInvokeIdRegistry getInstance() {
         return instance;
-    }
-
-    public static boolean isMetadataFile(String path) {
-        return path.endsWith(METADATA_FILE);
-    }
-
-    public static String getMetadataFile(String path) {
-        return path + METADATA_FILE;
     }
 
     private DestInvokeIdRegistry() {
@@ -97,7 +89,7 @@ public class DestInvokeIdRegistry implements ServerListener, AgentEventListener 
         String outputPath = event.getOutputPath();
         lo.sync(
                 lock -> {
-                    String path = getMetadataFile(outputPath);
+                    String path = MetadataUtils.getMetadataFile(outputPath);
                     if (outputPaths.contains(outputPath)) {
                         try {
                             byte[] bs = ByteUtils.getBytes(

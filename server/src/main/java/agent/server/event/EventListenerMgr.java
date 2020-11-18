@@ -28,7 +28,7 @@ public class EventListenerMgr {
 
     static {
         Runtime.getRuntime().addShutdownHook(
-                new Thread(executor::shutdown, Constants.THREAD_PREFIX + "Event-shutdown")
+                new Thread(executor::shutdown, Constants.AGENT_THREAD_PREFIX + "Event-shutdown")
         );
     }
 

@@ -56,7 +56,7 @@ public class InvokeChainSearcher {
 
     static {
         Runtime.getRuntime().addShutdownHook(
-                new Thread(executor::shutdownNow, Constants.THREAD_PREFIX + "ChainSearcher-shutdown")
+                new Thread(executor::shutdownNow, Constants.AGENT_THREAD_PREFIX + "ChainSearcher-shutdown")
         );
     }
 
