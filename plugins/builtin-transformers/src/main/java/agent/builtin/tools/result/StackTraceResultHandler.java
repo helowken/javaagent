@@ -4,9 +4,10 @@ import agent.base.args.parse.Opts;
 import agent.base.utils.IOUtils;
 import agent.base.utils.Logger;
 import agent.base.utils.Utils;
-import agent.builtin.tools.result.parse.StackTraceOptConfigs;
+import agent.builtin.tools.result.parse.StackTraceResultOptConfigs;
 import agent.builtin.tools.result.parse.StackTraceResultParams;
 import agent.common.args.parse.FilterOptUtils;
+import agent.common.args.parse.StackTraceOptConfigs;
 import agent.common.config.StringFilterConfig;
 import agent.common.struct.impl.Struct;
 import agent.common.struct.impl.StructContext;
@@ -15,6 +16,7 @@ import agent.common.tree.Tree;
 import agent.common.tree.TreeUtils;
 import agent.server.command.entity.StackTraceElementEntity;
 import agent.server.command.entity.StackTraceEntity;
+import agent.server.command.executor.StackTraceUtils;
 import agent.server.transform.search.filter.AgentFilter;
 import agent.server.transform.search.filter.FilterUtils;
 
@@ -81,14 +83,14 @@ public class StackTraceResultHandler extends AbstractResultHandler<Tree<StackTra
 
     private Tree<StackTraceCountItem> doCalculate(File dataFile, StackTraceResultParams params) {
         Opts opts = params.getOpts();
+        AgentFilter<String> elementFilter = newFilter(
+                StackTraceOptConfigs.getElementExpr(opts)
+        );
         AgentFilter<String> stackFilter = newFilter(
                 StackTraceOptConfigs.getStackExpr(opts)
         );
-        AgentFilter<String> classFilter = newFilter(
-                StackTraceOptConfigs.getElementClassExpr(opts)
-        );
-        AgentFilter<String> methodFilter = newFilter(
-                StackTraceOptConfigs.getElementMethodExpr(opts)
+        AgentFilter<String> threadFilter = newFilter(
+                StackTraceOptConfigs.getThreadExpr(opts)
         );
         Map<Integer, String> metadata = params.getMetadata();
         Tree<StackTraceCountItem> tree = new Tree<>();
@@ -98,14 +100,16 @@ public class StackTraceResultHandler extends AbstractResultHandler<Tree<StackTra
                         in,
                         bb -> convertStackTraceToTree(
                                 tree,
-                                filterStackTrace(
+                                StackTraceUtils.getStackTraces(
                                         Struct.deserialize(bb, context),
-                                        stackFilter,
-                                        classFilter,
-                                        methodFilter,
-                                        metadata
+                                        entity -> metadata.get(entity.getNameId()),
+                                        stEl -> metadata.get(stEl.getClassId()) + ": " + metadata.get(stEl.getMethodId()),
+                                        threadFilter,
+                                        elementFilter,
+                                        stackFilter
                                 ),
-                                metadata
+                                metadata,
+                                params
                         )
                 )
         );
@@ -121,59 +125,45 @@ public class StackTraceResultHandler extends AbstractResultHandler<Tree<StackTra
         return null;
     }
 
-    private Map<StackTraceEntity, List<StackTraceElementEntity>> filterStackTrace(Map<StackTraceEntity, List<StackTraceElementEntity>> stMap,
-                                                                                  AgentFilter<String> stackFilter, AgentFilter<String> classFilter,
-                                                                                  AgentFilter<String> methodFilter, Map<Integer, String> metadata) {
-        Map<StackTraceEntity, List<StackTraceElementEntity>> rsMap = new HashMap<>();
+    private void convertStackTraceToTree(Tree<StackTraceCountItem> tree, Map<StackTraceEntity, List<StackTraceElementEntity>> stMap,
+                                         Map<Integer, String> metadata, StackTraceResultParams params) {
         stMap.forEach(
                 (entity, els) -> {
-                    if (els != null && !els.isEmpty()) {
-                        boolean flag = false;
-                        List<StackTraceElementEntity> rsList = new ArrayList<>();
-                        String className;
-                        String methodName;
-                        for (Object o : els) {
-                            StackTraceElementEntity el = (StackTraceElementEntity) o;
-                            className = metadata.get(
-                                    el.getClassId()
-                            );
-                            methodName = metadata.get(
-                                    el.getMethodId()
-                            );
-                            if ((classFilter == null || classFilter.accept(className)) &&
-                                    (methodFilter == null || methodFilter.accept(methodName)))
-                                rsList.add(el);
-                            if (stackFilter == null || stackFilter.accept(className))
-                                flag = true;
+                    if (!els.isEmpty()) {
+                        boolean merge = StackTraceResultOptConfigs.isMerge(
+                                params.getOpts()
+                        );
+                        Collections.reverse(els);
+                        String name;
+                        if (merge) {
+                            StackTraceElementEntity el = els.get(0);
+                            els.remove(0);
+                            name = getElementName(el, metadata);
+                        } else {
+                            name = metadata.get(
+                                    entity.getNameId()
+                            ) + "-" + entity.getThreadId();
                         }
-                        if (flag && !rsList.isEmpty())
-                            rsMap.put(entity, rsList);
+
+                        Node<StackTraceCountItem> node = getOrCreateNode(tree, name);
+                        for (StackTraceElementEntity el : els) {
+                            node = getOrCreateNode(
+                                    node,
+                                    getElementName(el, metadata)
+                            );
+                        }
                     }
                 }
         );
-        return rsMap;
     }
 
-    private void convertStackTraceToTree(Tree<StackTraceCountItem> tree, Map<StackTraceEntity, List<StackTraceElementEntity>> stMap,
-                                         Map<Integer, String> metadata) {
-        stMap.forEach(
-                (entity, els) -> {
-                    String name = metadata.get(
-                            entity.getNameId()
-                    ) + "-" + entity.getThreadId();
-                    Node<StackTraceCountItem> node = getOrCreateNode(tree, name);
-                    Collections.reverse(els);
-                    for (StackTraceElementEntity el : els) {
-                        String elName = formatClassName(
-                                metadata.get(
-                                        el.getClassId()
-                                )
-                        ) + ":" + metadata.get(
-                                el.getMethodId()
-                        );
-                        node = getOrCreateNode(node, elName);
-                    }
-                }
+    private String getElementName(StackTraceElementEntity el, Map<Integer, String> metadata) {
+        return formatClassName(
+                metadata.get(
+                        el.getClassId()
+                )
+        ) + ":" + metadata.get(
+                el.getMethodId()
         );
     }
 

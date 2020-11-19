@@ -4,10 +4,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-class CompoundFilter<T, F extends AgentFilter<T>> implements AgentFilter<T> {
+public class CompoundFilter<T, F extends AgentFilter<T>> implements AgentFilter<T> {
     private final List<F> filters;
 
-    CompoundFilter(Collection<F> filters) {
+    public CompoundFilter(Collection<F> filters) {
         if (filters.size() < 2)
             throw new IllegalArgumentException("Invalid filter length.");
         this.filters = new ArrayList<>(filters);

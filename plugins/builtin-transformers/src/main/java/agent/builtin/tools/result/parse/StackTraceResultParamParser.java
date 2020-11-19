@@ -1,19 +1,20 @@
 package agent.builtin.tools.result.parse;
 
-import agent.base.args.parse.AbstractCmdParamParser;
-import agent.base.args.parse.ArgsOpts;
-import agent.base.args.parse.KeyValueOptParser;
-import agent.base.args.parse.OptParser;
+import agent.base.args.parse.*;
+import agent.common.args.parse.StackTraceOptConfigs;
 
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.List;
 
 public class StackTraceResultParamParser extends AbstractCmdParamParser<StackTraceResultParams> {
     @Override
     protected List<OptParser> getOptParsers() {
-        return Collections.singletonList(
+        return Arrays.asList(
                 new KeyValueOptParser(
                         StackTraceOptConfigs.getSuite()
+                ),
+                new BooleanOptParser(
+                        StackTraceResultOptConfigs.getSuite()
                 )
         );
     }

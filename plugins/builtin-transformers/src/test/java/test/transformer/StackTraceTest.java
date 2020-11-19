@@ -22,6 +22,7 @@ public class StackTraceTest extends AbstractTest {
                                     new String[]{
                                             "-i", "7",
                                             "-c", "100",
+                                            "-ee", "test.*",
                                             outputPath
                                     }
                             ).get(0).getCmd()

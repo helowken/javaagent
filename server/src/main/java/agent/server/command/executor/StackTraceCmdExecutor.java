@@ -14,6 +14,7 @@ import agent.server.command.entity.StackTraceEntity;
 import agent.server.schedule.ScheduleMgr;
 import agent.server.schedule.ScheduleTask;
 import agent.server.transform.search.filter.AgentFilter;
+import agent.server.transform.search.filter.CompoundFilter;
 import agent.server.transform.search.filter.FilterUtils;
 import agent.server.utils.log.LogConfig;
 import agent.server.utils.log.LogMgr;
@@ -94,15 +95,27 @@ class StackTraceCmdExecutor extends AbstractCmdExecutor {
 
         StackTraceTask(StackTraceConfig config) {
             this.config = config;
-            this.threadFilter = FilterUtils.newStringFilter(
-                    config.getThreadFilterConfig()
-            );
+            this.threadFilter = newThreadFilter(config);
             this.stackFilter = FilterUtils.newStringFilter(
                     config.getStackFilterConfig()
             );
             this.elementFilter = FilterUtils.newStringFilter(
                     config.getElementFilterConfig()
             );
+        }
+
+        private AgentFilter<String> newThreadFilter(StackTraceConfig config) {
+            AgentThreadFilter agentThreadFilter = new AgentThreadFilter();
+            AgentFilter<String> threadNameFilter = FilterUtils.newStringFilter(
+                    config.getThreadFilterConfig()
+            );
+            if (threadNameFilter != null) {
+                List<AgentFilter<String>> filters = new ArrayList<>();
+                filters.add(agentThreadFilter);
+                filters.add(threadNameFilter);
+                return new CompoundFilter<>(filters);
+            }
+            return agentThreadFilter;
         }
 
         @Override
@@ -166,29 +179,25 @@ class StackTraceCmdExecutor extends AbstractCmdExecutor {
         }
 
         private Map<Thread, List<StackTraceElement>> getStackTraces() {
-            Map<Thread, StackTraceElement[]> stMap = Thread.getAllStackTraces();
-            Map<Thread, List<StackTraceElement>> rsMap = new HashMap<>();
-            stMap.forEach(
-                    (thread, stEls) -> {
-                        String name = thread.getName();
-                        if ((name == null || !name.startsWith(Constants.AGENT_THREAD_PREFIX)) &&
-                                (threadFilter == null || threadFilter.accept(thread.getName()))) {
-                            List<StackTraceElement> els = new ArrayList<>(stEls.length);
-                            boolean flag = false;
-                            String entry;
-                            for (StackTraceElement stEl : stEls) {
-                                entry = stEl.getClassName() + SEP + stEl.getMethodName();
-                                if (elementFilter == null || elementFilter.accept(entry))
-                                    els.add(stEl);
-                                if (!flag && (stackFilter == null || stackFilter.accept(entry)))
-                                    flag = true;
-                            }
-                            if (flag && !els.isEmpty())
-                                rsMap.put(thread, els);
-                        }
-                    }
+            Map<Thread, List<StackTraceElement>> stMap = new HashMap<>();
+            Thread.getAllStackTraces().forEach(
+                    (thread, els) -> stMap.put(thread, Arrays.asList(els))
             );
-            return rsMap;
+            return StackTraceUtils.getStackTraces(
+                    stMap,
+                    Thread::getName,
+                    stEl -> stEl.getClassName() + SEP + stEl.getMethodName(),
+                    threadFilter,
+                    elementFilter,
+                    stackFilter
+            );
+        }
+    }
+
+    private static class AgentThreadFilter implements AgentFilter<String> {
+        @Override
+        public boolean accept(String v) {
+            return v == null || !v.startsWith(Constants.AGENT_THREAD_PREFIX);
         }
     }
 }
