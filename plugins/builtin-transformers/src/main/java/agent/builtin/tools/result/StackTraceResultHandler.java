@@ -27,6 +27,8 @@ import java.util.concurrent.atomic.AtomicReference;
 @SuppressWarnings("unchecked")
 public class StackTraceResultHandler extends AbstractResultHandler<Tree<StackTraceCountItem>, StackTraceResultParams> {
     private static final Logger logger = Logger.getLogger(StackTraceResultHandler.class);
+    private static final String OUTPUT_COST_TIME = "costTime";
+    private static final String OUTPUT_FLAME_GRAPH = "flameGraph";
     private static final StructContext context = new StructContext();
 
     static {
@@ -146,11 +148,19 @@ public class StackTraceResultHandler extends AbstractResultHandler<Tree<StackTra
                         }
 
                         Node<StackTraceCountItem> node = getOrCreateNode(tree, name);
-                        for (StackTraceElementEntity el : els) {
-                            node = getOrCreateNode(
-                                    node,
-                                    getElementName(el, metadata)
-                            );
+                        if (els.isEmpty())
+                            node.getData().increase();
+                        else {
+                            for (int i = 0, len = els.size(); i < len; ++i) {
+                                StackTraceElementEntity el = els.get(i);
+                                node = getOrCreateNode(
+                                        node,
+                                        getElementName(el, metadata)
+                                );
+                                if (i == len - 1) {
+                                    node.getData().increase();
+                                }
+                            }
                         }
                     }
                 }
@@ -177,8 +187,6 @@ public class StackTraceResultHandler extends AbstractResultHandler<Tree<StackTra
                             new StackTraceCountItem(name)
                     )
             );
-        else
-            childNode.getData().increase();
         return childNode;
     }
 
@@ -215,6 +223,26 @@ public class StackTraceResultHandler extends AbstractResultHandler<Tree<StackTra
         );
         List<File> dataFiles = findDataFiles(inputPath);
         Tree<StackTraceCountItem> tree = calculateStats(dataFiles, params);
+
+        String outputFormat = StackTraceResultOptConfigs.getOutputFormat(params.getOpts());
+        if (outputFormat == null)
+            outputFormat = OUTPUT_FLAME_GRAPH;
+        switch (outputFormat) {
+            case OUTPUT_COST_TIME:
+                outputCostTimeData(tree);
+                break;
+            case OUTPUT_FLAME_GRAPH:
+                outputFlameGraph(tree);
+                break;
+            default:
+                throw new Exception("Invalid output format: " + outputFormat);
+        }
+    }
+
+    private void outputCostTimeData(Tree<StackTraceCountItem> tree) {
+    }
+
+    private void outputFlameGraph(Tree<StackTraceCountItem> tree) throws Exception {
         IOUtils.writeToConsole(
                 writer -> convertToFlameGraphData(tree).forEach(
                         line -> Utils.wrapToRtError(
@@ -233,10 +261,11 @@ public class StackTraceResultHandler extends AbstractResultHandler<Tree<StackTra
                 subTree -> TreeUtils.traverse(
                         subTree,
                         node -> {
-                            if (!node.hasChild())
+                            if (node.getData().isValid()) {
                                 rs.add(
                                         getFullPath(node) + " " + node.getData().count
                                 );
+                            }
                         }
                 )
         );
@@ -258,7 +287,7 @@ public class StackTraceResultHandler extends AbstractResultHandler<Tree<StackTra
     }
 
     private String formatClassName(String className) {
-        return 'L' + className.replaceAll("\\.", "/");
+        return className.replaceAll("\\.", "/");
     }
 
 }

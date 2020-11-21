@@ -6,19 +6,12 @@ import agent.base.args.parse.OptValueType;
 import agent.base.args.parse.Opts;
 
 public class ScheduleOptConfigs {
-    private static final String KEY_TASK_KEY = "TASK_KEY";
     private static final String KEY_DELAY = "DELAY";
     private static final String KEY_INTERVAL = "INTERVAL";
     private static final String KEY_REPEAT_COUNT = "REPEAT_COUNT";
     private static final String KEY_TOTAL_TIME = "TOTAL_TIME";
     private static final long DEFAULT_DELAY = 0;
     private static final OptConfigSuite suite = new OptConfigSuite(
-            new OptConfig(
-                    "-k",
-                    "--key",
-                    KEY_TASK_KEY,
-                    "Task key which is used to stop the task. It must be unique."
-            ),
             new OptConfig(
                     "-d",
                     "--delay",
@@ -55,10 +48,6 @@ public class ScheduleOptConfigs {
 
     public static OptConfigSuite getSuite() {
         return suite;
-    }
-
-    public static String getKey(Opts opts) {
-        return opts.get(KEY_TASK_KEY);
     }
 
     public static long getDelayMs(Opts opts) {

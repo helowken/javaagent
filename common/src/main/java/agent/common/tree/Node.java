@@ -175,4 +175,9 @@ public class Node<T> implements INode<T, Node<T>> {
     public Object getUserProp(String key) {
         return userProps.get(key);
     }
+
+    @Override
+    public String toString() {
+        return "" + data;
+    }
 }

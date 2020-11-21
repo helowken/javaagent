@@ -13,6 +13,7 @@ import agent.common.config.StackTraceConfig;
 import agent.common.message.command.Command;
 import agent.common.message.command.DefaultCommand;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -32,7 +33,11 @@ public class StackTraceCmdParser extends ScheduleCmdParser {
 
     @Override
     List<HelpArg> createHelpArgList() {
-        return Collections.singletonList(
+        return Arrays.asList(
+                new HelpArg(
+                        "TASK_KEY",
+                        "Task key which is used to stop the task. It must be unique."
+                ),
                 getOutputPathHelpArg()
         );
     }
@@ -44,7 +49,7 @@ public class StackTraceCmdParser extends ScheduleCmdParser {
         config.setLogConfig(
                 newLogConfig(
                         FileUtils.getAbsolutePath(
-                                params.getArgs()[0]
+                                params.getArgs()[1]
                         )
                 )
         );

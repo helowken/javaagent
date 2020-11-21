@@ -4,15 +4,18 @@ import static agent.base.utils.AssertUtils.assertEquals;
 
 public class StackTraceCountItem {
     final String name;
-    int count;
+    int count = 0;
 
     StackTraceCountItem(String name) {
         this.name = name;
-        this.count = 1;
     }
 
     void increase() {
         count += 1;
+    }
+
+    boolean isValid() {
+        return count > 0;
     }
 
     void merge(StackTraceCountItem item) {

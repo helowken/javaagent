@@ -1,7 +1,6 @@
 package agent.client.command.parser.impl;
 
 import agent.base.args.parse.*;
-import agent.base.utils.Utils;
 import agent.client.args.parse.DefaultParamParser;
 import agent.client.args.parse.ScheduleOptConfigs;
 import agent.client.command.parser.exception.CommandParseException;
@@ -9,14 +8,11 @@ import agent.common.config.AbstractScheduleConfig;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.UUID;
 
 import static agent.common.args.parse.FilterOptUtils.getHelpOptParser;
 import static agent.common.args.parse.FilterOptUtils.merge;
 
 abstract class ScheduleCmdParser extends AbstractCmdParser<CmdParams> {
-    private static final String KEY_PREFIX = "task:";
-
     @Override
     CmdParamParser<CmdParams> createParamParser() {
         return new DefaultParamParser(
@@ -52,9 +48,7 @@ abstract class ScheduleCmdParser extends AbstractCmdParser<CmdParams> {
 
     void populateConfig(CmdParams params, AbstractScheduleConfig config) {
         Opts opts = params.getOpts();
-        String taskKey = ScheduleOptConfigs.getKey(opts);
-        if (Utils.isBlank(taskKey))
-            taskKey = KEY_PREFIX + UUID.randomUUID();
+        String taskKey = params.getArgs()[0];
         config.setKey(taskKey);
         config.setDelayMs(
                 ScheduleOptConfigs.getDelayMs(opts)
