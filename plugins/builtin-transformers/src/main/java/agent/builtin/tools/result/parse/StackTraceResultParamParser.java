@@ -11,10 +11,11 @@ public class StackTraceResultParamParser extends AbstractCmdParamParser<StackTra
     protected List<OptParser> getOptParsers() {
         return Arrays.asList(
                 new KeyValueOptParser(
-                        StackTraceOptConfigs.getSuite()
+                        StackTraceOptConfigs.getSuite(),
+                        StackTraceResultOptConfigs.getSuite()
                 ),
                 new BooleanOptParser(
-                        StackTraceResultOptConfigs.getSuite()
+                        StackTraceResultOptConfigs.mergeOptConfig
                 )
         );
     }

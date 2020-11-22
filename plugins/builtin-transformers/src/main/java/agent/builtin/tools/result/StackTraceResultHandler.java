@@ -22,11 +22,13 @@ import agent.server.transform.search.filter.FilterUtils;
 
 import java.io.File;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 @SuppressWarnings("unchecked")
 public class StackTraceResultHandler extends AbstractResultHandler<Tree<StackTraceCountItem>, StackTraceResultParams> {
     private static final Logger logger = Logger.getLogger(StackTraceResultHandler.class);
+    private static final String CLASS_METHOD_SEP = ":";
     private static final String OUTPUT_COST_TIME = "costTime";
     private static final String OUTPUT_FLAME_GRAPH = "flameGraph";
     private static final StructContext context = new StructContext();
@@ -172,7 +174,7 @@ public class StackTraceResultHandler extends AbstractResultHandler<Tree<StackTra
                 metadata.get(
                         el.getClassId()
                 )
-        ) + ":" + metadata.get(
+        ) + CLASS_METHOD_SEP + metadata.get(
                 el.getMethodId()
         );
     }
@@ -229,7 +231,7 @@ public class StackTraceResultHandler extends AbstractResultHandler<Tree<StackTra
             outputFormat = OUTPUT_FLAME_GRAPH;
         switch (outputFormat) {
             case OUTPUT_COST_TIME:
-                outputCostTimeData(tree);
+                outputCostTimeData(tree, params);
                 break;
             case OUTPUT_FLAME_GRAPH:
                 outputFlameGraph(tree);
@@ -239,35 +241,79 @@ public class StackTraceResultHandler extends AbstractResultHandler<Tree<StackTra
         }
     }
 
-    private void outputCostTimeData(Tree<StackTraceCountItem> tree) {
+    private void outputCostTimeData(Tree<StackTraceCountItem> tree, StackTraceResultParams params) throws Exception {
+        AtomicInteger total = new AtomicInteger(0);
+        TreeUtils.traverse(
+                tree,
+                node -> {
+                    StackTraceCountItem data = node.getData();
+                    if (data != null && data.isValid())
+                        total.set(total.get() + data.count);
+                }
+        );
+        int totalCount = total.get();
+        float rate = StackTraceResultOptConfigs.getRate(
+                params.getOpts()
+        );
+        Map<String, Set<String>> classToMethods = new HashMap<>();
+        TreeUtils.traverse(
+                tree,
+                node -> {
+                    StackTraceCountItem data = node.getData();
+                    if (data != null &&
+                            data.isValid() &&
+                            ((float) data.count / totalCount) >= rate) {
+                        String[] parts = data.name.split(CLASS_METHOD_SEP);
+                        if (parts.length == 2) {
+                            classToMethods.computeIfAbsent(
+                                    parts[0],
+                                    clazz -> new HashSet<>()
+                            ).add(parts[1]);
+                        }
+                    }
+                }
+        );
+        if (classToMethods.isEmpty())
+            System.out.println("No class and method matched.");
+        else
+            IOUtils.writeToConsole(
+                    writer -> classToMethods.forEach(
+                            (clazz, methods) -> Utils.wrapToRtError(
+                                    () -> {
+                                        writer.write(clazz + ": " + methods);
+                                        writer.append('\n');
+                                    }
+                            )
+                    )
+            );
     }
 
     private void outputFlameGraph(Tree<StackTraceCountItem> tree) throws Exception {
         IOUtils.writeToConsole(
-                writer -> convertToFlameGraphData(tree).forEach(
-                        line -> Utils.wrapToRtError(
-                                () -> {
-                                    writer.write(line);
-                                    writer.append('\n');
-                                }
+                writer -> convertToFlameGraphData(tree)
+                        .forEach(
+                                line -> Utils.wrapToRtError(
+                                        () -> {
+                                            writer.write(line);
+                                            writer.append('\n');
+                                        }
+                                )
                         )
-                )
         );
     }
 
     private Collection<String> convertToFlameGraphData(Tree<StackTraceCountItem> tree) {
         Set<String> rs = new TreeSet<>();
-        tree.getChildren().forEach(
-                subTree -> TreeUtils.traverse(
-                        subTree,
-                        node -> {
-                            if (node.getData().isValid()) {
-                                rs.add(
-                                        getFullPath(node) + " " + node.getData().count
-                                );
-                            }
-                        }
-                )
+        TreeUtils.traverse(
+                tree,
+                node -> {
+                    StackTraceCountItem data = node.getData();
+                    if (data != null && data.isValid()) {
+                        rs.add(
+                                getFullPath(node) + " " + node.getData().count
+                        );
+                    }
+                }
         );
         return rs;
     }

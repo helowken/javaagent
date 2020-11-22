@@ -22,7 +22,7 @@ public class ResultCalculator {
                     parser.parse(args)
             );
         } catch (Throwable t) {
-            t.printStackTrace();
+//            t.printStackTrace();
             logger.error("Run failed.", t);
         }
     }
