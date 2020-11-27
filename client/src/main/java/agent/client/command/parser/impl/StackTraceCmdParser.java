@@ -1,9 +1,6 @@
 package agent.client.command.parser.impl;
 
-import agent.base.args.parse.CmdParams;
-import agent.base.args.parse.KeyValueOptParser;
-import agent.base.args.parse.OptParser;
-import agent.base.args.parse.Opts;
+import agent.base.args.parse.*;
 import agent.base.help.HelpArg;
 import agent.base.utils.FileUtils;
 import agent.base.utils.Utils;
@@ -14,7 +11,6 @@ import agent.common.message.command.Command;
 import agent.common.message.command.DefaultCommand;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 import static agent.client.command.parser.CmdHelpUtils.getOutputPathHelpArg;
@@ -24,9 +20,12 @@ import static agent.common.message.MessageType.CMD_STACK_TRACE;
 public class StackTraceCmdParser extends ScheduleCmdParser {
     @Override
     List<OptParser> getOptParsers() {
-        return Collections.singletonList(
+        return Arrays.asList(
                 new KeyValueOptParser(
-                        StackTraceOptConfigs.getSuite()
+                        StackTraceOptConfigs.getKvSuite()
+                ),
+                new BooleanOptParser(
+                        StackTraceOptConfigs.getBoolSuite()
                 )
         );
     }
@@ -69,6 +68,9 @@ public class StackTraceCmdParser extends ScheduleCmdParser {
             config.setElementFilterConfig(
                     FilterOptUtils.newStringFilterConfig(elementExpr)
             );
+        config.setRecord(
+                StackTraceOptConfigs.isRecord(opts)
+        );
         return new DefaultCommand(CMD_STACK_TRACE, config);
     }
 

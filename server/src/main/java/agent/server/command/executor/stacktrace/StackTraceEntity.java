@@ -1,13 +1,13 @@
-package agent.server.command.entity;
+package agent.server.command.executor.stacktrace;
 
 import agent.common.struct.impl.annotation.PojoClass;
 import agent.common.struct.impl.annotation.PojoProperty;
 
-import static agent.server.command.entity.StackTraceEntity.TYPE;
+import static agent.server.command.executor.stacktrace.StackTraceEntity.POJO_TYPE;
 
-@PojoClass(type = TYPE)
+@PojoClass(type = POJO_TYPE)
 public class StackTraceEntity {
-    public static final int TYPE = 1;
+    public static final int POJO_TYPE = 1;
     @PojoProperty(index = 0)
     private long threadId;
     @PojoProperty(index = 1)

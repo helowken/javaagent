@@ -1,13 +1,22 @@
 package agent.common.tree;
 
+import agent.common.struct.impl.annotation.PojoClass;
+import agent.common.struct.impl.annotation.PojoProperty;
+
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import static agent.common.tree.Node.POJO_TYPE;
+
+@PojoClass(type=POJO_TYPE)
 public class Node<T> implements INode<T, Node<T>> {
+    public static final int POJO_TYPE = 1000;
     private Node<T> parent;
-    private LinkedList<Node<T>> children = new LinkedList<>();
+    @PojoProperty(index = 1)
     private T data;
+    @PojoProperty(index = 2)
+    private LinkedList<Node<T>> children = new LinkedList<>();
     private Map<String, Object> userProps = new HashMap<>();
 
     public Node() {
@@ -15,6 +24,15 @@ public class Node<T> implements INode<T, Node<T>> {
 
     public Node(T data) {
         this.setData(data);
+    }
+
+    public void refreshParent() {
+        children.forEach(
+                child -> {
+                    child.parent = this;
+                    child.refreshParent();
+                }
+        );
     }
 
     @Override
@@ -25,6 +43,10 @@ public class Node<T> implements INode<T, Node<T>> {
     @Override
     public List<Node<T>> getChildren() {
         return new LinkedList<>(children);
+    }
+
+    public void setChildren(LinkedList<Node<T>> children) {
+        this.children = children;
     }
 
     @Override

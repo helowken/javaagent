@@ -238,6 +238,14 @@ public class Utils {
         return firstValidValue(errMsg, Utils::isNotBlank, vs);
     }
 
+    public static <K, V> Map<V, K> swap(Map<K, V> map) {
+        Map<V, K> rsMap = new HashMap<>();
+        map.forEach(
+                (k, v) -> rsMap.put(v, k)
+        );
+        return rsMap;
+    }
+
     public static Throwable getMeaningfulCause(Throwable t) {
         if (t instanceof InvocationTargetException && t.getCause() != null)
             return getMeaningfulCause(t.getCause());

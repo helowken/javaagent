@@ -13,11 +13,21 @@ public class StackTraceConfig extends AbstractScheduleConfig {
     private StringFilterConfig threadFilterConfig;
     @PojoProperty(index = 3)
     private StringFilterConfig stackFilterConfig;
+    @PojoProperty(index = 4)
+    private boolean record = false;
 
     @Override
     public void validate() {
         super.validate();
         validateNotNull(logConfig, "Log config");
+    }
+
+    public boolean isRecord() {
+        return record;
+    }
+
+    public void setRecord(boolean record) {
+        this.record = record;
     }
 
     public Map<String, Object> getLogConfig() {

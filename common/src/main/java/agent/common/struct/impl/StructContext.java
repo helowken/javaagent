@@ -215,11 +215,20 @@ public class StructContext {
             if (config.predicate.test(pojoClass))
                 return config.pojoInfo;
         }
-        PojoClass pojoAnnt = pojoClass.getAnnotation(PojoClass.class);
-        if (pojoAnnt == null)
-            throw new RuntimeException("No pojo type found for class: " + pojoClass);
-        int pojoType = pojoAnnt.type();
+        int pojoType = getClassAnnt(pojoClass).type();
         return addPojoInfo(pojoClass, pojoType);
+    }
+
+    private PojoClass getClassAnnt(Class<?> clazz) {
+        Class<?> tmp = clazz;
+        PojoClass pojoAnnt;
+        while (tmp != null) {
+             pojoAnnt = tmp.getAnnotation(PojoClass.class);
+             if (pojoAnnt != null)
+                 return pojoAnnt;
+             tmp = tmp.getSuperclass();
+        }
+        throw new RuntimeException("No pojo type found for class: " + clazz);
     }
 
     private <T> PojoInfo<T> createPojoInfo(Class<T> pojoClass, int pojoType) {

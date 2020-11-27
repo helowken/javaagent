@@ -9,13 +9,15 @@ public class StackTraceResultOptConfigs {
     private static final String KEY_OUTPUT_FORMAT = "OUTPUT_FORMAT";
     private static final String KEY_RATE = "RATE";
     private static final String DEFAULT_RATE = "0.1";
-    public static final OptConfig mergeOptConfig = new OptConfig(
-            "-m",
-            "--merge",
-            KEY_MERGE,
-            "Merge all stack traces."
+    private static final OptConfigSuite boolSuite = new OptConfigSuite(
+            new OptConfig(
+                    "-m",
+                    "--merge",
+                    KEY_MERGE,
+                    "Merge all stack traces."
+            )
     );
-    private static final OptConfigSuite suite = new OptConfigSuite(
+    private static final OptConfigSuite kvSuite = new OptConfigSuite(
             new OptConfig(
                     "-o",
                     "--output",
@@ -30,8 +32,12 @@ public class StackTraceResultOptConfigs {
             )
     );
 
-    static OptConfigSuite getSuite() {
-        return suite;
+    static OptConfigSuite getKvSuite() {
+        return kvSuite;
+    }
+
+    static OptConfigSuite getBoolSuite() {
+        return boolSuite;
     }
 
     public static boolean isMerge(Opts opts) {
