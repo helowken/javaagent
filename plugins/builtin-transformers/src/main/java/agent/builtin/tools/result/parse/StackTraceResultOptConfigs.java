@@ -8,7 +8,7 @@ public class StackTraceResultOptConfigs {
     private static final String KEY_MERGE = "MERGE";
     private static final String KEY_OUTPUT_FORMAT = "OUTPUT_FORMAT";
     private static final String KEY_RATE = "RATE";
-    private static final String DEFAULT_RATE = "0.1";
+    private static final String DEFAULT_RATE = "0.01";
     private static final OptConfigSuite boolSuite = new OptConfigSuite(
             new OptConfig(
                     "-m",

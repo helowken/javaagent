@@ -6,7 +6,7 @@ import agent.common.struct.impl.annotation.PojoProperty;
 import static agent.base.utils.AssertUtils.assertEquals;
 import static agent.server.command.executor.stacktrace.StackTraceCountItem.POJO_TYPE;
 
-@PojoClass(type=POJO_TYPE)
+@PojoClass(type = POJO_TYPE)
 public class StackTraceCountItem {
     public static final int POJO_TYPE = 2;
     @PojoProperty(index = 1)
@@ -19,7 +19,7 @@ public class StackTraceCountItem {
     public StackTraceCountItem() {
     }
 
-    public StackTraceCountItem(int classId, int methodId) {
+    StackTraceCountItem(int classId, int methodId) {
         this.classId = classId;
         this.methodId = methodId;
     }
@@ -50,6 +50,10 @@ public class StackTraceCountItem {
 
     public void increase() {
         count += 1;
+    }
+
+    public void add(int v) {
+        this.count += v;
     }
 
     public boolean isValid() {

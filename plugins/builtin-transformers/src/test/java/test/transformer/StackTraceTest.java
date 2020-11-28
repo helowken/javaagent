@@ -41,7 +41,7 @@ public class StackTraceTest extends AbstractTest {
     }
 
     @Test
-    public void test3() throws Exception {
+    public void test2() throws Exception {
         runWithFile(
                 (outputPath, config) -> {
                     ExecResult result = CmdExecutorMgr.exec(
@@ -66,4 +66,5 @@ public class StackTraceTest extends AbstractTest {
                 }
         );
     }
+
 }

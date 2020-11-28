@@ -96,10 +96,16 @@ public class StackTraceResultHandler extends AbstractResultHandler<Tree<StackTra
         );
         return record ?
                 buildTreeByRecord(dataFile, params) :
-                buildTreeByAccumulation(dataFile);
+                buildTreeByAccumulation(dataFile, params);
     }
 
-    private Tree<StackTraceCountItem> buildTreeByAccumulation(File dataFile) {
+    private Tree<StackTraceCountItem> buildTreeByAccumulation(File dataFile, StackTraceResultParams params) {
+        AgentFilter<String> elementFilter = newFilter(
+                StackTraceOptConfigs.getElementExpr(
+                        params.getOpts()
+                )
+        );
+        StMetadata metadata = params.getMetadata();
         return Utils.wrapToRtError(
                 () -> {
                     byte[] bs = IOUtils.readBytes(dataFile);
@@ -107,9 +113,34 @@ public class StackTraceResultHandler extends AbstractResultHandler<Tree<StackTra
                     bb.getInt();
                     Tree<StackTraceCountItem> tree = Struct.deserialize(bb, context);
                     tree.refreshParent();
+                    if (elementFilter != null)
+                        tree.getChildren().forEach(
+                                child -> filterTree(tree, child, elementFilter, metadata)
+                        );
                     return tree;
                 }
         );
+    }
+
+    private void filterTree(Node<StackTraceCountItem> pn, Node<StackTraceCountItem> cn, AgentFilter<String> elementFilter, StMetadata metadata) {
+        StackTraceCountItem data = cn.getData();
+        String entry = getElementName(data, metadata, false);
+        if (elementFilter.accept(entry)) {
+            if (!pn.containsChild(cn))
+                pn.appendChild(cn);
+            cn.getChildren().forEach(
+                    child -> filterTree(cn, child, elementFilter, metadata)
+            );
+        } else {
+            pn.removeChild(cn);
+            if (pn.getData() != null)
+                pn.getData().add(
+                        cn.getData().getCount()
+                );
+            cn.getChildren().forEach(
+                    child -> filterTree(pn, child, elementFilter, metadata)
+            );
+        }
     }
 
     private Tree<StackTraceCountItem> buildTreeByRecord(File dataFile, StackTraceResultParams params) {
@@ -137,7 +168,7 @@ public class StackTraceResultHandler extends AbstractResultHandler<Tree<StackTra
                                         entity -> metadata.get(
                                                 entity.getNameId()
                                         ),
-                                        stEl -> getElementName(stEl, metadata),
+                                        stEl -> getElementName(stEl, metadata, false),
                                         threadFilter,
                                         elementFilter,
                                         stackFilter
@@ -194,7 +225,6 @@ public class StackTraceResultHandler extends AbstractResultHandler<Tree<StackTra
         );
         List<File> dataFiles = findDataFiles(inputPath);
         Tree<StackTraceCountItem> tree = calculateStats(dataFiles, params);
-
         String outputFormat = StackTraceResultOptConfigs.getOutputFormat(params.getOpts());
         if (outputFormat == null)
             outputFormat = OUTPUT_FLAME_GRAPH;
@@ -305,7 +335,8 @@ public class StackTraceResultHandler extends AbstractResultHandler<Tree<StackTra
                     0,
                     getElementName(
                             tmp.getData(),
-                            metadata
+                            metadata,
+                            true
                     )
             );
             ++count;
@@ -318,12 +349,13 @@ public class StackTraceResultHandler extends AbstractResultHandler<Tree<StackTra
         return className.replaceAll("\\.", "/");
     }
 
-    private String getElementName(StackTraceCountItem el, StMetadata metadata) {
-        return formatClassName(
-                metadata.get(
-                        el.getClassId()
-                )
-        ) + CLASS_METHOD_SEP + metadata.get(
+    private String getElementName(StackTraceCountItem el, StMetadata metadata, boolean formatClass) {
+        String className = metadata.get(
+                el.getClassId()
+        );
+        if (formatClass)
+            className = formatClassName(className);
+        return className + CLASS_METHOD_SEP + metadata.get(
                 el.getMethodId()
         );
     }

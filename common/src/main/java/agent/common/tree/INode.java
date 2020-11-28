@@ -38,6 +38,10 @@ public interface INode<T, N extends INode> {
 
     int indexOf(N child);
 
+    default boolean containsChild(N child) {
+        return indexOf(child) > -1;
+    }
+
     boolean isFirstChild(N child);
 
     boolean isLastChild(N child);
