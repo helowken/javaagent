@@ -15,6 +15,14 @@ public class ReflectionUtils {
     public static final String CONSTRUCTOR_NAME = "<init>";
     private static final String[] javaPackages = {"java.", "javax.", "sun.", "com.sun.", "com.oracle.", "jdk."};
 
+    public static boolean isLambdaInvoke(String invoke) {
+        return invoke.contains("lambda$");
+    }
+
+    public static boolean isLambdaClass(String className) {
+        return className.contains("$$Lambda$");
+    }
+
     public static boolean isJavaIntrinsicPackage(String namePath) {
         for (String javaPackage : javaPackages) {
             if (namePath.startsWith(javaPackage))

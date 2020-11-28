@@ -3,6 +3,7 @@ package agent.builtin.tools.result;
 import agent.base.args.parse.Opts;
 import agent.base.utils.IOUtils;
 import agent.base.utils.Logger;
+import agent.base.utils.ReflectionUtils;
 import agent.base.utils.Utils;
 import agent.builtin.tools.result.parse.StackTraceResultOptConfigs;
 import agent.builtin.tools.result.parse.StackTraceResultParams;
@@ -265,16 +266,18 @@ public class StackTraceResultHandler extends AbstractResultHandler<Tree<StackTra
                     if (data != null &&
                             data.isValid() &&
                             ((float) data.getCount() / totalCount) >= rate) {
-                        classToMethods.computeIfAbsent(
-                                metadata.get(
-                                        data.getClassId()
-                                ),
-                                clazz -> new HashSet<>()
-                        ).add(
-                                metadata.get(
-                                        data.getMethodId()
-                                )
-                        );
+                        data = findNotLambda(node, metadata);
+                        if (data != null)
+                            classToMethods.computeIfAbsent(
+                                    metadata.get(
+                                            data.getClassId()
+                                    ),
+                                    clazz -> new HashSet<>()
+                            ).add(
+                                    metadata.get(
+                                            data.getMethodId()
+                                    )
+                            );
                     }
                 }
         );
@@ -291,6 +294,32 @@ public class StackTraceResultHandler extends AbstractResultHandler<Tree<StackTra
                             )
                     )
             );
+    }
+
+    private StackTraceCountItem findNotLambda(Node<StackTraceCountItem> node, StMetadata metadata) {
+        StackTraceCountItem data = node.getData();
+        String method, className;
+        Node<StackTraceCountItem> tmp = node;
+        while (data != null) {
+            className = metadata.get(
+                    data.getClassId()
+            );
+            method = metadata.get(
+                    data.getMethodId()
+            );
+            if (ReflectionUtils.isLambdaClass(className) ||
+                    ReflectionUtils.isLambdaInvoke(method)) {
+                tmp = tmp.getParent();
+                if (tmp != null)
+                    data = tmp.getData();
+                else {
+                    data = null;
+                    break;
+                }
+            } else
+                break;
+        }
+        return data;
     }
 
     private void outputFlameGraph(Tree<StackTraceCountItem> tree, StackTraceResultParams params) throws Exception {
