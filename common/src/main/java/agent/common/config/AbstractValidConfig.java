@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.Objects;
 import java.util.stream.Stream;
 
+import static agent.base.utils.AssertUtils.assertFalse;
 import static agent.base.utils.AssertUtils.assertNotNull;
 import static agent.base.utils.AssertUtils.assertTrue;
 
@@ -21,6 +22,7 @@ abstract class AbstractValidConfig implements ValidConfig {
         assertNotNull(v, field + " is null.");
         if (v instanceof Collection) {
             Collection<Object> vs = (Collection) v;
+            assertFalse(vs.isEmpty(), field + " is empty.");
             vs.forEach(
                     el -> {
                         if (el instanceof ValidConfig)

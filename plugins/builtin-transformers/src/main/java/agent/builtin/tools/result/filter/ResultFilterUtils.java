@@ -1,13 +1,11 @@
 package agent.builtin.tools.result.filter;
 
-import agent.builtin.tools.result.parse.ResultOptConfigs;
 import agent.base.args.parse.Opts;
-import agent.common.args.parse.ChainFilterOptConfigs;
+import agent.builtin.tools.result.parse.ResultOptConfigs;
+import agent.common.args.parse.FilterOptUtils;
 import agent.common.config.*;
 import agent.server.transform.search.filter.FilterUtils;
 import agent.server.transform.search.filter.ScriptFilter;
-
-import static agent.common.args.parse.FilterOptUtils.createTargetConfig;
 
 public class ResultFilterUtils {
     private static <T> void populateFilter(AbstractResultFilter<T> filter, ClassFilterConfig classFilterConfig, MethodFilterConfig methodFilterConfig,
@@ -40,7 +38,7 @@ public class ResultFilterUtils {
     }
 
     public static <M> void populateFilter(AbstractResultFilter<M> filter, AbstractResultFilter<M> searchFilter, AbstractResultFilter<M> matchFilter, Opts opts) {
-        TargetConfig targetConfig = createTargetConfig(opts);
+        TargetConfig targetConfig = FilterOptUtils.createTargetConfig(opts);
         if (filter != null) {
             populateFilter(filter,
                     targetConfig.getClassFilter(),
@@ -58,7 +56,7 @@ public class ResultFilterUtils {
                     invokeChainConfig.getSearchConstructorFilter(),
                     null
             );
-            int level = ChainFilterOptConfigs.getChainSearchLevel(opts);
+            int level = invokeChainConfig.getMaxLevel();
             if (level > 0)
                 matchFilter.setLevel(level);
         }

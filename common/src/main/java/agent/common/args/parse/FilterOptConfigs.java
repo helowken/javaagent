@@ -2,32 +2,24 @@ package agent.common.args.parse;
 
 import agent.base.args.parse.OptConfig;
 import agent.base.args.parse.OptConfigSuite;
+import agent.base.args.parse.OptValueType;
 import agent.base.args.parse.Opts;
 import agent.base.utils.Utils;
 
+import java.util.Collections;
+import java.util.List;
+
 public class FilterOptConfigs {
-    private static final String KEY_MATCH_CLASS = "MATCH_CLASS";
-    private static final String KEY_MATCH_METHOD = "MATCH_METHOD";
-    private static final String KEY_MATCH_CONSTRUCTOR = "MATCH_CONSTRUCTOR";
-    static final OptConfig matchClassOpt = new OptConfig(
-            "-c",
-            "--match-class",
-            KEY_MATCH_CLASS,
-            "Filter rules for classes."
-    );
+    private static final String KEY_MATCH_FILTER = "MATCH_FILTER";
+
     private static final OptConfigSuite suite = new OptConfigSuite(
-            matchClassOpt,
             new OptConfig(
-                    "-m",
-                    "--match-method",
-                    KEY_MATCH_METHOD,
-                    "Filter rules for methods."
-            ),
-            new OptConfig(
-                    "-i",
-                    "--match-constructor",
-                    KEY_MATCH_CONSTRUCTOR,
-                    "Filter rules for constructors."
+                    "-f",
+                    "--match-filter",
+                    KEY_MATCH_FILTER,
+                    "Filter rules for classes, methods and constructors",
+                    OptValueType.STRING,
+                    true
             )
     );
 
@@ -35,23 +27,19 @@ public class FilterOptConfigs {
         return suite;
     }
 
-    public static void checkClassStr(Opts opts) {
-        getClassStr(opts, true);
+    public static List<FilterItem> getFilterList(Opts opts) {
+        List<Object> filterStrs = opts.getList(KEY_MATCH_FILTER);
+        return filterStrs == null ?
+                Collections.emptyList() :
+                FilterOptUtils.parse(filterStrs);
     }
 
-    public static String getClassStr(Opts opts, boolean notBlank) {
-        return suite.get(
-                opts,
-                KEY_MATCH_CLASS,
-                v -> !notBlank || Utils.isNotBlank(v)
-        );
-    }
-
-    static String getMethodStr(Opts opts) {
-        return opts.get(KEY_MATCH_METHOD);
-    }
-
-    static String getConstructorStr(Opts opts) {
-        return opts.get(KEY_MATCH_CONSTRUCTOR);
+    public static void checkClassFilter(Opts opts) {
+        List<FilterItem> matchFilterList = FilterOptConfigs.getFilterList(opts);
+        for (FilterItem matchFilter : matchFilterList) {
+            if (Utils.isNotBlank(matchFilter.classStr))
+                return;
+        }
+        throw new RuntimeException("No class filter specified.");
     }
 }

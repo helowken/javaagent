@@ -14,7 +14,7 @@ import agent.common.message.command.DefaultCommand;
 
 import java.util.Collections;
 
-import static agent.common.args.parse.FilterOptUtils.getFilterAndChainOptParsers;
+import static agent.common.args.parse.FilterOptUtils.getFilterOptParsers;
 import static agent.common.args.parse.FilterOptUtils.merge;
 import static agent.common.message.MessageType.CMD_TRANSFORM;
 
@@ -27,7 +27,7 @@ abstract class AbstractTransformCmdParser extends AbstractModuleCmdParser {
     CmdParamParser<CmdParams> createParamParser() {
         return new DefaultParamParser(
                 merge(
-                        getFilterAndChainOptParsers(),
+                        getFilterOptParsers(),
                         new KeyValueOptParser(
                                 TransformOptConfigs.getSuite()
                         )

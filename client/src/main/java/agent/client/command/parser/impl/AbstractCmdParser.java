@@ -4,11 +4,10 @@ import agent.base.args.parse.CmdParamParser;
 import agent.base.args.parse.CmdParams;
 import agent.base.args.parse.OptConfig;
 import agent.base.help.*;
-import agent.common.message.command.CmdItem;
 import agent.client.command.parser.CommandParser;
 import agent.client.command.parser.exception.TooFewArgsException;
-import agent.common.args.parse.ChainFilterOptConfigs;
 import agent.common.args.parse.FilterOptConfigs;
+import agent.common.message.command.CmdItem;
 import agent.common.message.command.Command;
 
 import java.util.Collections;
@@ -32,8 +31,7 @@ abstract class AbstractCmdParser<P extends CmdParams> implements CommandParser {
         HelpInfo[] others = getParamParser().getOptConfigList()
                 .stream()
                 .anyMatch(
-                        optConfig -> FilterOptConfigs.getSuite().contains(optConfig) ||
-                                ChainFilterOptConfigs.getSuite().contains(optConfig)
+                        FilterOptConfigs.getSuite()::contains
                 ) ?
                 new HelpInfo[]{
                         new HelpSingleValue(FILTER_RULE_DESC)

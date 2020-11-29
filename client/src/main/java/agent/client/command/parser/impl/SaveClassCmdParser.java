@@ -59,7 +59,8 @@ public class SaveClassCmdParser extends AbstractCmdParser<CmdParams> {
 
     @Override
     void checkParams(CmdParams params) {
-        FilterOptConfigs.checkClassStr(
+        super.checkParams(params);
+        FilterOptConfigs.checkClassFilter(
                 params.getOpts()
         );
     }

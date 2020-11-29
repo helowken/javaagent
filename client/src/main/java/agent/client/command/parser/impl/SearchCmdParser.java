@@ -6,7 +6,7 @@ import agent.client.args.parse.DefaultParamParser;
 import agent.common.message.command.Command;
 import agent.common.message.command.DefaultCommand;
 
-import static agent.common.args.parse.FilterOptUtils.getFilterAndChainOptParsers;
+import static agent.common.args.parse.FilterOptUtils.getFilterOptParsers;
 import static agent.common.message.MessageType.CMD_SEARCH;
 
 public class SearchCmdParser extends AbstractModuleCmdParser {
@@ -18,7 +18,7 @@ public class SearchCmdParser extends AbstractModuleCmdParser {
     @Override
     CmdParamParser<CmdParams> createParamParser() {
         return new DefaultParamParser(
-                getFilterAndChainOptParsers()
+                getFilterOptParsers()
         );
     }
 

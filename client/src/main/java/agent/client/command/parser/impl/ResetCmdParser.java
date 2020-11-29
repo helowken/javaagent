@@ -8,7 +8,7 @@ import agent.common.config.ResetConfig;
 import agent.common.message.command.Command;
 import agent.common.message.command.DefaultCommand;
 
-import static agent.common.args.parse.FilterOptUtils.getMatchClassFilterOptParsers;
+import static agent.common.args.parse.FilterOptUtils.getFilterOptParsers;
 import static agent.common.message.MessageType.CMD_RESET;
 
 public class ResetCmdParser extends AbstractCmdParser<CmdParams> {
@@ -25,7 +25,7 @@ public class ResetCmdParser extends AbstractCmdParser<CmdParams> {
     @Override
     CmdParamParser<CmdParams> createParamParser() {
         return new DefaultParamParser(
-                getMatchClassFilterOptParsers()
+                getFilterOptParsers()
         );
     }
 

@@ -4,7 +4,6 @@ import agent.base.args.parse.AbstractCmdParamParser;
 import agent.base.args.parse.ArgsOpts;
 import agent.base.args.parse.KeyValueOptParser;
 import agent.base.args.parse.OptParser;
-import agent.common.args.parse.ChainFilterOptConfigs;
 import agent.common.args.parse.FilterOptConfigs;
 
 import java.util.Collections;
@@ -16,7 +15,6 @@ public class CostTimeCallChainResultParamParser extends AbstractCmdParamParser<C
         return Collections.singletonList(
                 new KeyValueOptParser(
                         FilterOptConfigs.getSuite(),
-                        ChainFilterOptConfigs.getSuite(),
                         ResultOptConfigs.getSuite()
                 )
         );
