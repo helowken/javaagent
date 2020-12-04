@@ -17,7 +17,7 @@ abstract class AbstractModuleCmdParser extends AbstractCmdParser<CmdParams> {
     }
 
     @Override
-    void checkParams(CmdParams params) {
+    void checkParams(CmdParams params) throws Exception {
         super.checkParams(params);
         FilterOptConfigs.checkClassFilter(
                 params.getOpts()

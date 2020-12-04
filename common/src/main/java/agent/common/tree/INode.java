@@ -6,6 +6,8 @@ import java.util.function.Predicate;
 public interface INode<T, N extends INode> {
     N getParent();
 
+    boolean isAncestorOf(N node);
+
     List<N> getChildren();
 
     List<N> findChildren(Predicate<T> predicate);

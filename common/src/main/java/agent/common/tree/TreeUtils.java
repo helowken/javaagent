@@ -15,7 +15,7 @@ public class TreeUtils {
 //    private static final String end = "└─";
 //    private static final String indent = "    ";
     private static final String branch = "+---";
-    private static final String branch2 = "|   ";
+    private static final String branch2 = "|   ";
     private static final String end = "`---";
     private static final String indent = "    ";
     private static final PrintConfig defaultConfig = new PrintConfig(true);

@@ -20,16 +20,9 @@ import java.util.stream.Stream;
 public class InvokeSearcher {
     private static final Logger logger = Logger.getLogger(InvokeSearcher.class);
     private static final InvokeSearcher instance = new InvokeSearcher();
-    private static int SYNTHETIC;
-    private static int BRIDGE;
     private static final Map<Class<? extends FilterConfig>, InvokeGetter> invokeGetterMap = new HashMap<>();
 
     static {
-        Utils.wrapToRtError(() -> {
-            SYNTHETIC = ReflectionUtils.getStaticFieldValue(Modifier.class, "SYNTHETIC");
-            BRIDGE = ReflectionUtils.getStaticFieldValue(Modifier.class, "BRIDGE");
-        });
-
         invokeGetterMap.put(
                 MethodFilterConfig.class,
                 new MethodGetter()
@@ -88,8 +81,8 @@ public class InvokeSearcher {
     }
 
     private static boolean isInvokeMeaningful(int methodModifiers) {
-        return (SYNTHETIC & methodModifiers) == 0 &&
-                (BRIDGE & methodModifiers) == 0 &&
+        return !ReflectionUtils.isSynthetic(methodModifiers) &&
+                !ReflectionUtils.isBridge(methodModifiers) &&
                 !Modifier.isAbstract(methodModifiers) &&
                 !Modifier.isNative(methodModifiers);
     }

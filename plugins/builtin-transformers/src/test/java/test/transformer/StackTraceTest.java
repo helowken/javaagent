@@ -9,6 +9,8 @@ import agent.server.command.executor.CmdExecutorMgr;
 import org.junit.Test;
 import test.server.AbstractTest;
 
+import java.net.InetAddress;
+
 import static org.junit.Assert.assertTrue;
 
 public class StackTraceTest extends AbstractTest {
@@ -67,4 +69,11 @@ public class StackTraceTest extends AbstractTest {
         );
     }
 
+    @Test
+    public void test3() throws Exception {
+        StackTraceResultParams params = new StackTraceResultParamParser().parse(
+                new String[]{"/home/helowken/cost-time/st"}
+        );
+        new StackTraceResultHandler().exec(params);
+    }
 }

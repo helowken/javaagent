@@ -11,4 +11,5 @@ public class MessageType {
     public static final int CMD_SAVE_CLASS = 9;
     public static final int CMD_STACK_TRACE = 10;
     public static final int CMD_JS_CONFIG = 11;
+    public static final int CMD_JS_EXEC = 12;
 }

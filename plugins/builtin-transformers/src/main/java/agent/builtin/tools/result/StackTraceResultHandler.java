@@ -1,10 +1,7 @@
 package agent.builtin.tools.result;
 
 import agent.base.args.parse.Opts;
-import agent.base.utils.IOUtils;
-import agent.base.utils.Logger;
-import agent.base.utils.ReflectionUtils;
-import agent.base.utils.Utils;
+import agent.base.utils.*;
 import agent.builtin.tools.result.parse.StackTraceResultOptConfigs;
 import agent.builtin.tools.result.parse.StackTraceResultParams;
 import agent.common.args.parse.FilterOptUtils;
@@ -258,6 +255,7 @@ public class StackTraceResultHandler extends AbstractResultHandler<Tree<StackTra
                 params.getOpts()
         );
         StMetadata metadata = params.getMetadata();
+        List<Node<StackTraceCountItem>> candidates = new ArrayList<>();
         Map<String, Set<String>> classToMethods = new HashMap<>();
         TreeUtils.traverse(
                 tree,
@@ -266,8 +264,10 @@ public class StackTraceResultHandler extends AbstractResultHandler<Tree<StackTra
                     if (data != null &&
                             data.isValid() &&
                             ((float) data.getCount() / totalCount) >= rate) {
-                        data = findNotLambda(node, metadata);
-                        if (data != null)
+                        Node<StackTraceCountItem> rsNode = findNotLambda(node, metadata);
+                        if (rsNode != null) {
+                            candidates.add(node);
+                            data = rsNode.getData();
                             classToMethods.computeIfAbsent(
                                     metadata.get(
                                             data.getClassId()
@@ -278,29 +278,62 @@ public class StackTraceResultHandler extends AbstractResultHandler<Tree<StackTra
                                             data.getMethodId()
                                     )
                             );
+                        }
                     }
                 }
         );
         if (classToMethods.isEmpty())
             System.out.println("No class and method matched.");
-        else
+        else {
+
             IOUtils.writeToConsole(
                     writer -> classToMethods.forEach(
                             (clazz, methods) -> Utils.wrapToRtError(
                                     () -> {
-                                        writer.write(clazz + ": " + methods);
+                                        writer.write("-f \"c=" + clazz + "; m=" + Utils.join(":", methods) + "\"");
                                         writer.append('\n');
                                     }
                             )
                     )
             );
+        }
     }
 
-    private StackTraceCountItem findNotLambda(Node<StackTraceCountItem> node, StMetadata metadata) {
-        StackTraceCountItem data = node.getData();
+//    private Collection<StackTraceCountItem> findLeastSameAncestor(List<Node<StackTraceCountItem>> nodes) {
+//        Collection<StackTraceCountItem> rs = new ArrayList<>();
+//        if (nodes.isEmpty())
+//            throw new IllegalArgumentException();
+//        if (nodes.size() > 1) {
+//            Node<StackTraceCountItem> node = nodes.remove(0);
+//            Node<StackTraceCountItem> tmp, newNode;
+//            while (!nodes.isEmpty()) {
+//                tmp = nodes.remove(0);
+//                newNode = findNewDestNode(node, tmp);
+//                if (newNode == null) {
+//
+//                }
+//            }
+//        }
+//    }
+
+    private Node<StackTraceCountItem> findNewDestNode(Node<StackTraceCountItem> currDestNode, Node<StackTraceCountItem> node) {
+        if (node.isAncestorOf(currDestNode))
+            return node;
+        Node<StackTraceCountItem> pn = currDestNode;
+        while (pn != null && !pn.isRoot()) {
+            if (pn.isAncestorOf(node))
+                return pn;
+            pn = pn.getParent();
+        }
+        return null;
+    }
+
+    private Node<StackTraceCountItem> findNotLambda(Node<StackTraceCountItem> node, StMetadata metadata) {
+        StackTraceCountItem data;
         String method, className;
         Node<StackTraceCountItem> tmp = node;
-        while (data != null) {
+        while (tmp != null) {
+            data = tmp.getData();
             className = metadata.get(
                     data.getClassId()
             );
@@ -310,16 +343,10 @@ public class StackTraceResultHandler extends AbstractResultHandler<Tree<StackTra
             if (ReflectionUtils.isLambdaClass(className) ||
                     ReflectionUtils.isLambdaInvoke(method)) {
                 tmp = tmp.getParent();
-                if (tmp != null)
-                    data = tmp.getData();
-                else {
-                    data = null;
-                    break;
-                }
             } else
                 break;
         }
-        return data;
+        return tmp;
     }
 
     private void outputFlameGraph(Tree<StackTraceCountItem> tree, StackTraceResultParams params) throws Exception {

@@ -43,6 +43,7 @@ public class CommandParserMgr {
                         new BuiltInTransformCmdParser.TraceCmdParser(),
                         new JavascriptTransformCmdParser(),
                         new JavascriptConfigCmdParser(),
+                        new JavascriptExecCmdParser(),
                         new StackTraceCmdParser(),
                         new SaveClassCmdParser()
                 )

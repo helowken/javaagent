@@ -46,7 +46,7 @@ abstract class AbstractCmdParser<P extends CmdParams> implements CommandParser {
         );
     }
 
-    void checkParams(P params) {
+    void checkParams(P params) throws Exception {
         long requiredCount = getHelpArgList().stream()
                 .filter(
                         arg -> !arg.isOptional()
@@ -88,7 +88,7 @@ abstract class AbstractCmdParser<P extends CmdParams> implements CommandParser {
     }
 
     @Override
-    public List<CmdItem> parse(String[] args) {
+    public List<CmdItem> parse(String[] args) throws Exception {
         P params = doParse(args);
         HelpInfo helpInfo = null;
         Command cmd = null;

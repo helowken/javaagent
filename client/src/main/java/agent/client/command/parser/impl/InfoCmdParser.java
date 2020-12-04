@@ -40,7 +40,7 @@ public class InfoCmdParser extends AbstractCmdParser<CmdParams> {
     }
 
     @Override
-    void checkParams(CmdParams params) {
+    void checkParams(CmdParams params) throws Exception {
         super.checkParams(params);
         String[] args = params.getArgs();
         if (args.length > 0 && !catalogMap.containsKey(args[0]))

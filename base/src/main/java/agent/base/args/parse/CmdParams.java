@@ -17,6 +17,10 @@ public class CmdParams {
         return argsOpts.getArgs();
     }
 
+    public boolean hasArgs() {
+        return getArgs().length > 0;
+    }
+
     public ArgsOpts getArgsOpts() {
         return argsOpts;
     }

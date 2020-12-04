@@ -9,7 +9,7 @@ import java.util.stream.Collectors;
 
 import static agent.common.tree.Node.POJO_TYPE;
 
-@PojoClass(type=POJO_TYPE)
+@PojoClass(type = POJO_TYPE)
 public class Node<T> implements INode<T, Node<T>> {
     public static final int POJO_TYPE = 1000;
     private Node<T> parent;
@@ -24,6 +24,17 @@ public class Node<T> implements INode<T, Node<T>> {
 
     public Node(T data) {
         this.setData(data);
+    }
+
+    @Override
+    public boolean isAncestorOf(Node<T> node) {
+        Node<T> pn = node.getParent();
+        while (pn != null) {
+            if (this == pn)
+                return true;
+            pn = pn.getParent();
+        }
+        return false;
     }
 
     public void refreshParent() {

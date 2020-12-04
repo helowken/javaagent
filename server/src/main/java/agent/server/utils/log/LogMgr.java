@@ -67,6 +67,10 @@ public class LogMgr {
     }
 
     public static void logBinary(String logKey, Consumer<BBuff> consumer) {
+        logBinary(logKey, consumer, false);
+    }
+
+    public static void logBinary(String logKey, Consumer<BBuff> consumer, boolean sizeAfter) {
         BinaryLogItem logItem = BinaryLogItemPool.get(logKey);
         logItem.markAndPosition(Integer.BYTES);
         long startPos = logItem.getSize();
@@ -74,6 +78,8 @@ public class LogMgr {
         long endPos = logItem.getSize();
         int size = (int) (endPos - startPos);
         logItem.putIntToMark(size);
+        if (sizeAfter)
+            logItem.putInt(size);
         LogMgr.logBinary(logKey, logItem);
     }
 }

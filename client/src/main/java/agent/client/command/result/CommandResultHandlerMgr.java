@@ -26,6 +26,7 @@ public class CommandResultHandlerMgr {
         regResultHandlerClass(CMD_TRANSFORM, new TransformResultHandler());
         regResultHandlerClass(CMD_RESET, new ResetResultHandler());
         regResultHandlerClass(CMD_SAVE_CLASS, infoResultHandler);
+        regResultHandlerClass(CMD_JS_EXEC, infoResultHandler);
     }
 
     private static void regResultHandlerClass(int type, ExecResultHandler rsHandler) {

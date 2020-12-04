@@ -14,6 +14,23 @@ import static agent.base.utils.InvokeDescriptorUtils.getDescriptor;
 public class ReflectionUtils {
     public static final String CONSTRUCTOR_NAME = "<init>";
     private static final String[] javaPackages = {"java.", "javax.", "sun.", "com.sun.", "com.oracle.", "jdk."};
+    private static int SYNTHETIC;
+    private static int BRIDGE;
+
+    static {
+        Utils.wrapToRtError(() -> {
+            SYNTHETIC = ReflectionUtils.getStaticFieldValue(Modifier.class, "SYNTHETIC");
+            BRIDGE = ReflectionUtils.getStaticFieldValue(Modifier.class, "BRIDGE");
+        });
+    }
+
+    public static boolean isSynthetic(int modifiers) {
+        return (SYNTHETIC & modifiers) != 0;
+    }
+
+    public static boolean isBridge(int modifiers) {
+        return (BRIDGE & modifiers) != 0;
+    }
 
     public static boolean isLambdaInvoke(String invoke) {
         return invoke.contains("lambda$");

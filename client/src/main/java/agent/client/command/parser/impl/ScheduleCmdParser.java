@@ -31,7 +31,7 @@ abstract class ScheduleCmdParser extends AbstractCmdParser<CmdParams> {
     }
 
     @Override
-    void checkParams(CmdParams params) {
+    void checkParams(CmdParams params) throws Exception {
         super.checkParams(params);
         Opts opts = params.getOpts();
         long delay = ScheduleOptConfigs.getDelayMs(opts);

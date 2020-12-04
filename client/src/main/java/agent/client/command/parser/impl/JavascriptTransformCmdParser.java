@@ -42,7 +42,7 @@ public class JavascriptTransformCmdParser extends AbstractTransformCmdParser {
 
     @Override
     public String[] getCmdNames() {
-        return new String[]{"javascript", "js"};
+        return new String[]{"js-transform", "jst"};
     }
 
     @Override

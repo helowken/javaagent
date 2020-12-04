@@ -36,7 +36,7 @@ abstract class AbstractTransformCmdParser extends AbstractModuleCmdParser {
     }
 
     @Override
-    protected void checkParams(CmdParams params) {
+    protected void checkParams(CmdParams params) throws Exception {
         super.checkParams(params);
         if (Utils.isBlank(getTransformerKey()))
             throw new ArgMissingException("Transformer key");
