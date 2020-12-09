@@ -7,13 +7,24 @@ import java.util.Objects;
 
 public class TransformerConfig extends AbstractValidConfig {
     @PojoProperty(index = 0)
-    private String ref;
+    private String id;
     @PojoProperty(index = 1)
+    private String ref;
+    @PojoProperty(index = 2)
     private Map<String, Object> config;
 
     @Override
     public void validate() {
+        validateNotBlank(id, "Transformer id");
         validateNotBlank(ref, "Transformer reference");
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 
     public String getRef() {
@@ -37,22 +48,23 @@ public class TransformerConfig extends AbstractValidConfig {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         TransformerConfig that = (TransformerConfig) o;
-        return Objects.equals(ref, that.ref) &&
+        return Objects.equals(id, that.id) &&
+                Objects.equals(ref, that.ref) &&
                 Objects.equals(config, that.config);
-    }
-
-    @Override
-    public String toString() {
-        return "TransformerConfig{" +
-                "ref='" + ref + '\'' +
-                ", config=" + config +
-                '}';
     }
 
     @Override
     public int hashCode() {
 
-        return Objects.hash(ref, config);
+        return Objects.hash(id, ref, config);
     }
 
+    @Override
+    public String toString() {
+        return "TransformerConfig{" +
+                "id='" + id + '\'' +
+                ", ref='" + ref + '\'' +
+                ", config=" + config +
+                '}';
+    }
 }

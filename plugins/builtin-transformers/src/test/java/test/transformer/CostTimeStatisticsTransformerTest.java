@@ -8,6 +8,8 @@ import agent.builtin.tools.result.parse.CostTimeInvokeResultParamParser;
 import agent.builtin.tools.result.parse.CostTimeResultParams;
 import agent.builtin.transformer.CostTimeStatisticsTransformer;
 import agent.common.config.InvokeChainConfig;
+import agent.server.transform.ConfigTransformer;
+import agent.server.transform.TransformerRegistry;
 import org.junit.Test;
 import test.server.AbstractTest;
 
@@ -36,8 +38,8 @@ public class CostTimeStatisticsTransformerTest extends AbstractTest {
     private void doTest(Map<Class<?>, String> classToMethodFilter, InvokeChainConfig invokeChainConfig) throws Exception {
         runWithFile(
                 (outputPath, config) -> {
-                    CostTimeStatisticsTransformer transformer = new CostTimeStatisticsTransformer();
-                    transformer.setInstanceKey(
+                    ConfigTransformer transformer = TransformerRegistry.getOrCreateTransformer(
+                            CostTimeStatisticsTransformer.REG_KEY,
                             newTransformerKey()
                     );
 
@@ -58,7 +60,7 @@ public class CostTimeStatisticsTransformerTest extends AbstractTest {
 
                     System.out.println("\n======= Use cache 1 =======");
                     params = callChainOptParser.parse(
-                            new String[]{"-m", "service", "-e", "avg > 20", "-cm", "runApi4", outputPath}
+                            new String[]{"-f", "m=service; cm=runApi4", "-e", "avg > 20", outputPath}
                     );
                     chainHandler.exec(params);
 
@@ -72,7 +74,7 @@ public class CostTimeStatisticsTransformerTest extends AbstractTest {
                     CostTimeInvokeResultHandler invokeHandler = new CostTimeInvokeResultHandler();
                     CostTimeInvokeResultParamParser invokeParser = new CostTimeInvokeResultParamParser();
                     params = invokeParser.parse(
-                            new String[]{"-m", "runApi*,service", outputPath}
+                            new String[]{"-f", "m=runApi*,service", outputPath}
                     );
                     invokeHandler.exec(params);
 

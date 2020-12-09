@@ -1,14 +1,13 @@
 package test.transformer;
 
-import agent.base.utils.IOUtils;
 import agent.base.utils.ReflectionUtils;
-import agent.base.utils.Utils;
 import agent.builtin.tools.result.TraceInvokeResultHandler;
 import agent.builtin.tools.result.parse.TraceResultParamParser;
 import agent.builtin.tools.result.parse.TraceResultParams;
 import agent.builtin.transformer.TraceInvokeTransformer;
 import agent.common.config.InvokeChainConfig;
-import agent.server.transform.tools.asm.AsmUtils;
+import agent.server.transform.ConfigTransformer;
+import agent.server.transform.TransformerRegistry;
 import test.server.AbstractTest;
 
 import java.util.HashMap;
@@ -44,8 +43,8 @@ abstract class AbstractTraceTest extends AbstractTest {
         }
         runWithFile(
                 (outputPath, config) -> {
-                    TraceInvokeTransformer transformer = new TraceInvokeTransformer();
-                    transformer.setInstanceKey(
+                    ConfigTransformer transformer = TransformerRegistry.getOrCreateTransformer(
+                            TraceInvokeTransformer.REG_KEY,
                             newTransformerKey()
                     );
                     doTransform(transformer, config, classToMethodFilter, invokeChainConfig);

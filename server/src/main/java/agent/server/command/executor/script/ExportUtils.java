@@ -14,8 +14,6 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static agent.base.utils.AssertUtils.assertTrue;
-
 class ExportUtils {
     private static final Predicate<Method> methodFilter = method -> {
         int modifiers = method.getModifiers();
@@ -129,12 +127,5 @@ class ExportUtils {
                 )
         );
         return sb.toString();
-    }
-
-    static void checkClassOrClassName(Object o) {
-        assertTrue(
-                o instanceof String || o instanceof Class,
-                o + " is not a Class or class name."
-        );
     }
 }

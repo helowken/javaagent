@@ -25,8 +25,11 @@ public class JavascriptTransformer extends CallChainTransformer {
         String script = (String) config.get(KEY_CONFIG_SCRIPT);
         if (Utils.isBlank(script))
             throw new InvalidTransformerConfigException("No script found.");
-        String key = getInstanceKey();
-        ScriptEngineMgr.javascript().setEngineBindings(key, script);
+        ScriptEngineMgr.javascript().createEngine(
+                getTid(),
+                script,
+                getTransformerData()
+        );
     }
 
     @Override
@@ -37,6 +40,14 @@ public class JavascriptTransformer extends CallChainTransformer {
     @Override
     public String getRegKey() {
         return REG_KEY;
+    }
+
+    @Override
+    public void destroy() {
+        ScriptEngineMgr.javascript().unreg(
+                getTid()
+        );
+        super.destroy();
     }
 
     private static class Config extends CallChainConfig<JavascriptItem, JavascriptItem> {

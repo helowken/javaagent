@@ -42,7 +42,7 @@ public class TransformMgr {
                 .stream()
                 .map(
                         transformerConfig -> {
-                            ConfigTransformer transformer = newTransformer(transformerConfig);
+                            ConfigTransformer transformer = getOrCreateTransformer(transformerConfig);
                             transformer.setConfig(
                                     transformerConfig.getConfig()
                             );
@@ -105,10 +105,11 @@ public class TransformMgr {
         );
     }
 
-    private ConfigTransformer newTransformer(TransformerConfig transformerConfig) {
+    private ConfigTransformer getOrCreateTransformer(TransformerConfig transformerConfig) {
         return Utils.wrapToRtError(
-                () -> TransformerClassRegistry.newTransformer(
-                        transformerConfig.getRef()
+                () -> TransformerRegistry.getOrCreateTransformer(
+                        transformerConfig.getRef(),
+                        transformerConfig.getId()
                 ),
                 () -> "Create transformer failed."
         );

@@ -3,14 +3,16 @@ package test.transformer;
 import agent.base.utils.IOUtils;
 import agent.base.utils.ReflectionUtils;
 import agent.common.config.InvokeChainConfig;
+import agent.server.transform.ConfigTransformer;
+import agent.server.transform.TransformerRegistry;
 import agent.server.transform.impl.JavascriptTransformer;
-import agent.server.transform.impl.ScriptEngineMgr;
 import org.junit.Test;
 import test.server.AbstractTest;
 
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class JavascriptTransformerTest extends AbstractTest {
     private static final Map<Class<?>, byte[]> classToData = new HashMap<>();
@@ -31,8 +33,7 @@ public class JavascriptTransformerTest extends AbstractTest {
                     String script = IOUtils.readToString(
                             getClass().getClassLoader().getResourceAsStream("test.js")
                     );
-                    JavascriptTransformer transformer = new JavascriptTransformer();
-                    transformer.setInstanceKey(instanceKey);
+                    ConfigTransformer transformer = TransformerRegistry.getOrCreateTransformer(JavascriptTransformer.REG_KEY, instanceKey);
                     config.put("script", script);
                     doTransform(transformer, config, classToMethodFilter, invokeChainConfig);
 
@@ -50,6 +51,9 @@ public class JavascriptTransformerTest extends AbstractTest {
                         e.printStackTrace(System.out);
                     }
 
+                    TransformerRegistry.getTransformerData(instanceKey).getKeyValues().forEach(
+                            (k, v) -> System.out.println(k + " = " + ((AtomicInteger) v).get())
+                    );
                 }
         );
     }

@@ -182,6 +182,6 @@ public abstract class AbstractAnnotationConfigTransformer extends AbstractConfig
     protected abstract Collection<Class<?>> getAnnotationClasses();
 
     protected String newTag(DestInvoke destInvoke, Method anntMethod, int mask, int argsHint) {
-        return getInstanceKey();
+        return getTid();
     }
 }

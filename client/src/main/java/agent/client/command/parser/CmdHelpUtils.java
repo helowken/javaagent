@@ -51,6 +51,13 @@ public class CmdHelpUtils {
         );
     }
 
+    public static HelpArg getTransformerIdHelpArg() {
+        return new HelpArg(
+                "TID",
+                "Unique id to identify transformer."
+        );
+    }
+
     public static HelpArg getOutputPathHelpArg() {
         return new HelpArg(
                 "OUTPUT_PATH",

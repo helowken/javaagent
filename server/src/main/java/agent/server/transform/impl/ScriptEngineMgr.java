@@ -1,8 +1,11 @@
 package agent.server.transform.impl;
 
+import agent.server.command.executor.script.ExportFuncs;
+import agent.server.transform.TransformerData;
 import jdk.nashorn.api.scripting.ScriptObjectMirror;
 
 import javax.script.*;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -11,6 +14,8 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class ScriptEngineMgr {
     private static final ScriptEngineMgr jsEngineMgr = new ScriptEngineMgr("nashorn");
+    private static final String KEY_EXPORT_FUNCS = "$";
+    private static final String KEY_DATA = "$d";
     private final Map<String, ScriptEngine> keyToEngine = new ConcurrentHashMap<>();
     private final ScriptEngineManager manager = new ScriptEngineManager();
     private final ReadWriteLock lock = new ReentrantReadWriteLock();
@@ -22,13 +27,16 @@ public class ScriptEngineMgr {
 
     private ScriptEngineMgr(String engineName) {
         this.engineName = engineName;
+        this.manager.getBindings().putAll(
+                getNativeGlobalBindings()
+        );
     }
 
     public void unreg(String key) {
         keyToEngine.remove(key);
     }
 
-    private ScriptEngine createEngine() {
+    public ScriptEngine createEngine() {
         ScriptEngine engine = manager.getEngineByName(engineName);
         if (engine == null)
             throw new RuntimeException("Engine can not be created by name: " + engineName);
@@ -41,11 +49,19 @@ public class ScriptEngineMgr {
         Bindings bindings = engine.getBindings(ScriptContext.ENGINE_SCOPE);
         lock.writeLock().lock();
         try {
-            manager.getBindings().clear();
-            manager.getBindings().putAll(bindings);
+            Bindings globalBindings = manager.getBindings();
+            globalBindings.clear();
+            globalBindings.putAll(bindings);
+            globalBindings.putAll(
+                    getNativeGlobalBindings()
+            );
         } finally {
             lock.writeLock().unlock();
         }
+    }
+
+    private Map<String, Object> getNativeGlobalBindings() {
+        return Collections.singletonMap(KEY_EXPORT_FUNCS, ExportFuncs.instance);
     }
 
     private ScriptEngine getEngine(String key) {
@@ -55,8 +71,9 @@ public class ScriptEngineMgr {
         return engine;
     }
 
-    public void setEngineBindings(String key, String script) throws Exception {
+    public void createEngine(String key, String script, TransformerData transformerData) throws Exception {
         ScriptEngine engine = createEngine();
+        engine.getBindings(ScriptContext.ENGINE_SCOPE).put(KEY_DATA, transformerData);
         engine.eval(script);
         keyToEngine.put(key, engine);
     }

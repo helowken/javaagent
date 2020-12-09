@@ -102,6 +102,10 @@ public class ReflectionUtils {
         return newInstance(classOrClassName, new Class[0]);
     }
 
+    public static <T> T newInstance(Object classOrClassName, Object... args) throws Exception {
+        return newInstance(classOrClassName, convertToTypes(args), args);
+    }
+
     public static <T> T newInstance(Object classOrClassName, Object[] argClassOrClassNames, Object... args) throws Exception {
         Class[] argTypes = convertArray(argClassOrClassNames);
         Constructor<T> constructor = (Constructor<T>) convert(classOrClassName).getDeclaredConstructor(argTypes);
@@ -307,7 +311,7 @@ public class ReflectionUtils {
         return classes;
     }
 
-    private static Class<?> convert(Object classOrClassName) throws Exception {
+    public static Class<?> convert(Object classOrClassName) throws Exception {
         if (classOrClassName instanceof Class)
             return (Class<?>) classOrClassName;
         else if (classOrClassName instanceof String)

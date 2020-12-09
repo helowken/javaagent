@@ -2,11 +2,9 @@ package agent.client.command.parser.impl;
 
 import agent.base.args.parse.CmdParamParser;
 import agent.base.args.parse.CmdParams;
-import agent.base.args.parse.KeyValueOptParser;
 import agent.base.exception.ArgMissingException;
 import agent.base.utils.Utils;
 import agent.client.args.parse.DefaultParamParser;
-import agent.client.args.parse.TransformOptConfigs;
 import agent.common.config.ModuleConfig;
 import agent.common.config.TransformerConfig;
 import agent.common.message.command.Command;
@@ -15,23 +13,15 @@ import agent.common.message.command.DefaultCommand;
 import java.util.Collections;
 
 import static agent.common.args.parse.FilterOptUtils.getFilterOptParsers;
-import static agent.common.args.parse.FilterOptUtils.merge;
 import static agent.common.message.MessageType.CMD_TRANSFORM;
 
 abstract class AbstractTransformCmdParser extends AbstractModuleCmdParser {
-    private static final String REF_SEP = ":";
-
     abstract String getTransformerKey();
 
     @Override
     CmdParamParser<CmdParams> createParamParser() {
         return new DefaultParamParser(
-                merge(
-                        getFilterOptParsers(),
-                        new KeyValueOptParser(
-                                TransformOptConfigs.getSuite()
-                        )
-                )
+                getFilterOptParsers()
         );
     }
 
@@ -51,26 +41,17 @@ abstract class AbstractTransformCmdParser extends AbstractModuleCmdParser {
     ModuleConfig createModuleConfig(CmdParams params) {
         ModuleConfig moduleConfig = super.createModuleConfig(params);
         TransformerConfig transformerConfig = new TransformerConfig();
+        transformerConfig.setId(
+                params.getArgs()[0]
+        );
         transformerConfig.setRef(
-                newRef(
-                        getTransformerKey(),
-                        TransformOptConfigs.getTransformId(
-                                params.getOpts()
-                        )
-                )
+                getTransformerKey()
         );
         setConfig(transformerConfig, params);
         moduleConfig.setTransformers(
                 Collections.singletonList(transformerConfig)
         );
         return moduleConfig;
-    }
-
-    private String newRef(String type, String transformerId) {
-        String ref = type;
-        if (Utils.isNotBlank(transformerId))
-            ref += REF_SEP + transformerId;
-        return ref;
     }
 
     void setConfig(TransformerConfig transformerConfig, CmdParams params) {

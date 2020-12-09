@@ -3,6 +3,7 @@ package agent.server.transform.impl;
 import agent.invoke.DestInvoke;
 import agent.server.transform.ConfigTransformer;
 import agent.server.transform.TransformContext;
+import agent.server.transform.TransformerData;
 import agent.server.transform.exception.InvalidTransformerConfigException;
 import agent.server.utils.log.LogConfig;
 import agent.server.utils.log.LogMgr;
@@ -12,15 +13,27 @@ import java.util.Collections;
 import java.util.Map;
 
 public abstract class AbstractConfigTransformer extends AbstractTransformer implements ConfigTransformer {
-    private String instanceKey;
+    private String tid;
+    private TransformerData transformerData;
 
     @Override
-    public void setInstanceKey(String instanceKey) {
-        this.instanceKey = instanceKey;
+    public void setTid(String tid) {
+        this.tid = tid;
     }
-
-    protected String getInstanceKey() {
-        return instanceKey == null ? getRegKey() : instanceKey;
+    
+    @Override
+    public String getTid() {
+        return tid;
+    }
+   
+    @Override
+    public void setTransformerData(TransformerData transformerData) {
+        this.transformerData = transformerData;
+    }
+    
+    @Override 
+    public TransformerData getTransformerData() {
+        return transformerData;
     }
 
     @Override
@@ -34,8 +47,9 @@ public abstract class AbstractConfigTransformer extends AbstractTransformer impl
         }
     }
 
-    protected String regLogText(Map<String, Object> config, Map<String, Object> defaultValueMap) {
-        return regLog(LoggerType.TEXT, config, defaultValueMap);
+    @Override
+    public void destroy() {
+        transformerData.clear();
     }
 
     protected String regLogBinary(Map<String, Object> config, Map<String, Object> defaultValueMap) {

@@ -5,15 +5,18 @@ import agent.base.help.HelpArg;
 import agent.base.utils.FileUtils;
 import agent.common.config.TransformerConfig;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
 import static agent.client.command.parser.CmdHelpUtils.getOutputPathHelpArg;
+import static agent.client.command.parser.CmdHelpUtils.getTransformerIdHelpArg;
 
 public abstract class BuiltInTransformCmdParser extends AbstractTransformCmdParser {
     @Override
     List<HelpArg> createHelpArgList() {
-        return Collections.singletonList(
+        return Arrays.asList(
+                getTransformerIdHelpArg(),
                 getOutputPathHelpArg()
         );
     }
@@ -26,7 +29,7 @@ public abstract class BuiltInTransformCmdParser extends AbstractTransformCmdPars
                         Collections.singletonMap(
                                 "outputPath",
                                 FileUtils.getAbsolutePath(
-                                        params.getArgs()[0]
+                                        params.getArgs()[1]
                                 )
                         )
                 )

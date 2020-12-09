@@ -33,7 +33,7 @@ public abstract class ProxyAnnotationConfigTransformer extends AbstractAnnotatio
     @SuppressWarnings("unchecked")
     protected void doSetConfig(Map<String, Object> config) throws Exception {
         logKey = getCacheItem().getLogKey(
-                getInstanceKey(),
+                getTid(),
                 () -> newLogKey(
                         (Map) config.getOrDefault(
                                 KEY_LOG,
@@ -58,7 +58,7 @@ public abstract class ProxyAnnotationConfigTransformer extends AbstractAnnotatio
     @Override
     protected Object getInstanceForAnntMethod(Class<?> anntClass, Method anntMethod) {
         return getCacheItem().getAnntInstance(
-                getInstanceKey(),
+                getTid(),
                 instanceKey -> newInstanceForClass(anntClass, instanceKey)
         );
     }

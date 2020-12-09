@@ -1,5 +1,6 @@
 package test.server.script;
 
+import agent.server.transform.impl.ScriptEngineMgr;
 import jdk.nashorn.api.scripting.ScriptObjectMirror;
 import org.junit.Test;
 
@@ -9,9 +10,7 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class JavascriptTest {
     @Test
@@ -19,7 +18,12 @@ public class JavascriptTest {
         ScriptEngineManager manager = new ScriptEngineManager();
 //        doTest1(manager);
 //        doTest2(manager);
-        doTest3(manager);
+//        doTest3(manager);
+        doTest4();
+    }
+
+    private void doTest4() throws Exception {
+        ScriptEngineMgr.javascript().createEngine().eval("$.dumpStackTrace()");
     }
 
     private void doTest3(ScriptEngineManager manager) throws Exception {
