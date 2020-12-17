@@ -2,23 +2,20 @@ package agent.server.utils.log.binary;
 
 import agent.base.utils.IOUtils;
 import agent.base.utils.LockObject;
-import agent.common.buffer.ByteUtils;
 import agent.server.utils.log.AbstractLogWriter;
+import agent.server.utils.log.LogConfig;
 
-import java.io.BufferedOutputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 
-public class BinaryLogWriter extends AbstractLogWriter<BinaryLogConfig, BinaryLogItem> {
+public class BinaryLogWriter extends AbstractLogWriter<BinaryLogItem> {
     private static final int FLUSH_COUNT = 1000;
     private final LockObject writerLock = new LockObject();
-    private volatile OutputStream out;
     private volatile FileChannel channel;
 
-    BinaryLogWriter(String logKey, BinaryLogConfig logConfig) {
+    public BinaryLogWriter(String logKey, LogConfig logConfig) {
         super(logKey, logConfig);
     }
 
@@ -50,47 +47,24 @@ public class BinaryLogWriter extends AbstractLogWriter<BinaryLogConfig, BinaryLo
 
     @Override
     protected void doWrite(BinaryLogItem item) throws IOException {
-        if (stdout) {
-            OutputStream out = getOut();
-            for (ByteBuffer bb : item.getBuffers()) {
-                byte[] bs = ByteUtils.getBytes(bb);
-                out.write(bs, 0, bs.length);
-            }
-        } else {
-            long size = item.getSize();
-            ByteBuffer[] buffers = item.getBuffers();
-            while (size > 0) {
-                size -= getChannel().write(buffers);
-            }
+        long size = item.getSize();
+        ByteBuffer[] buffers = item.getBuffers();
+        while (size > 0) {
+            size -= getChannel().write(buffers);
         }
     }
 
     @Override
     protected void doFlush() throws IOException {
-        if (stdout)
-            getOut().flush();
-        else
-            getChannel().force(true);
+        getChannel().force(true);
     }
 
     @Override
     protected void doClose() {
         writerLock.sync(lock -> {
-            IOUtils.close(out);
             IOUtils.close(channel);
-            out = null;
             channel = null;
         });
-    }
-
-    private OutputStream getOut() {
-        if (out == null) {
-            writerLock.sync(lock -> {
-                if (out == null)
-                    out = new BufferedOutputStream(getOutputStream());
-            });
-        }
-        return out;
     }
 
     private FileChannel getChannel() {

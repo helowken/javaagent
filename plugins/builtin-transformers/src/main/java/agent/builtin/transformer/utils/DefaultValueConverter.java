@@ -1,6 +1,7 @@
 package agent.builtin.transformer.utils;
 
 import agent.base.utils.Logger;
+import agent.base.utils.Pair;
 import agent.base.utils.StringItem;
 import agent.base.utils.Utils;
 
@@ -9,6 +10,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public class DefaultValueConverter implements ValueConverter {
     public static final String KEY_INDEX = "index";
@@ -16,6 +18,9 @@ public class DefaultValueConverter implements ValueConverter {
     public static final String KEY_VALUE = "value";
     private static final Logger logger = Logger.getLogger(DefaultValueConverter.class);
     private static final Map<Class<?>, Function<Object, String>> classToStrFunc = new HashMap<>();
+    private static final int NULL_INDEX = 0;
+    private Map<Object, Pair<Integer, String>> valueCache = new HashMap<>();
+    private int valueIdx = 1;
 
     static {
         classToStrFunc.put(byte[].class, v -> Arrays.toString((byte[]) v));
@@ -42,35 +47,64 @@ public class DefaultValueConverter implements ValueConverter {
 
     @Override
     public Map<String, Object> convertError(Throwable error) {
-        String errStack;
-        try {
-            errStack = Utils.getErrorStackStrace(error);
-        } catch (Throwable e) {
-            logger.error("get error stack failed.", e);
-            errStack = error.getMessage();
-        }
         return convert(
                 error.getClass(),
-                errStack
+                error
         );
     }
 
-    private Map<String, Object> convert(Class<?> clazz, Object value) {
-        String rv;
-        if (value == null)
-            rv = "null";
-        else {
-            rv = valueToString(value);
-            if (clazz.equals(String.class))
-                rv = "\"" + new StringItem(rv).replaceAll("\"", "\\\"").toString() + "\"";
-            else if (clazz.equals(char.class) || clazz.equals(Character.class))
-                rv = "'" + rv.replace("'", "\\'") + "'";
-        }
+    @Override
+    public Object getMetadata() {
+        return valueCache.values()
+                .stream()
+                .collect(
+                        Collectors.toMap(
+                                Pair::getLeft,
+                                Pair::getRight
+                        )
+                );
+    }
 
+    @Override
+    public void destroy() {
+        valueCache.clear();
+    }
+
+    private Map<String, Object> convert(Class<?> clazz, Object value) {
         Map<String, Object> rsMap = new HashMap<>();
         rsMap.put(KEY_CLASS, clazz.getName());
-        rsMap.put(KEY_VALUE, rv);
+        rsMap.put(
+                KEY_VALUE,
+                getValueIndex(clazz, value)
+        );
         return rsMap;
+    }
+
+    private int getValueIndex(Class<?> clazz, Object value) {
+        return value == null ?
+                NULL_INDEX :
+                valueCache.computeIfAbsent(
+                        value,
+                        key -> {
+                            String rv;
+                            if (value instanceof Throwable) {
+                                Throwable t = (Throwable) value;
+                                try {
+                                    rv = Utils.getErrorStackStrace(t);
+                                } catch (Throwable e) {
+                                    logger.warn("get error stack failed.", e);
+                                    rv = t.getMessage();
+                                }
+                            } else {
+                                rv = valueToString(value);
+                                if (clazz.equals(String.class))
+                                    rv = "\"" + new StringItem(rv).replaceAll("\"", "\\\"").toString() + "\"";
+                                else if (clazz.equals(char.class) || clazz.equals(Character.class))
+                                    rv = "'" + rv.replace("'", "\\'") + "'";
+                            }
+                            return new Pair<>(valueIdx++, rv);
+                        }
+                ).left;
     }
 
     public String valueToString(Object v) {

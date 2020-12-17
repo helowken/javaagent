@@ -5,14 +5,14 @@ import agent.server.transform.ConfigTransformer;
 import agent.server.transform.TransformContext;
 import agent.server.transform.TransformerData;
 import agent.server.transform.exception.InvalidTransformerConfigException;
-import agent.server.utils.log.LogConfig;
 import agent.server.utils.log.LogMgr;
-import agent.server.utils.log.LoggerType;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 public abstract class AbstractConfigTransformer extends AbstractTransformer implements ConfigTransformer {
+    private static final String KEY_LOG = "log";
     private String tid;
     private TransformerData transformerData;
 
@@ -20,18 +20,18 @@ public abstract class AbstractConfigTransformer extends AbstractTransformer impl
     public void setTid(String tid) {
         this.tid = tid;
     }
-    
+
     @Override
     public String getTid() {
         return tid;
     }
-   
+
     @Override
     public void setTransformerData(TransformerData transformerData) {
         this.transformerData = transformerData;
     }
-    
-    @Override 
+
+    @Override
     public TransformerData getTransformerData() {
         return transformerData;
     }
@@ -52,17 +52,25 @@ public abstract class AbstractConfigTransformer extends AbstractTransformer impl
         transformerData.clear();
     }
 
-    protected String regLogBinary(Map<String, Object> config, Map<String, Object> defaultValueMap) {
-        return regLog(LoggerType.BINARY, config, defaultValueMap);
+    @SuppressWarnings("unchecked")
+    protected Map<String, Object> getLogConfig(Map<String, Object> config) {
+        return (Map) config.getOrDefault(
+                KEY_LOG,
+                Collections.emptyMap()
+        );
     }
 
-    private String regLog(LoggerType loggerType, Map<String, Object> config, Map<String, Object> defaultValueMap) {
-        String logKey = LogMgr.reg(loggerType, config, defaultValueMap);
-        LogConfig logConfig = LogMgr.getLogConfig(loggerType, logKey);
-        DestInvokeIdRegistry.getInstance().regOutputPath(
-                logConfig.getOutputPath()
+    protected void regLogBinary(Map<String, Object> config, Map<String, Object> overwrite) {
+        Map<String, Object> logConfig = new HashMap<>(
+                getLogConfig(config)
         );
-        return logKey;
+        if (overwrite != null)
+            logConfig.putAll(overwrite);
+        LogMgr.regBinary(
+                getTid(),
+                logConfig,
+                Collections.emptyMap()
+        );
     }
 
     protected void doSetConfig(Map<String, Object> config) throws Exception {

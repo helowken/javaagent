@@ -1,21 +1,68 @@
 package agent.server.utils.log;
 
-public interface LogConfig {
-    String STDOUT = "#stdout#";
+public class LogConfig {
+    private final String outputPath;
+    private final boolean autoFlush;
+    private final long maxBufferSize;
+    private final int bufferCount;
+    private final boolean rollFile;
+    private final long rollFileSize;
+    private final long writeTimeoutMs;
+    private final boolean needMetadata;
 
-    String getOutputPath();
-
-    default boolean isStdout() {
-        return STDOUT.equals(getOutputPath());
+    LogConfig(String outputPath, boolean autoFlush, long maxBufferSize, int bufferCount, boolean rollFile, long rollFileSize,
+              long writeTimeoutMs, boolean needMetadata) {
+        this.outputPath = outputPath;
+        this.autoFlush = autoFlush;
+        this.maxBufferSize = maxBufferSize;
+        this.bufferCount = bufferCount;
+        this.rollFile = rollFile;
+        this.rollFileSize = rollFileSize;
+        this.writeTimeoutMs = writeTimeoutMs;
+        this.needMetadata = needMetadata;
     }
 
-    boolean isAutoFlush();
+    @Override
+    public String toString() {
+        return "outputPath='" + outputPath + '\'' +
+                ", autoFlush=" + autoFlush +
+                ", maxBufferSize=" + maxBufferSize +
+                ", bufferCount=" + bufferCount +
+                ", rollFile=" + rollFile +
+                ", rollFileSize=" + rollFileSize +
+                ", writeTimeoutMs=" + writeTimeoutMs +
+                ", needMetadata=" + needMetadata;
+    }
 
-    long getMaxBufferSize();
+    public String getOutputPath() {
+        return outputPath;
+    }
 
-    int getBufferCount();
+    public boolean isAutoFlush() {
+        return autoFlush;
+    }
 
-    long getRollFileSize();
+    public long getMaxBufferSize() {
+        return maxBufferSize;
+    }
 
-    long getWriteTimeoutMs();
+    public int getBufferCount() {
+        return bufferCount;
+    }
+
+    public boolean isRollFile() {
+        return rollFile;
+    }
+
+    public long getRollFileSize() {
+        return rollFileSize;
+    }
+
+    public long getWriteTimeoutMs() {
+        return writeTimeoutMs;
+    }
+
+    public boolean isNeedMetadata() {
+        return needMetadata;
+    }
 }

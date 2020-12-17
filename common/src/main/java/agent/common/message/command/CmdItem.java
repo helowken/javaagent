@@ -32,6 +32,6 @@ public class CmdItem {
 
     public void print() {
         if (Utils.isNotBlank(cmdLine))
-            ConsoleLogger.getInstance().info("\nExec Command: " + cmdLine);
+            ConsoleLogger.getInstance().info("\nExec Command: {}", cmdLine);
     }
 }

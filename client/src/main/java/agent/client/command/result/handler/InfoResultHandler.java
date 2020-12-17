@@ -13,11 +13,11 @@ public class InfoResultHandler extends AbstractExecResultHandler {
 
     @Override
     public void handleSuccess(Command command, ExecResult result) {
+        super.handleSuccess(command, result);
         StringBuilder sb = new StringBuilder();
+        sb.append("Response:\n");
         fillContent(result, sb);
-        ConsoleLogger.getInstance().info(
-                sb.toString()
-        );
+        ConsoleLogger.getInstance().info("{}", sb.toString());
     }
 
     private void fillContent(ExecResult result, StringBuilder sb) {

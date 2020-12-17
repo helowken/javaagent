@@ -58,10 +58,11 @@ public class CmdHelpUtils {
         );
     }
 
-    public static HelpArg getOutputPathHelpArg() {
+    public static HelpArg getOutputPathHelpArg(boolean isOptional) {
         return new HelpArg(
                 "OUTPUT_PATH",
-                "File path used to store data."
+                "File path used to store data.",
+                isOptional
         );
     }
 

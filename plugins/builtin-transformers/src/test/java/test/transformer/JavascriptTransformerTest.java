@@ -3,6 +3,8 @@ package test.transformer;
 import agent.base.utils.IOUtils;
 import agent.base.utils.ReflectionUtils;
 import agent.common.config.InvokeChainConfig;
+import agent.common.message.command.DefaultCommand;
+import agent.server.command.executor.CmdExecutorMgr;
 import agent.server.transform.ConfigTransformer;
 import agent.server.transform.TransformerRegistry;
 import agent.server.transform.impl.JavascriptTransformer;
@@ -12,7 +14,8 @@ import test.server.AbstractTest;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
+
+import static agent.common.message.MessageType.CMD_JS_EXEC;
 
 public class JavascriptTransformerTest extends AbstractTest {
     private static final Map<Class<?>, byte[]> classToData = new HashMap<>();
@@ -51,8 +54,17 @@ public class JavascriptTransformerTest extends AbstractTest {
                         e.printStackTrace(System.out);
                     }
 
-                    TransformerRegistry.getTransformerData(instanceKey).getKeyValues().forEach(
-                            (k, v) -> System.out.println(k + " = " + ((AtomicInteger) v).get())
+                    TransformerRegistry.getTransformerData(instanceKey).getIntMap().forEach(
+                            (k, v) -> System.out.println(k + " = " + v.get())
+                    );
+
+                    System.out.println("========= After Reset ==========");
+                    script = "function reset(r) {r.set(0);} rs=$.data('" + instanceKey + "').getIntMap().values().forEach(reset);";
+                    CmdExecutorMgr.exec(
+                            new DefaultCommand(CMD_JS_EXEC, script)
+                    );
+                    TransformerRegistry.getTransformerData(instanceKey).getIntMap().forEach(
+                            (k, v) -> System.out.println(k + " = " + v.get())
                     );
                 }
         );

@@ -33,7 +33,9 @@ public class BinaryLogWriterTest {
         configMap.put("maxBufferSize", 81920);
         configMap.put("bufferCount", 1000);
         configMap.put("writeTimeoutMs", 5);
-        String logKey = LogMgr.regBinary(
+        String logKey = UUID.randomUUID().toString();
+        LogMgr.regBinary(
+                logKey,
                 Collections.singletonMap("log", configMap),
                 Collections.emptyMap()
         );

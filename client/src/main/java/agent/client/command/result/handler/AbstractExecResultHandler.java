@@ -35,8 +35,8 @@ public abstract class AbstractExecResultHandler implements ExecResultHandler {
     protected void handleSuccess(Command command, ExecResult result) {
         String message = result.getMessage();
         if (message == null)
-            message = "success.";
+            message = "success.\n";
         logger.debug("{}: {}", command.getClass().getName(), message);
-        ConsoleLogger.getInstance().info(message);
+        ConsoleLogger.getInstance().info("{}", message);
     }
 }

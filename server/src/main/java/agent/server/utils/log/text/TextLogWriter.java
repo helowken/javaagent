@@ -3,17 +3,18 @@ package agent.server.utils.log.text;
 import agent.base.utils.IOUtils;
 import agent.base.utils.LockObject;
 import agent.server.utils.log.AbstractLogWriter;
+import agent.server.utils.log.LogConfig;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 
-public class TextLogWriter extends AbstractLogWriter<TextLogConfig, TextLogItem> {
+public class TextLogWriter extends AbstractLogWriter<TextLogItem> {
     private final LockObject writerLock = new LockObject();
     private volatile Writer writer;
 
-    TextLogWriter(String logKey, TextLogConfig logConfig) {
+    public TextLogWriter(String logKey, LogConfig logConfig) {
         super(logKey, logConfig);
     }
 

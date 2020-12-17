@@ -21,9 +21,8 @@ public class FlushLogCmdParser extends AbstractCmdParser<CmdParams> {
 
     @Override
     public String getDesc() {
-        return "Flush transformer data from memory to file.\n" +
-                "Transformer can be specified through OUTPUT_PATH.\n" +
-                "If no OUTPUT_PATH specified, all transformer data will be flushed.";
+        return "Flush data of transformer which is specified by TID to file.\n" +
+                "If no TID is specified, all transformers will flush.\n";
     }
 
     @Override
@@ -33,15 +32,18 @@ public class FlushLogCmdParser extends AbstractCmdParser<CmdParams> {
 
     @Override
     Command createCommand(CmdParams params) {
-        return new DefaultCommand(CMD_FLUSH_LOG, null);
+        return new DefaultCommand(
+                CMD_FLUSH_LOG,
+                params.hasArgs() ? params.getArgs()[0] : null
+        );
     }
 
     @Override
     List<HelpArg> createHelpArgList() {
         return Collections.singletonList(
                 new HelpArg(
-                        "OUTPUT_PATH",
-                        "The data file specified in transformation.",
+                        "TID",
+                        "Transformer ID.",
                         true
                 )
         );

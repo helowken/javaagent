@@ -19,7 +19,7 @@ public abstract class CallChainTransformer extends ProxyAnnotationConfigTransfor
                 };
             case ARGS_ON_AFTER:
                 return new Object[]{
-                        logKey
+                        getTid()
                 };
         }
         return null;

@@ -37,7 +37,7 @@ abstract class AbstractTransformResultHandler extends AbstractExecResultHandler 
                     }
             );
             sb.append('\n');
-            ConsoleLogger.getInstance().info(msgPrefix + " failed.\n" + sb.toString());
+            ConsoleLogger.getInstance().info("{} failed.\n{}", msgPrefix, sb.toString());
         }
     }
 

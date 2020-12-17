@@ -23,17 +23,21 @@ public class JNIDemoJava {
 
     public static void main(String[] args) throws Exception {
 //        System.out.println(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").parse("2020-07-09 00:05:42.827").getTime());
-        String ALT_DATE_TIME_FORMAT = "yyyy-MM-dd HH:mm:ss.SSS";
-        SimpleDateFormat sdf = new SimpleDateFormat(ALT_DATE_TIME_FORMAT);
-        String[] ss = {
-                "2020-07-09 05:23:06.139",
-                "2020-07-09 05:23:06.145"
-        };
-        final long t = 8 * 3600 * 1000;
-        for (String s : ss) {
-            Date date = sdf.parse(s);
-            System.out.println(date.getTime() + t);
-        }
+//        String ALT_DATE_TIME_FORMAT = "yyyy-MM-dd HH:mm:ss.SSS";
+//        SimpleDateFormat sdf = new SimpleDateFormat(ALT_DATE_TIME_FORMAT);
+//        String[] ss = {
+//                "2020-07-09 05:23:06.139",
+//                "2020-07-09 05:23:06.145"
+//        };
+//        final long t = 8 * 3600 * 1000;
+//        for (String s : ss) {
+//            Date date = sdf.parse(s);
+//            System.out.println(date.getTime() + t);
+//        }
+
+        JNIDemoJava nativeCall = new JNIDemoJava();
+        nativeCall.nativePrint();
+
 //        test3();
 //        test1();
     }

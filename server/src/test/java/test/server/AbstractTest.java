@@ -71,9 +71,8 @@ public abstract class AbstractTest {
             DependentClassItem.getInstance().mock(AsmUtils.ASM_DELEGATE_CLASS, AsmDelegate.class);
             DependentClassItem.getInstance().mock(JsonUtils.JSON_DELEGATE_CLASS, JsonDelegate.class);
 
-            Object[] args = new Object[] {instrumentation};
+            Object[] args = new Object[]{instrumentation};
             InstrumentationMgr.getInstance().onStartup(args);
-            DestInvokeIdRegistry.getInstance().onStartup(args);
             ProxyTransformMgr.getInstance().onStartup(args);
             String dir = System.getProperty("user.dir");
             String s = "javaagent";
@@ -151,18 +150,10 @@ public abstract class AbstractTest {
         return ReflectionUtils.newInstance(newClass);
     }
 
-    protected void flushAndWaitData() throws Exception {
-        waitDataListener.clear();
-        EventListenerMgr.fireEvent(
-                new FlushLogEvent()
-        );
-        waitDataListener.await();
-    }
-
-    protected void flushAndWaitMetadata(String outputPath) throws Exception {
+    protected void flushAndWaitMetadata(String logKey) throws Exception {
         waitMetadataListener.clear();
         EventListenerMgr.fireEvent(
-                new FlushLogEvent(outputPath)
+                new FlushLogEvent(logKey)
         );
         waitMetadataListener.await();
     }

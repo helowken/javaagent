@@ -67,7 +67,7 @@ public class StackTraceResultHandler extends AbstractResultHandler<Tree<StackTra
     }
 
     @Override
-    Tree<StackTraceCountItem> calculate(Collection<File> dataFiles, StackTraceResultParams params) {
+    Tree<StackTraceCountItem> calculate(List<File> dataFiles, StackTraceResultParams params) {
         AtomicReference<Tree<StackTraceCountItem>> ref = new AtomicReference<>(null);
         dataFiles.parallelStream()
                 .map(

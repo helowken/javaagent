@@ -13,12 +13,11 @@ import agent.server.transform.search.filter.CompoundFilter;
 import agent.server.transform.search.filter.FilterUtils;
 import agent.server.utils.log.LogConfig;
 import agent.server.utils.log.LogMgr;
-import agent.server.utils.log.LoggerType;
 
 import java.util.*;
 
 abstract class AbstractStackTraceTask implements ScheduleTask {
-    private static final Logger logger = Logger.getLogger(StackTraceTask.class);
+    private static final Logger logger = Logger.getLogger(AbstractStackTraceTask.class);
     private static final String SEP = ":";
     private final StackTraceConfig config;
     private final Map<String, Integer> nameToId = new HashMap<>();
@@ -26,9 +25,10 @@ abstract class AbstractStackTraceTask implements ScheduleTask {
     private final AgentFilter<String> threadFilter;
     private final AgentFilter<String> stackFilter;
     private final AgentFilter<String> elementFilter;
-    String logKey;
+    final String logKey;
 
     AbstractStackTraceTask(StackTraceConfig config) {
+        this.logKey = UUID.randomUUID().toString();
         this.config = config;
         this.threadFilter = newThreadFilter(config);
         this.stackFilter = FilterUtils.newStringFilter(
@@ -57,7 +57,8 @@ abstract class AbstractStackTraceTask implements ScheduleTask {
 
     @Override
     public void preRun() {
-        logKey = LogMgr.regBinary(
+        LogMgr.regBinary(
+                logKey,
                 config.getLogConfig(),
                 Collections.emptyMap()
         );
@@ -67,21 +68,21 @@ abstract class AbstractStackTraceTask implements ScheduleTask {
     public void finish() {
         logger.debug("task finish start: {}", logKey);
         onFinish();
-        LogMgr.flushBinary(logKey);
+        LogMgr.flush(logKey);
         logger.debug("task finish end: {}", logKey);
     }
 
     @Override
     public void postRun() {
         logger.debug("post run start: {}", logKey);
-        LogMgr.closeBinary(logKey);
+        LogMgr.close(logKey);
         writeMetadataToFile();
         nameToId.clear();
         logger.debug("post run finish: {}", logKey);
     }
 
     private void writeMetadataToFile() {
-        LogConfig logConfig = LogMgr.getLogConfig(LoggerType.BINARY, logKey);
+        LogConfig logConfig = LogMgr.getLogConfig(logKey);
         String metadataFile = MetadataUtils.getMetadataFile(
                 logConfig.getOutputPath()
         );

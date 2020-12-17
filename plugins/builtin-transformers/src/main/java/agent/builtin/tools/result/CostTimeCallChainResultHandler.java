@@ -13,10 +13,7 @@ import agent.common.utils.JsonUtils;
 import agent.server.transform.impl.DestInvokeIdRegistry.InvokeMetadata;
 
 import java.io.File;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
 
@@ -66,7 +63,7 @@ public class CostTimeCallChainResultHandler extends AbstractCostTimeResultHandle
     }
 
     @Override
-    Tree<CallChainData> calculate(Collection<File> dataFiles, CostTimeResultParams params) {
+    Tree<CallChainData> calculate(List<File> dataFiles, CostTimeResultParams params) {
         AtomicReference<Tree<CallChainData>> ref = new AtomicReference<>(null);
         dataFiles.parallelStream()
                 .map(this::doCalculate)

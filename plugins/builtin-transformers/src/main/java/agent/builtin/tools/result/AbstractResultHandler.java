@@ -22,7 +22,7 @@ abstract class AbstractResultHandler<T, P extends ResultParams> implements Resul
     private static final int BUF_INIT_SIZE = 256 * 1024;
     private final ThreadLocal<byte[]> bufLocal = new ThreadLocal<>();
 
-    abstract T calculate(Collection<File> dataFiles, P params);
+    abstract T calculate(List<File> dataFiles, P params);
 
     List<File> findDataFiles(String dataFilePath) {
         File dir = new File(dataFilePath).getParentFile();
@@ -123,20 +123,23 @@ abstract class AbstractResultHandler<T, P extends ResultParams> implements Resul
     }
 
     void calculateBinaryFile(File dataFile, CalculateBytesFunc calculateFunc) {
-        calculateFile(
-                dataFile,
-                inputFile -> {
-                    long length = inputFile.length();
-                    try (DataInputStream in = new DataInputStream(new BufferedInputStream(new FileInputStream(inputFile)))) {
+        String path = dataFile.getAbsolutePath();
+        TimeMeasureUtils.run(
+                () -> {
+                    long length = dataFile.length();
+                    try (DataInputStream in = new DataInputStream(new BufferedInputStream(new FileInputStream(dataFile)))) {
                         while (length > 0) {
                             length -= calculateFunc.exec(in);
                             if (length < 0)
                                 throw new RuntimeException("Invalid calculation.");
                         }
                     } catch (Exception e) {
-                        throw new RuntimeException("Calculate data file failed: " + inputFile, e);
+                        throw new RuntimeException("Calculate data file failed: " + dataFile, e);
                     }
-                }
+                },
+                e -> System.err.println("Read data file failed: " + path + '\n' + Utils.getErrorStackStrace(e)),
+                "Calculate {} used time: {}",
+                path
         );
     }
 
@@ -166,17 +169,6 @@ abstract class AbstractResultHandler<T, P extends ResultParams> implements Resul
         return totalSize;
     }
 
-    void calculateTextFile(File dataFile, CalculateTextFunc calculateTextFunc) {
-        calculateFile(
-                dataFile,
-                inputFile -> {
-                    try (BufferedReader reader = new BufferedReader(new FileReader(inputFile))) {
-                        calculateTextFunc.exec(reader);
-                    }
-                }
-        );
-    }
-
     InvokeMetadata getMetadata(Map<Integer, InvokeMetadata> idToInvoke, Integer invokeId) {
         InvokeMetadata invokeMetadata = idToInvoke.get(invokeId);
         if (invokeMetadata == null) {
@@ -202,26 +194,8 @@ abstract class AbstractResultHandler<T, P extends ResultParams> implements Resul
                 invoke;
     }
 
-    private void calculateFile(File dataFile, ProcessFileFunc processFileFunc) {
-        String path = dataFile.getAbsolutePath();
-        TimeMeasureUtils.run(
-                () -> processFileFunc.process(dataFile),
-                e -> System.err.println("Read data file failed: " + path + '\n' + Utils.getErrorStackStrace(e)),
-                "Calculate {} used time: {}",
-                path
-        );
-    }
-
-    private interface ProcessFileFunc {
-        void process(File dataFilePath) throws Exception;
-    }
-
     interface CalculateBytesFunc {
         int exec(DataInputStream in) throws Exception;
-    }
-
-    interface CalculateTextFunc {
-        void exec(BufferedReader reader) throws Exception;
     }
 
 }

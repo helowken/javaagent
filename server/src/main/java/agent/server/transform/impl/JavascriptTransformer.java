@@ -33,11 +33,6 @@ public class JavascriptTransformer extends CallChainTransformer {
     }
 
     @Override
-    protected String newLogKey(Map<String, Object> config) {
-        return null;
-    }
-
-    @Override
     public String getRegKey() {
         return REG_KEY;
     }

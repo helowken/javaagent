@@ -17,7 +17,7 @@ public abstract class BuiltInTransformCmdParser extends AbstractTransformCmdPars
     List<HelpArg> createHelpArgList() {
         return Arrays.asList(
                 getTransformerIdHelpArg(),
-                getOutputPathHelpArg()
+                getOutputPathHelpArg(true)
         );
     }
 

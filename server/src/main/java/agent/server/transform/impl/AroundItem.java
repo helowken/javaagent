@@ -51,6 +51,11 @@ public class AroundItem<T, R> {
         return undergoing.isEmpty();
     }
 
+    void clear() {
+        undergoing.clear();
+        completed.clear();
+    }
+
     interface ProcessDataFunc<T, R> {
         R process(T data);
     }

@@ -3,6 +3,7 @@ package agent.builtin.transformer;
 import agent.base.utils.Utils;
 import agent.invoke.DestInvoke;
 import agent.server.transform.impl.CallChainTransformer;
+import agent.server.utils.log.LogConfigParser;
 import agent.server.utils.log.LogMgr;
 import agent.server.utils.log.binary.BinaryLogItem;
 import agent.server.utils.log.binary.BinaryLogItemPool;
@@ -15,10 +16,14 @@ public class CostTimeStatisticsTransformer extends CallChainTransformer {
     public static final String REG_KEY = "@costTimeStat";
 
     @Override
-    protected String newLogKey(Map<String, Object> logConf) {
-        return regLogBinary(
-                logConf,
-                Collections.emptyMap()
+    @SuppressWarnings("unchecked")
+    protected void doSetConfig(Map<String, Object> config) throws Exception {
+        regLogBinary(
+                config,
+                Collections.singletonMap(
+                        LogConfigParser.CONF_NEED_METADATA,
+                        true
+                )
         );
     }
 

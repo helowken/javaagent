@@ -62,7 +62,7 @@ abstract class AbstractTraceTest extends AbstractTest {
                         e.printStackTrace(System.out);
                     }
 
-                    flushAndWaitMetadata(outputPath);
+                    flushAndWaitMetadata(transformer.getTid());
 
                     TraceInvokeResultHandler handler = new TraceInvokeResultHandler();
 

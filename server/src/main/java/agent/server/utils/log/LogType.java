@@ -1,5 +1,5 @@
 package agent.server.utils.log;
 
-public enum LoggerType {
+public enum LogType {
     TEXT, BINARY
 }

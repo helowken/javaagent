@@ -16,13 +16,10 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static agent.server.utils.log.LogConfig.STDOUT;
-
-public abstract class AbstractLogWriter<T extends LogConfig, V extends LogItem> implements LogWriter<V> {
+public abstract class AbstractLogWriter<V extends LogItem> implements LogWriter {
     private static final Logger logger = Logger.getLogger(AbstractLogWriter.class);
     protected final String logKey;
-    private final T logConfig;
-    protected boolean stdout;
+    private final LogConfig logConfig;
     private final LinkedBlockingQueue<ItemBuffer> taskQueue = new LinkedBlockingQueue<>();
     private final LinkedBlockingQueue<ItemBuffer> availableBuffers;
     private final LockObject bufferLock = new LockObject();
@@ -33,7 +30,7 @@ public abstract class AbstractLogWriter<T extends LogConfig, V extends LogItem> 
     private long currFileSize = 0;
     private int fileIdx = 0;
 
-    protected AbstractLogWriter(String logKey, T logConfig) {
+    protected AbstractLogWriter(String logKey, LogConfig logConfig) {
         this.logKey = logKey;
         this.logConfig = logConfig;
         int bufferCount = logConfig.getBufferCount();
@@ -41,8 +38,6 @@ public abstract class AbstractLogWriter<T extends LogConfig, V extends LogItem> 
         for (int i = 0; i < bufferCount; ++i) {
             availableBuffers.add(new DefaultItemBuffer());
         }
-        String outputPath = logConfig.getOutputPath();
-        stdout = outputPath == null || STDOUT.equals(outputPath);
         startThread();
     }
 
@@ -71,8 +66,10 @@ public abstract class AbstractLogWriter<T extends LogConfig, V extends LogItem> 
     }
 
     @Override
-    public void write(V item) {
+    @SuppressWarnings("unchecked")
+    public void write(LogItem o) {
         try {
+            V item = (V) o;
             long itemSize = logConfig.isAutoFlush() ? 0 : computeSize(item);
             bufferLock.sync(lock -> {
                 if (currBuffer == null) {
@@ -133,14 +130,9 @@ public abstract class AbstractLogWriter<T extends LogConfig, V extends LogItem> 
     }
 
     protected OutputStream getOutputStream() throws FileNotFoundException {
-        if (stdout) {
-            logger.debug("Output to console.");
-            return System.out;
-        } else {
-            String fileName = getOutputFileName();
-            logger.debug("Output to {}.", fileName);
-            return new FileOutputStream(fileName);
-        }
+        String fileName = getOutputFileName();
+        logger.debug("Output to {}.", fileName);
+        return new FileOutputStream(fileName);
     }
 
     @Override
@@ -153,8 +145,7 @@ public abstract class AbstractLogWriter<T extends LogConfig, V extends LogItem> 
             } catch (InterruptedException e) {
                 logger.error("Write thread is interrupted.", e);
             }
-            if (!stdout)
-                doClose();
+            doClose();
             logger.debug("Logger closed: {}", logConfig);
         }
     }
@@ -162,11 +153,12 @@ public abstract class AbstractLogWriter<T extends LogConfig, V extends LogItem> 
     private void tryToFlush() {
         if (!closed.get())
             flushOutput();
-        EventListenerMgr.fireEvent(new LogFlushedEvent(logConfig.getOutputPath()), true);
     }
 
     private void tryToRollFile() {
-        if (currFileSize >= logConfig.getRollFileSize() && !closed.get() && !stdout) {
+        if (logConfig.isRollFile() &&
+                currFileSize >= logConfig.getRollFileSize() &&
+                !closed.get()) {
             flushOutput();
             doClose();
             ++fileIdx;
@@ -179,6 +171,14 @@ public abstract class AbstractLogWriter<T extends LogConfig, V extends LogItem> 
             doFlush();
         } catch (Exception e) {
             logger.error("Flush failed.", e);
+        } finally {
+            EventListenerMgr.fireEvent(
+                    new LogFlushedEvent(
+                            logKey,
+                            logConfig.getOutputPath()
+                    ),
+                    true
+            );
         }
     }
 

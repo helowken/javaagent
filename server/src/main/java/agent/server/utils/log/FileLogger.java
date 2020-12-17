@@ -5,9 +5,7 @@ public interface FileLogger<T extends LogItem> {
 
     void log(String key, T item);
 
-    LogConfigParser getConfigParser();
-
-    LoggerType getType();
+    LogType getType();
 
     LogConfig getLogConfig(String logKey);
 

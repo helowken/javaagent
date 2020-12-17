@@ -49,7 +49,7 @@ public class CostTimeStatisticsTransformerTest extends AbstractTest {
                     Object a = newInstance(classToData, A.class);
                     ReflectionUtils.invoke("service", a);
 
-                    flushAndWaitMetadata(outputPath);
+                    flushAndWaitMetadata(transformer.getTid());
 
                     CostTimeCallChainResultParamParser callChainOptParser = new CostTimeCallChainResultParamParser();
                     CostTimeResultParams params = callChainOptParser.parse(

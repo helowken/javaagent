@@ -3,6 +3,8 @@ package agent.server.command.executor.script;
 import agent.base.utils.IOUtils;
 import agent.base.utils.ReflectionUtils;
 import agent.jvmti.JvmtiUtils;
+import agent.server.transform.TransformerData;
+import agent.server.transform.TransformerRegistry;
 
 import java.io.PrintWriter;
 import java.io.Writer;
@@ -118,5 +120,9 @@ public class ExportFuncs {
         String className = el.getClassName();
         return className.startsWith("agent.") ||
                 (className.equals("javax.script.AbstractScriptEngine") && el.getMethodName().equals("eval"));
+    }
+
+    public TransformerData data(String tid) {
+        return TransformerRegistry.getTransformerData(tid);
     }
 }

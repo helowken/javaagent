@@ -16,15 +16,16 @@ import agent.common.tree.TreeUtils;
 import agent.server.transform.impl.DestInvokeIdRegistry.InvokeMetadata;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.nio.ByteBuffer;
 import java.util.*;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
 import static agent.builtin.transformer.utils.DefaultValueConverter.*;
 
 
 public class TraceInvokeResultHandler extends AbstractResultHandler<Collection<Tree<TraceItem>>, TraceResultParams> {
     private static final Logger logger = Logger.getLogger(TraceInvokeResultHandler.class);
+    private static final String KEY_IDX_TO_VALUE = "ID_TO_VALUE";
     private static final String indent = IndentUtils.getIndent(1);
     private static final StructContext context = new StructContext();
 
@@ -39,9 +40,12 @@ public class TraceInvokeResultHandler extends AbstractResultHandler<Collection<T
         logger.debug("Params: {}", params);
         String inputPath = params.getInputPath();
         Map<Integer, InvokeMetadata> idToMetadata = readInvokeMetadata(inputPath);
-        List<File> dataFiles = findDataFiles(inputPath);
+        File dataFile = new File(inputPath);
+        if (!dataFile.exists())
+            throw new FileNotFoundException("File not exists: " + inputPath);
+        List<File> dataFiles = Collections.singletonList(dataFile);
         TraceResultTreeConverter converter = new TraceResultTreeConverter();
-        calculateStats(dataFiles, params)
+        calculate(dataFiles, params)
                 .stream()
                 .map(
                         tree -> converter.convert(
@@ -142,12 +146,10 @@ public class TraceInvokeResultHandler extends AbstractResultHandler<Collection<T
     }
 
     @Override
-    Collection<Tree<TraceItem>> calculate(Collection<File> dataFiles, TraceResultParams params) {
-        Collection<Tree<TraceItem>> rsList = new ConcurrentLinkedQueue<>();
-        dataFiles.parallelStream()
-                .map(this::doCalculate)
-                .forEach(rsList::addAll);
-        return rsList;
+    Collection<Tree<TraceItem>> calculate(List<File> dataFiles, TraceResultParams params) {
+        return doCalculate(
+                dataFiles.get(0)
+        );
     }
 
     private List<Tree<TraceItem>> doCalculate(File dataFile) {
@@ -164,10 +166,14 @@ public class TraceInvokeResultHandler extends AbstractResultHandler<Collection<T
         return trees;
     }
 
+    @SuppressWarnings("unchecked")
     private Tree<TraceItem> processTree(ByteBuffer bb) {
         Map<Integer, Node<TraceItem>> idToNode = new HashMap<>();
-        List<TraceItem> traceItemList = Struct.deserialize(bb, context);
+        List<Object> values = Struct.deserialize(bb, context);
+        Map<Integer, String> idxToValue = (Map) values.get(0);
+        List<TraceItem> traceItemList = (List) values.get(1);
         Tree<TraceItem> tree = new Tree<>();
+        tree.setUserProp(KEY_IDX_TO_VALUE, idxToValue);
         idToNode.put(-1, tree);
         traceItemList.forEach(
                 item -> {

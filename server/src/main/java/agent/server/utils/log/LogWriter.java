@@ -1,7 +1,7 @@
 package agent.server.utils.log;
 
-public interface LogWriter<T extends LogItem> {
-    void write(T item);
+public interface LogWriter {
+    void write(LogItem item);
 
     void flush();
 

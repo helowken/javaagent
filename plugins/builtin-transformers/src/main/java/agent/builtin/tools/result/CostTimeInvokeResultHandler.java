@@ -11,10 +11,7 @@ import agent.common.utils.JsonUtils;
 import agent.server.transform.impl.DestInvokeIdRegistry.InvokeMetadata;
 
 import java.io.File;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static agent.builtin.tools.result.filter.ResultFilterUtils.populateFilter;
@@ -108,7 +105,7 @@ public class CostTimeInvokeResultHandler extends AbstractCostTimeResultHandler<M
     }
 
     @Override
-    Map<Integer, CostTimeStatItem> calculate(Collection<File> dataFiles, CostTimeResultParams params) {
+    Map<Integer, CostTimeStatItem> calculate(List<File> dataFiles, CostTimeResultParams params) {
         Map<Integer, CostTimeStatItem> sumMap = new ConcurrentHashMap<>();
         dataFiles.parallelStream()
                 .map(this::doCalculate)

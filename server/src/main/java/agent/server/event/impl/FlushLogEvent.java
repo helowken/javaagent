@@ -3,22 +3,19 @@ package agent.server.event.impl;
 import agent.server.event.AgentEvent;
 
 public class FlushLogEvent implements AgentEvent {
-    private final String outputPath;
+    private final String key;
 
     public FlushLogEvent() {
         this(null);
     }
 
-    public FlushLogEvent(String outputPath) {
-        this.outputPath = outputPath;
+    public FlushLogEvent(String key) {
+        this.key = key;
     }
 
-    public String getOutputPath() {
-        return outputPath;
+    public String getKey() {
+        return key;
     }
 
-    public boolean isFlushAll() {
-        return outputPath == null;
-    }
 
 }

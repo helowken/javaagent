@@ -1,33 +1,27 @@
-$d.newAInt("beforeCount");
-$d.newAInt("returnCount");
-$d.newAInt("afterCount");
-$d.newAInt("errorCount");
-$d.newAInt("catchCount");
-
 function onBefore(data, inv) {
     test("onBefore", data, inv);
-    $d.get("beforeCount").incrementAndGet();
+    $d.aInt("beforeCount").incrementAndGet();
 }
 
 function onReturn(data, inv) {
     test("onReturn", data, inv);
-    $d.get("returnCount").incrementAndGet();
+    $d.aInt("returnCount").incrementAndGet();
 }
 
 function onAfter(data, inv) {
     test("onAfter", data, inv);
-    $d.get("afterCount").incrementAndGet();
+    $d.aInt("afterCount").incrementAndGet();
 }
 
 function onError(data, inv) {
     test("onError", data, inv);
-    $d.get("errorCount").incrementAndGet();
+    $d.aInt("errorCount").incrementAndGet();
 }
 
 function onCatch(data, inv, error) {
     data.kvs.put("error", error);
     test("onCatch", data, inv);
-    $d.get("catchCount").incrementAndGet();
+    $d.aInt("catchCount").incrementAndGet();
 }
 
 function onComplete(data, inv) {

@@ -69,8 +69,8 @@ public class TraceInvokeTransformerTest2 extends AbstractTest {
                             ReflectionUtils.invoke("load", new Class[]{int.class}, b, 33);
                             ReflectionUtils.invoke("recursiveLoad", new Class[]{long.class}, b, (long) 4);
 
-                            flushAndWaitMetadata(outputPath);
-                            flushAndWaitMetadata(outputPath2);
+                            flushAndWaitMetadata(costTimeTransformer.getTid());
+                            flushAndWaitMetadata(traceTransformer.getTid());
 
                             TraceResultParamParser parser = new TraceResultParamParser();
                             TraceInvokeResultHandler traceHandler = new TraceInvokeResultHandler();

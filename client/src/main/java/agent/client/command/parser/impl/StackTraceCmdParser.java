@@ -37,7 +37,7 @@ public class StackTraceCmdParser extends ScheduleCmdParser {
                         "TASK_KEY",
                         "Task key which is used to stop the task. It must be unique."
                 ),
-                getOutputPathHelpArg()
+                getOutputPathHelpArg(false)
         );
     }
 

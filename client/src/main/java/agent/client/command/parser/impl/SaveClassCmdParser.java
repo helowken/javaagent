@@ -68,7 +68,7 @@ public class SaveClassCmdParser extends AbstractCmdParser<CmdParams> {
     @Override
     List<HelpArg> createHelpArgList() {
         return Collections.singletonList(
-                getOutputPathHelpArg()
+                getOutputPathHelpArg(false)
         );
     }
 

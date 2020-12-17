@@ -101,6 +101,7 @@ public abstract class ProxyAnnotationConfig<T, R> {
                     processOnCompleted(currAroundItem.getCompleted(), instanceOrNull, destInvoke, args);
                 } finally {
                     setBanning(false);
+                    currAroundItem.clear();
                 }
             }
         }
@@ -109,7 +110,7 @@ public abstract class ProxyAnnotationConfig<T, R> {
     private AroundItem<T, R> getAroundItem(String stage, DestInvoke destInvoke) {
         AroundItem<T, R> currAroundItem = local.get();
         if (currAroundItem == null)
-            logger.error("No node found on {} for dest invoke: {}", stage, destInvoke);
+            logger.warn("No node found on {} for dest invoke: {}", stage, destInvoke);
         return currAroundItem;
     }
 

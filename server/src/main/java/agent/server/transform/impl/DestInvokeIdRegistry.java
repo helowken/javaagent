@@ -8,20 +8,14 @@ import agent.common.buffer.ByteUtils;
 import agent.common.struct.impl.Struct;
 import agent.common.utils.MetadataUtils;
 import agent.invoke.DestInvoke;
-import agent.server.ServerListener;
-import agent.server.event.AgentEvent;
-import agent.server.event.AgentEventListener;
 import agent.server.event.EventListenerMgr;
 import agent.server.event.impl.DestInvokeMetadataFlushedEvent;
-import agent.server.event.impl.LogFlushedEvent;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class DestInvokeIdRegistry implements ServerListener, AgentEventListener {
+public class DestInvokeIdRegistry {
     private static final String SEP = "#";
     private static final Logger logger = Logger.getLogger(DestInvokeIdRegistry.class);
     private static final DestInvokeIdRegistry instance = new DestInvokeIdRegistry();
@@ -29,7 +23,6 @@ public class DestInvokeIdRegistry implements ServerListener, AgentEventListener 
     private final LockObject lo = new LockObject();
     private final Map<Class<?>, Map<DestInvoke, Integer>> classToInvokeToId = new HashMap<>();
     private final AtomicInteger idGen = new AtomicInteger(0);
-    private final Set<String> outputPaths = new HashSet<>();
 
     public static DestInvokeIdRegistry getInstance() {
         return instance;
@@ -66,46 +59,24 @@ public class DestInvokeIdRegistry implements ServerListener, AgentEventListener 
         );
     }
 
-    void regOutputPath(String outputPath) {
-        lo.sync(
-                lock -> {
-                    if (outputPaths.contains(outputPath))
-                        throw new RuntimeException("Output path is registered: " + outputPath);
-                    outputPaths.add(outputPath);
-                }
-        );
-    }
-
-    @Override
-    public void onNotify(AgentEvent event) {
-        Class<?> eventType = event.getClass();
-        if (eventType.equals(LogFlushedEvent.class)) {
-            handleLogFlushedEvent((LogFlushedEvent) event);
-        } else
-            throw new RuntimeException("Unsupported event type: " + eventType);
-    }
-
-    private void handleLogFlushedEvent(LogFlushedEvent event) {
-        String outputPath = event.getOutputPath();
+    public void outputMetadata(String outputPath) {
         lo.sync(
                 lock -> {
                     String path = MetadataUtils.getMetadataFile(outputPath);
-                    if (outputPaths.contains(outputPath)) {
-                        try {
-                            byte[] bs = ByteUtils.getBytes(
-                                    Struct.serialize(
-                                            convertMetadata()
-                                    )
-                            );
-                            IOUtils.writeBytes(path, bs, false);
-                            logger.debug("Metadata is flushed for log: {}", outputPath);
-                        } catch (Throwable e) {
-                            logger.error("Write metadata to " + path + " is failed.");
-                        }
-                        EventListenerMgr.fireEvent(
-                                new DestInvokeMetadataFlushedEvent(path)
+                    try {
+                        byte[] bs = ByteUtils.getBytes(
+                                Struct.serialize(
+                                        convertMetadata()
+                                )
                         );
+                        IOUtils.writeBytes(path, bs, false);
+                        logger.debug("Metadata is flushed for log: {}", outputPath);
+                    } catch (Throwable e) {
+                        logger.error("Write metadata to " + path + " is failed.");
                     }
+                    EventListenerMgr.fireEvent(
+                            new DestInvokeMetadataFlushedEvent(path)
+                    );
                 }
         );
     }
@@ -164,19 +135,8 @@ public class DestInvokeIdRegistry implements ServerListener, AgentEventListener 
         lo.sync(
                 lock -> {
                     classToInvokeToId.clear();
-                    outputPaths.clear();
                 }
         );
-    }
-
-    @Override
-    public void onStartup(Object[] args) {
-        EventListenerMgr.reg(LogFlushedEvent.class, this);
-    }
-
-    @Override
-    public void onShutdown() {
-
     }
 
     public interface OpFunc<V> {
