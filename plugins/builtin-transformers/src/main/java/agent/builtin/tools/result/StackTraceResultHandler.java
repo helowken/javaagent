@@ -175,7 +175,8 @@ public class StackTraceResultHandler extends AbstractResultHandler<Tree<StackTra
                                 StackTraceEntity::getNameId,
                                 StackTraceCountItem::getClassId,
                                 StackTraceCountItem::getMethodId
-                        )
+                        ),
+                        false
                 )
         );
         return tree;

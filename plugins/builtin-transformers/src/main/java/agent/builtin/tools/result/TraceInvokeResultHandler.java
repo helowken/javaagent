@@ -3,9 +3,11 @@ package agent.builtin.tools.result;
 import agent.base.utils.IndentUtils;
 import agent.base.utils.InvokeDescriptorUtils;
 import agent.base.utils.Logger;
+import agent.base.utils.Utils;
 import agent.builtin.tools.result.filter.TraceResultFilter;
 import agent.builtin.tools.result.filter.TreeResultConverter;
 import agent.builtin.tools.result.parse.TraceResultParams;
+import agent.builtin.transformer.utils.DefaultValueConverter;
 import agent.builtin.transformer.utils.TraceItem;
 import agent.common.struct.impl.Struct;
 import agent.common.struct.impl.StructContext;
@@ -15,17 +17,21 @@ import agent.common.tree.Tree;
 import agent.common.tree.TreeUtils;
 import agent.server.transform.impl.DestInvokeIdRegistry.InvokeMetadata;
 
+import java.io.DataInput;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 
 import static agent.builtin.transformer.utils.DefaultValueConverter.*;
 
 
 public class TraceInvokeResultHandler extends AbstractResultHandler<Collection<Tree<TraceItem>>, TraceResultParams> {
     private static final Logger logger = Logger.getLogger(TraceInvokeResultHandler.class);
-    private static final String KEY_IDX_TO_VALUE = "ID_TO_VALUE";
+    private static final String KEY_VALUE_CACHE = "VALUE_CACHE";
     private static final String indent = IndentUtils.getIndent(1);
     private static final StructContext context = new StructContext();
 
@@ -39,29 +45,14 @@ public class TraceInvokeResultHandler extends AbstractResultHandler<Collection<T
     public void exec(TraceResultParams params) throws Exception {
         logger.debug("Params: {}", params);
         String inputPath = params.getInputPath();
-        Map<Integer, InvokeMetadata> idToMetadata = readInvokeMetadata(inputPath);
         File dataFile = new File(inputPath);
         if (!dataFile.exists())
             throw new FileNotFoundException("File not exists: " + inputPath);
-        List<File> dataFiles = Collections.singletonList(dataFile);
-        TraceResultTreeConverter converter = new TraceResultTreeConverter();
-        calculate(dataFiles, params)
-                .stream()
-                .map(
-                        tree -> converter.convert(
-                                transform(tree),
-                                idToMetadata,
-                                params
-                        )
-                )
-                .filter(INode::hasChild)
-                .forEach(
-                        tree -> TreeUtils.printTree(
-                                tree,
-                                new TreeUtils.PrintConfig(false),
-                                (node, config) -> node.getData()
-                        )
-                );
+        doCalculate(
+                dataFile,
+                readInvokeMetadata(inputPath),
+                params
+        );
     }
 
     private Tree<TraceItem> transform(Tree<TraceItem> tree) {
@@ -147,23 +138,86 @@ public class TraceInvokeResultHandler extends AbstractResultHandler<Collection<T
 
     @Override
     Collection<Tree<TraceItem>> calculate(List<File> dataFiles, TraceResultParams params) {
-        return doCalculate(
-                dataFiles.get(0)
-        );
+        return null;
     }
 
-    private List<Tree<TraceItem>> doCalculate(File dataFile) {
-        List<Tree<TraceItem>> trees = new ArrayList<>();
-        calculateBinaryFile(
-                dataFile,
-                in -> deserializeBytes(
-                        in,
-                        bb -> trees.add(
-                                processTree(bb)
-                        )
-                )
+    private void doCalculate(File dataFile, Map<Integer, InvokeMetadata> idToMetadata, TraceResultParams params) throws Exception {
+        TraceResultTreeConverter converter = new TraceResultTreeConverter();
+        int headNum = params.getHeadNumber();
+        int tailNum = params.getTailNumber();
+        if (headNum > 0 || tailNum > 0) {
+            RandomAccessFile ra = new RandomAccessFile(dataFile, "r");
+            final long fileSize = ra.length();
+            Consumer<Integer> func = count -> Utils.wrapToRtError(
+                    () -> {
+                        long leftSize = fileSize;
+                        for (int i = 0; i < count; ++i) {
+                            leftSize -= displayTree(ra, idToMetadata, params, converter);
+                            if (leftSize <= 0)
+                                break;
+                        }
+                    }
+            );
+
+            if (headNum > 0)
+                func.accept(headNum);
+
+            if (tailNum > 0) {
+                long pos = fileSize;
+                int sizeLen = Integer.BYTES;
+                int dataLen;
+                ra.seek(pos - sizeLen);
+                for (int i = 0; i < tailNum; ++i) {
+                    dataLen = ra.readInt();
+                    // format is: [size] [data] [size] | [size[ [data] [size]
+                    // so need to skip sizeLen * 3 to get the previous size at tail.
+                    pos -= (dataLen + sizeLen * 2);
+                    if (pos > 0) {
+                        if (i < tailNum - 1)
+                            ra.seek(pos - sizeLen);  // there are more than one records
+                        else
+                            ra.seek(pos);
+                    } else {
+                        ra.seek(pos);
+                        break;
+                    }
+                }
+                func.accept(tailNum);
+            }
+        } else {
+            calculateBinaryFile(
+                    dataFile,
+                    in -> displayTree(in, idToMetadata, params, converter)
+            );
+        }
+    }
+
+    private int displayTree(DataInput dataInput, Map<Integer, InvokeMetadata> idToMetadata, TraceResultParams params,
+                            TraceResultTreeConverter converter) throws Exception {
+        AtomicReference<Tree<TraceItem>> ref = new AtomicReference<>();
+        int totalSize = deserializeBytes(
+                dataInput,
+                bb -> ref.set(
+                        processTree(bb)
+                ),
+                true
         );
-        return trees;
+        Tree<TraceItem> tree = ref.get();
+        if (tree == null)
+            throw new RuntimeException("No tree found!");
+        if (tree.hasChild()) {
+            Tree<String> rsTree = converter.convert(
+                    transform(tree),
+                    idToMetadata,
+                    params
+            );
+            TreeUtils.printTree(
+                    rsTree,
+                    new TreeUtils.PrintConfig(false),
+                    (node, config) -> node.getData()
+            );
+        }
+        return totalSize;
     }
 
     @SuppressWarnings("unchecked")
@@ -173,7 +227,7 @@ public class TraceInvokeResultHandler extends AbstractResultHandler<Collection<T
         Map<Integer, String> idxToValue = (Map) values.get(0);
         List<TraceItem> traceItemList = (List) values.get(1);
         Tree<TraceItem> tree = new Tree<>();
-        tree.setUserProp(KEY_IDX_TO_VALUE, idxToValue);
+        tree.setUserProp(KEY_VALUE_CACHE, idxToValue);
         idToNode.put(-1, tree);
         traceItemList.forEach(
                 item -> {
@@ -205,7 +259,6 @@ public class TraceInvokeResultHandler extends AbstractResultHandler<Collection<T
     }
 
     private class TraceResultTreeConverter extends TreeResultConverter<TraceItem, TraceResultParams, String> {
-
         @Override
         protected TraceResultFilter createFilter() {
             return new TraceResultFilter();
@@ -220,9 +273,25 @@ public class TraceInvokeResultHandler extends AbstractResultHandler<Collection<T
         }
 
         @Override
+        @SuppressWarnings("unchecked")
         protected Node<String> createNode(Node<TraceItem> node, Map<Integer, InvokeMetadata> idToMetadata,
                                           InvokeMetadata metadata, TraceResultParams params) {
-            return node.getData().getType() == TraceItem.TYPE_INVOKE ?
+            Map<Integer, String> valueCache = (Map) node.getRoot().getUserProp(KEY_VALUE_CACHE);
+            TraceItem item = node.getData();
+            DefaultValueConverter.transformValues(
+                    item.getArgs(),
+                    valueCache
+            );
+            DefaultValueConverter.transformValue(
+                    item.getReturnValue(),
+                    valueCache
+            );
+            DefaultValueConverter.transformValue(
+                    item.getError(),
+                    valueCache
+            );
+
+            return item.getType() == TraceItem.TYPE_INVOKE ?
                     createInvokeNode(node, idToMetadata, metadata, params) :
                     createCatchNode(node, params);
         }

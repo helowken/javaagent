@@ -13,10 +13,13 @@ import agent.server.utils.log.binary.BinaryLogWriter;
 import agent.server.utils.log.text.TextLogItem;
 import agent.server.utils.log.text.TextLogWriter;
 
-import java.io.File;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 public class LogMgr {
     private static final Logger logger = Logger.getLogger(LogMgr.class);
@@ -89,24 +92,33 @@ public class LogMgr {
     }
 
     public static void flush(String logKey) {
+        List<LogWriter> writerList;
         if (logKey == null) {
             logger.debug("Flush all log paths.");
-            logKeyToLogWriter.forEach(
-                    (key, writer) -> doFlush(writer)
+            writerList = new ArrayList<>(
+                    logKeyToLogWriter.values()
             );
         } else {
             logger.debug("Flush log logKey: {}", logKey);
-            exec(logKey, LogMgr::doFlush);
+            LogWriter writer = getLogWriter(logKey);
+            if (writer != null)
+                writerList = Collections.singletonList(writer);
+            else
+                writerList = Collections.emptyList();
         }
-    }
 
-    private static void doFlush(LogWriter writer) {
-        writer.flush();
-        LogConfig logConfig = writer.getConfig();
-        if (logConfig.isNeedMetadata())
+        if (!writerList.isEmpty()) {
+            writerList.forEach(LogWriter::flush);
             DestInvokeIdRegistry.getInstance().outputMetadata(
-                    logConfig.getOutputPath()
+                    writerList.stream()
+                            .map(LogWriter::getConfig)
+                            .filter(LogConfig::isNeedMetadata)
+                            .map(LogConfig::getOutputPath)
+                            .collect(
+                                    Collectors.toList()
+                            )
             );
+        }
     }
 
     private static void clear() {

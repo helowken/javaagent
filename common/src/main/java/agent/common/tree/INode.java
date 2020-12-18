@@ -18,6 +18,11 @@ public interface INode<T, N extends INode> {
 
     boolean isRoot();
 
+    default INode getRoot() {
+        INode pn = getParent();
+        return pn == null ? this : pn.getRoot();
+    }
+
     void reverseChildren();
 
     N addChildAt(int idx, N child);
@@ -61,4 +66,8 @@ public interface INode<T, N extends INode> {
     T getData();
 
     void setData(T data);
+
+    void setUserProp(String key, Object value);
+
+    Object getUserProp(String key);
 }

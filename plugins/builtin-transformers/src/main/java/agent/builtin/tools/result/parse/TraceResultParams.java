@@ -1,7 +1,7 @@
 package agent.builtin.tools.result.parse;
 
-import agent.base.utils.Utils;
 import agent.base.args.parse.ArgsOpts;
+import agent.base.utils.Utils;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -68,5 +68,17 @@ public class TraceResultParams extends AbstractResultParams {
                 ).map(String::trim)
                         .filter(Utils::isNotBlank)
                         .collect(Collectors.toSet());
+    }
+
+    public int getTailNumber() {
+        return TraceResultOptConfigs.getTailNumber(
+                getOpts()
+        );
+    }
+
+    public int getHeadNumber() {
+        return TraceResultOptConfigs.getHeadNumber(
+                getOpts()
+        );
     }
 }

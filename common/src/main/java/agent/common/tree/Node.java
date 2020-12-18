@@ -201,10 +201,12 @@ public class Node<T> implements INode<T, Node<T>> {
         this.data = data;
     }
 
+    @Override
     public void setUserProp(String key, Object value) {
         userProps.put(key, value);
     }
 
+    @Override
     public Object getUserProp(String key) {
         return userProps.get(key);
     }

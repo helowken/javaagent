@@ -18,8 +18,8 @@ public class EventListenerMgr {
     private static final Map<Class<? extends AgentEvent>, List<AgentEventListener>> eventToListenerList = new HashMap<>();
     private static final LockObject listenerLock = new LockObject();
     private static final ThreadPoolExecutor executor = new ThreadPoolExecutor(
-            2,
-            10,
+            1,
+            3,
             5,
             TimeUnit.MINUTES,
             new ArrayBlockingQueue<>(100),

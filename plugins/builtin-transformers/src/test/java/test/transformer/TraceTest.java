@@ -23,7 +23,7 @@ public class TraceTest extends AbstractTraceTest {
             }
 
             ParamObject po = new ParamObject();
-            System.out.println(po.test((byte) 0, (short) 1, 2, 3L, 4.4f, 5, true, "aaa"));
+            System.out.println(po.test((byte) 0, 'a', (short) 1, 2, 3L, 4.4f, 5, true, "aaa"));
             System.out.println(po.test2(
                     new int[]{9, 8, 7},
                     new Boolean[]{false, true}
@@ -109,7 +109,7 @@ public class TraceTest extends AbstractTraceTest {
             return 10;
         }
 
-        public Date test(byte v0, short v1, int v2, long v3, float v4, double v5, boolean v6, String v7) {
+        public Date test(byte v0, char c, short v1, int v2, long v3, float v4, double v5, boolean v6, String v7) {
             Base b = new Impl();
             b.doIt();
             return new Date();

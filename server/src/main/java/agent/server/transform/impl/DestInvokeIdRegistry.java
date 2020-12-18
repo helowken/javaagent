@@ -12,6 +12,7 @@ import agent.server.event.EventListenerMgr;
 import agent.server.event.impl.DestInvokeMetadataFlushedEvent;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -59,26 +60,41 @@ public class DestInvokeIdRegistry {
         );
     }
 
-    public void outputMetadata(String outputPath) {
-        lo.sync(
+    public void outputMetadata(List<String> outputPaths) {
+        if (outputPaths.isEmpty())
+            return;
+        byte[] bs = lo.syncValue(
                 lock -> {
-                    String path = MetadataUtils.getMetadataFile(outputPath);
                     try {
-                        byte[] bs = ByteUtils.getBytes(
+                        return ByteUtils.getBytes(
                                 Struct.serialize(
                                         convertMetadata()
                                 )
                         );
-                        IOUtils.writeBytes(path, bs, false);
-                        logger.debug("Metadata is flushed for log: {}", outputPath);
                     } catch (Throwable e) {
-                        logger.error("Write metadata to " + path + " is failed.");
+                        logger.error("Serialize invoke metadata failed.", e);
+                        return null;
                     }
-                    EventListenerMgr.fireEvent(
-                            new DestInvokeMetadataFlushedEvent(path)
-                    );
                 }
         );
+        if (bs != null) {
+            outputPaths.forEach(
+                    outputPath -> {
+                        try {
+                            String path = MetadataUtils.getMetadataFile(outputPath);
+                            IOUtils.writeBytes(path, bs, false);
+                            logger.debug("Metadata is flushed for log: {}", outputPath);
+                        } catch (Exception e) {
+                            logger.error("Write metadata to failed: {}", e, outputPath);
+                        } finally {
+                            EventListenerMgr.fireEvent(
+                                    new DestInvokeMetadataFlushedEvent(outputPath),
+                                    true
+                            );
+                        }
+                    }
+            );
+        }
     }
 
     private Map<Integer, String> convertMetadata() {

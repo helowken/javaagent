@@ -10,7 +10,10 @@ import agent.server.transform.impl.DestInvokeIdRegistry.InvokeMetadata;
 
 import java.io.*;
 import java.nio.ByteBuffer;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ForkJoinPool;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -76,13 +79,13 @@ abstract class AbstractResultHandler<T, P extends ResultParams> implements Resul
         );
     }
 
-    <T> T readMetadata(String inputPath) throws IOException {
+    <V> V readMetadata(String inputPath) throws IOException {
         byte[] bs = IOUtils.readBytes(
                 FileUtils.getValidFile(
                         MetadataUtils.getMetadataFile(inputPath)
                 ).getAbsolutePath()
         );
-        return (T) Struct.deserialize(
+        return (V) Struct.deserialize(
                 ByteBuffer.wrap(bs)
         );
     }
@@ -156,13 +159,17 @@ abstract class AbstractResultHandler<T, P extends ResultParams> implements Resul
         return bs;
     }
 
-    int deserializeBytes(DataInputStream in, Consumer<ByteBuffer> consumer) throws IOException {
+    int deserializeBytes(DataInput in, Consumer<ByteBuffer> consumer, boolean hasSizeAfter) throws IOException {
         int totalSize = 0;
         int size = in.readInt();
         byte[] bs = getBuf(size);
-        IOUtils.read(in, bs, size);
+        in.readFully(bs, 0, size);
         totalSize += Integer.BYTES;
         totalSize += size;
+        if (hasSizeAfter) {
+            in.readInt();
+            totalSize += Integer.BYTES;
+        }
         consumer.accept(
                 ByteBuffer.wrap(bs, 0, size)
         );
@@ -197,7 +204,6 @@ abstract class AbstractResultHandler<T, P extends ResultParams> implements Resul
     interface CalculateBytesFunc {
         int exec(DataInputStream in) throws Exception;
     }
-
 }
 
 

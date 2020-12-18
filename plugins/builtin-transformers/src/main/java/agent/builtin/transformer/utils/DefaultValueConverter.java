@@ -5,10 +5,7 @@ import agent.base.utils.Pair;
 import agent.base.utils.StringItem;
 import agent.base.utils.Utils;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -31,6 +28,26 @@ public class DefaultValueConverter implements ValueConverter {
         classToStrFunc.put(double[].class, v -> Arrays.toString((double[]) v));
         classToStrFunc.put(char[].class, v -> Arrays.toString((char[]) v));
         classToStrFunc.put(boolean[].class, v -> Arrays.toString((boolean[]) v));
+    }
+
+    public static void transformValues(List<Map<String, Object>> mapList, Map<Integer, String> valueCache) {
+        if (mapList != null)
+            mapList.stream()
+                    .filter(Objects::nonNull)
+                    .forEach(
+                            map -> transformValue(map, valueCache)
+                    );
+    }
+
+    public static void transformValue(Map<String, Object> map, Map<Integer, String> valueCache) {
+        if (map != null) {
+            Object value = map.get(KEY_VALUE);
+            if (value instanceof Integer) {
+                String str = valueCache.get(value);
+                if (str != null)
+                    map.put(KEY_VALUE, str);
+            }
+        }
     }
 
     @Override
