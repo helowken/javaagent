@@ -6,6 +6,8 @@ import agent.base.utils.Logger;
 import agent.common.buffer.ByteUtils;
 import agent.common.config.StackTraceConfig;
 import agent.common.struct.impl.Struct;
+import agent.common.struct.impl.StructContext;
+import agent.common.tree.Tree;
 import agent.common.utils.MetadataUtils;
 import agent.server.schedule.ScheduleTask;
 import agent.server.transform.search.filter.AgentFilter;
@@ -16,19 +18,22 @@ import agent.server.utils.log.LogMgr;
 
 import java.util.*;
 
-abstract class AbstractStackTraceTask implements ScheduleTask {
-    private static final Logger logger = Logger.getLogger(AbstractStackTraceTask.class);
+import static agent.server.command.executor.stacktrace.StackTraceUtils.convertStackTraceToTree;
+
+public class StackTraceTask implements ScheduleTask {
+    private static final StructContext context = new StructContext();
+    private static final Logger logger = Logger.getLogger(StackTraceTask.class);
     private static final String SEP = ":";
     private final StackTraceConfig config;
     private final Map<String, Integer> nameToId = new HashMap<>();
+    private Tree<StackTraceCountItem> tree = new Tree<>();
     private int id = 0;
     private final AgentFilter<String> threadFilter;
     private final AgentFilter<String> stackFilter;
     private final AgentFilter<String> elementFilter;
-    final String logKey;
+    private final String logKey = UUID.randomUUID().toString();
 
-    AbstractStackTraceTask(StackTraceConfig config) {
-        this.logKey = UUID.randomUUID().toString();
+    public StackTraceTask(StackTraceConfig config) {
         this.config = config;
         this.threadFilter = newThreadFilter(config);
         this.stackFilter = FilterUtils.newStringFilter(
@@ -39,7 +44,23 @@ abstract class AbstractStackTraceTask implements ScheduleTask {
         );
     }
 
-    abstract void onFinish();
+    @Override
+    public void run() {
+        convertStackTraceToTree(
+                tree,
+                getStackTraces(),
+                true,
+                thread -> getNameId(
+                        thread.getName()
+                ),
+                el -> getNameId(
+                        el.getClassName()
+                ),
+                el -> getNameId(
+                        el.getMethodName()
+                )
+        );
+    }
 
     private AgentFilter<String> newThreadFilter(StackTraceConfig config) {
         AgentThreadFilter agentThreadFilter = new AgentThreadFilter();
@@ -67,17 +88,21 @@ abstract class AbstractStackTraceTask implements ScheduleTask {
     @Override
     public void finish() {
         logger.debug("task finish start: {}", logKey);
-        onFinish();
+        LogMgr.logBinary(
+                logKey,
+                buf -> Struct.serialize(buf, tree, context)
+        );
         LogMgr.flush(logKey);
+        writeMetadataToFile();
         logger.debug("task finish end: {}", logKey);
     }
 
     @Override
     public void postRun() {
         logger.debug("post run start: {}", logKey);
-        LogMgr.close(logKey);
-        writeMetadataToFile();
         nameToId.clear();
+        tree = null;
+        LogMgr.close(logKey);
         logger.debug("post run finish: {}", logKey);
     }
 
@@ -96,14 +121,14 @@ abstract class AbstractStackTraceTask implements ScheduleTask {
         }
     }
 
-    Integer getNameId(String name) {
+    private Integer getNameId(String name) {
         return nameToId.computeIfAbsent(
                 name,
                 key -> ++id
         );
     }
 
-    Map<Thread, List<StackTraceElement>> getStackTraces() {
+    private Map<Thread, List<StackTraceElement>> getStackTraces() {
         Map<Thread, List<StackTraceElement>> stMap = new HashMap<>();
         Thread.getAllStackTraces().forEach(
                 (thread, els) -> stMap.put(thread, Arrays.asList(els))

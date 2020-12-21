@@ -23,17 +23,19 @@ public abstract class BuiltInTransformCmdParser extends AbstractTransformCmdPars
 
     @Override
     void setConfig(TransformerConfig transformerConfig, CmdParams params) {
-        transformerConfig.setConfig(
-                Collections.singletonMap(
-                        "log",
-                        Collections.singletonMap(
-                                "outputPath",
-                                FileUtils.getAbsolutePath(
-                                        params.getArgs()[1]
-                                )
-                        )
-                )
-        );
+        if (params.getArgs().length > 1) {
+            transformerConfig.setConfig(
+                    Collections.singletonMap(
+                            "log",
+                            Collections.singletonMap(
+                                    "outputPath",
+                                    FileUtils.getAbsolutePath(
+                                            params.getArgs()[1]
+                                    )
+                            )
+                    )
+            );
+        }
     }
 
     public static class TraceCmdParser extends BuiltInTransformCmdParser {

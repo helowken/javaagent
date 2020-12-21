@@ -161,6 +161,8 @@ public class ReflectionUtils {
     }
 
     private static Field getField(Object classOrClassName, String fieldName) throws Exception {
+        if (fieldName == null)
+            throw new IllegalArgumentException("Field name is null.");
         Class<?> clazz = convert(classOrClassName);
         return findFromClassCascade(clazz,
                 tmpClass -> new Pair<>(

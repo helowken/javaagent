@@ -40,7 +40,8 @@ public class CostTimeStatisticsTransformerTest extends AbstractTest {
                 (outputPath, config) -> {
                     ConfigTransformer transformer = TransformerRegistry.getOrCreateTransformer(
                             CostTimeStatisticsTransformer.REG_KEY,
-                            newTransformerKey()
+                            newTransformerKey(),
+                            null
                     );
 
                     doTransform(transformer, config, classToMethodFilter, invokeChainConfig);

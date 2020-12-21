@@ -36,7 +36,7 @@ public class JavascriptTransformerTest extends AbstractTest {
                     String script = IOUtils.readToString(
                             getClass().getClassLoader().getResourceAsStream("test.js")
                     );
-                    ConfigTransformer transformer = TransformerRegistry.getOrCreateTransformer(JavascriptTransformer.REG_KEY, instanceKey);
+                    ConfigTransformer transformer = TransformerRegistry.getOrCreateTransformer(JavascriptTransformer.REG_KEY, instanceKey, null);
                     config.put("script", script);
                     doTransform(transformer, config, classToMethodFilter, invokeChainConfig);
 

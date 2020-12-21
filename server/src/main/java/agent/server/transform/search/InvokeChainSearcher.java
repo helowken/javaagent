@@ -79,8 +79,7 @@ public class InvokeChainSearcher {
         if (matchFilter == null && searchFilter == null)
             return Collections.emptyList();
         return TimeMeasureUtils.run(
-                () -> new InvokeChainSearcher(classCache, classDataFunc)
-                        .doSearch(destInvokes, matchFilter, searchFilter),
+                () -> new InvokeChainSearcher(classCache, classDataFunc).doSearch(destInvokes, matchFilter, searchFilter),
                 "searchInvokeChain: {}"
         );
     }

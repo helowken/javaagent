@@ -45,7 +45,8 @@ abstract class AbstractTraceTest extends AbstractTest {
                 (outputPath, config) -> {
                     ConfigTransformer transformer = TransformerRegistry.getOrCreateTransformer(
                             TraceInvokeTransformer.REG_KEY,
-                            newTransformerKey()
+                            newTransformerKey(),
+                            null
                     );
                     doTransform(transformer, config, classToMethodFilter, invokeChainConfig);
 

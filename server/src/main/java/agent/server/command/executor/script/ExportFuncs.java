@@ -2,16 +2,18 @@ package agent.server.command.executor.script;
 
 import agent.base.utils.IOUtils;
 import agent.base.utils.ReflectionUtils;
+import agent.common.args.parse.FilterOptUtils;
 import agent.jvmti.JvmtiUtils;
 import agent.server.transform.TransformerData;
 import agent.server.transform.TransformerRegistry;
+import agent.server.transform.search.ClassCache;
+import agent.server.transform.search.ClassSearcher;
 
 import java.io.PrintWriter;
 import java.io.Writer;
 import java.lang.reflect.Modifier;
 import java.util.*;
 
-import static agent.base.utils.AssertUtils.assertNotNull;
 import static agent.server.command.executor.script.ExportUtils.listFields;
 import static agent.server.command.executor.script.ExportUtils.listMethods;
 
@@ -60,7 +62,22 @@ public class ExportFuncs {
     }
 
     public Class<?> cls(Object classOrClassName) throws Exception {
-        return ReflectionUtils.convert(classOrClassName);
+        if (classOrClassName instanceof Class)
+            return (Class<?>) classOrClassName;
+        if (classOrClassName instanceof String) {
+            List<Class<?>> rsList = clses((String) classOrClassName);
+            return rsList.isEmpty() ? null : rsList.get(0);
+        }
+        throw new IllegalArgumentException("Must be class or className.");
+    }
+
+    public List<Class<?>> clses(String classStr) throws Exception {
+        return new ArrayList<>(
+                ClassSearcher.getInstance().search(
+                        new ClassCache(),
+                        FilterOptUtils.newClassFilterConfig(classStr)
+                )
+        );
     }
 
     @SuppressWarnings("unchecked")
@@ -77,9 +94,21 @@ public class ExportFuncs {
     }
 
     public Object fv(Object o, String fieldName) throws Exception {
-        assertNotNull(o, "Object is null!");
-        assertNotNull(fieldName, "Field name is null!");
         return ReflectionUtils.getFieldValue(fieldName, o);
+    }
+
+    public void sfv(Object o, String fieldName, Object value) throws Exception {
+        ReflectionUtils.setFieldValue(fieldName, o, value);
+    }
+
+    public Object cv(Object classOrClassName, String fieldName) throws Exception {
+        Class<?> clazz = cls(classOrClassName);
+        return ReflectionUtils.getFieldValue(clazz, fieldName, null);
+    }
+
+    public void scv(Object classOrClassName, String fieldName, Object value) throws Exception {
+        Class<?> clazz = cls(classOrClassName);
+        ReflectionUtils.setFieldValue(clazz, fieldName, null, value);
     }
 
     public void dumpStackTrace() throws Exception {

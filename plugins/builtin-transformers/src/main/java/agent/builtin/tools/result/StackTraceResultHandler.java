@@ -1,7 +1,9 @@
 package agent.builtin.tools.result;
 
-import agent.base.args.parse.Opts;
-import agent.base.utils.*;
+import agent.base.utils.IOUtils;
+import agent.base.utils.Logger;
+import agent.base.utils.ReflectionUtils;
+import agent.base.utils.Utils;
 import agent.builtin.tools.result.parse.StackTraceResultOptConfigs;
 import agent.builtin.tools.result.parse.StackTraceResultParams;
 import agent.common.args.parse.FilterOptUtils;
@@ -13,8 +15,6 @@ import agent.common.tree.Node;
 import agent.common.tree.Tree;
 import agent.common.tree.TreeUtils;
 import agent.server.command.executor.stacktrace.StackTraceCountItem;
-import agent.server.command.executor.stacktrace.StackTraceEntity;
-import agent.server.command.executor.stacktrace.StackTraceUtils;
 import agent.server.transform.search.filter.AgentFilter;
 import agent.server.transform.search.filter.FilterUtils;
 
@@ -36,8 +36,6 @@ public class StackTraceResultHandler extends AbstractResultHandler<Tree<StackTra
         context.setPojoCreator(
                 type -> {
                     switch (type) {
-                        case StackTraceEntity.POJO_TYPE:
-                            return new StackTraceEntity();
                         case StackTraceCountItem.POJO_TYPE:
                             return new StackTraceCountItem();
                         case Node.POJO_TYPE:
@@ -89,15 +87,6 @@ public class StackTraceResultHandler extends AbstractResultHandler<Tree<StackTra
     }
 
     private Tree<StackTraceCountItem> doCalculate(File dataFile, StackTraceResultParams params) {
-        boolean record = StackTraceOptConfigs.isRecord(
-                params.getOpts()
-        );
-        return record ?
-                buildTreeByRecord(dataFile, params) :
-                buildTreeByAccumulation(dataFile, params);
-    }
-
-    private Tree<StackTraceCountItem> buildTreeByAccumulation(File dataFile, StackTraceResultParams params) {
         AgentFilter<String> elementFilter = newFilter(
                 StackTraceOptConfigs.getElementExpr(
                         params.getOpts()
@@ -139,47 +128,6 @@ public class StackTraceResultHandler extends AbstractResultHandler<Tree<StackTra
                     child -> filterTree(pn, child, elementFilter, metadata)
             );
         }
-    }
-
-    private Tree<StackTraceCountItem> buildTreeByRecord(File dataFile, StackTraceResultParams params) {
-        Opts opts = params.getOpts();
-        AgentFilter<String> elementFilter = newFilter(
-                StackTraceOptConfigs.getElementExpr(opts)
-        );
-        AgentFilter<String> stackFilter = newFilter(
-                StackTraceOptConfigs.getStackExpr(opts)
-        );
-        AgentFilter<String> threadFilter = newFilter(
-                StackTraceOptConfigs.getThreadExpr(opts)
-        );
-        boolean merge = StackTraceResultOptConfigs.isMerge(opts);
-        StMetadata metadata = params.getMetadata();
-        Tree<StackTraceCountItem> tree = new Tree<>();
-        calculateBinaryFile(
-                dataFile,
-                in -> deserializeBytes(
-                        in,
-                        bb -> StackTraceUtils.convertStackTraceToTree(
-                                tree,
-                                StackTraceUtils.getStackTraces(
-                                        Struct.deserialize(bb, context),
-                                        entity -> metadata.get(
-                                                entity.getNameId()
-                                        ),
-                                        stEl -> getElementName(stEl, metadata, false),
-                                        threadFilter,
-                                        elementFilter,
-                                        stackFilter
-                                ),
-                                merge,
-                                StackTraceEntity::getNameId,
-                                StackTraceCountItem::getClassId,
-                                StackTraceCountItem::getMethodId
-                        ),
-                        false
-                )
-        );
-        return tree;
     }
 
     private AgentFilter<String> newFilter(String s) {

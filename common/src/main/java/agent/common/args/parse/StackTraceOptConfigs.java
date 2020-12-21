@@ -5,19 +5,10 @@ import agent.base.args.parse.OptConfigSuite;
 import agent.base.args.parse.Opts;
 
 public class StackTraceOptConfigs {
-    private static final String KEY_RECORD = "RECORD";
     private static final String KEY_STACK_FILTER_EXPR = "STACK_FILTER_EXPR";
     private static final String KEY_ELEMENT_FILTER_EXPR = "ELEMENT_FILTER_EXPR";
     private static final String KEY_THREAD_FILTER_EXPR = "THREAD_FILTER_EXPR";
-    private static final OptConfigSuite boolSuite = new OptConfigSuite(
-            new OptConfig(
-                    "-rs",
-                    "--records",
-                    KEY_RECORD,
-                    "Log stack trace records."
-            )
-    );
-    private static final OptConfigSuite kvSuite = new OptConfigSuite(
+    private static final OptConfigSuite suite = new OptConfigSuite(
             new OptConfig(
                     "-ee",
                     "--element-expr",
@@ -38,16 +29,8 @@ public class StackTraceOptConfigs {
             )
     );
 
-    public static OptConfigSuite getBoolSuite() {
-        return boolSuite;
-    }
-
-    public static OptConfigSuite getKvSuite() {
-        return kvSuite;
-    }
-
-    public static boolean isRecord(Opts opts) {
-        return opts.getNotNull(KEY_RECORD, false);
+    public static OptConfigSuite getSuite() {
+        return suite;
     }
 
     public static String getStackExpr(Opts opts) {

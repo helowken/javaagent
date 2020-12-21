@@ -128,7 +128,7 @@ public class FilterOptUtils {
         TargetConfig targetConfig = new TargetConfig();
         if (Utils.isNotBlank(filterItem.classStr))
             targetConfig.setClassFilter(
-                    newFilterConfig(filterItem.classStr, ClassFilterConfig::new, null)
+                    newClassFilterConfig(filterItem.classStr)
             );
         if (Utils.isNotBlank(filterItem.methodStr))
             targetConfig.setMethodFilter(
@@ -150,6 +150,9 @@ public class FilterOptUtils {
         return targetConfig;
     }
 
+    public static ClassFilterConfig newClassFilterConfig(String classStr) {
+        return newFilterConfig(classStr, ClassFilterConfig::new, null);
+    }
 
     public static StringFilterConfig newStringFilterConfig(String str) {
         return FilterOptUtils.newFilterConfig(str, StringFilterConfig::new, null);
@@ -188,7 +191,7 @@ public class FilterOptUtils {
         InvokeChainConfig invokeChainConfig = new InvokeChainConfig();
         if (Utils.isNotBlank(filterItem.chainClassStr))
             invokeChainConfig.setMatchClassFilter(
-                    newFilterConfig(filterItem.chainClassStr, ClassFilterConfig::new, null)
+                    newClassFilterConfig(filterItem.chainClassStr)
             );
         if (Utils.isNotBlank(filterItem.chainMethodStr))
             invokeChainConfig.setMatchMethodFilter(
@@ -207,7 +210,7 @@ public class FilterOptUtils {
             invokeChainConfig.setMaxLevel(filterItem.searchLevel);
         if (Utils.isNotBlank(filterItem.searchClassStr))
             invokeChainConfig.setSearchClassFilter(
-                    newFilterConfig(filterItem.searchClassStr, ClassFilterConfig::new, null)
+                    newClassFilterConfig(filterItem.searchClassStr)
             );
         if (Utils.isNotBlank(filterItem.searchMethodStr))
             invokeChainConfig.setSearchMethodFilter(

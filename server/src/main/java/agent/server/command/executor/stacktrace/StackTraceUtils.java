@@ -47,8 +47,8 @@ public class StackTraceUtils {
         return childNode;
     }
 
-    public static <K, V> void convertStackTraceToTree(Tree<StackTraceCountItem> tree, Map<K, List<V>> stMap, boolean merge,
-                                                      Function<K, Integer> keyClassIdFunc, Function<V, Integer> valueClassIdFunc, Function<V, Integer> valueMethodIdFunc) {
+    static <K, V> void convertStackTraceToTree(Tree<StackTraceCountItem> tree, Map<K, List<V>> stMap, boolean merge,
+                                               Function<K, Integer> keyClassIdFunc, Function<V, Integer> valueClassIdFunc, Function<V, Integer> valueMethodIdFunc) {
         stMap.forEach(
                 (key, values) -> {
                     if (!values.isEmpty()) {

@@ -40,15 +40,7 @@ public class TransformMgr {
 
         List<AgentTransformer> transformerList = moduleConfig.getTransformers()
                 .stream()
-                .map(
-                        transformerConfig -> {
-                            ConfigTransformer transformer = getOrCreateTransformer(transformerConfig);
-                            transformer.setConfig(
-                                    transformerConfig.getConfig()
-                            );
-                            return transformer;
-                        }
-                )
+                .map(this::getOrCreateTransformer)
                 .collect(
                         Collectors.toList()
                 );
@@ -109,7 +101,10 @@ public class TransformMgr {
         return Utils.wrapToRtError(
                 () -> TransformerRegistry.getOrCreateTransformer(
                         transformerConfig.getRef(),
-                        transformerConfig.getId()
+                        transformerConfig.getId(),
+                        transformer -> transformer.setConfig(
+                                transformerConfig.getConfig()
+                        )
                 ),
                 () -> "Create transformer failed."
         );
