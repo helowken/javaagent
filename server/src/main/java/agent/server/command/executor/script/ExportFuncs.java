@@ -17,7 +17,9 @@ import java.util.*;
 import static agent.server.command.executor.script.ExportUtils.listFields;
 import static agent.server.command.executor.script.ExportUtils.listMethods;
 
+@SuppressWarnings("unchecked")
 public class ExportFuncs {
+    private static final int DEFAULT_MAX_COUNT = 100;
     public static final ExportFuncs instance = new ExportFuncs();
 
     private ExportFuncs() {
@@ -66,7 +68,9 @@ public class ExportFuncs {
             return (Class<?>) classOrClassName;
         if (classOrClassName instanceof String) {
             List<Class<?>> rsList = clses((String) classOrClassName);
-            return rsList.isEmpty() ? null : rsList.get(0);
+            if (rsList.isEmpty())
+                throw new Exception("No class found by: " + classOrClassName);
+            return rsList.get(0);
         }
         throw new IllegalArgumentException("Must be class or className.");
     }
@@ -80,7 +84,24 @@ public class ExportFuncs {
         );
     }
 
-    @SuppressWarnings("unchecked")
+    public Collection<Class<?>> subClses(String classOrClassName) throws Exception {
+        return new ClassCache().getSubClasses(
+                cls(classOrClassName),
+                null
+        );
+    }
+
+    public Collection<Class<?>> subTypes(String classOrClassName) throws Exception {
+        return new ClassCache().getSubTypes(
+                cls(classOrClassName),
+                null
+        );
+    }
+
+    public <T> List<T> objs(Object classOrClassName) throws Exception {
+        return objs(classOrClassName, DEFAULT_MAX_COUNT);
+    }
+
     public <T> List<T> objs(Object classOrClassName, int maxCount) throws Exception {
         return JvmtiUtils.getInstance().findObjectsByClass(
                 (Class) cls(classOrClassName),

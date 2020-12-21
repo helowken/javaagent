@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 public class ClassCache {
     private static Collection<String> skipPackages = Collections.unmodifiableList(
             Arrays.asList(
-                    "java.*",
+//                    "java.*",
                     "org.objectweb.asm.",
                     "agent."
             )
