@@ -6,6 +6,7 @@ import agent.common.message.result.ExecResult;
 import agent.common.message.result.entity.DefaultExecResult;
 import agent.server.command.executor.script.ScriptUtils;
 
+import java.io.StringWriter;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -16,14 +17,30 @@ class JavascriptExecCmdExecutor extends AbstractCmdExecutor {
     ExecResult doExec(Command cmd) throws Exception {
         String script = cmd.getContent();
         Object rs = null;
-        if (Utils.isNotBlank(script))
-            rs = ScriptUtils.eval(script);
-        if (rs == null)
-            rs = "null";
+        Map<String, Object> rsMap = new HashMap<>();
+        if (Utils.isNotBlank(script)) {
+            StringWriter out = new StringWriter();
+            StringWriter err = new StringWriter();
+            rs = ScriptUtils.eval(script, null, out, err);
+            if (out.getBuffer().length() > 0)
+                rsMap.put(
+                        "Standard Output",
+                        out.toString()
+                );
+            if (err.getBuffer().length() > 0)
+                rsMap.put(
+                        "Standard Error",
+                        err.toString()
+                );
+        }
+        rsMap.put(
+                "Value",
+                rs == null ? "null" : format(rs)
+        );
         return DefaultExecResult.toSuccess(
                 cmd.getType(),
                 null,
-                format(rs)
+                rsMap
         );
     }
 

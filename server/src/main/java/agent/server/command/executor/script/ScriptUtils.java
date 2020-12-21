@@ -6,7 +6,7 @@ import javax.script.Bindings;
 import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
 import javax.script.SimpleScriptContext;
-import java.util.Collections;
+import java.io.Writer;
 import java.util.Map;
 
 @SuppressWarnings("unchecked")
@@ -18,23 +18,29 @@ public class ScriptUtils {
         if (engine == null) {
             synchronized (ScriptUtils.class) {
                 engine = ScriptEngineMgr.javascript().createEngine();
-                bindings = new SimpleScriptContext().getBindings(ScriptContext.ENGINE_SCOPE);
+                bindings =  new SimpleScriptContext().getBindings(ScriptContext.ENGINE_SCOPE);
             }
         }
     }
 
-    public static synchronized <T> T eval(String script) throws Exception {
-        return eval(
-                script,
-                Collections.emptyMap()
-        );
-    }
-
-    public static synchronized <T> T eval(String script, Map<String, Object> pvs) throws Exception {
+    public static synchronized <T> T eval(String script, Map<String, Object> pvs, Writer out, Writer err) throws Exception {
         init();
-        bindings.clear();
-        bindings.putAll(pvs);
-        return (T) engine.eval(script, bindings);
+        if (pvs != null)
+            bindings.putAll(pvs);
+        ScriptContext context = engine.getContext();
+        Writer oldOut = context.getWriter();
+        Writer oldErr = context.getErrorWriter();
+        if (out != null)
+            context.setWriter(out);
+        if (err != null)
+            context.setErrorWriter(err);
+        try {
+            return (T) engine.eval(script, bindings);
+        } finally {
+            bindings.clear();
+            context.setWriter(oldOut);
+            context.setErrorWriter(oldErr);
+        }
     }
 
 }

@@ -224,10 +224,10 @@ public class TraceInvokeResultHandler extends AbstractResultHandler<Collection<T
     private Tree<TraceItem> processTree(ByteBuffer bb) {
         Map<Integer, Node<TraceItem>> idToNode = new HashMap<>();
         List<Object> values = Struct.deserialize(bb, context);
-        Map<Integer, String> idxToValue = (Map) values.get(0);
+        Map<Integer, String> valueCache = (Map) values.get(0);
         List<TraceItem> traceItemList = (List) values.get(1);
         Tree<TraceItem> tree = new Tree<>();
-        tree.setUserProp(KEY_VALUE_CACHE, idxToValue);
+        tree.setUserProp(KEY_VALUE_CACHE, valueCache);
         idToNode.put(-1, tree);
         traceItemList.forEach(
                 item -> {

@@ -15,7 +15,6 @@ public class InfoResultHandler extends AbstractExecResultHandler {
     public void handleSuccess(Command command, ExecResult result) {
         super.handleSuccess(command, result);
         StringBuilder sb = new StringBuilder();
-        sb.append("Response:\n");
         fillContent(result, sb);
         ConsoleLogger.getInstance().info("{}", sb.toString());
     }
@@ -43,7 +42,13 @@ public class InfoResultHandler extends AbstractExecResultHandler {
                         printContent(sb, level + 1, value);
                     }
             );
-        else if (content != null)
-            sb.append(indent).append(content).append('\n');
+        else if (content != null) {
+            String s = content.toString();
+            String[] ts = s.split("\n");
+            for (String t : ts) {
+                sb.append(indent).append(t).append('\n');
+            }
+        }
     }
+
 }
