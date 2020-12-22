@@ -4,6 +4,7 @@ import agent.base.utils.IOUtils;
 import agent.base.utils.ReflectionUtils;
 import agent.common.args.parse.FilterOptUtils;
 import agent.jvmti.JvmtiUtils;
+import agent.server.transform.InstrumentationMgr;
 import agent.server.transform.TransformerData;
 import agent.server.transform.TransformerRegistry;
 import agent.server.transform.search.ClassCache;
@@ -75,23 +76,41 @@ public class ExportFuncs {
         throw new IllegalArgumentException("Must be class or className.");
     }
 
-    public List<Class<?>> clses(String classStr) throws Exception {
+    public List<Class<?>> clses(ClassLoader loader) {
+        List<Class<?>> rsList = new ArrayList<>();
+        Class<?>[] classes = InstrumentationMgr.getInstance().getInitiatedClasses(loader);
+        if (classes != null) {
+            for (Class<?> clazz : classes) {
+                if (clazz.getClassLoader() == loader)
+                    rsList.add(clazz);
+            }
+        }
+        return rsList;
+    }
+
+    public List<Class<?>> clses(String classStr) {
+        return clses(classStr, null);
+    }
+
+    public List<Class<?>> clses(String classStr, ClassLoader loader) {
         return new ArrayList<>(
                 ClassSearcher.getInstance().search(
-                        new ClassCache(),
+                        new ClassCache(
+                                loader == null ? null : clses(loader)
+                        ),
                         FilterOptUtils.newClassFilterConfig(classStr)
                 )
         );
     }
 
-    public Collection<Class<?>> subClses(String classOrClassName) throws Exception {
+    public Collection<Class<?>> subClses(Object classOrClassName) throws Exception {
         return new ClassCache().getSubClasses(
                 cls(classOrClassName),
                 null
         );
     }
 
-    public Collection<Class<?>> subTypes(String classOrClassName) throws Exception {
+    public Collection<Class<?>> subTypes(Object classOrClassName) throws Exception {
         return new ClassCache().getSubTypes(
                 cls(classOrClassName),
                 null
@@ -114,11 +133,11 @@ public class ExportFuncs {
         return rsList.isEmpty() ? null : rsList.get(0);
     }
 
-    public Object fv(Object o, String fieldName) throws Exception {
+    public Object v(Object o, String fieldName) throws Exception {
         return ReflectionUtils.getFieldValue(fieldName, o);
     }
 
-    public void sfv(Object o, String fieldName, Object value) throws Exception {
+    public void sv(Object o, String fieldName, Object value) throws Exception {
         ReflectionUtils.setFieldValue(fieldName, o, value);
     }
 

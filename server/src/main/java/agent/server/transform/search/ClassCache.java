@@ -25,6 +25,13 @@ public class ClassCache {
         return skipPackages.stream().anyMatch(clazz.getName()::startsWith);
     }
 
+    public ClassCache() {
+    }
+
+    public ClassCache(List<Class<?>> classes) {
+        this.loadedClasses = classes;
+    }
+
     public Collection<Class<?>> getLoadedClasses() {
         if (loadedClasses == null) {
             synchronized (this) {
