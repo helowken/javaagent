@@ -7,7 +7,11 @@ public class InvokeChainSearchFilter extends AbstractInvokeChainFilter {
 
     InvokeChainSearchFilter(ClassFilter classFilter, InvokeFilter methodFilter, InvokeFilter constructorFilter, int maxLevel) {
         super(classFilter, methodFilter, constructorFilter);
-        this.maxLevel = maxLevel <= 0 ? 100 : maxLevel;
+        this.maxLevel = maxLevel <= 0 ? 10 : maxLevel;
+    }
+
+    public InvokeChainSearchFilter(AbstractInvokeChainFilter filter) {
+        this(filter.classFilter, filter.methodFilter, filter.constructorFilter, -1);
     }
 
     @Override

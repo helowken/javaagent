@@ -4,9 +4,9 @@ import agent.invoke.DestInvoke;
 import agent.server.transform.search.InvokeChainSearcher.InvokeInfo;
 
 abstract class AbstractInvokeChainFilter implements AgentFilter<InvokeInfo> {
-    private final AgentFilter<Class<?>> classFilter;
-    private final AgentFilter<DestInvoke> methodFilter;
-    private final AgentFilter<DestInvoke> constructorFilter;
+    final ClassFilter classFilter;
+    final InvokeFilter methodFilter;
+    final InvokeFilter constructorFilter;
 
     AbstractInvokeChainFilter(ClassFilter classFilter, InvokeFilter methodFilter, InvokeFilter constructorFilter) {
         this.classFilter = classFilter;

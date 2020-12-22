@@ -23,7 +23,7 @@ public class JavascriptTest {
     }
 
     private void doTest4() throws Exception {
-        ScriptEngineMgr.javascript().createEngine().eval("$.dumpStackTrace()");
+//        ScriptEngineMgr.javascript().createEngine().eval("$.dumpStackTrace()");
     }
 
     private void doTest3(ScriptEngineManager manager) throws Exception {

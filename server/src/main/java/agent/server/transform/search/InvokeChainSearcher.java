@@ -75,9 +75,13 @@ public class InvokeChainSearcher {
                                                 Collection<DestInvoke> destInvokes, InvokeChainConfig filterConfig) {
         logger.debug("InvokeChainConfig: {}", filterConfig);
         InvokeChainMatchFilter matchFilter = FilterUtils.newInvokeChainMatchFilter(filterConfig);
-        InvokeChainSearchFilter searchFilter = FilterUtils.newInvokeChainSearchFilter(filterConfig);
-        if (matchFilter == null && searchFilter == null)
+        if (matchFilter == null)
             return Collections.emptyList();
+        InvokeChainSearchFilter searchFilter = Optional.ofNullable(
+                FilterUtils.newInvokeChainSearchFilter(filterConfig)
+        ).orElseGet(
+                () -> new InvokeChainSearchFilter(matchFilter)
+        );
         return TimeMeasureUtils.run(
                 () -> new InvokeChainSearcher(classCache, classDataFunc).doSearch(destInvokes, matchFilter, searchFilter),
                 "searchInvokeChain: {}"

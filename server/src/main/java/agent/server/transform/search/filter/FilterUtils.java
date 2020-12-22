@@ -149,7 +149,7 @@ public class FilterUtils {
     }
 
     public static AgentFilter<String> newStringFilter(StringFilterConfig config) {
-       return newStringFilter(config, FilterUtils::parseForString);
+        return newStringFilter(config, FilterUtils::parseForString);
     }
 
     public static AgentFilter<String> newStringFilter(StringFilterConfig config, Function<String, String> parseFunc) {
@@ -225,7 +225,7 @@ public class FilterUtils {
                 config.getSearchConstructorFilter()
         );
         int maxLevel = config.getMaxLevel();
-        return classFilter != null || methodFilter != null || constructorFilter != null || maxLevel > 0 ?
+        return classFilter != null || methodFilter != null || constructorFilter != null ?
                 new InvokeChainSearchFilter(classFilter, methodFilter, constructorFilter, maxLevel) :
                 null;
     }
