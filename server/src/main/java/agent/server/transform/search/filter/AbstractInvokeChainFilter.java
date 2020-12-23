@@ -1,7 +1,7 @@
 package agent.server.transform.search.filter;
 
-import agent.invoke.DestInvoke;
 import agent.server.transform.search.InvokeChainSearcher.InvokeInfo;
+import agent.server.transform.tools.asm.AsmUtils;
 
 abstract class AbstractInvokeChainFilter implements AgentFilter<InvokeInfo> {
     final ClassFilter classFilter;
@@ -18,11 +18,21 @@ abstract class AbstractInvokeChainFilter implements AgentFilter<InvokeInfo> {
     public boolean accept(InvokeInfo info) {
         Class<?> clazz = info.getInvokeClass();
         if (classFilter == null || classFilter.accept(clazz)) {
-            DestInvoke invoke = info.getInvoke();
             return info.isConstructor() ?
-                    constructorFilter != null && constructorFilter.accept(invoke) :
-                    methodFilter == null || methodFilter.accept(invoke);
+                    constructorFilter != null && constructorFilter.accept(
+                            getInvokeFullName(info)
+                    ) :
+                    methodFilter == null || methodFilter.accept(
+                            getInvokeFullName(info)
+                    );
         }
         return false;
+    }
+
+    private String getInvokeFullName(InvokeInfo info) {
+        return AsmUtils.getInvokeFullName(
+                info.getInvokeName(),
+                info.getInvokeDesc()
+        );
     }
 }

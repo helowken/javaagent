@@ -1,8 +1,6 @@
 package agent.server.transform.search.filter;
 
 
-import agent.invoke.DestInvoke;
-
 import java.util.Collection;
 
 abstract class AbstractInvokeFilter implements InvokeFilter {
@@ -27,10 +25,8 @@ abstract class AbstractInvokeFilter implements InvokeFilter {
         }
 
         @Override
-        public boolean accept(DestInvoke v) {
-            return filter.accept(
-                    FilterUtils.getInvokeFullName(v)
-            );
+        public boolean accept(String v) {
+            return filter.accept(v);
         }
     }
 }

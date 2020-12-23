@@ -18,10 +18,11 @@ public class FilterOptUtils {
     private static final String PREFIX_CHAIN_SEARCH_METHOD = "sm";
     private static final String PREFIX_CHAIN_SEARCH_CONSTRUCTOR = "si";
     private static final String PREFIX_CHAIN_SEARCH_LEVEL = "sl";
+    private static final String PREFIX_CHAIN_SEARCH_CLASS_MAX_SIZE = "sx";
     private static final String PREFIX_CHAIN_MATCH_CLASS = "cc";
     private static final String PREFIX_CHAIN_MATCH_METHOD = "cm";
     private static final String PREFIX_CHAIN_MATCH_CONSTRUCTOR = "ci";
-
+    private static final String PREFIX_CHAIN_MATCH_CLASS_MAX_SIZE = "cx";
 
     private static final String ITEM_SEP = ";";
     private static final String KV_SEP = "=";
@@ -40,10 +41,12 @@ public class FilterOptUtils {
             PREFIX_CHAIN_MATCH_CLASS,
             PREFIX_CHAIN_MATCH_METHOD,
             PREFIX_CHAIN_MATCH_CONSTRUCTOR,
+            PREFIX_CHAIN_MATCH_CLASS_MAX_SIZE,
             PREFIX_CHAIN_SEARCH_CLASS,
             PREFIX_CHAIN_SEARCH_METHOD,
             PREFIX_CHAIN_SEARCH_CONSTRUCTOR,
-            PREFIX_CHAIN_SEARCH_LEVEL
+            PREFIX_CHAIN_SEARCH_LEVEL,
+            PREFIX_CHAIN_SEARCH_CLASS_MAX_SIZE
     };
 
     public static List<FilterItem> parse(List<Object> filterStrList) {
@@ -89,10 +92,6 @@ public class FilterOptUtils {
             );
         }
 
-        int level = -1;
-        String levelStr = prefixToSb.get(PREFIX_CHAIN_SEARCH_LEVEL).toString();
-        if (Utils.isNotBlank(levelStr))
-            level = Utils.parseInt(levelStr, "chain search level");
         return new FilterItem(
                 prefixToSb.get(PREFIX_MATCH_CLASS).toString(),
                 prefixToSb.get(PREFIX_MATCH_METHOD).toString(),
@@ -100,11 +99,21 @@ public class FilterOptUtils {
                 prefixToSb.get(PREFIX_CHAIN_SEARCH_CLASS).toString(),
                 prefixToSb.get(PREFIX_CHAIN_SEARCH_METHOD).toString(),
                 prefixToSb.get(PREFIX_CHAIN_SEARCH_CONSTRUCTOR).toString(),
-                level,
+                getInt(prefixToSb, PREFIX_CHAIN_SEARCH_LEVEL, "chain search level"),
+                getInt(prefixToSb, PREFIX_CHAIN_SEARCH_CLASS_MAX_SIZE, "chain search class max size"),
                 prefixToSb.get(PREFIX_CHAIN_MATCH_CLASS).toString(),
                 prefixToSb.get(PREFIX_CHAIN_MATCH_METHOD).toString(),
-                prefixToSb.get(PREFIX_CHAIN_MATCH_CONSTRUCTOR).toString()
+                prefixToSb.get(PREFIX_CHAIN_MATCH_CONSTRUCTOR).toString(),
+                getInt(prefixToSb, PREFIX_CHAIN_MATCH_CLASS_MAX_SIZE, "chain match class max size")
         );
+    }
+
+    private static int getInt(Map<String, StringBuilder> prefixToSb, String key, String errMsg) {
+        int v = -1;
+        String str = prefixToSb.get(key).toString();
+        if (Utils.isNotBlank(str))
+            v = Utils.parseInt(str, errMsg);
+        return v;
     }
 
     public static List<TargetConfig> createTargetConfigs(Opts opts) {
@@ -205,9 +214,9 @@ public class FilterOptUtils {
                             s -> ReflectionUtils.CONSTRUCTOR_NAME + s
                     )
             );
+        if (filterItem.chainClassMaxSize > 0)
+            invokeChainConfig.setMatchMaxSize(filterItem.chainClassMaxSize);
 
-        if (filterItem.searchLevel > 0)
-            invokeChainConfig.setMaxLevel(filterItem.searchLevel);
         if (Utils.isNotBlank(filterItem.searchClassStr))
             invokeChainConfig.setSearchClassFilter(
                     newClassFilterConfig(filterItem.searchClassStr)
@@ -224,6 +233,10 @@ public class FilterOptUtils {
                             s -> ReflectionUtils.CONSTRUCTOR_NAME + s
                     )
             );
+        if (filterItem.searchLevel > 0)
+            invokeChainConfig.setMaxLevel(filterItem.searchLevel);
+        if (filterItem.searchClassMaxSize > 0)
+            invokeChainConfig.setSearchMaxSize(filterItem.searchClassMaxSize);
         return invokeChainConfig;
     }
 

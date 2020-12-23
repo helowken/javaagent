@@ -7,14 +7,16 @@ class FilterItem {
     final String searchClassStr;
     final String searchMethodStr;
     final String searchConstructorStr;
+    final int searchLevel;
+    final int searchClassMaxSize;
     final String chainClassStr;
     final String chainMethodStr;
     final String chainConstructorStr;
-    final int searchLevel;
+    final int chainClassMaxSize;
 
-    FilterItem(String classStr, String methodStr, String constructorStr,
-               String searchClassStr, String searchMethodStr, String searchConstructorStr, int searchLevel,
-               String chainClassStr, String chainMethodStr, String chainConstructorStr) {
+    FilterItem(String classStr, String methodStr, String constructorStr, String searchClassStr, String searchMethodStr,
+               String searchConstructorStr, int searchLevel, int searchClassMaxSize,
+               String chainClassStr, String chainMethodStr, String chainConstructorStr, int chainClassMaxSize) {
         this.classStr = classStr;
         this.methodStr = methodStr;
         this.constructorStr = constructorStr;
@@ -22,8 +24,10 @@ class FilterItem {
         this.searchMethodStr = searchMethodStr;
         this.searchConstructorStr = searchConstructorStr;
         this.searchLevel = searchLevel;
+        this.searchClassMaxSize = searchClassMaxSize;
         this.chainClassStr = chainClassStr;
         this.chainMethodStr = chainMethodStr;
         this.chainConstructorStr = chainConstructorStr;
+        this.chainClassMaxSize = chainClassMaxSize;
     }
 }

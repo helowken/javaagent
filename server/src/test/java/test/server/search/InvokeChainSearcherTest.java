@@ -20,7 +20,7 @@ import java.util.stream.Stream;
 import static org.junit.Assert.*;
 
 public class InvokeChainSearcherTest extends AbstractTest {
-    private static final boolean debugEnabled = false;
+    private static final boolean debugEnabled = true;
     private static final ClassCache classCache = new ClassCache();
 
     static {

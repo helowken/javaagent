@@ -17,6 +17,7 @@ public class AsmUtils {
     private static Method transformMethod;
     private static Method parseTypeMethod;
     private static Method collectMethod;
+    private static Method getInvokeFullNameMethod;
 
     static {
         try {
@@ -36,6 +37,12 @@ public class AsmUtils {
                     getDelegateClass(),
                     "collect",
                     byte[].class
+            );
+            getInvokeFullNameMethod = ReflectionUtils.getMethod(
+                    getDelegateClass(),
+                    "getInvokeFullName",
+                    String.class,
+                    String.class
             );
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -96,6 +103,12 @@ public class AsmUtils {
     public static ClassInvokeItem collect(byte[] classData) {
         return Utils.wrapToRtError(
                 () -> (ClassInvokeItem) collectMethod.invoke(null, new Object[]{classData})
+        );
+    }
+
+    public static String getInvokeFullName(String invokeName, String desc) {
+        return Utils.wrapToRtError(
+                () -> (String) getInvokeFullNameMethod.invoke(null, new Object[]{invokeName, desc})
         );
     }
 }

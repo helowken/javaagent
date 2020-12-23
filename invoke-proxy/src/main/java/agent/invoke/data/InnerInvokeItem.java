@@ -30,10 +30,6 @@ public class InnerInvokeItem {
         return dynamic;
     }
 
-    public String getInvokeKey() {
-        return ClassInvokeItem.newInvokeKey(name, desc);
-    }
-
     @Override
     public String toString() {
         return "InvokeItem{" +

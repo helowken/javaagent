@@ -29,5 +29,12 @@ abstract class AbstractClassFilter implements ClassFilter {
                     v.getName()
             );
         }
+
+        @Override
+        public String toString() {
+            return "ClassNameFilter{" +
+                    "filter=" + filter +
+                    '}';
+        }
     }
 }

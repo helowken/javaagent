@@ -23,6 +23,24 @@ public class AsmDelegate {
         return cv.getClassInvokeItem();
     }
 
+    public static String getInvokeFullName(String invokeName, String invokeDesc) {
+        StringBuilder sb = new StringBuilder();
+        Type invokeType = Type.getMethodType(invokeDesc);
+        sb.append(invokeName).append('(');
+        Type[] argTypes = invokeType.getArgumentTypes();
+        if (argTypes != null) {
+            int count = 0;
+            for (Type argType : argTypes) {
+                if (count > 0)
+                    sb.append(",");
+                sb.append(argType.getClassName());
+                ++count;
+            }
+        }
+        sb.append(")");
+        return sb.toString();
+    }
+
     public static TypeItem parseType(String invokeOwner) {
         Type type = Type.getObjectType(invokeOwner);
         return type.getSort() == Type.ARRAY ?

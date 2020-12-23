@@ -9,6 +9,7 @@ import agent.invoke.DestInvoke;
 import agent.server.transform.search.filter.ClassFilter;
 import agent.server.transform.search.filter.FilterUtils;
 import agent.server.transform.search.filter.InvokeFilter;
+import agent.server.transform.tools.asm.AsmUtils;
 import agent.server.transform.tools.asm.ProxyTransformMgr;
 
 import java.util.List;
@@ -57,12 +58,16 @@ public class InfoMgr {
                                 case INFO_CLASS:
                                     return FilterUtils.isAccept(
                                             classFilter,
-                                            (Class<?>) value
+                                            () -> (Class<?>) value
                                     );
                                 case INFO_INVOKE:
+                                    DestInvoke invoke = (DestInvoke) value;
                                     return FilterUtils.isAccept(
                                             value instanceof ConstructorInvoke ? constructorFilter : methodFilter,
-                                            (DestInvoke) value
+                                            () -> AsmUtils.getInvokeFullName(
+                                                    invoke.getName(),
+                                                    invoke.getDescriptor()
+                                            )
                                     );
                                 default:
                                     throw new RuntimeException("Unsupported level: " + currLevel);

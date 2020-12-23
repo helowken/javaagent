@@ -6,12 +6,12 @@ import agent.common.config.ClassFilterConfig;
 import agent.common.config.FilterConfig;
 import agent.common.config.InvokeChainConfig;
 import agent.common.config.StringFilterConfig;
-import agent.invoke.DestInvoke;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static agent.common.config.ConfigValidator.validateClassFilters;
@@ -240,26 +240,9 @@ public class FilterUtils {
         return null;
     }
 
-    public static <T> boolean isAccept(AgentFilter<T> filter, T invoke) {
-        return filter == null || filter.accept(invoke);
+    public static <T> boolean isAccept(AgentFilter<T> filter, Supplier<T> supplier) {
+        return filter == null || filter.accept(
+                supplier.get()
+        );
     }
-
-    static String getInvokeFullName(DestInvoke invoke) {
-        StringBuilder sb = new StringBuilder();
-        sb.append(invoke.getName()).append("(");
-        Class<?>[] paramTypes = invoke.getParamTypes();
-        if (paramTypes != null) {
-            int count = 0;
-            for (Class<?> paramType : paramTypes) {
-                if (count > 0)
-                    sb.append(",");
-                sb.append(paramType.getName());
-                ++count;
-            }
-        }
-        sb.append(")");
-        return sb.toString();
-    }
-
-
 }

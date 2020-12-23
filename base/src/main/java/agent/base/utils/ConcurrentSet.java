@@ -2,6 +2,7 @@ package agent.base.utils;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.BiConsumer;
 
 public class ConcurrentSet<V> implements Set<V> {
     private static final Object dummy = new Object();
@@ -93,6 +94,16 @@ public class ConcurrentSet<V> implements Set<V> {
                 v,
                 key -> {
                     runnable.run();
+                    return dummy;
+                }
+        );
+    }
+
+    public void compute(V v, BiConsumer<V, Object> func) {
+        map.compute(
+                v,
+                (k, ov) -> {
+                    func.accept(k, ov);
                     return dummy;
                 }
         );

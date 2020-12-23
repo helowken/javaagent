@@ -6,4 +6,12 @@ public class InvokeChainMatchFilter extends AbstractInvokeChainFilter {
         super(classFilter, methodFilter, constructorFilter);
     }
 
+    @Override
+    public String toString() {
+        return "InvokeChainMatchFilter{" +
+                "classFilter=" + classFilter +
+                ", methodFilter=" + methodFilter +
+                ", constructorFilter=" + constructorFilter +
+                '}';
+    }
 }

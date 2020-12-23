@@ -2,15 +2,15 @@ package agent.server.transform.search;
 
 import agent.base.utils.Logger;
 import agent.base.utils.ReflectionUtils;
-import agent.base.utils.Utils;
 import agent.common.config.ConstructorFilterConfig;
 import agent.common.config.FilterConfig;
 import agent.common.config.MethodFilterConfig;
 import agent.invoke.ConstructorInvoke;
 import agent.invoke.DestInvoke;
 import agent.invoke.MethodInvoke;
-import agent.server.transform.search.filter.AgentFilter;
 import agent.server.transform.search.filter.FilterUtils;
+import agent.server.transform.search.filter.InvokeFilter;
+import agent.server.transform.tools.asm.AsmUtils;
 
 import java.lang.reflect.Modifier;
 import java.util.*;
@@ -61,11 +61,17 @@ public class InvokeSearcher {
     }
 
     private void doSearch(FilterConfig invokeFilterConfig, Class<?> clazz, Set<DestInvoke> invokeSet) {
-        AgentFilter<DestInvoke> filter = FilterUtils.newInvokeFilter(invokeFilterConfig);
+        InvokeFilter filter = FilterUtils.newInvokeFilter(invokeFilterConfig);
         getInvokeGetter(invokeFilterConfig).get(clazz)
                 .stream()
                 .filter(
-                        invoke -> FilterUtils.isAccept(filter, invoke)
+                        invoke -> FilterUtils.isAccept(
+                                filter,
+                                () -> AsmUtils.getInvokeFullName(
+                                        invoke.getName(),
+                                        invoke.getDescriptor()
+                                )
+                        )
                 )
                 .forEach(invokeSet::add);
     }

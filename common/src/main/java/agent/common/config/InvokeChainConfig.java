@@ -20,6 +20,10 @@ public class InvokeChainConfig extends AbstractValidConfig {
     private ConstructorFilterConfig searchConstructorFilter;
     @PojoProperty(index = 6)
     private int maxLevel = -1;
+    @PojoProperty(index = 7)
+    private int searchMaxSize = -1;
+    @PojoProperty(index = 8)
+    private int matchMaxSize = -1;
 
     public boolean isEmpty() {
         return getMatchClassFilter() == null &&
@@ -27,8 +31,7 @@ public class InvokeChainConfig extends AbstractValidConfig {
                 getMatchConstructorFilter() == null &&
                 getSearchClassFilter() == null &&
                 getSearchMethodFilter() == null &&
-                getSearchConstructorFilter() == null &&
-                getMaxLevel() <= 0;
+                getSearchConstructorFilter() == null;
     }
 
     public ClassFilterConfig getSearchClassFilter() {
@@ -99,37 +102,20 @@ public class InvokeChainConfig extends AbstractValidConfig {
         this.maxLevel = maxLevel;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        InvokeChainConfig that = (InvokeChainConfig) o;
-        return maxLevel == that.maxLevel &&
-                Objects.equals(matchClassFilter, that.matchClassFilter) &&
-                Objects.equals(matchMethodFilter, that.matchMethodFilter) &&
-                Objects.equals(matchConstructorFilter, that.matchConstructorFilter) &&
-                Objects.equals(searchClassFilter, that.searchClassFilter) &&
-                Objects.equals(searchMethodFilter, that.searchMethodFilter) &&
-                Objects.equals(searchConstructorFilter, that.searchConstructorFilter);
+    public int getSearchMaxSize() {
+        return searchMaxSize;
     }
 
-    @Override
-    public int hashCode() {
-
-        return Objects.hash(matchClassFilter, matchMethodFilter, matchConstructorFilter, searchClassFilter, searchMethodFilter, searchConstructorFilter, maxLevel);
+    public void setSearchMaxSize(int searchMaxSize) {
+        this.searchMaxSize = searchMaxSize;
     }
 
-    @Override
-    public String toString() {
-        return "InvokeChainConfig{" +
-                "matchClassFilter=" + matchClassFilter +
-                ", matchMethodFilter=" + matchMethodFilter +
-                ", matchConstructorFilter=" + matchConstructorFilter +
-                ", searchClassFilter=" + searchClassFilter +
-                ", searchMethodFilter=" + searchMethodFilter +
-                ", searchConstructorFilter=" + searchConstructorFilter +
-                ", maxLevel=" + maxLevel +
-                '}';
+    public int getMatchMaxSize() {
+        return matchMaxSize;
+    }
+
+    public void setMatchMaxSize(int matchMaxSize) {
+        this.matchMaxSize = matchMaxSize;
     }
 
     public static InvokeChainConfig matchAll(String searchClassStr, String matchClassStr) {
@@ -147,6 +133,8 @@ public class InvokeChainConfig extends AbstractValidConfig {
 
         InvokeChainConfig invokeChainConfig = new InvokeChainConfig();
         invokeChainConfig.setSearchClassFilter(searchClassFilter);
+        invokeChainConfig.setSearchConstructorFilter(constructorFilterConfig);
+        invokeChainConfig.setSearchMethodFilter(methodFilterConfig);
         invokeChainConfig.setMatchClassFilter(matchClassFilter);
         invokeChainConfig.setMatchConstructorFilter(constructorFilterConfig);
         invokeChainConfig.setMatchMethodFilter(methodFilterConfig);
@@ -170,4 +158,40 @@ public class InvokeChainConfig extends AbstractValidConfig {
         return invokeChainConfig;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        InvokeChainConfig that = (InvokeChainConfig) o;
+        return maxLevel == that.maxLevel &&
+                searchMaxSize == that.searchMaxSize &&
+                matchMaxSize == that.matchMaxSize &&
+                Objects.equals(matchClassFilter, that.matchClassFilter) &&
+                Objects.equals(matchMethodFilter, that.matchMethodFilter) &&
+                Objects.equals(matchConstructorFilter, that.matchConstructorFilter) &&
+                Objects.equals(searchClassFilter, that.searchClassFilter) &&
+                Objects.equals(searchMethodFilter, that.searchMethodFilter) &&
+                Objects.equals(searchConstructorFilter, that.searchConstructorFilter);
+    }
+
+    @Override
+    public int hashCode() {
+
+        return Objects.hash(matchClassFilter, matchMethodFilter, matchConstructorFilter, searchClassFilter, searchMethodFilter, searchConstructorFilter, maxLevel, searchMaxSize, matchMaxSize);
+    }
+
+    @Override
+    public String toString() {
+        return "InvokeChainConfig{" +
+                "matchClassFilter=" + matchClassFilter +
+                ", matchMethodFilter=" + matchMethodFilter +
+                ", matchConstructorFilter=" + matchConstructorFilter +
+                ", searchClassFilter=" + searchClassFilter +
+                ", searchMethodFilter=" + searchMethodFilter +
+                ", searchConstructorFilter=" + searchConstructorFilter +
+                ", maxLevel=" + maxLevel +
+                ", searchMaxSize=" + searchMaxSize +
+                ", matchMaxSize=" + matchMaxSize +
+                '}';
+    }
 }

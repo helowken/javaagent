@@ -15,6 +15,13 @@ public abstract class PatternFilter implements AgentFilter<String> {
                 );
     }
 
+    @Override
+    public String toString() {
+        return "PatternFilter{" +
+                "patterns=" + patterns +
+                '}';
+    }
+
     public static PatternFilter include(Collection<String> strings) {
         return new Include(strings);
     }
