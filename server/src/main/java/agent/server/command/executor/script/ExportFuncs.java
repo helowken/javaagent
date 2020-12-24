@@ -2,6 +2,7 @@ package agent.server.command.executor.script;
 
 import agent.base.utils.IOUtils;
 import agent.base.utils.ReflectionUtils;
+import agent.base.utils.Utils;
 import agent.common.args.parse.FilterOptUtils;
 import agent.jvmti.JvmtiUtils;
 import agent.server.transform.InstrumentationMgr;
@@ -149,6 +150,18 @@ public class ExportFuncs {
     public void scv(Object classOrClassName, String fieldName, Object value) throws Exception {
         Class<?> clazz = cls(classOrClassName);
         ReflectionUtils.setFieldValue(clazz, fieldName, null, value);
+    }
+
+    public void write(String filePath, String content, boolean append) throws Exception {
+        IOUtils.writeString(filePath, content, append);
+    }
+
+    public void write(String filePath, Throwable t, boolean append) throws Exception {
+        write(
+                filePath,
+                Utils.getErrorStackStrace(t),
+                append
+        );
     }
 
     public void dumpStackTrace() throws Exception {

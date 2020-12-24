@@ -1,6 +1,6 @@
 package agent.common.args.parse;
 
-class FilterItem {
+public class FilterItem {
     final String classStr;
     final String methodStr;
     final String constructorStr;
@@ -14,9 +14,13 @@ class FilterItem {
     final String chainConstructorStr;
     final int chainClassMaxSize;
 
-    FilterItem(String classStr, String methodStr, String constructorStr, String searchClassStr, String searchMethodStr,
-               String searchConstructorStr, int searchLevel, int searchClassMaxSize,
-               String chainClassStr, String chainMethodStr, String chainConstructorStr, int chainClassMaxSize) {
+    public FilterItem(String classStr, String methodStr, String constructorStr) {
+        this(classStr, methodStr, constructorStr, null, null, null, -1, -1, null, null, null, -1);
+    }
+
+    public FilterItem(String classStr, String methodStr, String constructorStr, String searchClassStr, String searchMethodStr,
+                      String searchConstructorStr, int searchLevel, int searchClassMaxSize,
+                      String chainClassStr, String chainMethodStr, String chainConstructorStr, int chainClassMaxSize) {
         this.classStr = classStr;
         this.methodStr = methodStr;
         this.constructorStr = constructorStr;

@@ -12,6 +12,7 @@ import agent.server.transform.search.filter.FilterUtils;
 import agent.server.transform.search.filter.InvokeFilter;
 import agent.server.transform.tools.asm.AsmUtils;
 
+import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -86,8 +87,9 @@ public class InvokeSearcher {
         );
     }
 
-    private static boolean isInvokeMeaningful(int methodModifiers) {
-        return !ReflectionUtils.isSynthetic(methodModifiers) &&
+    private static boolean isInvokeMeaningful(Method method) {
+        int methodModifiers = method.getModifiers();
+        return (!ReflectionUtils.isSynthetic(methodModifiers) || ReflectionUtils.isLambda(method)) &&
                 !ReflectionUtils.isBridge(methodModifiers) &&
                 !Modifier.isAbstract(methodModifiers) &&
                 !Modifier.isNative(methodModifiers);
@@ -102,9 +104,9 @@ public class InvokeSearcher {
         public Collection<DestInvoke> get(Class<?> clazz) {
             return Stream.of(
                     clazz.getDeclaredMethods()
-            ).filter(
-                    method -> isInvokeMeaningful(method.getModifiers())
-            ).map(MethodInvoke::new)
+            )
+                    .filter(InvokeSearcher::isInvokeMeaningful)
+                    .map(MethodInvoke::new)
                     .collect(
                             Collectors.toList()
                     );

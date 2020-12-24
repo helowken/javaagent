@@ -32,12 +32,25 @@ public class ReflectionUtils {
         return (BRIDGE & modifiers) != 0;
     }
 
+    @Deprecated
     public static boolean isLambdaInvoke(String invoke) {
         return invoke.contains("lambda$");
     }
 
+    public static boolean isLambda(Method method) {
+        return isSynthetic(method.getModifiers()) && method.getName().contains("lambda$");
+    }
+
+    @Deprecated
     public static boolean isLambdaClass(String className) {
         return className.contains("$$Lambda$");
+    }
+
+    public static boolean isLambda(Class<?> clazz) {
+        return clazz.getName().contains("$$Lambda$") &&
+                isSynthetic(
+                        clazz.getModifiers()
+                );
     }
 
     public static boolean isJavaIntrinsicPackage(String namePath) {

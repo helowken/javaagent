@@ -6,10 +6,7 @@ import agent.base.utils.Utils;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -17,8 +14,26 @@ import java.util.stream.Stream;
 class ExportUtils {
     private static final Predicate<Method> methodFilter = method -> {
         int modifiers = method.getModifiers();
-        return !ReflectionUtils.isSynthetic(modifiers) &&
-                !ReflectionUtils.isBridge(modifiers);
+        return !ReflectionUtils.isBridge(modifiers);
+    };
+    private static final Comparator<Method> methodComparator = (m1, m2) -> {
+        int mod1 = m1.getModifiers();
+        int mod2 = m2.getModifiers();
+        if (Modifier.isStatic(mod1))
+            return -1;
+        else if (Modifier.isStatic(mod2))
+            return 1;
+        if (Modifier.isPublic(mod1))
+            return -1;
+        else if (Modifier.isPublic(mod2))
+            return 1;
+        if (Modifier.isProtected(mod1))
+            return -1;
+        else if (Modifier.isProtected(mod2))
+            return 1;
+        return m1.getName().compareTo(
+                m2.getName()
+        );
     };
 
     private static void populatePrefix(StringBuilder sb, int modifiers) {
@@ -98,10 +113,9 @@ class ExportUtils {
                         method -> (filter == null || filter.test(method)) &&
                                 methodFilter.test(method)
                 )
+                .sorted(methodComparator)
                 .map(ExportUtils::methodToString)
-                .collect(
-                        Collectors.toCollection(TreeSet::new)
-                );
+                .collect(Collectors.toList());
     }
 
     static Collection<String> listFields(Class<?> clazz) {

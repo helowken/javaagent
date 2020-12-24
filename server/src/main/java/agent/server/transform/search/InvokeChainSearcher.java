@@ -598,9 +598,7 @@ public class InvokeChainSearcher {
         }
 
         private boolean isLambdaClass() {
-            return ReflectionUtils.isLambdaClass(
-                    clazz.getName()
-            );
+            return ReflectionUtils.isLambda(clazz);
         }
 
         private boolean containsMethod() {
