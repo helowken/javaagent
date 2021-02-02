@@ -121,7 +121,7 @@ public class ClassDataRepository {
                 () -> {
                     logger.debug("Get class data from memory: {}", clazz.getName());
                     GetClassDataTransformer transformer = new GetClassDataTransformer(clazz);
-                    InstrumentationMgr.getInstance().retransform(transformer, clazz);
+                    InstrumentationMgr.getInstance().retransform(transformer, true, clazz);
                     byte[] data = transformer.getData();
                     if (data == null)
                         data = new byte[0];

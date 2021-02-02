@@ -6,8 +6,6 @@ import agent.common.message.result.ExecResult;
 import agent.server.transform.TransformMgr;
 import agent.server.transform.TransformResult;
 import agent.server.transform.impl.DestInvokeIdRegistry;
-import agent.server.transform.impl.UpdateClassDataTransformer;
-import agent.server.transform.revision.ClassDataRepository;
 import agent.server.transform.search.filter.ClassFilter;
 import agent.server.transform.search.filter.FilterUtils;
 import agent.server.transform.tools.asm.ProxyTransformMgr;
@@ -43,9 +41,6 @@ class ResetCmdExecutor extends AbstractTransformCmdExecutor {
     private List<Class<?>> reset(TransformResult transformResult, List<Class<?>> classList) {
         return TransformMgr.getInstance().doReTransform(
                 transformResult,
-                new UpdateClassDataTransformer(
-                        ClassDataRepository.getInstance()::getOriginalClassData
-                ),
                 classList,
                 clazz -> clazz
         );

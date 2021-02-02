@@ -159,7 +159,7 @@ public abstract class AbstractAnnotationConfigTransformer extends AbstractConfig
                 anntMethod,
                 mask,
                 getOtherArgs(destInvoke, anntMethod, argsHint),
-                newTag(destInvoke, anntMethod, mask, argsHint)
+                getTid()
         );
     }
 
@@ -180,8 +180,4 @@ public abstract class AbstractAnnotationConfigTransformer extends AbstractConfig
     protected abstract Object getInstanceForAnntMethod(Class<?> anntClass, Method anntMethod);
 
     protected abstract Collection<Class<?>> getAnnotationClasses();
-
-    protected String newTag(DestInvoke destInvoke, Method anntMethod, int mask, int argsHint) {
-        return getTid();
-    }
 }

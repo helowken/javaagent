@@ -8,9 +8,9 @@ public class ProxyCallInfo {
     private final Method proxyMethod;
     private final int argsMask;
     private final Object[] otherArgs;
-    private final String tag;
+    private final String tid;
 
-    public ProxyCallInfo(Object proxyTarget, Method proxyMethod, int argsMask, Object[] otherArgs, String tag) {
+    public ProxyCallInfo(Object proxyTarget, Method proxyMethod, int argsMask, Object[] otherArgs, String tid) {
         if (proxyTarget == null && !Modifier.isStatic(proxyMethod.getModifiers()))
             throw new IllegalArgumentException("Method is not static, but target is null.");
         this.proxyTarget = proxyTarget;
@@ -18,11 +18,11 @@ public class ProxyCallInfo {
         this.proxyMethod.setAccessible(true);
         this.argsMask = argsMask;
         this.otherArgs = otherArgs;
-        this.tag = tag;
+        this.tid = tid;
     }
 
-    public String getTag() {
-        return tag;
+    public String getTid() {
+        return tid;
     }
 
     Object getProxyTarget() {

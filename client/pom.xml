@@ -24,6 +24,10 @@
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.sun</groupId>
+            <artifactId>sa-jdi</artifactId>
+        </dependency>
     </dependencies>
 
 </project>

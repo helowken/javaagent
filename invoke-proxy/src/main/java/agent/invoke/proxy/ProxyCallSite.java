@@ -41,7 +41,7 @@ public class ProxyCallSite {
                                 pos.toString(),
                                 queue.calls.stream()
                                         .map(ProxyCall::getCallInfo)
-                                        .map(ProxyCallInfo::getTag)
+                                        .map(ProxyCallInfo::getTid)
                                         .collect(
                                                 Collectors.toList()
                                         )
@@ -57,15 +57,13 @@ public class ProxyCallSite {
 
     public void reg(ProxyPosition pos, Collection<ProxyCallInfo> proxyCallInfos) {
         CallQueue queue = getQueue(pos);
-        proxyCallInfos.forEach(
-                callInfo -> queue.add(pos, callInfo)
-        );
+        proxyCallInfos.forEach(queue::add);
     }
 
     private CallQueue getQueue(ProxyPosition pos) {
         return posToQueue.computeIfAbsent(
                 pos,
-                key -> new CallQueue()
+                key -> new CallQueue(pos)
         );
     }
 
@@ -95,21 +93,26 @@ public class ProxyCallSite {
 
     private static class CallQueue {
         private final Queue<ProxyCall> calls = new ConcurrentLinkedQueue<>();
-        private final Set<String> tags = new HashSet<>();
+        private final Set<String> tids = new HashSet<>();
+        private final ProxyPosition pos;
 
-        private void add(ProxyPosition pos, ProxyCallInfo callInfo) {
+        private CallQueue(ProxyPosition pos) {
+            this.pos = pos;
+        }
+
+        private void add(ProxyCallInfo callInfo) {
             synchronized (this) {
-                String tag = callInfo.getTag();
-                if (tags.contains(tag))
+                String tid = callInfo.getTid();
+                if (tids.contains(tid))
                     return;
-                tags.add(tag);
+                tids.add(tid);
             }
             calls.add(
-                    newProxyCall(pos, callInfo)
+                    newProxyCall(callInfo)
             );
         }
 
-        private ProxyCall newProxyCall(ProxyPosition pos, ProxyCallInfo callInfo) {
+        private ProxyCall newProxyCall(ProxyCallInfo callInfo) {
             return Optional.ofNullable(
                     posToProxyClass.get(pos)
             ).map(

@@ -25,10 +25,11 @@ public class TaskRunner {
                     } catch (Throwable e) {
                         logger.error("Run task failed.", e);
                     } finally {
-                        if (jobsCount.decrementAndGet() == 0)
+                        int rest = jobsCount.decrementAndGet();
+                        if (rest == 0)
                             latch.countDown();
                         else
-                            logger.debug("Jobs count: {}", jobsCount);
+                            logger.debug("Jobs count: {}", rest);
                     }
                 }
         );
@@ -36,7 +37,8 @@ public class TaskRunner {
 
     public void await() {
         try {
-            latch.await();
+            if (jobsCount.get() > 0)
+                latch.await();
         } catch (InterruptedException e) {
             logger.error("Interrupted.", e);
         }

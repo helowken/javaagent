@@ -9,7 +9,6 @@ import agent.invoke.DestInvoke;
 import agent.invoke.proxy.ProxyRegInfo;
 import agent.invoke.proxy.ProxyResult;
 import agent.server.transform.impl.DestInvokeIdRegistry;
-import agent.server.transform.impl.UpdateClassDataTransformer;
 import agent.server.transform.revision.ClassDataRepository;
 import agent.server.transform.search.ClassCache;
 import agent.server.transform.search.ClassSearcher;
@@ -17,6 +16,7 @@ import agent.server.transform.search.InvokeChainSearcher;
 import agent.server.transform.search.InvokeSearcher;
 import agent.server.transform.tools.asm.ProxyTransformMgr;
 
+import java.lang.instrument.ClassDefinition;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -175,34 +175,27 @@ public class TransformMgr {
     private List<ProxyResult> reTransform(TransformResult transformResult, List<ProxyResult> proxyResults) {
         return doReTransform(
                 transformResult,
-                new UpdateClassDataTransformer(
-                        ClassDataRepository.getInstance()::getCurrentClassData
-                ),
                 proxyResults,
                 ProxyResult::getTargetClass
         );
     }
 
-    public <P> List<P> doReTransform(TransformResult transformResult, UpdateClassDataTransformer transformer,
-                                     List<P> dataList, Function<P, Class<?>> convertFunc) {
+    public <P> List<P> doReTransform(TransformResult transformResult, List<P> dataList, Function<P, Class<?>> convertFunc) {
         List<P> validRsList = new ArrayList<>();
-        Utils.wrapToRtError(
-                () -> InstrumentationMgr.getInstance().retransform(
-                        instrumentation -> dataList.forEach(
-                                data -> {
-                                    Class<?> clazz = convertFunc.apply(data);
-                                    try {
-                                        instrumentation.retransformClasses(clazz);
-                                        validRsList.add(data);
-                                    } catch (Throwable t) {
-                                        transformResult.addReTransformError(clazz, t);
-                                        logger.error("Update class data failed: {}", t, clazz);
-                                    }
-                                }
-                        ),
-                        transformer
-                )
-        );
+        for (P data : dataList) {
+            Class<?> clazz = convertFunc.apply(data);
+            try {
+                byte[] classData = ClassDataRepository.getInstance().getCurrentClassData(clazz);
+                ClassDefinition newClassDef = new ClassDefinition(clazz, classData);
+                InstrumentationMgr.getInstance().run(
+                        instrumentation -> instrumentation.redefineClasses(newClassDef)
+                );
+                validRsList.add(data);
+            } catch (Throwable t) {
+                transformResult.addReTransformError(clazz, t);
+                logger.error("Update class data failed: {}", t, clazz);
+            }
+        }
         return validRsList;
     }
 }
