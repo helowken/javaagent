@@ -121,15 +121,6 @@ public class LogMgr {
         }
     }
 
-    private static void clear() {
-        logger.debug("Start to clear...");
-        logKeyToLogWriter.forEach(
-                (logKey, logWriter) -> logWriter.close()
-        );
-        logKeyToLogWriter.clear();
-        logger.debug("Clear finish.");
-    }
-
     public static LogConfig getLogConfig(String logKey) {
         LogWriter writer = getLogWriter(logKey);
         if (writer == null)
@@ -139,8 +130,10 @@ public class LogMgr {
 
     public static void close(String logKey) {
         LogWriter logWriter = logKeyToLogWriter.remove(logKey);
-        if (logWriter != null)
+        if (logWriter != null) {
+            logger.debug("close log: {}", logKey);
             logWriter.close();
+        }
     }
 
 

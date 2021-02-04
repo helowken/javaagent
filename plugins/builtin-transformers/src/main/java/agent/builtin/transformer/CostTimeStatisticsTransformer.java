@@ -18,7 +18,7 @@ public class CostTimeStatisticsTransformer extends CallChainTransformer {
     @Override
     @SuppressWarnings("unchecked")
     protected void doSetConfig(Map<String, Object> config) throws Exception {
-        regLogBinary(
+        regLog(
                 config,
                 Collections.singletonMap(
                         LogConfigParser.CONF_NEED_METADATA,

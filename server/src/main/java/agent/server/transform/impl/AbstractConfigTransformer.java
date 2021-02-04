@@ -14,7 +14,8 @@ import java.util.Map;
 public abstract class AbstractConfigTransformer extends AbstractTransformer implements ConfigTransformer {
     private static final String KEY_LOG = "log";
     private String tid;
-    private TransformerData transformerData;
+    private TransformerData transformerData = new TransformerData();
+    private Map<String, Object> config;
 
     @Override
     public void setTid(String tid) {
@@ -27,17 +28,17 @@ public abstract class AbstractConfigTransformer extends AbstractTransformer impl
     }
 
     @Override
-    public void setTransformerData(TransformerData transformerData) {
-        this.transformerData = transformerData;
-    }
-
-    @Override
     public TransformerData getTransformerData() {
         return transformerData;
     }
 
     @Override
     public void setConfig(Map<String, Object> config) {
+        this.config = config;
+    }
+
+    @Override
+    public void init() {
         try {
             doSetConfig(config == null ? Collections.emptyMap() : config);
         } catch (InvalidTransformerConfigException e) {
@@ -50,17 +51,20 @@ public abstract class AbstractConfigTransformer extends AbstractTransformer impl
     @Override
     public void destroy() {
         transformerData.clear();
+        LogMgr.close(
+                getTid()
+        );
     }
 
     @SuppressWarnings("unchecked")
-    protected Map<String, Object> getLogConfig(Map<String, Object> config) {
+    private Map<String, Object> getLogConfig(Map<String, Object> config) {
         return (Map) config.getOrDefault(
                 KEY_LOG,
                 Collections.emptyMap()
         );
     }
 
-    protected void regLogBinary(Map<String, Object> config, Map<String, Object> overwrite) {
+    protected void regLog(Map<String, Object> config, Map<String, Object> overwrite) {
         Map<String, Object> logConfig = new HashMap<>(
                 getLogConfig(config)
         );

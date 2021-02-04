@@ -8,6 +8,7 @@ import java.util.*;
 public class ProxyItem {
     private final Class<?> targetClass;
     private Map<Integer, DestInvoke> idToInvoke = new HashMap<>();
+    private Map<DestInvoke, Integer> invokeToId = new HashMap<>();
     private Map<DestInvoke, List<ProxyRegInfo>> invokeToRegInfos = new HashMap<>();
 
     public ProxyItem(Class<?> targetClass) {
@@ -16,6 +17,7 @@ public class ProxyItem {
 
     public void reg(Integer invokeId, DestInvoke destInvoke, ProxyRegInfo regInfo) {
         idToInvoke.put(invokeId, destInvoke);
+        invokeToId.put(destInvoke, invokeId);
         invokeToRegInfos.computeIfAbsent(
                 destInvoke,
                 key -> new ArrayList<>()
@@ -28,6 +30,10 @@ public class ProxyItem {
 
     public Map<Integer, DestInvoke> getIdToInvoke() {
         return idToInvoke;
+    }
+
+    public Map<DestInvoke, Integer> getInvokeToId() {
+        return invokeToId;
     }
 
     List<ProxyRegInfo> getRegInfos(DestInvoke destInvoke) {

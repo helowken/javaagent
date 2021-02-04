@@ -69,6 +69,7 @@ public class StackTraceCmdParser extends ScheduleCmdParser {
             config.setElementFilterConfig(
                     FilterOptUtils.newStringFilterConfig(elementExpr)
             );
+        config.validate();
         return new DefaultCommand(CMD_STACK_TRACE, config);
     }
 

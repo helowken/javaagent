@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 public class ProxyTransformMgr implements ProxyIntf, ServerListener {
     private static final Logger logger = Logger.getLogger(ProxyTransformMgr.class);
     private static final ProxyTransformMgr instance = new ProxyTransformMgr();
-    private final Map<Integer, ProxyCallSite> idToCallSite = new ConcurrentHashMap<>();
+    private final Map<Integer, ProxyCallSite> invokeIdToCallSite = new ConcurrentHashMap<>();
     private final ProxyController controller = new ProxyController();
 
     public static ProxyTransformMgr getInstance() {
@@ -35,14 +35,24 @@ public class ProxyTransformMgr implements ProxyIntf, ServerListener {
         return getCallSite(invokeId).getPosToDisplayStrings();
     }
 
-    public void reset(Collection<Class<?>> classes) {
+    public void removeCallSites(Collection<Integer> invokeIds, Collection<String> tids) {
+        invokeIds.forEach(
+                invokeId -> {
+                    ProxyCallSite callSite = invokeIdToCallSite.get(invokeId);
+                    if (callSite != null)
+                        callSite.removeCalls(tids);
+                }
+        );
+    }
+
+    public void prune(Collection<Class<?>> classes) {
         DestInvokeIdRegistry.getInstance().run(
                 classToInvokeToId -> {
                     classes.forEach(
                             clazz -> {
                                 Map<DestInvoke, Integer> invokeToId = classToInvokeToId.remove(clazz);
                                 if (invokeToId != null)
-                                    invokeToId.values().forEach(idToCallSite::remove);
+                                    invokeToId.values().forEach(invokeIdToCallSite::remove);
                                 ClassDataRepository.getInstance().removeClassData(clazz);
                             }
                     );
@@ -51,13 +61,34 @@ public class ProxyTransformMgr implements ProxyIntf, ServerListener {
         );
     }
 
+    public Collection<String> getNotUsedCalls(Collection<String> tids) {
+        Collection<String> notUsed = new HashSet<>(tids);
+        Collection<String> used = new ArrayList<>();
+        for (ProxyCallSite callSite : invokeIdToCallSite.values()) {
+            for (String tid : notUsed) {
+                if (callSite.containsCall(tid))
+                    used.add(tid);
+            }
+            notUsed.removeAll(used);
+            if (notUsed.isEmpty())
+                break;
+            used.clear();
+        }
+        return notUsed;
+    }
+
+    public boolean hasCalls(Integer invokeId) {
+        ProxyCallSite callSite = invokeIdToCallSite.get(invokeId);
+        return callSite != null && !callSite.isEmpty();
+    }
+
     public List<ProxyResult> transform(Collection<ProxyRegInfo> regInfos, Function<Class<?>, byte[]> classDataFunc) {
         Map<Class<?>, ProxyItem> classToItem = new HashMap<>();
         regInfos.forEach(
                 regInfo -> {
                     DestInvoke destInvoke = regInfo.getDestInvoke();
                     Integer invokeId = DestInvokeIdRegistry.getInstance().get(destInvoke);
-                    idToCallSite.compute(
+                    invokeIdToCallSite.compute(
                             invokeId,
                             (key, oldValue) -> {
                                 if (oldValue == null) {
@@ -152,7 +183,7 @@ public class ProxyTransformMgr implements ProxyIntf, ServerListener {
 
     private ProxyCallSite getCallSite(int invokeId) {
         return Optional.ofNullable(
-                idToCallSite.get(invokeId)
+                invokeIdToCallSite.get(invokeId)
         ).orElseThrow(
                 () -> new RuntimeException("No call config found by destInvoke id: " + invokeId)
         );

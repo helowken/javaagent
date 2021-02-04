@@ -99,13 +99,7 @@ public class TransformMgr {
 
     private ConfigTransformer getOrCreateTransformer(TransformerConfig transformerConfig) {
         return Utils.wrapToRtError(
-                () -> TransformerRegistry.getOrCreateTransformer(
-                        transformerConfig.getRef(),
-                        transformerConfig.getId(),
-                        transformer -> transformer.setConfig(
-                                transformerConfig.getConfig()
-                        )
-                ),
+                () -> TransformerRegistry.getOrCreateTransformer(transformerConfig),
                 () -> "Create transformer failed."
         );
     }
@@ -121,6 +115,7 @@ public class TransformMgr {
                 "time-bytecode-compile: {}"
         );
         if (!proxyResults.isEmpty()) {
+            transformContext.getTransformerList().forEach(AgentTransformer::init);
             List<ProxyResult> validRsList = TimeMeasureUtils.run(
                     () -> reTransform(transformResult, proxyResults),
                     "time-instrument-retransform: {}"

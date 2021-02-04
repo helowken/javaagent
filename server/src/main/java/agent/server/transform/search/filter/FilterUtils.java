@@ -6,6 +6,8 @@ import agent.common.config.ClassFilterConfig;
 import agent.common.config.FilterConfig;
 import agent.common.config.InvokeChainConfig;
 import agent.common.config.StringFilterConfig;
+import agent.invoke.DestInvoke;
+import agent.server.transform.tools.asm.AsmUtils;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -238,6 +240,16 @@ public class FilterUtils {
             return filters.get(0);
         }
         return null;
+    }
+
+    public static boolean isAccept(AgentFilter<String> filter, DestInvoke invoke) {
+        return isAccept(
+                filter,
+                () -> AsmUtils.getInvokeFullName(
+                        invoke.getName(),
+                        invoke.getDescriptor()
+                )
+        );
     }
 
     public static <T> boolean isAccept(AgentFilter<T> filter, Supplier<T> supplier) {

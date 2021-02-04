@@ -62,6 +62,7 @@ public abstract class AbstractLogWriter<V extends LogItem> implements LogWriter 
                 },
                 Constants.AGENT_THREAD_PREFIX + "Writer"
         );
+        logger.debug("Start writer thread: {}", logKey);
         writerThread.start();
     }
 

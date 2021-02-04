@@ -60,6 +60,10 @@ public class ProxyCallSite {
         proxyCallInfos.forEach(queue::add);
     }
 
+    public boolean isEmpty() {
+        return posToQueue.values().stream().allMatch(CallQueue::isEmpty);
+    }
+
     private CallQueue getQueue(ProxyPosition pos) {
         return posToQueue.computeIfAbsent(
                 pos,
@@ -71,6 +75,20 @@ public class ProxyCallSite {
         getQueue(pos).calls.forEach(
                 proxyCall -> proxyCall.run(destInvoke, instanceOrNull, pv)
         );
+    }
+
+    public void removeCalls(Collection<String> tids) {
+        posToQueue.forEach(
+                (pos, queue) -> queue.remove(tids)
+        );
+    }
+
+    public boolean containsCall(String tid) {
+        for (CallQueue queue : posToQueue.values()) {
+            if (queue.contains(tid))
+                return true;
+        }
+        return false;
     }
 
     public void invokeBefore(Object instanceOrNull, Object pv) {
@@ -93,22 +111,39 @@ public class ProxyCallSite {
 
     private static class CallQueue {
         private final Queue<ProxyCall> calls = new ConcurrentLinkedQueue<>();
-        private final Set<String> tids = new HashSet<>();
+        private final Map<String, ProxyCall> tidToCall = new ConcurrentHashMap<>();
         private final ProxyPosition pos;
 
         private CallQueue(ProxyPosition pos) {
             this.pos = pos;
         }
 
+        private boolean isEmpty() {
+            return calls.isEmpty();
+        }
+
+        private boolean contains(String tid) {
+            return tidToCall.containsKey(tid);
+        }
+
+        private void remove(Collection<String> tids) {
+            tids.forEach(
+                    tid -> {
+                        ProxyCall call = tidToCall.remove(tid);
+                        if (call != null)
+                            calls.remove(call);
+                    }
+            );
+        }
+
         private void add(ProxyCallInfo callInfo) {
-            synchronized (this) {
-                String tid = callInfo.getTid();
-                if (tids.contains(tid))
-                    return;
-                tids.add(tid);
-            }
-            calls.add(
-                    newProxyCall(callInfo)
+            tidToCall.computeIfAbsent(
+                    callInfo.getTid(),
+                    tid -> {
+                        ProxyCall call = newProxyCall(callInfo);
+                        calls.add(call);
+                        return call;
+                    }
             );
         }
 

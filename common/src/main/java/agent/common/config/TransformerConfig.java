@@ -4,6 +4,9 @@ import agent.common.struct.impl.annotation.PojoProperty;
 
 import java.util.Map;
 import java.util.Objects;
+import java.util.regex.Pattern;
+
+import static agent.base.utils.AssertUtils.assertTrue;
 
 public class TransformerConfig extends AbstractValidConfig {
     @PojoProperty(index = 0)
@@ -17,6 +20,7 @@ public class TransformerConfig extends AbstractValidConfig {
     public void validate() {
         validateNotBlank(id, "Transformer id");
         validateNotBlank(ref, "Transformer reference");
+        TidUtils.validate(id);
     }
 
     public String getId() {

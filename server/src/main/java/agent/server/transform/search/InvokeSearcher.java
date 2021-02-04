@@ -66,13 +66,7 @@ public class InvokeSearcher {
         getInvokeGetter(invokeFilterConfig).get(clazz)
                 .stream()
                 .filter(
-                        invoke -> FilterUtils.isAccept(
-                                filter,
-                                () -> AsmUtils.getInvokeFullName(
-                                        invoke.getName(),
-                                        invoke.getDescriptor()
-                                )
-                        )
+                        invoke -> FilterUtils.isAccept(filter, invoke)
                 )
                 .forEach(invokeSet::add);
     }

@@ -3,14 +3,32 @@ package test;
 import agent.base.utils.ReflectionUtils;
 import sun.misc.Unsafe;
 
-import java.nio.charset.Charset;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class SkipVerifier {
     private static Unsafe unsafe;
     private static char c = 'a';
 
+    public static byte[] hexStringToByteArray(String s) {
+        int len = s.length();
+        byte[] data = new byte[len / 2];
+        for (int i = 0; i < len; i += 2) {
+            data[i / 2] = (byte) ((Character.digit(s.charAt(i), 16) << 4)
+                    + Character.digit(s.charAt(i+1), 16));
+        }
+        return data;
+    }
+
     public static void main(String[] args) throws Exception {
+        if (true) {
+            byte[] bs = hexStringToByteArray("E68891");
+            System.out.println(new String(bs));
+            return;
+        }
+
         unsafe = ReflectionUtils.getStaticFieldValue(
                 Unsafe.class,
                 "theUnsafe"

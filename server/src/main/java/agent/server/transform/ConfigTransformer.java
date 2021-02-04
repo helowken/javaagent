@@ -9,8 +9,6 @@ public interface ConfigTransformer extends AgentTransformer {
 
     String getTid();
 
-    void setTransformerData(TransformerData transformerData);
-
     TransformerData getTransformerData();
 
     void destroy();

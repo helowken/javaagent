@@ -27,7 +27,7 @@ public class TraceInvokeTransformer extends CallChainTransformer {
         Map<String, Object> overwrite = new HashMap<>();
         overwrite.put(LogConfigParser.CONF_ROLL_FILE, false);
         overwrite.put(LogConfigParser.CONF_NEED_METADATA, true);
-        regLogBinary(config, overwrite);
+        regLog(config, overwrite);
     }
 
     @Override

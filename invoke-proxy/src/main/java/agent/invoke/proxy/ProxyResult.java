@@ -1,6 +1,8 @@
 package agent.invoke.proxy;
 
 
+import agent.invoke.DestInvoke;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,6 +33,10 @@ public class ProxyResult {
                 )
         );
         return rsMap;
+    }
+
+    public Map<DestInvoke, Integer> getInvokeToId() {
+        return proxyItem.getInvokeToId();
     }
 
     public Exception getError() {
