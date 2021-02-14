@@ -3,18 +3,17 @@ package agent.server.command.executor.stacktrace;
 import agent.common.struct.impl.annotation.PojoClass;
 import agent.common.struct.impl.annotation.PojoProperty;
 
-import static agent.base.utils.AssertUtils.assertEquals;
 import static agent.server.command.executor.stacktrace.StackTraceCountItem.POJO_TYPE;
 
 @PojoClass(type = POJO_TYPE)
 public class StackTraceCountItem {
     public static final int POJO_TYPE = 2;
     @PojoProperty(index = 1)
-    private int classId;
+    protected int classId;
     @PojoProperty(index = 2)
-    private int methodId;
+    protected int methodId;
     @PojoProperty(index = 3)
-    private int count = 0;
+    protected int count = 0;
 
     public StackTraceCountItem() {
     }
@@ -52,17 +51,4 @@ public class StackTraceCountItem {
         count += 1;
     }
 
-    public void add(int v) {
-        this.count += v;
-    }
-
-    public boolean isValid() {
-        return count > 0;
-    }
-
-    public void merge(StackTraceCountItem item) {
-        assertEquals(classId, item.classId);
-        assertEquals(methodId, item.methodId);
-        count += item.count;
-    }
 }

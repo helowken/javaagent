@@ -3,12 +3,19 @@ package agent.builtin.tools.result.parse;
 import agent.base.args.parse.OptConfig;
 import agent.base.args.parse.OptConfigSuite;
 import agent.base.args.parse.Opts;
+import agent.base.utils.Utils;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class StackTraceResultOptConfigs {
     private static final String KEY_MERGE = "MERGE";
     private static final String KEY_OUTPUT_FORMAT = "OUTPUT_FORMAT";
     private static final String KEY_RATE = "RATE";
+    private static final String KEY_NUMS = "NUMS";
     private static final String DEFAULT_RATE = "0.01";
+    private static final String NUM_SEP = ",";
+    private static final String NUM_PLUS = "+";
     private static final OptConfigSuite boolSuite = new OptConfigSuite(
             new OptConfig(
                     "-m",
@@ -23,6 +30,12 @@ public class StackTraceResultOptConfigs {
                     "--output",
                     KEY_OUTPUT_FORMAT,
                     "Output format."
+            ),
+            new OptConfig(
+                    "-ns",
+                    "--nums",
+                    KEY_NUMS,
+                    "Include numbers."
             ),
             new OptConfig(
                     "-r",
@@ -46,6 +59,35 @@ public class StackTraceResultOptConfigs {
 
     public static String getOutputFormat(Opts opts) {
         return opts.get(KEY_OUTPUT_FORMAT);
+    }
+
+    public static Map<Integer, Boolean> getNumMap(Opts opts) {
+        String numStr = opts.get(KEY_NUMS);
+        if (numStr != null) {
+            Map<Integer, Boolean> rsMap = new HashMap<>();
+            String[] nums = numStr.split(NUM_SEP);
+            boolean includeDescendants;
+            String num;
+            for (String n : nums) {
+                n = n.trim();
+                num = n;
+                if (num.endsWith(NUM_PLUS)) {
+                    num = num.substring(
+                            0,
+                            num.length() - 1
+                    );
+                    includeDescendants = true;
+                } else
+                    includeDescendants = false;
+                if (Utils.isNotBlank(num))
+                    rsMap.put(
+                            Utils.parseInt(num, "\"" + n + "\n"),
+                            includeDescendants
+                    );
+            }
+            return rsMap;
+        }
+        return null;
     }
 
     public static float getRate(Opts opts) {

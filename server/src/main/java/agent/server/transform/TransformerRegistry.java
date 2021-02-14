@@ -44,7 +44,7 @@ public class TransformerRegistry {
         return configTransformer;
     }
 
-    public static ConfigTransformer getOrCreateTransformer(TransformerConfig transformerConfig) {
+    static ConfigTransformer getOrCreateTransformer(TransformerConfig transformerConfig) {
         return getOrCreateTransformer(
                 transformerConfig.getId(),
                 transformerConfig.getRef(),

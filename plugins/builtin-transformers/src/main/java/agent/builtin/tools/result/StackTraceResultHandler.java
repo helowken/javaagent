@@ -1,9 +1,11 @@
 package agent.builtin.tools.result;
 
+import agent.base.args.parse.Opts;
 import agent.base.utils.IOUtils;
 import agent.base.utils.Logger;
 import agent.base.utils.ReflectionUtils;
 import agent.base.utils.Utils;
+import agent.builtin.tools.result.data.StackTraceResultItem;
 import agent.builtin.tools.result.parse.StackTraceResultOptConfigs;
 import agent.builtin.tools.result.parse.StackTraceResultParams;
 import agent.common.args.parse.FilterOptUtils;
@@ -14,30 +16,34 @@ import agent.common.struct.impl.StructContext;
 import agent.common.tree.Node;
 import agent.common.tree.Tree;
 import agent.common.tree.TreeUtils;
-import agent.server.command.executor.stacktrace.StackTraceCountItem;
 import agent.server.transform.search.filter.AgentFilter;
 import agent.server.transform.search.filter.FilterUtils;
 
 import java.io.File;
 import java.nio.ByteBuffer;
+import java.text.DecimalFormat;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
 
 @SuppressWarnings("unchecked")
-public class StackTraceResultHandler extends AbstractResultHandler<Tree<StackTraceCountItem>, StackTraceResultParams> {
+public class StackTraceResultHandler extends AbstractResultHandler<Tree<StackTraceResultItem>, StackTraceResultParams> {
     private static final Logger logger = Logger.getLogger(StackTraceResultHandler.class);
-    private static final String CLASS_METHOD_SEP = ":";
-    private static final String OUTPUT_COST_TIME = "costTime";
+    private static final DecimalFormat df = new DecimalFormat("#.##");
+    private static final String CLASS_METHOD_SEP = " # ";
+    private static final String OUTPUT_COST_TIME_CONFIG = "ctConfig";
+    private static final String OUTPUT_COST_TIME_TREE = "ctTree";
     private static final String OUTPUT_FLAME_GRAPH = "flameGraph";
+    private static final String KEY_HOTSPOT = "hotspot";
     private static final StructContext context = new StructContext();
 
     static {
         context.setPojoCreator(
                 type -> {
                     switch (type) {
-                        case StackTraceCountItem.POJO_TYPE:
-                            return new StackTraceCountItem();
+                        case StackTraceResultItem.POJO_TYPE:
+                            return new StackTraceResultItem();
                         case Node.POJO_TYPE:
                             return new Node<>();
                         case Tree.POJO_TYPE:
@@ -65,8 +71,8 @@ public class StackTraceResultHandler extends AbstractResultHandler<Tree<StackTra
     }
 
     @Override
-    Tree<StackTraceCountItem> calculate(List<File> dataFiles, StackTraceResultParams params) {
-        AtomicReference<Tree<StackTraceCountItem>> ref = new AtomicReference<>(null);
+    Tree<StackTraceResultItem> calculate(List<File> dataFiles, StackTraceResultParams params) {
+        AtomicReference<Tree<StackTraceResultItem>> ref = new AtomicReference<>(null);
         dataFiles.parallelStream()
                 .map(
                         dataFile -> doCalculate(dataFile, params)
@@ -86,7 +92,7 @@ public class StackTraceResultHandler extends AbstractResultHandler<Tree<StackTra
         );
     }
 
-    private Tree<StackTraceCountItem> doCalculate(File dataFile, StackTraceResultParams params) {
+    private Tree<StackTraceResultItem> doCalculate(File dataFile, StackTraceResultParams params) {
         AgentFilter<String> elementFilter = newFilter(
                 StackTraceOptConfigs.getElementExpr(
                         params.getOpts()
@@ -98,36 +104,49 @@ public class StackTraceResultHandler extends AbstractResultHandler<Tree<StackTra
                     byte[] bs = IOUtils.readBytes(dataFile);
                     ByteBuffer bb = ByteBuffer.wrap(bs);
                     bb.getInt();
-                    Tree<StackTraceCountItem> tree = Struct.deserialize(bb, context);
+                    Tree<StackTraceResultItem> tree = Struct.deserialize(bb, context);
                     tree.refreshParent();
                     if (elementFilter != null)
-                        tree.getChildren().forEach(
-                                child -> filterTree(tree, child, elementFilter, metadata)
+                        filterTree(
+                                tree,
+                                data -> new PredicateResult(
+                                        elementFilter.accept(
+                                                getElementName(data, metadata, false)
+                                        ),
+                                        true
+                                )
                         );
                     return tree;
                 }
         );
     }
 
-    private void filterTree(Node<StackTraceCountItem> pn, Node<StackTraceCountItem> cn, AgentFilter<String> elementFilter, StMetadata metadata) {
-        StackTraceCountItem data = cn.getData();
-        String entry = getElementName(data, metadata, false);
-        if (elementFilter.accept(entry)) {
+    private void filterTree(Tree<StackTraceResultItem> tree, Function<StackTraceResultItem, PredicateResult> predicate) {
+        tree.getChildren().forEach(
+                child -> filterTree(tree, child, predicate)
+        );
+    }
+
+    private void filterTree(Node<StackTraceResultItem> pn, Node<StackTraceResultItem> cn, Function<StackTraceResultItem, PredicateResult> predicate) {
+        StackTraceResultItem data = cn.getData();
+        PredicateResult result = predicate.apply(data);
+        Node<StackTraceResultItem> newPn;
+        if (result.pass) {
             if (!pn.containsChild(cn))
                 pn.appendChild(cn);
-            cn.getChildren().forEach(
-                    child -> filterTree(cn, child, elementFilter, metadata)
-            );
+            newPn = cn;
         } else {
             pn.removeChild(cn);
-            if (pn.getData() != null)
+            if (pn.getData() != null && !pn.getParent().isRoot())
                 pn.getData().add(
                         cn.getData().getCount()
                 );
-            cn.getChildren().forEach(
-                    child -> filterTree(pn, child, elementFilter, metadata)
-            );
+            newPn = pn;
         }
+        if (result.goOn)
+            cn.getChildren().forEach(
+                    child -> filterTree(newPn, child, predicate)
+            );
     }
 
     private AgentFilter<String> newFilter(String s) {
@@ -139,15 +158,15 @@ public class StackTraceResultHandler extends AbstractResultHandler<Tree<StackTra
         return null;
     }
 
-    private void mergeTrees(Tree<StackTraceCountItem> sumTree, Tree<StackTraceCountItem> tree) {
+    private void mergeTrees(Tree<StackTraceResultItem> sumTree, Tree<StackTraceResultItem> tree) {
         tree.getChildren().forEach(
                 child -> mergeNodes(sumTree, child)
         );
     }
 
-    private void mergeNodes(Node<StackTraceCountItem> pn, Node<StackTraceCountItem> newChild) {
-        StackTraceCountItem newData = newChild.getData();
-        Node<StackTraceCountItem> oldChild = pn.findFirstChild(
+    private void mergeNodes(Node<StackTraceResultItem> pn, Node<StackTraceResultItem> newChild) {
+        StackTraceResultItem newData = newChild.getData();
+        Node<StackTraceResultItem> oldChild = pn.findFirstChild(
                 item -> item.getClassId() == newData.getClassId() &&
                         item.getMethodId() == newData.getMethodId()
         );
@@ -157,7 +176,7 @@ public class StackTraceResultHandler extends AbstractResultHandler<Tree<StackTra
             oldChild.getData().merge(
                     newChild.getData()
             );
-            for (Node<StackTraceCountItem> cn : newChild.getChildren()) {
+            for (Node<StackTraceResultItem> cn : newChild.getChildren()) {
                 mergeNodes(oldChild, cn);
             }
         }
@@ -171,12 +190,15 @@ public class StackTraceResultHandler extends AbstractResultHandler<Tree<StackTra
                 readStMetadata(inputPath)
         );
         List<File> dataFiles = findDataFiles(inputPath);
-        Tree<StackTraceCountItem> tree = calculateStats(dataFiles, params);
+        Tree<StackTraceResultItem> tree = calculateStats(dataFiles, params);
         String outputFormat = StackTraceResultOptConfigs.getOutputFormat(params.getOpts());
         if (outputFormat == null)
             outputFormat = OUTPUT_FLAME_GRAPH;
         switch (outputFormat) {
-            case OUTPUT_COST_TIME:
+            case OUTPUT_COST_TIME_TREE:
+                outputCostTimeTree(tree, params);
+                break;
+            case OUTPUT_COST_TIME_CONFIG:
                 outputCostTimeData(tree, params);
                 break;
             case OUTPUT_FLAME_GRAPH:
@@ -187,54 +209,150 @@ public class StackTraceResultHandler extends AbstractResultHandler<Tree<StackTra
         }
     }
 
-    private void outputCostTimeData(Tree<StackTraceCountItem> tree, StackTraceResultParams params) throws Exception {
-        AtomicInteger total = new AtomicInteger(0);
+    private void outputCostTimeTree(Tree<StackTraceResultItem> tree, StackTraceResultParams params) {
+        StMetadata metadata = params.getMetadata();
+        long totalCount = calculateTotalCount(tree);
+        TreeUtils.printTree(
+                calculateCostTimeTree(tree, params, totalCount),
+                new TreeUtils.PrintConfig(false),
+                (node, config) -> getCostTimeNodeName(node, metadata, totalCount)
+        );
+    }
+
+    private long calculateTotalCount(Tree<StackTraceResultItem> tree) {
+        AtomicLong total = new AtomicLong(0);
         TreeUtils.traverse(
                 tree,
                 node -> {
-                    StackTraceCountItem data = node.getData();
+                    StackTraceResultItem data = node.getData();
                     if (data != null && data.isValid())
                         total.set(
-                                total.get() + data.getCount()
+                                total.get() + data.getTotalCount()
                         );
                 }
         );
-        int totalCount = total.get();
-        float rate = StackTraceResultOptConfigs.getRate(
-                params.getOpts()
-        );
-        StMetadata metadata = params.getMetadata();
-        List<Node<StackTraceCountItem>> candidates = new ArrayList<>();
-        Map<String, Set<String>> classToMethods = new HashMap<>();
+        return total.get();
+    }
+
+    private Tree<StackTraceResultItem> calculateCostTimeTree(Tree<StackTraceResultItem> tree, StackTraceResultParams params, long totalCount) {
+        Opts opts = params.getOpts();
+        float rate = StackTraceResultOptConfigs.getRate(opts);
+        long threshold = (long) (totalCount * rate);
+        Tree<StackTraceResultItem> rsTree = new Tree<>();
+        List<Node<StackTraceResultItem>> hotspotNodes = new ArrayList<>();
         TreeUtils.traverse(
                 tree,
                 node -> {
-                    StackTraceCountItem data = node.getData();
+                    StackTraceResultItem data = node.getData();
                     if (data != null &&
                             data.isValid() &&
-                            ((float) data.getCount() / totalCount) >= rate) {
-                        Node<StackTraceCountItem> rsNode = findNotLambda(node, metadata);
-                        if (rsNode != null) {
-                            candidates.add(node);
-                            data = rsNode.getData();
-                            classToMethods.computeIfAbsent(
-                                    metadata.get(
-                                            data.getClassId()
-                                    ),
-                                    clazz -> new HashSet<>()
-                            ).add(
-                                    metadata.get(
-                                            data.getMethodId()
-                                    )
-                            );
-                        }
+                            data.getTotalCount() >= threshold)
+                        hotspotNodes.add(node);
+                }
+        );
+        hotspotNodes.forEach(
+                node -> populateCostTimeTree(
+                        rsTree,
+                        getPathNodes(node)
+                )
+        );
+        Map<Integer, Boolean> numMap = StackTraceResultOptConfigs.getNumMap(opts);
+        if (numMap != null)
+            filterTree(
+                    rsTree,
+                    data -> {
+                        Boolean v = numMap.get(
+                                data.getId()
+                        );
+                        return new PredicateResult(
+                                v != null,
+                                v == null || !v
+                        );
+                    }
+            );
+        return rsTree;
+    }
+
+    private String getCostTimeNodeName(Node<StackTraceResultItem> node, StMetadata metadata, long totalCount) {
+        StackTraceResultItem data = node.getData();
+        Node<StackTraceResultItem> pn = node.getParent();
+
+        String name = "<" + data.getId() + "> ";
+        if (node.getUserProp(KEY_HOTSPOT) != null) {
+            int tc = data.getTotalCount();
+            name += "[" + tc + " samples, " + formatRate((float) tc / totalCount) + "] ";
+        }
+        name += pn != null &&
+                !pn.isRoot() &&
+                pn.getData().getClassId() == data.getClassId() ?
+                CLASS_METHOD_SEP + metadata.get(
+                        data.getMethodId()
+                ) :
+                getElementName(data, metadata, false);
+        return name;
+    }
+
+    private String formatRate(float rate) {
+        return df.format(rate * 100) + "%";
+    }
+
+    private List<Node<StackTraceResultItem>> getPathNodes(Node<StackTraceResultItem> node) {
+        LinkedList<Node<StackTraceResultItem>> rsList = new LinkedList<>();
+        Node<StackTraceResultItem> tmp = node;
+        while (tmp != null && !tmp.isRoot()) {
+            rsList.addFirst(tmp);
+            tmp = tmp.getParent();
+        }
+        return rsList;
+    }
+
+    private void populateCostTimeTree(Tree<StackTraceResultItem> tree, List<Node<StackTraceResultItem>> nodeList) {
+        Node<StackTraceResultItem> pn = tree;
+        Node<StackTraceResultItem> cn;
+        int idx = 0;
+        int size = nodeList.size();
+        for (Node<StackTraceResultItem> node : nodeList) {
+            StackTraceResultItem currData = node.getData();
+            cn = pn.findFirstChild(
+                    data -> data.getClassId() == currData.getClassId() &&
+                            data.getMethodId() == currData.getMethodId()
+            );
+            if (cn == null) {
+                cn = new Node<>(currData);
+                pn.appendChild(cn);
+            }
+            pn = cn;
+            if (idx == size - 1)
+                cn.setUserProp(KEY_HOTSPOT, true);
+            ++idx;
+        }
+    }
+
+    private void outputCostTimeData(Tree<StackTraceResultItem> tree, StackTraceResultParams params) throws Exception {
+        StMetadata metadata = params.getMetadata();
+        long totalCount = calculateTotalCount(tree);
+        Map<String, Set<String>> classToMethods = new TreeMap<>();
+        TreeUtils.traverse(
+                calculateCostTimeTree(tree, params, totalCount),
+                node -> {
+                    StackTraceResultItem data = node.getData();
+                    if (data != null) {
+                        classToMethods.computeIfAbsent(
+                                metadata.get(
+                                        data.getClassId()
+                                ),
+                                clazz -> new HashSet<>()
+                        ).add(
+                                metadata.get(
+                                        data.getMethodId()
+                                )
+                        );
                     }
                 }
         );
         if (classToMethods.isEmpty())
             System.out.println("No class and method matched.");
         else {
-
             IOUtils.writeToConsole(
                     writer -> classToMethods.forEach(
                             (clazz, methods) -> Utils.wrapToRtError(
@@ -248,39 +366,10 @@ public class StackTraceResultHandler extends AbstractResultHandler<Tree<StackTra
         }
     }
 
-//    private Collection<StackTraceCountItem> findLeastSameAncestor(List<Node<StackTraceCountItem>> nodes) {
-//        Collection<StackTraceCountItem> rs = new ArrayList<>();
-//        if (nodes.isEmpty())
-//            throw new IllegalArgumentException();
-//        if (nodes.size() > 1) {
-//            Node<StackTraceCountItem> node = nodes.remove(0);
-//            Node<StackTraceCountItem> tmp, newNode;
-//            while (!nodes.isEmpty()) {
-//                tmp = nodes.remove(0);
-//                newNode = findNewDestNode(node, tmp);
-//                if (newNode == null) {
-//
-//                }
-//            }
-//        }
-//    }
-
-    private Node<StackTraceCountItem> findNewDestNode(Node<StackTraceCountItem> currDestNode, Node<StackTraceCountItem> node) {
-        if (node.isAncestorOf(currDestNode))
-            return node;
-        Node<StackTraceCountItem> pn = currDestNode;
-        while (pn != null && !pn.isRoot()) {
-            if (pn.isAncestorOf(node))
-                return pn;
-            pn = pn.getParent();
-        }
-        return null;
-    }
-
-    private Node<StackTraceCountItem> findNotLambda(Node<StackTraceCountItem> node, StMetadata metadata) {
-        StackTraceCountItem data;
+    private Node<StackTraceResultItem> findNotLambda(Node<StackTraceResultItem> node, StMetadata metadata) {
+        StackTraceResultItem data;
         String method, className;
-        Node<StackTraceCountItem> tmp = node;
+        Node<StackTraceResultItem> tmp = node;
         while (tmp != null) {
             data = tmp.getData();
             className = metadata.get(
@@ -298,7 +387,7 @@ public class StackTraceResultHandler extends AbstractResultHandler<Tree<StackTra
         return tmp;
     }
 
-    private void outputFlameGraph(Tree<StackTraceCountItem> tree, StackTraceResultParams params) throws Exception {
+    private void outputFlameGraph(Tree<StackTraceResultItem> tree, StackTraceResultParams params) throws Exception {
         StMetadata metadata = params.getMetadata();
         IOUtils.writeToConsole(
                 writer -> convertToFlameGraphData(tree, metadata)
@@ -313,15 +402,15 @@ public class StackTraceResultHandler extends AbstractResultHandler<Tree<StackTra
         );
     }
 
-    private Collection<String> convertToFlameGraphData(Tree<StackTraceCountItem> tree, StMetadata metadata) {
+    private Collection<String> convertToFlameGraphData(Tree<StackTraceResultItem> tree, StMetadata metadata) {
         Set<String> rs = new TreeSet<>();
         TreeUtils.traverse(
                 tree,
                 node -> {
-                    StackTraceCountItem data = node.getData();
+                    StackTraceResultItem data = node.getData();
                     if (data != null && data.isValid()) {
                         rs.add(
-                                getFullPath(node, metadata) + " " + node.getData().getCount()
+                                getFullPath(node, metadata) + " " + node.getData().getTotalCount()
                         );
                     }
                 }
@@ -329,10 +418,10 @@ public class StackTraceResultHandler extends AbstractResultHandler<Tree<StackTra
         return rs;
     }
 
-    private String getFullPath(Node<StackTraceCountItem> node, StMetadata metadata) {
+    private String getFullPath(Node<StackTraceResultItem> node, StMetadata metadata) {
         StringBuilder sb = new StringBuilder();
         int count = 0;
-        Node<StackTraceCountItem> tmp = node;
+        Node<StackTraceResultItem> tmp = node;
         while (tmp != null && tmp.getData() != null) {
             if (count > 0)
                 sb.insert(0, ';');
@@ -354,7 +443,7 @@ public class StackTraceResultHandler extends AbstractResultHandler<Tree<StackTra
         return className.replaceAll("\\.", "/");
     }
 
-    private String getElementName(StackTraceCountItem el, StMetadata metadata, boolean formatClass) {
+    private String getElementName(StackTraceResultItem el, StMetadata metadata, boolean formatClass) {
         String className = metadata.get(
                 el.getClassId()
         );
@@ -375,6 +464,16 @@ public class StackTraceResultHandler extends AbstractResultHandler<Tree<StackTra
         String get(int id) {
             String name = idToName.get(id);
             return name == null ? "" : name;
+        }
+    }
+
+    private static class PredicateResult {
+        final boolean pass;
+        final boolean goOn;
+
+        private PredicateResult(boolean pass, boolean goOn) {
+            this.pass = pass;
+            this.goOn = goOn;
         }
     }
 }

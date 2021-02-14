@@ -13,6 +13,7 @@ import java.util.Map;
 
 public abstract class AbstractConfigTransformer extends AbstractTransformer implements ConfigTransformer {
     private static final String KEY_LOG = "log";
+    private boolean inited = false;
     private String tid;
     private TransformerData transformerData = new TransformerData();
     private Map<String, Object> config;
@@ -39,12 +40,15 @@ public abstract class AbstractConfigTransformer extends AbstractTransformer impl
 
     @Override
     public void init() {
-        try {
-            doSetConfig(config == null ? Collections.emptyMap() : config);
-        } catch (InvalidTransformerConfigException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new InvalidTransformerConfigException("Set config failed: " + config, e);
+        if (!inited) {
+            try {
+                doSetConfig(config == null ? Collections.emptyMap() : config);
+                inited = true;
+            } catch (InvalidTransformerConfigException e) {
+                throw e;
+            } catch (Exception e) {
+                throw new InvalidTransformerConfigException("Set config failed: " + config, e);
+            }
         }
     }
 
