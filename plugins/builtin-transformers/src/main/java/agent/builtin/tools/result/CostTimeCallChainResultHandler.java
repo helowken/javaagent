@@ -13,8 +13,12 @@ import agent.common.utils.JsonUtils;
 import agent.server.transform.impl.DestInvokeIdRegistry.InvokeMetadata;
 
 import java.io.File;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 
 public class CostTimeCallChainResultHandler extends AbstractCostTimeResultHandler<Tree<CallChainData>> {
@@ -65,17 +69,19 @@ public class CostTimeCallChainResultHandler extends AbstractCostTimeResultHandle
     @Override
     Tree<CallChainData> calculate(List<File> dataFiles, CostTimeResultParams params) {
         AtomicReference<Tree<CallChainData>> ref = new AtomicReference<>(null);
-        dataFiles.parallelStream()
+        List<Tree<CallChainData>> treeList = dataFiles.parallelStream()
                 .map(this::doCalculate)
-                .forEach(
-                        tree -> {
-                            if (!ref.compareAndSet(null, tree))
-                                mergeTrees(
-                                        ref.get(),
-                                        tree
-                                );
-                        }
-                );
+                .collect(Collectors.toList());
+        // don't merge trees in parallel, because sumTree is not in safe guard.
+        treeList.forEach(
+                tree -> {
+                    if (!ref.compareAndSet(null, tree))
+                        mergeTrees(
+                                ref.get(),
+                                tree
+                        );
+                }
+        );
         return Optional.ofNullable(
                 ref.get()
         ).orElseThrow(
