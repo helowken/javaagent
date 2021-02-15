@@ -9,16 +9,19 @@ import static agent.server.command.executor.stacktrace.StackTraceCountItem.POJO_
 public class StackTraceCountItem {
     public static final int POJO_TYPE = 2;
     @PojoProperty(index = 1)
-    protected int classId;
+    private int classId;
     @PojoProperty(index = 2)
-    protected int methodId;
+    private int methodId;
     @PojoProperty(index = 3)
-    protected int count = 0;
+    private int count = 0;
+    @PojoProperty(index = 4)
+    private int id;
 
     public StackTraceCountItem() {
     }
 
-    StackTraceCountItem(int classId, int methodId) {
+    StackTraceCountItem(int id, int classId, int methodId) {
+        this.id = id;
         this.classId = classId;
         this.methodId = methodId;
     }
@@ -47,8 +50,23 @@ public class StackTraceCountItem {
         this.count = count;
     }
 
-    public void increase() {
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    void increase() {
         count += 1;
     }
 
+    public void add(int v) {
+        count += v;
+    }
+
+    public boolean isValid() {
+        return count > 0;
+    }
 }

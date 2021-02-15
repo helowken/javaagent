@@ -5,43 +5,60 @@ import agent.base.args.parse.OptConfigSuite;
 import agent.base.args.parse.Opts;
 
 public class StackTraceOptConfigs {
-    private static final String KEY_STACK_FILTER_EXPR = "STACK_FILTER_EXPR";
-    private static final String KEY_ELEMENT_FILTER_EXPR = "ELEMENT_FILTER_EXPR";
-    private static final String KEY_THREAD_FILTER_EXPR = "THREAD_FILTER_EXPR";
-    private static final OptConfigSuite suite = new OptConfigSuite(
+    private static final String KEY_STACK_FILTER = "STACK_FILTER";
+    private static final String KEY_ELEMENT_FILTER = "ELEMENT_FILTER";
+    private static final String KEY_THREAD_FILTER = "THREAD_FILTER";
+    private static final String KEY_PER_THREAD = "PER_THREAD";
+    private static final OptConfigSuite kvSuite = new OptConfigSuite(
             new OptConfig(
-                    "-ee",
-                    "--element-expr",
-                    KEY_ELEMENT_FILTER_EXPR,
+                    "-ef",
+                    "--element-filter",
+                    KEY_ELEMENT_FILTER,
                     "Stack element filter."
             ),
             new OptConfig(
-                    "-se",
-                    "--stack-expr",
-                    KEY_STACK_FILTER_EXPR,
+                    "-sf",
+                    "--stack-filter",
+                    KEY_STACK_FILTER,
                     "Stack filter."
             ),
             new OptConfig(
-                    "-te",
-                    "--thread-expr",
-                    KEY_THREAD_FILTER_EXPR,
+                    "-tf",
+                    "--thread-filter",
+                    KEY_THREAD_FILTER,
                     "Thread filter."
             )
     );
+    private static final OptConfigSuite boolSuite = new OptConfigSuite(
+            new OptConfig(
+                    "-t",
+                    "--per-thread",
+                    KEY_PER_THREAD,
+                    "Stack trace per thread."
+            )
+    );
 
-    public static OptConfigSuite getSuite() {
-        return suite;
+    public static OptConfigSuite getKvSuite() {
+        return kvSuite;
     }
 
-    public static String getStackExpr(Opts opts) {
-        return opts.get(KEY_STACK_FILTER_EXPR);
+    public static OptConfigSuite getBoolSuite() {
+        return boolSuite;
     }
 
-    public static String getElementExpr(Opts opts) {
-        return opts.get(KEY_ELEMENT_FILTER_EXPR);
+    public static String getStackFilter(Opts opts) {
+        return opts.get(KEY_STACK_FILTER);
     }
 
-    public static String getThreadExpr(Opts opts) {
-        return opts.get(KEY_THREAD_FILTER_EXPR);
+    public static String getElementFilter(Opts opts) {
+        return opts.get(KEY_ELEMENT_FILTER);
+    }
+
+    public static String getThreadFilter(Opts opts) {
+        return opts.get(KEY_THREAD_FILTER);
+    }
+
+    public static boolean isMerge(Opts opts) {
+        return !opts.getNotNull(KEY_PER_THREAD, false);
     }
 }

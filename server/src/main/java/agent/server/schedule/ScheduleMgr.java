@@ -1,5 +1,6 @@
 package agent.server.schedule;
 
+import agent.base.utils.Constants;
 import agent.base.utils.LockObject;
 import agent.base.utils.Logger;
 import agent.common.config.ScheduleConfig;
@@ -54,7 +55,10 @@ public class ScheduleMgr {
     private static abstract class ScheduleHandle {
         private final ScheduleConfig config;
         private final ScheduleTask task;
-        private final Timer timer = new Timer(true);
+        private final Timer timer = new Timer(
+                Constants.AGENT_THREAD_PREFIX + "Timer",
+                true
+        );
         private int count = 0;
 
         ScheduleHandle(ScheduleConfig config, ScheduleTask task) {

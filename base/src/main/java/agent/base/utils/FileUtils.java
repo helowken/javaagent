@@ -4,36 +4,27 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.FileNotFoundException;
 import java.util.*;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 public class FileUtils {
 
-    public static String getAbsolutePath(String path) {
-        if (new File(path).isAbsolute())
-            return path;
-        return new File(
-                System.getProperty("user.dir"),
-                path
-        ).getAbsolutePath();
-    }
-
-    public static File getValidFile(String path) throws FileNotFoundException {
-        return getValidFile(
-                path,
-                () -> new FileNotFoundException(path + " not exists.")
-        );
-    }
-
-    public static File getValidFile(String path, Supplier<FileNotFoundException> errorFunc) throws FileNotFoundException {
+    public static File getAbsoluteFile(String path) {
         if (path == null)
             throw new IllegalArgumentException("Invalid path: null.");
-        File file = new File(
-                new File(path).getAbsolutePath()
+        File file = new File(path);
+        if (file.isAbsolute())
+            return file;
+        file = new File(
+                System.getProperty("user.dir"),
+                path
         );
         if (!file.exists())
-            throw errorFunc.get();
+            throw new RuntimeException(path + " not exists.");
         return file;
+    }
+
+    public static String getAbsolutePath(String path) {
+        return getAbsoluteFile(path).getAbsolutePath();
     }
 
     public static String[] splitPathStringToPathArray(Collection<String> paths, String currDir) {

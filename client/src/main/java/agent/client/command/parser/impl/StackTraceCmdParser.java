@@ -1,9 +1,6 @@
 package agent.client.command.parser.impl;
 
-import agent.base.args.parse.CmdParams;
-import agent.base.args.parse.KeyValueOptParser;
-import agent.base.args.parse.OptParser;
-import agent.base.args.parse.Opts;
+import agent.base.args.parse.*;
 import agent.base.help.HelpArg;
 import agent.base.utils.FileUtils;
 import agent.base.utils.Utils;
@@ -14,19 +11,22 @@ import agent.common.message.command.Command;
 import agent.common.message.command.DefaultCommand;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 import static agent.client.command.parser.CmdHelpUtils.getOutputPathHelpArg;
 import static agent.client.command.parser.CmdHelpUtils.newLogConfig;
+import static agent.common.args.parse.FilterOptUtils.merge;
 import static agent.common.message.MessageType.CMD_STACK_TRACE;
 
 public class StackTraceCmdParser extends ScheduleCmdParser {
     @Override
     List<OptParser> getOptParsers() {
-        return Collections.singletonList(
+        return merge(
                 new KeyValueOptParser(
-                        StackTraceOptConfigs.getSuite()
+                        StackTraceOptConfigs.getKvSuite()
+                ),
+                new BooleanOptParser(
+                        StackTraceOptConfigs.getBoolSuite()
                 )
         );
     }
@@ -54,21 +54,24 @@ public class StackTraceCmdParser extends ScheduleCmdParser {
                 )
         );
         Opts opts = params.getOpts();
-        String threadExpr = StackTraceOptConfigs.getThreadExpr(opts);
+        String threadExpr = StackTraceOptConfigs.getThreadFilter(opts);
         if (Utils.isNotBlank(threadExpr))
             config.setThreadFilterConfig(
                     FilterOptUtils.newStringFilterConfig(threadExpr)
             );
-        String stackExpr = StackTraceOptConfigs.getStackExpr(opts);
+        String stackExpr = StackTraceOptConfigs.getStackFilter(opts);
         if (Utils.isNotBlank(stackExpr))
             config.setStackFilterConfig(
                     FilterOptUtils.newStringFilterConfig(stackExpr)
             );
-        String elementExpr = StackTraceOptConfigs.getElementExpr(opts);
+        String elementExpr = StackTraceOptConfigs.getElementFilter(opts);
         if (Utils.isNotBlank(elementExpr))
             config.setElementFilterConfig(
                     FilterOptUtils.newStringFilterConfig(elementExpr)
             );
+        config.setMerge(
+                StackTraceOptConfigs.isMerge(opts)
+        );
         config.validate();
         return new DefaultCommand(CMD_STACK_TRACE, config);
     }

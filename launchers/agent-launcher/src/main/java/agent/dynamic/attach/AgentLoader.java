@@ -87,9 +87,11 @@ public class AgentLoader {
                 jarPath = args[i].trim();
                 options = null;
             }
-            FileUtils.getValidFile(jarPath);
             rsList.add(
-                    new JarPathAndOptions(jarPath, options)
+                    new JarPathAndOptions(
+                            FileUtils.getAbsolutePath(jarPath),
+                            options
+                    )
             );
         }
         if (rsList.isEmpty())

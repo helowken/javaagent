@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.function.BiFunction;
+import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
@@ -19,6 +20,32 @@ public class TreeUtils {
     private static final String end = "`---";
     private static final String indent = "    ";
     private static final PrintConfig defaultConfig = new PrintConfig(true);
+
+    public static <T> void mergeTrees(Tree<T> mergeTo, Tree<T> srcTree, BiPredicate<T, T> childMatchCondition, BiFunction<T, T, T> dataMergeFunc) {
+        srcTree.getChildren().forEach(
+                child -> mergeNodes(mergeTo, child, childMatchCondition, dataMergeFunc)
+        );
+    }
+
+    public static <T> void mergeNodes(Node<T> pn, Node<T> newChild, BiPredicate<T, T> childMatchCondition, BiFunction<T, T, T> dataMergeFunc) {
+        T newData = newChild.getData();
+        Node<T> oldChild = pn.findFirstChild(
+                data -> childMatchCondition.test(data, newData)
+        );
+        if (oldChild == null)
+            pn.appendChild(newChild);
+        else {
+            oldChild.setData(
+                    dataMergeFunc.apply(
+                            oldChild.getData(),
+                            newData
+                    )
+            );
+            for (Node<T> cn : newChild.getChildren()) {
+                mergeNodes(oldChild, cn, childMatchCondition, dataMergeFunc);
+            }
+        }
+    }
 
     public static <T> void traverse(Node<T> tree, Consumer<Node<T>> nodeAccessor) {
         traverse(tree, nodeAccessor, null);

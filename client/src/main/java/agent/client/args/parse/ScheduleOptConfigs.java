@@ -63,7 +63,7 @@ public class ScheduleOptConfigs {
     }
 
     public static long getTotalTime(Opts opts) {
-        return opts.getNotNull(KEY_TOTAL_TIME, 0);
+        return opts.getNotNull(KEY_TOTAL_TIME, 0L);
     }
 
 }

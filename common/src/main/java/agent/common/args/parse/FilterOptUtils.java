@@ -49,16 +49,14 @@ public class FilterOptUtils {
             PREFIX_CHAIN_SEARCH_CLASS_MAX_SIZE
     };
 
-    public static List<FilterItem> parse(List<Object> filterStrList) {
+    public static List<FilterItem> parse(Collection<String> filterStrList) {
         List<FilterItem> rsList = new ArrayList<>(
                 filterStrList.size()
         );
         FilterItem item;
-        for (Object filterStr : filterStrList) {
+        for (String filterStr : filterStrList) {
             if (filterStr != null) {
-                item = doParse(
-                        filterStr.toString()
-                );
+                item = doParse(filterStr);
                 if (item != null)
                     rsList.add(item);
             }

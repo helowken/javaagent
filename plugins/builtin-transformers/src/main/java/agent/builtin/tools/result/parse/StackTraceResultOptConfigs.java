@@ -9,21 +9,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class StackTraceResultOptConfigs {
-    private static final String KEY_MERGE = "MERGE";
     private static final String KEY_OUTPUT_FORMAT = "OUTPUT_FORMAT";
     private static final String KEY_RATE = "RATE";
     private static final String KEY_NUMS = "NUMS";
     private static final String DEFAULT_RATE = "0.01";
     private static final String NUM_SEP = ",";
     private static final String NUM_PLUS = "+";
-    private static final OptConfigSuite boolSuite = new OptConfigSuite(
-            new OptConfig(
-                    "-m",
-                    "--merge",
-                    KEY_MERGE,
-                    "Merge all stack traces."
-            )
-    );
     private static final OptConfigSuite kvSuite = new OptConfigSuite(
             new OptConfig(
                     "-o",
@@ -49,21 +40,13 @@ public class StackTraceResultOptConfigs {
         return kvSuite;
     }
 
-    static OptConfigSuite getBoolSuite() {
-        return boolSuite;
-    }
-
-    public static boolean isMerge(Opts opts) {
-        return opts.getNotNull(KEY_MERGE, false);
-    }
-
     public static String getOutputFormat(Opts opts) {
         return opts.get(KEY_OUTPUT_FORMAT);
     }
 
     public static Map<Integer, Boolean> getNumMap(Opts opts) {
         String numStr = opts.get(KEY_NUMS);
-        if (numStr != null) {
+        if (Utils.isNotBlank(numStr)) {
             Map<Integer, Boolean> rsMap = new HashMap<>();
             String[] nums = numStr.split(NUM_SEP);
             boolean includeDescendants;

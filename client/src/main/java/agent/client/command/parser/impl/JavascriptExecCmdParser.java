@@ -11,8 +11,6 @@ import agent.client.args.parse.JavascriptExecOptConfigs;
 import agent.common.message.command.Command;
 import agent.common.message.command.DefaultCommand;
 
-import java.util.Collections;
-
 import static agent.common.args.parse.FilterOptUtils.getHelpOptParser;
 import static agent.common.args.parse.FilterOptUtils.merge;
 import static agent.common.message.MessageType.CMD_JS_EXEC;
@@ -37,7 +35,7 @@ public class JavascriptExecCmdParser extends AbstractCmdParser<CmdParams> {
                 params.getOpts()
         );
         if (filePath != null)
-            FileUtils.getValidFile(filePath);
+            FileUtils.getAbsolutePath(filePath);
     }
 
     @Override

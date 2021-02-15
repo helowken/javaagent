@@ -2,6 +2,9 @@ package agent.base.utils;
 
 import java.io.*;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Predicate;
 
 public class IOUtils {
     private static final int BUF_SIZE = 4096;
@@ -70,6 +73,26 @@ public class IOUtils {
         );
         writeFunc.exec(writer);
         writer.flush();
+    }
+
+    public static List<String> readRows(String filePath, Predicate<String> predicate) throws Exception {
+        List<String> rows = new ArrayList<>();
+        read(
+                filePath,
+                reader -> {
+                    while (true) {
+                        String line = reader.readLine();
+                        if (line != null) {
+                            if (predicate.test(line))
+                                rows.add(
+                                        reader.readLine()
+                                );
+                        } else
+                            break;
+                    }
+                }
+        );
+        return rows;
     }
 
     public static void read(String filePath, BufferedReadFunc func) throws Exception {

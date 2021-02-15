@@ -44,7 +44,7 @@ public class LogConfigParser {
         populateDefaults(defaults);
         return new LogConfig(
                 calculateOutputPath(
-                        (String) Utils.getConfigValue(logConf, CONF_OUTPUT_PATH, defaults)
+                        Utils.getConfigValue(logConf, CONF_OUTPUT_PATH, defaults)
                 ),
                 Utils.getConfigValue(logConf, CONF_AUTO_FLUSH, defaults),
                 getMaxBufferSize(logConf, defaults),

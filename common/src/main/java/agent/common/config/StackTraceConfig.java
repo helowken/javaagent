@@ -13,6 +13,8 @@ public class StackTraceConfig extends AbstractScheduleConfig {
     private StringFilterConfig threadFilterConfig;
     @PojoProperty(index = 3)
     private StringFilterConfig stackFilterConfig;
+    @PojoProperty(index = 4)
+    private boolean merge = false;
 
     @Override
     public void validate() {
@@ -50,5 +52,13 @@ public class StackTraceConfig extends AbstractScheduleConfig {
 
     public void setElementFilterConfig(StringFilterConfig elementFilterConfig) {
         this.elementFilterConfig = elementFilterConfig;
+    }
+
+    public boolean isMerge() {
+        return merge;
+    }
+
+    public void setMerge(boolean merge) {
+        this.merge = merge;
     }
 }
