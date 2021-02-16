@@ -246,6 +246,16 @@ public class Utils {
         return rsMap;
     }
 
+    public static <K, V, T extends Collection<V>> Map<V, K> swapColl(Map<K, T> map) {
+        Map<V, K> rsMap = new HashMap<>();
+        map.forEach(
+                (k, v) -> v.forEach(
+                        c -> rsMap.put(c, k)
+                )
+        );
+        return rsMap;
+    }
+
     public static Throwable getMeaningfulCause(Throwable t) {
         if (t instanceof InvocationTargetException && t.getCause() != null)
             return getMeaningfulCause(t.getCause());

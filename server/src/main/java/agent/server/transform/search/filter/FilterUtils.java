@@ -2,6 +2,7 @@ package agent.server.transform.search.filter;
 
 import agent.base.utils.StringItem;
 import agent.base.utils.Utils;
+import agent.common.args.parse.FilterOptUtils;
 import agent.common.config.ClassFilterConfig;
 import agent.common.config.FilterConfig;
 import agent.common.config.InvokeChainConfig;
@@ -148,6 +149,15 @@ public class FilterUtils {
 
     public static AgentFilter<String> newInvokeStringFilter(List<AgentFilter<String>> filters, Collection<String> includes, Collection<String> excludes) {
         return newStringFilter(filters, includes, excludes, FilterUtils::parseForInvoke);
+    }
+
+    public static AgentFilter<String> newStringFilter(String s) {
+        if (Utils.isNotBlank(s)) {
+            StringFilterConfig filterConfig = FilterOptUtils.newStringFilterConfig(s);
+            if (filterConfig != null)
+                return newStringFilter(filterConfig);
+        }
+        return null;
     }
 
     public static AgentFilter<String> newStringFilter(StringFilterConfig config) {

@@ -31,7 +31,7 @@ public class StackTraceOptConfigs {
     );
     private static final OptConfigSuite boolSuite = new OptConfigSuite(
             new OptConfig(
-                    "-t",
+                    "-p",
                     "--per-thread",
                     KEY_PER_THREAD,
                     "Stack trace per thread."

@@ -7,9 +7,7 @@ import agent.base.utils.Logger;
 import agent.base.utils.Utils;
 import agent.builtin.tools.result.parse.StackTraceResultOptConfigs;
 import agent.builtin.tools.result.parse.StackTraceResultParams;
-import agent.common.args.parse.FilterOptUtils;
 import agent.common.args.parse.StackTraceOptConfigs;
-import agent.common.config.StringFilterConfig;
 import agent.common.struct.impl.Struct;
 import agent.common.struct.impl.StructContext;
 import agent.common.tree.Node;
@@ -58,46 +56,29 @@ public class StackTraceResultHandler implements ResultHandler<StackTraceResultPa
         );
     }
 
-    private STResult doCalculate(File dataFile, StackTraceResultParams params) {
-        AgentFilter<String> elementFilter = newFilter(
-                StackTraceOptConfigs.getElementFilter(
-                        params.getOpts()
-                )
-        );
+    private STResult doCalculate(File dataFile, StackTraceResultParams params, boolean forceMerge) {
         return Utils.wrapToRtError(
                 () -> {
                     byte[] bs = IOUtils.readBytes(dataFile);
                     ByteBuffer bb = ByteBuffer.wrap(bs);
                     bb.getInt();
-                    STResult stResult = new STResult(
-                            Struct.deserialize(bb, context)
-                    );
-                    stResult.refreshParent();
-
-                    if (elementFilter != null)
-                        stResult.getTreeList().forEach(
-                                tree -> filterTree(
-                                        tree,
-                                        data -> new PredicateResult(
-                                                elementFilter.accept(
-                                                        stResult.getElementName(data, false)
-                                                ),
-                                                true
-                                        )
-                                )
-                        );
-                    return stResult;
+                    StackTraceResult rs = Struct.deserialize(bb, context);
+                    if (rs.isMerged())
+                        rs.getTree().refreshParent();
+                    else
+                        rs.getThreadIdToTree().values().forEach(Node::refreshParent);
+                    return new STResult(rs, params, forceMerge);
                 }
         );
     }
 
-    private void filterTree(Tree<StackTraceCountItem> tree, Function<StackTraceCountItem, PredicateResult> predicate) {
+    private static void filterTree(Tree<StackTraceCountItem> tree, Function<StackTraceCountItem, PredicateResult> predicate) {
         tree.getChildren().forEach(
                 child -> filterTree(tree, child, predicate)
         );
     }
 
-    private void filterTree(Node<StackTraceCountItem> pn, Node<StackTraceCountItem> cn, Function<StackTraceCountItem, PredicateResult> predicate) {
+    private static void filterTree(Node<StackTraceCountItem> pn, Node<StackTraceCountItem> cn, Function<StackTraceCountItem, PredicateResult> predicate) {
         StackTraceCountItem data = cn.getData();
         PredicateResult result = predicate.apply(data);
         Node<StackTraceCountItem> newPn;
@@ -119,25 +100,17 @@ public class StackTraceResultHandler implements ResultHandler<StackTraceResultPa
             );
     }
 
-    private AgentFilter<String> newFilter(String s) {
-        if (Utils.isNotBlank(s)) {
-            StringFilterConfig filterConfig = FilterOptUtils.newStringFilterConfig(s);
-            if (filterConfig != null)
-                return FilterUtils.newStringFilter(filterConfig);
-        }
-        return null;
-    }
-
     @Override
     public void exec(StackTraceResultParams params) throws Exception {
         logger.debug("Params: {}", params);
         File dataFile = FileUtils.getAbsoluteFile(
                 params.getInputPath()
         );
-        STResult stResult = doCalculate(dataFile, params);
-        String outputFormat = StackTraceResultOptConfigs.getOutputFormat(params.getOpts());
-        if (outputFormat == null)
-            outputFormat = OUTPUT_COST_TIME_TREE;
+        Opts opts = params.getOpts();
+        String outputFormat = getOutputFormat(params);
+        boolean forceMerge = StackTraceOptConfigs.isMerge(opts) ||
+                isOutputForceMerge(outputFormat);
+        STResult stResult = doCalculate(dataFile, params, forceMerge);
         switch (outputFormat) {
             case OUTPUT_COST_TIME_TREE:
                 outputCostTimeTree(stResult, params);
@@ -146,11 +119,23 @@ public class StackTraceResultHandler implements ResultHandler<StackTraceResultPa
                 outputCostTimeData(stResult, params);
                 break;
             case OUTPUT_FLAME_GRAPH:
-                outputFlameGraph(stResult, params);
+                outputFlameGraph(stResult);
                 break;
             default:
                 throw new Exception("Invalid output format: " + outputFormat);
         }
+    }
+
+    private String getOutputFormat(StackTraceResultParams params) {
+        String outputFormat = StackTraceResultOptConfigs.getOutputFormat(
+                params.getOpts()
+        );
+        return outputFormat == null ? OUTPUT_COST_TIME_TREE : outputFormat;
+    }
+
+    private boolean isOutputForceMerge(String outputFormat) {
+        return OUTPUT_COST_TIME_TREE.equals(outputFormat) ||
+                OUTPUT_COST_TIME_CONFIG.equals(outputFormat);
     }
 
     private void outputCostTimeTree(STResult stResult, StackTraceResultParams params) {
@@ -331,7 +316,7 @@ public class StackTraceResultHandler implements ResultHandler<StackTraceResultPa
 //        return tmp;
 //    }
 
-    private void outputFlameGraph(STResult stResult, StackTraceResultParams params) throws Exception {
+    private void outputFlameGraph(STResult stResult) throws Exception {
         IOUtils.writeToConsole(
                 writer -> convertToFlameGraphData(stResult)
                         .forEach(
@@ -390,51 +375,111 @@ public class StackTraceResultHandler implements ResultHandler<StackTraceResultPa
     }
 
     private static class STResult {
-        private final StackTraceResult rs;
+        private final boolean merged;
+        private final boolean forceMerge;
         private final Map<Integer, String> idToName;
-        private final Map<Object, String> threadToName = new HashMap<>();
+        private final Map<Object, String> threadToName;
         private final String NO_THREAD = "NO_THREAD";
+        private Map<Object, Tree<StackTraceCountItem>> treeMap = new HashMap<>();
+        private Tree<StackTraceCountItem> mergedTree;
 
-        private STResult(StackTraceResult rs) {
-            this.rs = rs;
+        private STResult(StackTraceResult rs, StackTraceResultParams params, boolean forceMerge) {
+            this.merged = rs.isMerged();
+            this.forceMerge = forceMerge;
             this.idToName = Utils.swap(
                     rs.getNameToId()
             );
-            if (!rs.isMerge())
-                rs.getThreadNameToIds().forEach(
-                        (threadName, threadIds) -> threadIds.forEach(
-                                threadId -> threadToName.put(threadId, threadName)
-                        )
-                );
+            this.threadToName = merged ?
+                    Collections.emptyMap() :
+                    Collections.unmodifiableMap(
+                            Utils.swapColl(
+                                    rs.getThreadNameToIds()
+                            )
+                    );
+            process(rs, params);
+        }
+
+        private void process(StackTraceResult rs, StackTraceResultParams params) {
+            Opts opts = params.getOpts();
+            AgentFilter<String> threadFilter = FilterUtils.newStringFilter(
+                    StackTraceOptConfigs.getThreadFilter(opts)
+            );
+            AgentFilter<String> stackFilter = FilterUtils.newStringFilter(
+                    StackTraceOptConfigs.getStackFilter(opts)
+            );
+            AgentFilter<String> elementFilter = FilterUtils.newStringFilter(
+                    StackTraceOptConfigs.getElementFilter(opts)
+            );
+            if (merged) {
+                mergedTree = rs.getTree();
+                if (elementFilter != null)
+                    filterElements(
+                            Collections.singletonList(mergedTree),
+                            elementFilter
+                    );
+                treeMap.put(NO_THREAD, mergedTree);
+            } else {
+                Map<Object, Tree<StackTraceCountItem>> rsMap = new HashMap<>();
+                if (threadFilter != null || stackFilter != null)
+                    rs.getThreadIdToTree().forEach(
+                            (threadId, tree) -> {
+                                String threadName = getThreadName(threadId);
+                                if (threadFilter == null || threadFilter.accept(threadName)) {
+                                    rsMap.put(threadId, tree);
+                                }
+                            }
+                    );
+                else
+                    rsMap.putAll(
+                            rs.getThreadIdToTree()
+                    );
+
+                if (elementFilter != null)
+                    filterElements(
+                            rsMap.values(),
+                            elementFilter
+                    );
+
+                if (forceMerge) {
+                    mergedTree = doMerge(
+                            rsMap.values()
+                    );
+                    treeMap.put(NO_THREAD, mergedTree);
+                } else
+                    treeMap = rsMap;
+            }
+        }
+
+        private void filterElements(Collection<Tree<StackTraceCountItem>> trees, AgentFilter<String> elementFilter) {
+            trees.forEach(
+                    tree -> filterTree(
+                            tree,
+                            data -> new PredicateResult(
+                                    elementFilter.accept(
+                                            getElementName(data, false)
+                                    ),
+                                    true
+                            )
+                    )
+            );
         }
 
         String getThreadName(Object key) {
-            return threadToName.get(key);
+            String name = threadToName.get(key);
+            return name == null ? "" : name;
         }
 
         Map<Object, Tree<StackTraceCountItem>> getTreeMap() {
-            return rs.isMerge() ?
-                    Collections.singletonMap(
-                            NO_THREAD,
-                            rs.getTree()
-                    ) :
-                    (Map) rs.getThreadIdToTree();
-        }
-
-        void refreshParent() {
-            if (rs.isMerge())
-                rs.getTree().refreshParent();
-            else
-                rs.getThreadIdToTree()
-                        .values()
-                        .forEach(Node::refreshParent);
+            return treeMap;
         }
 
         Tree<StackTraceCountItem> getMergedTree() {
-            if (rs.isMerge())
-                return rs.getTree();
+            return mergedTree;
+        }
+
+        private Tree<StackTraceCountItem> doMerge(Collection<Tree<StackTraceCountItem>> trees) {
             Tree<StackTraceCountItem> sumTree = null;
-            for (Tree<StackTraceCountItem> tree : rs.getThreadIdToTree().values()) {
+            for (Tree<StackTraceCountItem> tree : trees) {
                 if (sumTree == null)
                     sumTree = tree;
                 else
@@ -451,7 +496,7 @@ public class StackTraceResultHandler implements ResultHandler<StackTraceResultPa
                             }
                     );
             }
-            return sumTree;
+            return sumTree == null ? new Tree<>() : sumTree;
         }
 
         String getName(int id) {
@@ -472,17 +517,6 @@ public class StackTraceResultHandler implements ResultHandler<StackTraceResultPa
 
         private String formatClassName(String className) {
             return className.replaceAll("\\.", "/");
-        }
-
-
-        List<Tree<StackTraceCountItem>> getTreeList() {
-            return rs.isMerge() ?
-                    Collections.singletonList(
-                            rs.getTree()
-                    ) :
-                    new ArrayList<>(
-                            rs.getThreadIdToTree().values()
-                    );
         }
     }
 

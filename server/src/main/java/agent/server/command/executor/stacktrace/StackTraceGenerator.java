@@ -10,7 +10,7 @@ import agent.server.transform.search.filter.FilterUtils;
 import java.util.*;
 
 class StackTraceGenerator {
-    private static final String SEP = ":";
+    private static final String SEP = "#";
     private final Map<String, Integer> nameToId = new HashMap<>();
     private StackTraceTree tree;
     private Map<Long, StackTraceTree> threadIdToTree;
@@ -63,11 +63,12 @@ class StackTraceGenerator {
 
     StackTraceResult getResult() {
         StackTraceResult rs = new StackTraceResult();
-        rs.setMerge(merge);
+        rs.setMerged(merge);
         rs.setNameToId(nameToId);
-        rs.setTree(
-                tree.getContent()
-        );
+        if (tree != null)
+            rs.setTree(
+                    tree.getContent()
+            );
         rs.setThreadNameToIds(threadNameToIds);
         if (threadIdToTree != null) {
             Map<Long, Tree<StackTraceCountItem>> rsMap = new HashMap<>();

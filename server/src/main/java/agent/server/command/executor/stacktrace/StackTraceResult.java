@@ -14,7 +14,7 @@ import static agent.server.command.executor.stacktrace.StackTraceResult.POJO_TYP
 public class StackTraceResult {
     public static final int POJO_TYPE = 1;
     @PojoProperty(index = 1)
-    private boolean merge;
+    private boolean merged;
     @PojoProperty(index = 2)
     private Tree<StackTraceCountItem> tree;
     @PojoProperty(index = 3)
@@ -24,12 +24,12 @@ public class StackTraceResult {
     @PojoProperty(index = 5)
     private Map<String, Set<Long>> threadNameToIds;
 
-    public boolean isMerge() {
-        return merge;
+    public boolean isMerged() {
+        return merged;
     }
 
-    public void setMerge(boolean merge) {
-        this.merge = merge;
+    public void setMerged(boolean merged) {
+        this.merged = merged;
     }
 
     public Tree<StackTraceCountItem> getTree() {
