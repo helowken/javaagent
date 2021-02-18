@@ -84,9 +84,7 @@ public class IOUtils {
                         String line = reader.readLine();
                         if (line != null) {
                             if (predicate.test(line))
-                                rows.add(
-                                        reader.readLine()
-                                );
+                                rows.add(line);
                         } else
                             break;
                     }
@@ -142,5 +140,9 @@ public class IOUtils {
 
     public interface BufferedReadFunc {
         void exec(BufferedReader reader) throws Exception;
+    }
+
+    public static void main(String[] args) throws Exception {
+        readRows("/home/helowken/cost-time/ttt", Utils::isNotBlank).forEach(System.out::println);
     }
 }

@@ -41,7 +41,8 @@ public class SaveClassCmdParser extends AbstractCmdParser<CmdParams> {
         SaveClassConfig config = new SaveClassConfig();
         config.setOutputPath(
                 FileUtils.getAbsolutePath(
-                        params.getArgs()[0]
+                        params.getArgs()[0],
+                        false
                 )
         );
         config.setWithSubClasses(

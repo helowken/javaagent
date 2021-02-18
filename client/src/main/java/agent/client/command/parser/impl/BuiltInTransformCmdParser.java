@@ -30,7 +30,8 @@ public abstract class BuiltInTransformCmdParser extends AbstractTransformCmdPars
                             Collections.singletonMap(
                                     "outputPath",
                                     FileUtils.getAbsolutePath(
-                                            params.getArgs()[1]
+                                            params.getArgs()[1],
+                                            false
                                     )
                             )
                     )

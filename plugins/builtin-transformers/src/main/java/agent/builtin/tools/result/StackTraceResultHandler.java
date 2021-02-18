@@ -104,7 +104,8 @@ public class StackTraceResultHandler implements ResultHandler<StackTraceResultPa
     public void exec(StackTraceResultParams params) throws Exception {
         logger.debug("Params: {}", params);
         File dataFile = FileUtils.getAbsoluteFile(
-                params.getInputPath()
+                params.getInputPath(),
+                true
         );
         Opts opts = params.getOpts();
         String outputFormat = getOutputFormat(params);

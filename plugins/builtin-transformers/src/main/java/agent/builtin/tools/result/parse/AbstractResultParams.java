@@ -12,7 +12,8 @@ abstract class AbstractResultParams extends CmdParams implements ResultParams {
     @Override
     public String getInputPath() {
         return FileUtils.getAbsolutePath(
-                argsOpts.getArg(0, "INPUT_PATH")
+                argsOpts.getArg(0, "INPUT_PATH"),
+                true
         );
     }
 }

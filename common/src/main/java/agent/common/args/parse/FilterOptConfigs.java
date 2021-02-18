@@ -56,7 +56,7 @@ public class FilterOptConfigs {
                 () -> {
                     String filterFilePath = opts.get(KEY_FILTER_FILE);
                     if (Utils.isNotBlank(filterFilePath)) {
-                        String filePath = FileUtils.getAbsolutePath(filterFilePath);
+                        String filePath = FileUtils.getAbsolutePath(filterFilePath, true);
                         List<String> rows = IOUtils.readRows(filePath, Utils::isNotBlank);
                         if (rows != null && !rows.isEmpty())
                             return rows;

@@ -65,7 +65,8 @@ public class CommandFileCmdParser extends AbstractCmdParser<CmdParams> {
     public List<CmdItem> parse(String[] args) {
         CmdParams params = doParse(args);
         String filePath = FileUtils.getAbsolutePath(
-                params.getArgs()[0]
+                params.getArgs()[0],
+                true
         );
         List<CmdItem> rsList = new ArrayList<>();
         Utils.wrapToRtError(

@@ -19,7 +19,6 @@ import agent.server.transform.impl.DestInvokeIdRegistry.InvokeMetadata;
 
 import java.io.DataInput;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.util.*;
@@ -45,11 +44,8 @@ public class TraceInvokeResultHandler extends AbstractResultHandler<Collection<T
     public void exec(TraceResultParams params) throws Exception {
         logger.debug("Params: {}", params);
         String inputPath = params.getInputPath();
-        File dataFile = new File(inputPath);
-        if (!dataFile.exists())
-            throw new FileNotFoundException("File not exists: " + inputPath);
         doCalculate(
-                dataFile,
+                new File(inputPath),
                 readInvokeMetadata(inputPath),
                 params
         );

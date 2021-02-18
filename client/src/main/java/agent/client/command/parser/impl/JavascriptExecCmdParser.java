@@ -35,7 +35,7 @@ public class JavascriptExecCmdParser extends AbstractCmdParser<CmdParams> {
                 params.getOpts()
         );
         if (filePath != null)
-            FileUtils.getAbsolutePath(filePath);
+            FileUtils.getAbsolutePath(filePath, true);
     }
 
     @Override
@@ -48,7 +48,7 @@ public class JavascriptExecCmdParser extends AbstractCmdParser<CmdParams> {
             Utils.wrapToRtError(
                     () -> sb.append(
                             IOUtils.readToString(
-                                    FileUtils.getAbsolutePath(filePath)
+                                    FileUtils.getAbsolutePath(filePath, true)
                             )
                     ).append("\n\n")
             );

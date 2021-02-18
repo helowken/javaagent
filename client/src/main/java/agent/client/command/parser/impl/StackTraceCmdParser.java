@@ -49,7 +49,8 @@ public class StackTraceCmdParser extends ScheduleCmdParser {
         config.setLogConfig(
                 newLogConfig(
                         FileUtils.getAbsolutePath(
-                                params.getArgs()[1]
+                                params.getArgs()[1],
+                                false
                         )
                 )
         );

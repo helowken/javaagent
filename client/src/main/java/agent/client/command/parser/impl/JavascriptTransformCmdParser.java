@@ -30,7 +30,8 @@ public class JavascriptTransformCmdParser extends AbstractTransformCmdParser {
         String script = Utils.wrapToRtError(
                 () -> IOUtils.readToString(
                         FileUtils.getAbsolutePath(
-                                params.getArgs()[1]
+                                params.getArgs()[1],
+                                true
                         )
                 )
         );

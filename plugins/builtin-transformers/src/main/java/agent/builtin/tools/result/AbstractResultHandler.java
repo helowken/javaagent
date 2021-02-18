@@ -82,7 +82,8 @@ abstract class AbstractResultHandler<T, P extends ResultParams> implements Resul
     <V> V readMetadata(String inputPath) throws IOException {
         byte[] bs = IOUtils.readBytes(
                 FileUtils.getAbsolutePath(
-                        MetadataUtils.getMetadataFile(inputPath)
+                        MetadataUtils.getMetadataFile(inputPath),
+                        true
                 )
         );
         return (V) Struct.deserialize(

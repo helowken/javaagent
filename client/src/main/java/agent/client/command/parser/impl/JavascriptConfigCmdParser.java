@@ -36,7 +36,8 @@ public class JavascriptConfigCmdParser extends AbstractCmdParser<CmdParams> {
         String script = Utils.wrapToRtError(
                 () -> IOUtils.readToString(
                         FileUtils.getAbsolutePath(
-                                params.getArgs()[0]
+                                params.getArgs()[0],
+                                true
                         )
                 )
         );
