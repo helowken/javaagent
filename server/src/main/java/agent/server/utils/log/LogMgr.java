@@ -1,13 +1,7 @@
 package agent.server.utils.log;
 
-import agent.base.utils.FileUtils;
-import agent.base.utils.Logger;
-import agent.base.utils.ShutdownUtils;
-import agent.base.utils.SystemConfig;
+import agent.base.utils.*;
 import agent.common.struct.BBuff;
-import agent.server.event.AgentEvent;
-import agent.server.event.EventListenerMgr;
-import agent.server.event.impl.FlushLogEvent;
 import agent.server.transform.impl.DestInvokeIdRegistry;
 import agent.server.utils.log.binary.BinaryLogItem;
 import agent.server.utils.log.binary.BinaryLogItemPool;
@@ -23,23 +17,12 @@ import java.util.stream.Collectors;
 public class LogMgr {
     private static final Logger logger = Logger.getLogger(LogMgr.class);
     private static final Map<String, LogWriter> logKeyToLogWriter = new ConcurrentHashMap<>();
-    private static CheckFlushThread checkFlushThread = new CheckFlushThread();
+    private static final CheckFlushThread checkFlushThread = new CheckFlushThread();
+    private static final LockObject flushLock = new LockObject();
 
     static {
-        EventListenerMgr.reg(FlushLogEvent.class, LogMgr::onNotify);
         ShutdownUtils.addHook(checkFlushThread::shutdown, "LogMgr-shutdown");
         checkFlushThread.start();
-    }
-
-    private static void onNotify(AgentEvent event) {
-        Class<?> eventType = event.getClass();
-        if (eventType.equals(FlushLogEvent.class)) {
-            FlushLogEvent flushLogEvent = (FlushLogEvent) event;
-            flush(
-                    flushLogEvent.getKey()
-            );
-        } else
-            throw new RuntimeException("Illegal event type: " + eventType);
     }
 
     public static void reg(LogType logType, String logKey, LogConfig logConfig) {
@@ -113,15 +96,19 @@ public class LogMgr {
 
     private static void flushWriters(Collection<LogWriter> writers) {
         if (!writers.isEmpty()) {
-            writers.forEach(LogWriter::flush);
-            DestInvokeIdRegistry.getInstance().outputMetadata(
-                    writers.stream()
-                            .map(LogWriter::getConfig)
-                            .filter(LogConfig::isNeedMetadata)
-                            .map(LogConfig::getOutputPath)
-                            .collect(
-                                    Collectors.toList()
-                            )
+            flushLock.sync(
+                    lock -> {
+                        writers.forEach(LogWriter::flush);
+                        DestInvokeIdRegistry.getInstance().outputMetadata(
+                                writers.stream()
+                                        .map(LogWriter::getConfig)
+                                        .filter(LogConfig::isNeedMetadata)
+                                        .map(LogConfig::getOutputPath)
+                                        .collect(
+                                                Collectors.toList()
+                                        )
+                        );
+                    }
             );
         }
     }
@@ -174,7 +161,8 @@ public class LogMgr {
     }
 
     private static class CheckFlushThread extends Thread {
-        private static final long idleTimeout = SystemConfig.getLong("data.log.idle.timeout", "60000");
+        private static final long idleTimeout = SystemConfig.getLong("data.log.idle.timeout", "30000");
+        private static final long checkInterval = SystemConfig.getLong("data.log.check.idle.interval", "5000");
         private final Object lock = new Object();
         private boolean stop = false;
 
@@ -184,7 +172,7 @@ public class LogMgr {
                     if (stop)
                         break;
                     try {
-                        lock.wait(idleTimeout);
+                        lock.wait(checkInterval);
                     } catch (InterruptedException e) {
                     }
                     if (stop)

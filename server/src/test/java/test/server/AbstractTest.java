@@ -14,13 +14,13 @@ import agent.server.event.AgentEvent;
 import agent.server.event.AgentEventListener;
 import agent.server.event.EventListenerMgr;
 import agent.server.event.impl.DestInvokeMetadataFlushedEvent;
-import agent.server.event.impl.FlushLogEvent;
 import agent.server.event.impl.LogFlushedEvent;
 import agent.server.transform.*;
 import agent.server.transform.impl.DestInvokeIdRegistry;
 import agent.server.transform.revision.ClassDataRepository;
 import agent.server.transform.tools.asm.AsmUtils;
 import agent.server.transform.tools.asm.ProxyTransformMgr;
+import agent.server.utils.log.LogMgr;
 import agent.tools.asm.AsmDelegate;
 import agent.tools.json.JsonDelegate;
 import org.junit.AfterClass;
@@ -152,9 +152,7 @@ public abstract class AbstractTest {
 
     protected void flushAndWaitMetadata(String logKey) throws Exception {
         waitMetadataListener.clear();
-        EventListenerMgr.fireEvent(
-                new FlushLogEvent(logKey)
-        );
+        LogMgr.flush(logKey);
         waitMetadataListener.await();
     }
 

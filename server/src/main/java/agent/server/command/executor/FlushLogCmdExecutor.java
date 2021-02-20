@@ -2,16 +2,13 @@ package agent.server.command.executor;
 
 import agent.common.message.command.Command;
 import agent.common.message.result.ExecResult;
-import agent.server.event.EventListenerMgr;
-import agent.server.event.impl.FlushLogEvent;
+import agent.server.utils.log.LogMgr;
 
 class FlushLogCmdExecutor extends AbstractCmdExecutor {
     @Override
     ExecResult doExec(Command cmd) {
-        EventListenerMgr.fireEvent(
-                new FlushLogEvent(
-                        cmd.getContent()
-                )
+        LogMgr.flush(
+                cmd.getContent()
         );
         return null;
     }
