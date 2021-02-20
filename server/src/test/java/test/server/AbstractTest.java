@@ -62,11 +62,10 @@ public abstract class AbstractTest {
 
     private static synchronized void init() throws Exception {
         if (!inited) {
-            Properties props = new Properties();
-            props.setProperty("invoke.chain.search.cache.max.size", "1000");
-            props.setProperty("invoke.chain.search.core.pool.size", "1");
-            props.setProperty("invoke.chain.search.max.pool.size", "100");
-            SystemConfig.load(props, Collections.emptyMap());
+            SystemConfig.load(
+                    new Properties(),
+                    Collections.emptyMap()
+            );
 
             DependentClassItem.getInstance().mock(AsmUtils.ASM_DELEGATE_CLASS, AsmDelegate.class);
             DependentClassItem.getInstance().mock(JsonUtils.JSON_DELEGATE_CLASS, JsonDelegate.class);
@@ -120,6 +119,7 @@ public abstract class AbstractTest {
             Map<String, Object> config = entry.getValue();
             transformer.setConfig(config);
             transformer.transform(transformContext);
+            transformer.init();
         }
     }
 

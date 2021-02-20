@@ -1,3 +1,0 @@
-Usage: trace_result [-options] inputPath
-${filterOptions.txt}
-    ${chainMatchFilterOptions.txt}

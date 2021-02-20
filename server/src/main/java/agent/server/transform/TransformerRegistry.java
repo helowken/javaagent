@@ -27,7 +27,7 @@ public class TransformerRegistry {
         registry.reg(JavascriptTransformer.REG_KEY, JavascriptTransformer.class);
     }
 
-    public static ConfigTransformer getOrCreateTransformer(String tid, String ref, Map<String, Object> config) {
+    public static ConfigTransformer getOrCreateTransformer(String ref, String tid, Map<String, Object> config) {
         ConfigTransformer configTransformer = idToTransformer.computeIfAbsent(
                 tid,
                 instanceKey -> Utils.wrapToRtError(
@@ -46,8 +46,8 @@ public class TransformerRegistry {
 
     static ConfigTransformer getOrCreateTransformer(TransformerConfig transformerConfig) {
         return getOrCreateTransformer(
-                transformerConfig.getId(),
                 transformerConfig.getRef(),
+                transformerConfig.getId(),
                 transformerConfig.getConfig()
         );
     }

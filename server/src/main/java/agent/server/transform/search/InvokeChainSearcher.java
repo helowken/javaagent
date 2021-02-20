@@ -48,8 +48,8 @@ public class InvokeChainSearcher {
     private static final int DEFAULT_SEARCH_MAX_SIZE = 200;
     private static final int DEFAULT_MATCH_MAX_SIZE = 20;
     private static final ThreadPoolExecutor executor = new ThreadPoolExecutor(
-            SystemConfig.getInt(KEY_CORE_POOL_SIZE),
-            SystemConfig.getInt(KEY_MAX_POOL_SIZE),
+            SystemConfig.getInt(KEY_CORE_POOL_SIZE, "1"),
+            SystemConfig.getInt(KEY_MAX_POOL_SIZE, "100"),
             5,
             TimeUnit.MINUTES,
             new LinkedBlockingQueue<>(),
@@ -57,13 +57,11 @@ public class InvokeChainSearcher {
     );
 
     static {
-        Runtime.getRuntime().addShutdownHook(
-                new Thread(executor::shutdownNow, Constants.AGENT_THREAD_PREFIX + "ChainSearcher-shutdown")
-        );
+        ShutdownUtils.addHook(executor::shutdownNow, "ChainSearcher-shutdown");
     }
 
     private final LRUCache<Class<?>, ClassItem> itemCache = new LRUCache<>(
-            SystemConfig.getInt(KEY_CACHE_MAX_SIZE)
+            SystemConfig.getInt(KEY_CACHE_MAX_SIZE, "1000")
     );
     private final Map<Class<?>, ConcurrentSet<DestInvoke>> classToInvokeSet = new HashMap<>();
     private final ClassCache classCache;

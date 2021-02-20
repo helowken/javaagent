@@ -29,14 +29,12 @@ class LoggerImpl extends AbstractLoggerImpl {
         logThread = new Thread(LoggerImpl::asyncWrite, Constants.AGENT_THREAD_PREFIX + "Logger");
         logThread.setDaemon(true);
         logThread.start();
-        Runtime.getRuntime().addShutdownHook(
-                new Thread(
-                        () -> {
-                            shutdown = true;
-                            logThread.interrupt();
-                        },
-                        Constants.AGENT_THREAD_PREFIX + "Logger-shutdown"
-                )
+        ShutdownUtils.addHook(
+                () -> {
+                    shutdown = true;
+                    logThread.interrupt();
+                },
+                "Logger-shutdown"
         );
     }
 

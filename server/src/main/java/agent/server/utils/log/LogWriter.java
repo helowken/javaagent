@@ -8,4 +8,6 @@ public interface LogWriter {
     void close();
 
     LogConfig getConfig();
+
+    boolean isIdleTimeout(long idleTimeout);
 }

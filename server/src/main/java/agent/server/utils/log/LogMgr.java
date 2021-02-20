@@ -2,6 +2,8 @@ package agent.server.utils.log;
 
 import agent.base.utils.FileUtils;
 import agent.base.utils.Logger;
+import agent.base.utils.ShutdownUtils;
+import agent.base.utils.SystemConfig;
 import agent.common.struct.BBuff;
 import agent.server.event.AgentEvent;
 import agent.server.event.EventListenerMgr;
@@ -13,10 +15,7 @@ import agent.server.utils.log.binary.BinaryLogWriter;
 import agent.server.utils.log.text.TextLogItem;
 import agent.server.utils.log.text.TextLogWriter;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -24,9 +23,12 @@ import java.util.stream.Collectors;
 public class LogMgr {
     private static final Logger logger = Logger.getLogger(LogMgr.class);
     private static final Map<String, LogWriter> logKeyToLogWriter = new ConcurrentHashMap<>();
+    private static CheckFlushThread checkFlushThread = new CheckFlushThread();
 
     static {
         EventListenerMgr.reg(FlushLogEvent.class, LogMgr::onNotify);
+        ShutdownUtils.addHook(checkFlushThread::shutdown, "LogMgr-shutdown");
+        checkFlushThread.start();
     }
 
     private static void onNotify(AgentEvent event) {
@@ -106,11 +108,14 @@ public class LogMgr {
             else
                 writerList = Collections.emptyList();
         }
+        flushWriters(writerList);
+    }
 
-        if (!writerList.isEmpty()) {
-            writerList.forEach(LogWriter::flush);
+    private static void flushWriters(Collection<LogWriter> writers) {
+        if (!writers.isEmpty()) {
+            writers.forEach(LogWriter::flush);
             DestInvokeIdRegistry.getInstance().outputMetadata(
-                    writerList.stream()
+                    writers.stream()
                             .map(LogWriter::getConfig)
                             .filter(LogConfig::isNeedMetadata)
                             .map(LogConfig::getOutputPath)
@@ -121,13 +126,6 @@ public class LogMgr {
         }
     }
 
-    public static LogConfig getLogConfig(String logKey) {
-        LogWriter writer = getLogWriter(logKey);
-        if (writer == null)
-            throw new RuntimeException("No log writer found by logKey: " + logKey);
-        return writer.getConfig();
-    }
-
     public static void close(String logKey) {
         LogWriter logWriter = logKeyToLogWriter.remove(logKey);
         if (logWriter != null) {
@@ -135,7 +133,6 @@ public class LogMgr {
             logWriter.close();
         }
     }
-
 
     public static LogConfig reg(LogType logType, String logKey, Map<String, Object> config, Map<String, Object> defaultValueMap) {
         LogConfig logConfig = LogConfigParser.parse(config, defaultValueMap);
@@ -174,5 +171,45 @@ public class LogMgr {
         if (appendSizeAfter)
             logItem.putInt(size);
         LogMgr.logBinary(logKey, logItem);
+    }
+
+    private static class CheckFlushThread extends Thread {
+        private static final long idleTimeout = SystemConfig.getLong("data.log.idle.timeout", "60000");
+        private final Object lock = new Object();
+        private boolean stop = false;
+
+        public void run() {
+            while (true) {
+                synchronized (lock) {
+                    if (stop)
+                        break;
+                    try {
+                        lock.wait(idleTimeout);
+                    } catch (InterruptedException e) {
+                    }
+                    if (stop)
+                        break;
+                }
+                checkFlush();
+            }
+        }
+
+        private void checkFlush() {
+            flushWriters(
+                    logKeyToLogWriter.values()
+                            .stream()
+                            .filter(
+                                    writer -> writer.isIdleTimeout(idleTimeout)
+                            )
+                            .collect(Collectors.toList())
+            );
+        }
+
+        void shutdown() {
+            synchronized (lock) {
+                stop = true;
+                lock.notify();
+            }
+        }
     }
 }

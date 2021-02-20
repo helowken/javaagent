@@ -20,15 +20,16 @@ public abstract class AbstractLogWriter<V extends LogItem> implements LogWriter 
     private static final Logger logger = Logger.getLogger(AbstractLogWriter.class);
     protected final String logKey;
     private final LogConfig logConfig;
-    private final LinkedBlockingQueue<ItemBuffer> taskQueue = new LinkedBlockingQueue<>();
-    private final LinkedBlockingQueue<ItemBuffer> availableBuffers;
+    private final LinkedBlockingQueue<ItemBuffer<V>> taskQueue = new LinkedBlockingQueue<>();
+    private final LinkedBlockingQueue<ItemBuffer<V>> availableBuffers;
     private final LockObject bufferLock = new LockObject();
-    private final ItemBuffer dummyFlushBuffer = new DummyFlushItemBuffer();
-    private ItemBuffer currBuffer;
+    private final ItemBuffer<V> dummyFlushBuffer = new DummyFlushItemBuffer<>();
+    private ItemBuffer<V> currBuffer;
     private Thread writerThread;
     private AtomicBoolean closed = new AtomicBoolean(false);
     private long currFileSize = 0;
     private int fileIdx = 0;
+    private volatile long lastWriteTimestamp = 0;
 
     protected AbstractLogWriter(String logKey, LogConfig logConfig) {
         this.logKey = logKey;
@@ -45,7 +46,7 @@ public abstract class AbstractLogWriter<V extends LogItem> implements LogWriter 
         writerThread = new Thread(
                 () -> {
                     while (!closed.get()) {
-                        ItemBuffer itemBuffer = null;
+                        ItemBuffer<V> itemBuffer = null;
                         try {
                             tryToRollFile();
                             itemBuffer = taskQueue.take();
@@ -64,6 +65,13 @@ public abstract class AbstractLogWriter<V extends LogItem> implements LogWriter 
         );
         logger.debug("Start writer thread: {}", logKey);
         writerThread.start();
+    }
+
+    @Override
+    public boolean isIdleTimeout(long idleTimeout) {
+        long t = lastWriteTimestamp;
+        return t > 0 &&
+                System.currentTimeMillis() - t >= idleTimeout;
     }
 
     @Override
@@ -88,7 +96,11 @@ public abstract class AbstractLogWriter<V extends LogItem> implements LogWriter 
                             logConfig.getMaxBufferSize()
                     );
                     if (logConfig.isAutoFlush() || toWrite)
-                        taskQueue.add(getDirtyBuffer());
+                        addToTaskQueue(
+                                getDirtyBuffer()
+                        );
+                    else
+                        lastWriteTimestamp = System.currentTimeMillis();
                 } else
                     logger.error("Get available buffer timeout, write queue size is: " + taskQueue.size());
             });
@@ -97,8 +109,8 @@ public abstract class AbstractLogWriter<V extends LogItem> implements LogWriter 
         }
     }
 
-    private ItemBuffer getDirtyBuffer() {
-        ItemBuffer dirtyBuffer = currBuffer;
+    private ItemBuffer<V> getDirtyBuffer() {
+        ItemBuffer<V> dirtyBuffer = currBuffer;
         currBuffer = null;
         return dirtyBuffer;
     }
@@ -106,16 +118,21 @@ public abstract class AbstractLogWriter<V extends LogItem> implements LogWriter 
     @Override
     public void flush() {
         logger.debug("Flush log to: {}", getOutputFileName());
-        ItemBuffer dirtyBuffer = bufferLock.syncValue(lock -> getDirtyBuffer());
+        ItemBuffer<V> dirtyBuffer = bufferLock.syncValue(lock -> getDirtyBuffer());
         if (dirtyBuffer != null) {
             dirtyBuffer.markFlush();
             checkBeforeFlush(dirtyBuffer);
         } else
             dirtyBuffer = dummyFlushBuffer;
-        taskQueue.add(dirtyBuffer);
+        addToTaskQueue(dirtyBuffer);
     }
 
-    protected void checkBeforeFlush(ItemBuffer itemBuffer) {
+    private void addToTaskQueue(ItemBuffer<V> itemBuffer) {
+        taskQueue.add(itemBuffer);
+        lastWriteTimestamp = 0;
+    }
+
+    protected void checkBeforeFlush(ItemBuffer<V> itemBuffer) {
     }
 
     @Override
@@ -140,7 +157,7 @@ public abstract class AbstractLogWriter<V extends LogItem> implements LogWriter 
     public void close() {
         if (closed.compareAndSet(false, true)) {
             logger.debug("Start to close logger: {}", logConfig);
-            taskQueue.add(dummyFlushBuffer);
+            addToTaskQueue(dummyFlushBuffer);
             try {
                 writerThread.join();
             } catch (InterruptedException e) {
@@ -183,7 +200,7 @@ public abstract class AbstractLogWriter<V extends LogItem> implements LogWriter 
         }
     }
 
-    protected abstract boolean checkToWrite(ItemBuffer itemBuffer, V item, long itemSize, long bufferSize, long maxBufferSize);
+    protected abstract boolean checkToWrite(ItemBuffer<V> itemBuffer, V item, long itemSize, long bufferSize, long maxBufferSize);
 
     protected abstract long computeSize(V item);
 
@@ -254,7 +271,7 @@ public abstract class AbstractLogWriter<V extends LogItem> implements LogWriter 
         }
     }
 
-    private class DummyFlushItemBuffer implements ItemBuffer {
+    private class DummyFlushItemBuffer<V> implements ItemBuffer<V> {
         @Override
         public void add(Object item, long itemSize) {
         }

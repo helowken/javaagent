@@ -19,7 +19,7 @@ public class TextLogWriter extends AbstractLogWriter<TextLogItem> {
     }
 
     @Override
-    protected boolean checkToWrite(ItemBuffer itemBuffer, TextLogItem item, long itemSize, long bufferSize, long maxBufferSize) {
+    protected boolean checkToWrite(ItemBuffer<TextLogItem> itemBuffer, TextLogItem item, long itemSize, long bufferSize, long maxBufferSize) {
         itemBuffer.add(item, itemSize);
         return itemSize + bufferSize >= maxBufferSize;
     }

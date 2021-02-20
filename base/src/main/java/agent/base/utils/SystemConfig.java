@@ -35,9 +35,15 @@ public class SystemConfig {
     }
 
     public static String get(String key) {
+        return get(key, "");
+    }
+
+    public static String get(String key, String defaultValue) {
         if (fileProps == null)
             throw new RuntimeException("System config need to be init first.");
-        return Utils.blankToNull(fileProps.getProperty(key, ""));
+        return Utils.blankToNull(
+                fileProps.getProperty(key, defaultValue)
+        );
     }
 
     public static String getNotBlank(String key) {
@@ -58,8 +64,18 @@ public class SystemConfig {
         return Utils.splitToSet(value, SEP);
     }
 
-    public static int getInt(String key) {
-        return Utils.parseInt(get(key), key);
+    public static int getInt(String key, String defaultValue) {
+        return Utils.parseInt(
+                get(key, defaultValue),
+                key
+        );
+    }
+
+    public static long getLong(String key, String defaultValue) {
+        return Utils.parseLong(
+                get(key, defaultValue),
+                key
+        );
     }
 
     public static String getBaseDir() {

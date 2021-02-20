@@ -1,8 +1,8 @@
 package agent.server.event;
 
-import agent.base.utils.Constants;
 import agent.base.utils.LockObject;
 import agent.base.utils.Logger;
+import agent.base.utils.ShutdownUtils;
 import agent.base.utils.Utils;
 
 import java.util.ArrayList;
@@ -27,9 +27,7 @@ public class EventListenerMgr {
     );
 
     static {
-        Runtime.getRuntime().addShutdownHook(
-                new Thread(executor::shutdown, Constants.AGENT_THREAD_PREFIX + "Event-shutdown")
-        );
+        ShutdownUtils.addHook(executor::shutdown, "Event-shutdown");
     }
 
     public static void reg(Class<? extends AgentEvent> eventType, AgentEventListener listener) {

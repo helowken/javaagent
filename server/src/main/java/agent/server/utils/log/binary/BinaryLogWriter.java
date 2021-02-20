@@ -25,7 +25,7 @@ public class BinaryLogWriter extends AbstractLogWriter<BinaryLogItem> {
     }
 
     @Override
-    protected void checkBeforeFlush(ItemBuffer itemBuffer) {
+    protected void checkBeforeFlush(ItemBuffer<BinaryLogItem> itemBuffer) {
         BinaryLogItemPool.getList(logKey, FLUSH_COUNT)
                 .forEach(
                         item -> itemBuffer.add(
@@ -36,7 +36,7 @@ public class BinaryLogWriter extends AbstractLogWriter<BinaryLogItem> {
     }
 
     @Override
-    protected boolean checkToWrite(ItemBuffer itemBuffer, BinaryLogItem item, long itemSize, long currBufferSize, long maxBufferSize) {
+    protected boolean checkToWrite(ItemBuffer<BinaryLogItem> itemBuffer, BinaryLogItem item, long itemSize, long currBufferSize, long maxBufferSize) {
         if (itemSize >= maxBufferSize) {
             itemBuffer.add(item, itemSize);
             return true;
