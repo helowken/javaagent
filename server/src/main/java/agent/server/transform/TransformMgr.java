@@ -115,7 +115,6 @@ public class TransformMgr {
                 "time-bytecode-compile: {}"
         );
         if (!proxyResults.isEmpty()) {
-            transformContext.getTransformerList().forEach(AgentTransformer::init);
             List<ProxyResult> validRsList = TimeMeasureUtils.run(
                     () -> reTransform(transformResult, proxyResults),
                     "time-instrument-retransform: {}"
@@ -131,20 +130,21 @@ public class TransformMgr {
     }
 
     private List<ProxyRegInfo> prepareRegInfos(TransformContext transformContext, TransformResult transformResult) {
+        List<ProxyRegInfo> regInfos = new LinkedList<>();
         transformContext.getTransformerList().forEach(
                 transformer -> {
                     try {
                         transformer.transform(transformContext);
+                        regInfos.addAll(
+                                transformer.getProxyRegInfos()
+                        );
+                        transformer.init();
                     } catch (Throwable t) {
                         logger.error("transform failed.", t);
                         transformResult.addTransformError(t, transformer.getRegKey());
                     }
                 }
         );
-        List<ProxyRegInfo> regInfos = new LinkedList<>();
-        transformContext.getTransformerList().stream()
-                .map(AgentTransformer::getProxyRegInfos)
-                .forEach(regInfos::addAll);
         return regInfos;
     }
 
