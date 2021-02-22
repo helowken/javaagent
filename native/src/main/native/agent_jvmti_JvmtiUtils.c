@@ -1,5 +1,6 @@
 #include "jvmti.h"
-#include "agent_jvmti_JvmtiUtils.h"
+#include "header/agent_jvmti_JvmtiUtils.h"
+#include "header/util.h"
 
 static jclass getListClass(JNIEnv* env);
 
@@ -154,4 +155,8 @@ Java_agent_jvmti_JvmtiUtils_getLoadedClasses(JNIEnv *env, jobject thisObj) {
 }
 
 
+JNIEXPORT jboolean JNICALL Java_agent_jvmti_JvmtiUtils_tryToSetEuidAndEgid
+  (JNIEnv *env, jobject thisObj, jint pid) {
+    return tryToSetEuidAndEgid(pid) == 0? JNI_TRUE : JNI_FALSE;
+}
 

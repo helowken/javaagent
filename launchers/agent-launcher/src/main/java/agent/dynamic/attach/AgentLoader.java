@@ -2,6 +2,7 @@ package agent.dynamic.attach;
 
 
 import agent.base.utils.*;
+import agent.jvmti.JvmtiUtils;
 import com.sun.tools.attach.VirtualMachine;
 import com.sun.tools.attach.VirtualMachineDescriptor;
 
@@ -33,6 +34,7 @@ public class AgentLoader {
             List<JvmEndpoint> jvmEndpointList = parseJvmEndpoints(args, 1, args.length);
             run(jvmEndpointList, jarPathAndOptionsList);
         } catch (Throwable t) {
+            t.printStackTrace();
             logger.error("Run failed.", t);
         }
 
@@ -111,6 +113,9 @@ public class AgentLoader {
     private static void run(List<JvmEndpoint> jvmEndpointList, List<JarPathAndOptions> jarPathAndOptionsList) {
         jvmEndpointList.forEach(
                 jvmEndpoint -> {
+                    JvmtiUtils.getInstance().changeCredentialToTargetProcess(
+                            Utils.parseInt(jvmEndpoint.pid, "PID")
+                    );
                     logger.info("Attaching to target JVM with: {}", jvmEndpoint);
                     VirtualMachine jvm = null;
                     try {

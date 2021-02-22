@@ -1,9 +1,0 @@
-#!/bin/bash
-
-FILE=$1
-args="-f ../makefile JDK=/usr/jdk1.8 OSNAME=linux FILE=$FILE"
-
-
-make clean $args
-echo ------------------------------
-make $args

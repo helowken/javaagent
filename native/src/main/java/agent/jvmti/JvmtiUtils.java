@@ -63,6 +63,11 @@ public class JvmtiUtils {
         ).orElse(Collections.emptyList());
     }
 
+    public void changeCredentialToTargetProcess(int pid) {
+        if (!tryToSetEuidAndEgid(pid))
+            System.out.println("Failed!!!");
+    }
+
     public List<Class<?>> findLoadedClassList() {
         return getLoadedClasses();
     }
@@ -70,4 +75,6 @@ public class JvmtiUtils {
     private native <T> List<T> findObjectsByClassHelper(Class<T> clazz, int maxCount);
 
     private native List<Class<?>> getLoadedClasses();
+
+    private native boolean tryToSetEuidAndEgid(int pid);
 }

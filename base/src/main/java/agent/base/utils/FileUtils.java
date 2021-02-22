@@ -8,6 +8,10 @@ import java.util.stream.Collectors;
 
 public class FileUtils {
 
+    public static String getUserDir() {
+        return System.getProperty("user.dir");
+    }
+
     public static File getAbsoluteFile(String path, boolean checkExists) {
         if (path == null)
             throw new IllegalArgumentException("Invalid path: null.");
@@ -15,7 +19,7 @@ public class FileUtils {
         if (file.isAbsolute())
             return file;
         file = new File(
-                System.getProperty("user.dir"),
+                getUserDir(),
                 path
         );
         if (checkExists && !file.exists())

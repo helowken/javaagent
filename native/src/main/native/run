@@ -1,0 +1,19 @@
+JDK=/usr/jdk1.8
+JDK_BIN=$JDK/bin
+CLASS=JvmtiUtils
+PACKAGE=agent.jvmti
+FULL_CLASS=$PACKAGE.$CLASS
+
+$JDK_BIN/javac -d . $CLASS.java
+$JDK_BIN/javah -d header $FULL_CLASS
+
+LIB_NAME=$(echo $FULL_CLASS | sed -e "s/\./_/g")
+LIB_SO=lib$LIB_NAME.so
+OPTS="-g -fno-strict-aliasing -fPIC -fno-omit-frame-pointer -W -Wall  -Wno-unused -Wno-parentheses  -I. -I$JDK/include -I$JDK/include/linux"
+
+rm -f *.o *.so
+
+cc $OPTS -c *.c
+cc $OPTS -Wl,-soname=$LIB_SO -static-libgcc  -z noexecstack -shared -o $LIB_SO *.o -lc
+
+cp $LIB_SO ../../../../packaging/resources/server/lib/native

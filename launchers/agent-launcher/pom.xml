@@ -18,6 +18,10 @@
             <artifactId>base</artifactId>
         </dependency>
         <dependency>
+            <groupId>javaagent</groupId>
+            <artifactId>native</artifactId>
+        </dependency>
+        <dependency>
             <groupId>com.sun</groupId>
             <artifactId>tools</artifactId>
         </dependency>

@@ -1,5 +1,6 @@
 package test.jvmti;
 
+import agent.base.utils.FileUtils;
 import agent.base.utils.ReflectionUtils;
 import agent.jvmti.JvmtiUtils;
 import org.junit.Test;
@@ -12,7 +13,7 @@ public class JvmtiUtilsTest {
     private static final JvmtiUtils jvmtiUtils = JvmtiUtils.getInstance();
 
     static {
-        jvmtiUtils.load("/home/helowken/test_jni/jni_jvmti/libagent_jvmti_JvmtiUtils.so");
+        jvmtiUtils.load(FileUtils.getUserDir() + "/src/main/native/libagent_jvmti_JvmtiUtils.so");
     }
 
     @Test
