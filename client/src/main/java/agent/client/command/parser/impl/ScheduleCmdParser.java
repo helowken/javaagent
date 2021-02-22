@@ -1,23 +1,21 @@
 package agent.client.command.parser.impl;
 
-import agent.base.args.parse.*;
-import agent.client.args.parse.DefaultParamParser;
+import agent.cmdline.args.parse.DefaultParamParser;
 import agent.client.args.parse.ScheduleOptConfigs;
-import agent.client.command.parser.exception.CommandParseException;
+import agent.cmdline.args.parse.*;
+import agent.cmdline.exception.CommandParseException;
 import agent.common.config.AbstractScheduleConfig;
 
 import java.util.Collections;
 import java.util.List;
 
-import static agent.common.args.parse.FilterOptUtils.getHelpOptParser;
 import static agent.common.args.parse.FilterOptUtils.merge;
 
-abstract class ScheduleCmdParser extends AbstractCmdParser<CmdParams> {
+abstract class ScheduleCmdParser extends ClientAbstractCmdParser<CmdParams> {
     @Override
-    CmdParamParser<CmdParams> createParamParser() {
-        return new DefaultParamParser(
+    protected CmdParamParser<CmdParams> createParamParser() {
+        return DefaultParamParser.addMore(
                 merge(
-                        getHelpOptParser(),
                         new KeyValueOptParser(
                                 ScheduleOptConfigs.getSuite()
                         ),
@@ -26,12 +24,12 @@ abstract class ScheduleCmdParser extends AbstractCmdParser<CmdParams> {
         );
     }
 
-    List<OptParser> getOptParsers() {
+    protected List<OptParser> getOptParsers() {
         return Collections.emptyList();
     }
 
     @Override
-    void checkParams(CmdParams params) throws Exception {
+    protected void checkParams(CmdParams params) throws Exception {
         super.checkParams(params);
         Opts opts = params.getOpts();
         long delay = ScheduleOptConfigs.getDelayMs(opts);

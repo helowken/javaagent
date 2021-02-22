@@ -1,8 +1,8 @@
 package agent.common.args.parse;
 
-import agent.base.args.parse.*;
 import agent.base.utils.ReflectionUtils;
 import agent.base.utils.Utils;
+import agent.cmdline.args.parse.*;
 import agent.common.config.*;
 
 import java.util.*;
@@ -238,15 +238,11 @@ public class FilterOptUtils {
         return invokeChainConfig;
     }
 
-    public static OptParser getHelpOptParser() {
-        return new BooleanOptParser(
-                CommonOptConfigs.helpOpt
-        );
-    }
-
     public static List<OptParser> getFilterOptParsers() {
         return Arrays.asList(
-                getHelpOptParser(),
+                new BooleanOptParser(
+                        CommonOptConfigs.helpOpt
+                ),
                 new KeyValueOptParser(
                         FilterOptConfigs.getSuite()
                 )

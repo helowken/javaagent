@@ -1,5 +1,6 @@
 package agent.common.message.command;
 
+import agent.cmdline.command.Command;
 import agent.common.struct.impl.annotation.PojoProperty;
 
 public class DefaultCommand implements Command {

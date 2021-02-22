@@ -3,7 +3,7 @@ package agent.server.transform;
 import agent.base.plugin.PluginFactory;
 import agent.base.utils.Utils;
 import agent.common.config.TransformerConfig;
-import agent.common.utils.Registry;
+import agent.base.utils.Registry;
 import agent.server.transform.impl.JavascriptTransformer;
 
 import java.util.Collection;

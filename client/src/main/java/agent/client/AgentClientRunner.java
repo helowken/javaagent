@@ -2,14 +2,14 @@ package agent.client;
 
 import agent.base.runner.Runner;
 import agent.base.utils.*;
+import agent.client.command.parser.ClientCommandParserMgr;
 import agent.client.command.parser.CmdHelpUtils;
-import agent.client.command.parser.CommandParserMgr;
-import agent.client.command.parser.exception.CommandNotFoundException;
-import agent.client.command.parser.exception.CommandParseException;
 import agent.client.command.result.CommandResultHandlerMgr;
+import agent.cmdline.command.CmdItem;
+import agent.cmdline.command.Command;
+import agent.cmdline.exception.CommandNotFoundException;
+import agent.cmdline.exception.CommandParseException;
 import agent.common.message.DefaultMessage;
-import agent.common.message.command.CmdItem;
-import agent.common.message.command.Command;
 import agent.common.message.result.ExecResult;
 import agent.common.network.MessageIO;
 
@@ -53,7 +53,7 @@ public class AgentClientRunner implements Runner {
 
     private void execCmd(List<String> argList) {
         try {
-            List<CmdItem> cmdItemList = CommandParserMgr.parse(argList);
+            List<CmdItem> cmdItemList = ClientCommandParserMgr.getInstance().parse(argList);
             for (CmdItem cmdItem : cmdItemList) {
                 if (cmdItem.isHelp())
                     printHelp(cmdItem);

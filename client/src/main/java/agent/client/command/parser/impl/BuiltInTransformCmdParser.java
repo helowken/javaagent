@@ -1,8 +1,8 @@
 package agent.client.command.parser.impl;
 
-import agent.base.args.parse.CmdParams;
-import agent.base.help.HelpArg;
 import agent.base.utils.FileUtils;
+import agent.cmdline.args.parse.CmdParams;
+import agent.cmdline.help.HelpArg;
 import agent.common.config.TransformerConfig;
 
 import java.util.Arrays;
@@ -14,7 +14,7 @@ import static agent.client.command.parser.CmdHelpUtils.getTransformerIdHelpArg;
 
 public abstract class BuiltInTransformCmdParser extends AbstractTransformCmdParser {
     @Override
-    List<HelpArg> createHelpArgList() {
+    protected List<HelpArg> createHelpArgList() {
         return Arrays.asList(
                 getTransformerIdHelpArg(),
                 getOutputPathHelpArg(true)

@@ -113,9 +113,9 @@ public class AgentLoader {
     private static void run(List<JvmEndpoint> jvmEndpointList, List<JarPathAndOptions> jarPathAndOptionsList) {
         jvmEndpointList.forEach(
                 jvmEndpoint -> {
-                    JvmtiUtils.getInstance().changeCredentialToTargetProcess(
-                            Utils.parseInt(jvmEndpoint.pid, "PID")
-                    );
+//                    JvmtiUtils.getInstance().changeCredentialToTargetProcess(
+//                            Utils.parseInt(jvmEndpoint.pid, "PID")
+//                    );
                     logger.info("Attaching to target JVM with: {}", jvmEndpoint);
                     VirtualMachine jvm = null;
                     try {

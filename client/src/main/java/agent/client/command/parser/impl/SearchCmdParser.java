@@ -1,9 +1,9 @@
 package agent.client.command.parser.impl;
 
-import agent.base.args.parse.CmdParamParser;
-import agent.base.args.parse.CmdParams;
-import agent.client.args.parse.DefaultParamParser;
-import agent.common.message.command.Command;
+import agent.cmdline.args.parse.CmdParamParser;
+import agent.cmdline.args.parse.CmdParams;
+import agent.cmdline.args.parse.DefaultParamParser;
+import agent.cmdline.command.Command;
 import agent.common.message.command.DefaultCommand;
 
 import static agent.common.args.parse.FilterOptUtils.getFilterOptParsers;
@@ -16,7 +16,7 @@ public class SearchCmdParser extends AbstractModuleCmdParser {
     }
 
     @Override
-    CmdParamParser<CmdParams> createParamParser() {
+    protected CmdParamParser<CmdParams> createParamParser() {
         return new DefaultParamParser(
                 getFilterOptParsers()
         );

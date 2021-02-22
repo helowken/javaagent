@@ -1,9 +1,9 @@
 package agent.builtin.tools.result.parse;
 
-import agent.base.args.parse.AbstractCmdParamParser;
-import agent.base.args.parse.ArgsOpts;
-import agent.base.args.parse.KeyValueOptParser;
-import agent.base.args.parse.OptParser;
+import agent.cmdline.args.parse.AbstractCmdParamParser;
+import agent.cmdline.args.parse.ArgsOpts;
+import agent.cmdline.args.parse.KeyValueOptParser;
+import agent.cmdline.args.parse.OptParser;
 import agent.common.args.parse.FilterOptConfigs;
 
 import java.util.Collections;

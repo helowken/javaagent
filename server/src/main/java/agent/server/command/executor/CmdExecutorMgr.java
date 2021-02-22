@@ -1,9 +1,9 @@
 package agent.server.command.executor;
 
-import agent.common.message.command.Command;
+import agent.cmdline.command.Command;
 import agent.common.message.command.CommandExecutor;
 import agent.common.message.result.ExecResult;
-import agent.common.utils.Registry;
+import agent.base.utils.Registry;
 
 import static agent.common.message.MessageType.*;
 

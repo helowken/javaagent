@@ -1,13 +1,13 @@
 package agent.client.command.parser.impl;
 
-import agent.base.args.parse.*;
-import agent.base.help.HelpArg;
 import agent.base.utils.FileUtils;
 import agent.base.utils.Utils;
+import agent.cmdline.args.parse.*;
+import agent.cmdline.command.Command;
+import agent.cmdline.help.HelpArg;
 import agent.common.args.parse.FilterOptUtils;
 import agent.common.args.parse.StackTraceOptConfigs;
 import agent.common.config.StackTraceConfig;
-import agent.common.message.command.Command;
 import agent.common.message.command.DefaultCommand;
 
 import java.util.Arrays;
@@ -20,7 +20,7 @@ import static agent.common.message.MessageType.CMD_STACK_TRACE;
 
 public class StackTraceCmdParser extends ScheduleCmdParser {
     @Override
-    List<OptParser> getOptParsers() {
+    protected List<OptParser> getOptParsers() {
         return merge(
                 new KeyValueOptParser(
                         StackTraceOptConfigs.getKvSuite()
@@ -32,7 +32,7 @@ public class StackTraceCmdParser extends ScheduleCmdParser {
     }
 
     @Override
-    List<HelpArg> createHelpArgList() {
+    protected List<HelpArg> createHelpArgList() {
         return Arrays.asList(
                 new HelpArg(
                         "TASK_KEY",
@@ -43,7 +43,7 @@ public class StackTraceCmdParser extends ScheduleCmdParser {
     }
 
     @Override
-    Command createCommand(CmdParams params) {
+    protected Command createCommand(CmdParams params) {
         StackTraceConfig config = new StackTraceConfig();
         populateConfig(params, config);
         config.setLogConfig(

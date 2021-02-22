@@ -18,6 +18,10 @@
             <groupId>javaagent</groupId>
             <artifactId>basic-launcher</artifactId>
         </dependency>
+        <dependency>
+            <groupId>javaagent</groupId>
+            <artifactId>cmdline</artifactId>
+        </dependency>
 
         <!-- test -->
         <dependency>

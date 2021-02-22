@@ -2,7 +2,7 @@ package agent.server;
 
 import agent.base.utils.Logger;
 import agent.common.message.DefaultMessage;
-import agent.common.message.command.Command;
+import agent.cmdline.command.Command;
 import agent.common.message.result.entity.DefaultExecResult;
 import agent.common.network.MessageIO;
 import agent.server.command.executor.CmdExecutorMgr;

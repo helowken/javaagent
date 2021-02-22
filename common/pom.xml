@@ -23,6 +23,10 @@
             <groupId>javaagent</groupId>
             <artifactId>base</artifactId>
         </dependency>
+        <dependency>
+            <groupId>javaagent</groupId>
+            <artifactId>cmdline</artifactId>
+        </dependency>
 
         <!-- test -->
         <dependency>

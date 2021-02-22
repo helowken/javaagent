@@ -1,6 +1,6 @@
 package agent.builtin.tools;
 
-import agent.base.args.parse.CmdParamParser;
+import agent.cmdline.args.parse.CmdParamParser;
 import agent.base.utils.ConsoleLogger;
 import agent.base.utils.Logger;
 import agent.builtin.tools.result.*;

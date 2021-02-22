@@ -2,8 +2,8 @@ package agent.server.command.client;
 
 import agent.base.utils.ReflectionUtils;
 import agent.base.utils.Utils;
-import agent.common.message.command.CmdItem;
-import agent.common.message.command.Command;
+import agent.cmdline.command.CmdItem;
+import agent.cmdline.command.Command;
 import agent.common.message.result.ExecResult;
 import agent.common.utils.DependentClassItem;
 

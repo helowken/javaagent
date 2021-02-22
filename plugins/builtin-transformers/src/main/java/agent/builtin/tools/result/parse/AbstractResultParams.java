@@ -1,7 +1,7 @@
 package agent.builtin.tools.result.parse;
 
-import agent.base.args.parse.ArgsOpts;
-import agent.base.args.parse.CmdParams;
+import agent.cmdline.args.parse.ArgsOpts;
+import agent.cmdline.args.parse.CmdParams;
 import agent.base.utils.FileUtils;
 
 abstract class AbstractResultParams extends CmdParams implements ResultParams {

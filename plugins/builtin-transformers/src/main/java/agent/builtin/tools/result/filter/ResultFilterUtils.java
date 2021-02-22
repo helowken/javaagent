@@ -1,6 +1,6 @@
 package agent.builtin.tools.result.filter;
 
-import agent.base.args.parse.Opts;
+import agent.cmdline.args.parse.Opts;
 import agent.builtin.tools.result.parse.ResultOptConfigs;
 import agent.common.args.parse.FilterOptUtils;
 import agent.common.config.*;

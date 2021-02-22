@@ -1,17 +1,13 @@
 package agent.client.command.parser.impl;
 
-import agent.base.args.parse.BooleanOptParser;
-import agent.base.args.parse.CmdParamParser;
-import agent.base.args.parse.CmdParams;
-import agent.base.args.parse.Opts;
-import agent.base.help.HelpArg;
 import agent.base.utils.FileUtils;
-import agent.client.args.parse.DefaultParamParser;
 import agent.client.args.parse.SaveClassOptConfigs;
+import agent.cmdline.args.parse.*;
+import agent.cmdline.command.Command;
+import agent.cmdline.help.HelpArg;
 import agent.common.args.parse.FilterOptConfigs;
 import agent.common.args.parse.FilterOptUtils;
 import agent.common.config.SaveClassConfig;
-import agent.common.message.command.Command;
 import agent.common.message.command.DefaultCommand;
 
 import java.util.Collections;
@@ -22,9 +18,9 @@ import static agent.common.args.parse.FilterOptUtils.getFilterOptParsers;
 import static agent.common.args.parse.FilterOptUtils.merge;
 import static agent.common.message.MessageType.CMD_SAVE_CLASS;
 
-public class SaveClassCmdParser extends AbstractCmdParser<CmdParams> {
+public class SaveClassCmdParser extends ClientAbstractCmdParser<CmdParams> {
     @Override
-    CmdParamParser<CmdParams> createParamParser() {
+    protected CmdParamParser<CmdParams> createParamParser() {
         return new DefaultParamParser(
                 merge(
                         getFilterOptParsers(),
@@ -36,7 +32,7 @@ public class SaveClassCmdParser extends AbstractCmdParser<CmdParams> {
     }
 
     @Override
-    Command createCommand(CmdParams params) {
+    protected Command createCommand(CmdParams params) {
         Opts opts = params.getOpts();
         SaveClassConfig config = new SaveClassConfig();
         config.setOutputPath(
@@ -59,7 +55,7 @@ public class SaveClassCmdParser extends AbstractCmdParser<CmdParams> {
     }
 
     @Override
-    void checkParams(CmdParams params) throws Exception {
+    protected void checkParams(CmdParams params) throws Exception {
         super.checkParams(params);
         FilterOptConfigs.checkClassFilter(
                 params.getOpts()
@@ -67,7 +63,7 @@ public class SaveClassCmdParser extends AbstractCmdParser<CmdParams> {
     }
 
     @Override
-    List<HelpArg> createHelpArgList() {
+    protected List<HelpArg> createHelpArgList() {
         return Collections.singletonList(
                 getOutputPathHelpArg(false)
         );

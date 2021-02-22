@@ -3,7 +3,7 @@ package agent.server.command.executor;
 import agent.base.utils.Logger;
 import agent.base.utils.ReflectionUtils;
 import agent.common.config.SaveClassConfig;
-import agent.common.message.command.Command;
+import agent.cmdline.command.Command;
 import agent.common.message.result.ExecResult;
 import agent.common.message.result.entity.DefaultExecResult;
 import agent.server.transform.revision.ClassDataRepository;

@@ -1,17 +1,17 @@
 package agent.client.command.parser;
 
-import agent.base.args.parse.OptConfig;
-import agent.base.help.HelpArg;
-import agent.base.help.HelpSection;
-import agent.base.help.HelpSingleValue;
-import agent.base.help.HelpUtils;
+import agent.cmdline.args.parse.OptConfig;
+import agent.cmdline.help.HelpArg;
+import agent.cmdline.help.HelpSection;
+import agent.cmdline.help.HelpSingleValue;
+import agent.cmdline.help.HelpUtils;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import static agent.base.help.HelpSection.PADDING_1;
-import static agent.base.help.HelpSection.PADDING_2;
+import static agent.cmdline.help.HelpSection.PADDING_1;
+import static agent.cmdline.help.HelpSection.PADDING_2;
 
 public class CmdHelpUtils {
     private static List<OptConfig> optConfigList;
@@ -44,7 +44,7 @@ public class CmdHelpUtils {
         return section.add(
                 new HelpSection("Commands:\n", PADDING_1)
                         .add(
-                                CommandParserMgr.getCmdHelps()
+                                ClientCommandParserMgr.getInstance().getCmdHelps()
                         )
         ).add(
                 new HelpSingleValue("\nType 'ja help <COMMAND>' to get command-specific help.")

@@ -1,23 +1,23 @@
 package agent.client.command.parser.impl;
 
-import agent.base.args.parse.CmdParams;
+import agent.cmdline.args.parse.CmdParams;
+import agent.cmdline.command.Command;
 import agent.common.args.parse.FilterOptConfigs;
 import agent.common.args.parse.FilterOptUtils;
 import agent.common.config.ModuleConfig;
-import agent.common.message.command.Command;
 
-abstract class AbstractModuleCmdParser extends AbstractCmdParser<CmdParams> {
+abstract class AbstractModuleCmdParser extends ClientAbstractCmdParser<CmdParams> {
     abstract Command newCommand(Object data);
 
     @Override
-    Command createCommand(CmdParams params) {
+    protected Command createCommand(CmdParams params) {
         return newCommand(
                 createModuleConfig(params)
         );
     }
 
     @Override
-    void checkParams(CmdParams params) throws Exception {
+    protected void checkParams(CmdParams params) throws Exception {
         super.checkParams(params);
         FilterOptConfigs.checkClassFilter(
                 params.getOpts()

@@ -1,11 +1,11 @@
 package agent.client.command.parser.impl;
 
-import agent.base.args.parse.CmdParamParser;
-import agent.base.args.parse.CmdParams;
-import agent.base.help.HelpArg;
 import agent.base.utils.Utils;
-import agent.client.args.parse.DefaultParamParser;
-import agent.common.message.command.Command;
+import agent.cmdline.args.parse.CmdParamParser;
+import agent.cmdline.args.parse.CmdParams;
+import agent.cmdline.args.parse.DefaultParamParser;
+import agent.cmdline.command.Command;
+import agent.cmdline.help.HelpArg;
 import agent.common.message.command.DefaultCommand;
 
 import java.util.Collections;
@@ -13,14 +13,14 @@ import java.util.List;
 
 import static agent.common.message.MessageType.CMD_ECHO;
 
-public class EchoCmdParser extends AbstractCmdParser<CmdParams> {
+public class EchoCmdParser extends ClientAbstractCmdParser<CmdParams> {
     @Override
-    CmdParamParser<CmdParams> createParamParser() {
+    protected CmdParamParser<CmdParams> createParamParser() {
         return DefaultParamParser.DEFAULT;
     }
 
     @Override
-    Command createCommand(CmdParams params) {
+    protected Command createCommand(CmdParams params) {
         return new DefaultCommand(
                 CMD_ECHO,
                 Utils.join(
@@ -31,7 +31,7 @@ public class EchoCmdParser extends AbstractCmdParser<CmdParams> {
     }
 
     @Override
-    List<HelpArg> createHelpArgList() {
+    protected List<HelpArg> createHelpArgList() {
         return Collections.singletonList(
                 new HelpArg("MESSAGE", "Echo message.")
         );

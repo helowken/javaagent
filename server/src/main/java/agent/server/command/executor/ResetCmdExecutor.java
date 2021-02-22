@@ -1,7 +1,7 @@
 package agent.server.command.executor;
 
 import agent.common.config.ResetConfig;
-import agent.common.message.command.Command;
+import agent.cmdline.command.Command;
 import agent.common.message.result.ExecResult;
 import agent.invoke.DestInvoke;
 import agent.server.transform.TransformLock;

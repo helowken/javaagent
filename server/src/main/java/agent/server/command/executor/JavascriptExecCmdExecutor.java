@@ -1,7 +1,7 @@
 package agent.server.command.executor;
 
 import agent.base.utils.Utils;
-import agent.common.message.command.Command;
+import agent.cmdline.command.Command;
 import agent.common.message.result.ExecResult;
 import agent.common.message.result.entity.DefaultExecResult;
 import agent.server.command.executor.script.ScriptUtils;

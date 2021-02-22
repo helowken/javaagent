@@ -1,14 +1,14 @@
 package agent.client.command.parser.impl;
 
-import agent.base.args.parse.CmdParamParser;
-import agent.base.args.parse.CmdParams;
-import agent.base.help.HelpArg;
 import agent.base.utils.Utils;
-import agent.client.args.parse.DefaultParamParser;
-import agent.client.command.parser.exception.UnknownArgException;
+import agent.cmdline.args.parse.CmdParamParser;
+import agent.cmdline.args.parse.CmdParams;
+import agent.cmdline.args.parse.DefaultParamParser;
+import agent.cmdline.command.Command;
+import agent.cmdline.exception.UnknownArgException;
+import agent.cmdline.help.HelpArg;
 import agent.common.args.parse.FilterOptUtils;
 import agent.common.config.InfoQuery;
-import agent.common.message.command.Command;
 import agent.common.message.command.DefaultCommand;
 
 import java.util.Collections;
@@ -20,7 +20,7 @@ import static agent.common.args.parse.FilterOptUtils.getFilterOptParsers;
 import static agent.common.config.InfoQuery.*;
 import static agent.common.message.MessageType.CMD_INFO;
 
-public class InfoCmdParser extends AbstractCmdParser<CmdParams> {
+public class InfoCmdParser extends ClientAbstractCmdParser<CmdParams> {
     private static final String CATALOG_CLASS = "class";
     private static final String CATALOG_INVOKE = "invoke";
     private static final String CATALOG_PROXY = "proxy";
@@ -33,14 +33,14 @@ public class InfoCmdParser extends AbstractCmdParser<CmdParams> {
     }
 
     @Override
-    CmdParamParser<CmdParams> createParamParser() {
+    protected CmdParamParser<CmdParams> createParamParser() {
         return new DefaultParamParser(
                 getFilterOptParsers()
         );
     }
 
     @Override
-    void checkParams(CmdParams params) throws Exception {
+    protected void checkParams(CmdParams params) throws Exception {
         super.checkParams(params);
         String[] args = params.getArgs();
         if (args.length > 0 && !catalogMap.containsKey(args[0]))
@@ -48,7 +48,7 @@ public class InfoCmdParser extends AbstractCmdParser<CmdParams> {
     }
 
     @Override
-    Command createCommand(CmdParams params) {
+    protected Command createCommand(CmdParams params) {
         InfoQuery infoQuery = new InfoQuery();
         infoQuery.setTargetConfig(
                 FilterOptUtils.createTargetConfig(
@@ -66,7 +66,7 @@ public class InfoCmdParser extends AbstractCmdParser<CmdParams> {
     }
 
     @Override
-    List<HelpArg> createHelpArgList() {
+    protected List<HelpArg> createHelpArgList() {
         return Collections.singletonList(
                 new HelpArg(
                         "CATALOG",

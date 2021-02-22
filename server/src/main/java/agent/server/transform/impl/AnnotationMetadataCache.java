@@ -1,7 +1,7 @@
 package agent.server.transform.impl;
 
 import agent.base.utils.LockObject;
-import agent.common.utils.Registry;
+import agent.base.utils.Registry;
 import agent.server.transform.AnnotationConfigTransformer;
 
 import java.lang.reflect.Method;

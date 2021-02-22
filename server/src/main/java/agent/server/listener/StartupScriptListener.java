@@ -1,8 +1,8 @@
 package agent.server.listener;
 
 import agent.base.utils.Utils;
-import agent.common.message.command.CmdItem;
-import agent.common.message.command.Command;
+import agent.cmdline.command.CmdItem;
+import agent.cmdline.command.Command;
 import agent.common.message.result.ExecResult;
 import agent.server.ServerListener;
 import agent.server.command.client.ClientUtils;

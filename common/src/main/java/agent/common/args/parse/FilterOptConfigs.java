@@ -1,9 +1,9 @@
 package agent.common.args.parse;
 
-import agent.base.args.parse.OptConfig;
-import agent.base.args.parse.OptConfigSuite;
-import agent.base.args.parse.OptValueType;
-import agent.base.args.parse.Opts;
+import agent.cmdline.args.parse.OptConfig;
+import agent.cmdline.args.parse.OptConfigSuite;
+import agent.cmdline.args.parse.OptValueType;
+import agent.cmdline.args.parse.Opts;
 import agent.base.utils.FileUtils;
 import agent.base.utils.IOUtils;
 import agent.base.utils.Utils;

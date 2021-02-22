@@ -3,13 +3,11 @@ package test.transformer;
 import agent.builtin.tools.result.StackTraceResultHandler;
 import agent.builtin.tools.result.parse.StackTraceResultParamParser;
 import agent.builtin.tools.result.parse.StackTraceResultParams;
-import agent.client.command.parser.CommandParserMgr;
+import agent.client.command.parser.ClientCommandParserMgr;
 import agent.common.message.result.ExecResult;
 import agent.server.command.executor.CmdExecutorMgr;
 import org.junit.Test;
 import test.server.AbstractTest;
-
-import java.net.InetAddress;
 
 import static org.junit.Assert.assertTrue;
 
@@ -20,7 +18,7 @@ public class StackTraceTest extends AbstractTest {
         runWithFile(
                 (outputPath, config) -> {
                     ExecResult result = CmdExecutorMgr.exec(
-                            CommandParserMgr.parse(
+                            ClientCommandParserMgr.getInstance().parse(
                                     "st",
                                     new String[]{
                                             "-i", "7",

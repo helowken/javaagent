@@ -17,6 +17,7 @@
                 <module>dependents/asm-dependent</module>
                 <module>dependents/json-dependent</module>
                 <module>base</module>
+                <module>cmdline</module>
                 <module>common</module>
                 <module>native</module>
                 <module>invoke-proxy</module>
@@ -37,6 +38,13 @@
             <id>base</id>
             <modules>
                 <module>base</module>
+            </modules>
+        </profile>
+
+        <profile>
+            <id>cmdline</id>
+            <modules>
+                <module>cmdline</module>
             </modules>
         </profile>
 

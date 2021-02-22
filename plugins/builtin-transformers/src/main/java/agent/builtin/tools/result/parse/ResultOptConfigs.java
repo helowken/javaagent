@@ -1,8 +1,8 @@
 package agent.builtin.tools.result.parse;
 
-import agent.base.args.parse.OptConfig;
-import agent.base.args.parse.OptConfigSuite;
-import agent.base.args.parse.Opts;
+import agent.cmdline.args.parse.OptConfig;
+import agent.cmdline.args.parse.OptConfigSuite;
+import agent.cmdline.args.parse.Opts;
 
 public class ResultOptConfigs {
     private static final String KEY_FILTER_EXPR = "FILTER_EXPR";

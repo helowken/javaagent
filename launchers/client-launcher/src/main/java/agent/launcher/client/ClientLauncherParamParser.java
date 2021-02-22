@@ -1,11 +1,11 @@
 package agent.launcher.client;
 
-import agent.base.args.parse.*;
+import agent.cmdline.args.parse.*;
 
 import java.util.Arrays;
 import java.util.List;
 
-public class ClientLauncherParamParser extends AbstractCmdParamParser<ClientLauncherParams> {
+public class ClientLauncherParamParser extends AbstractCmdParamParser<CmdParams> {
     private final StoreOtherArgsOptParser storeOtherArgsOptParser = new StoreOtherArgsOptParser();
 
     @Override
@@ -32,8 +32,8 @@ public class ClientLauncherParamParser extends AbstractCmdParamParser<ClientLaun
     }
 
     @Override
-    protected ClientLauncherParams convert(ArgsOpts argsOpts) {
-        return new ClientLauncherParams(argsOpts);
+    protected CmdParams convert(ArgsOpts argsOpts) {
+        return new CmdParams(argsOpts);
     }
 
     List<String> getRestArgs() {

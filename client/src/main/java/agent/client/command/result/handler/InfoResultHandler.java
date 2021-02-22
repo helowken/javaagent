@@ -2,7 +2,7 @@ package agent.client.command.result.handler;
 
 import agent.base.utils.ConsoleLogger;
 import agent.base.utils.IndentUtils;
-import agent.common.message.command.Command;
+import agent.cmdline.command.Command;
 import agent.common.message.result.ExecResult;
 
 import java.util.Collection;

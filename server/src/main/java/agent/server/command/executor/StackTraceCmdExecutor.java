@@ -1,7 +1,7 @@
 package agent.server.command.executor;
 
 import agent.common.config.StackTraceConfig;
-import agent.common.message.command.Command;
+import agent.cmdline.command.Command;
 import agent.common.message.result.ExecResult;
 import agent.server.command.executor.stacktrace.StackTraceTask;
 import agent.server.schedule.ScheduleMgr;

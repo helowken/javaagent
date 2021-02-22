@@ -20,6 +20,10 @@
         </dependency>
         <dependency>
             <groupId>javaagent</groupId>
+            <artifactId>cmdline</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>javaagent</groupId>
             <artifactId>invoke-proxy</artifactId>
         </dependency>
         <dependency>

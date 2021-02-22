@@ -16,6 +16,13 @@
         </dependencySet>
         <dependencySet>
             <useStrictFiltering>true</useStrictFiltering>
+            <outputDirectory>common/lib/cmd</outputDirectory>
+            <includes>
+                <include>javaagent:cmdline</include>
+            </includes>
+        </dependencySet>
+        <dependencySet>
+            <useStrictFiltering>true</useStrictFiltering>
             <outputDirectory>common/lib/core</outputDirectory>
             <includes>
                 <include>javaagent:common</include>

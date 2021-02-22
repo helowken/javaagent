@@ -1,13 +1,13 @@
 package agent.client.command.parser.impl;
 
-import agent.base.args.parse.CmdParamParser;
-import agent.base.args.parse.CmdParams;
-import agent.base.exception.ArgMissingException;
 import agent.base.utils.Utils;
-import agent.client.args.parse.DefaultParamParser;
+import agent.cmdline.args.parse.CmdParamParser;
+import agent.cmdline.args.parse.CmdParams;
+import agent.cmdline.args.parse.DefaultParamParser;
+import agent.cmdline.command.Command;
+import agent.cmdline.exception.ArgMissingException;
 import agent.common.config.ModuleConfig;
 import agent.common.config.TransformerConfig;
-import agent.common.message.command.Command;
 import agent.common.message.command.DefaultCommand;
 
 import java.util.Collections;
@@ -19,7 +19,7 @@ abstract class AbstractTransformCmdParser extends AbstractModuleCmdParser {
     abstract String getTransformerKey();
 
     @Override
-    CmdParamParser<CmdParams> createParamParser() {
+    protected CmdParamParser<CmdParams> createParamParser() {
         return new DefaultParamParser(
                 getFilterOptParsers()
         );

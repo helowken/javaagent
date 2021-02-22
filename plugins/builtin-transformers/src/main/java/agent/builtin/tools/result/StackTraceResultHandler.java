@@ -1,6 +1,6 @@
 package agent.builtin.tools.result;
 
-import agent.base.args.parse.Opts;
+import agent.cmdline.args.parse.Opts;
 import agent.base.utils.FileUtils;
 import agent.base.utils.IOUtils;
 import agent.base.utils.Logger;

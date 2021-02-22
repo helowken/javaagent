@@ -67,6 +67,11 @@
             </dependency>
             <dependency>
                 <groupId>javaagent</groupId>
+                <artifactId>cmdline</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>javaagent</groupId>
                 <artifactId>invoke-proxy</artifactId>
                 <version>${project.version}</version>
             </dependency>

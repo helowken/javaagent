@@ -2,7 +2,7 @@ package agent.server.command.executor;
 
 import agent.base.utils.InvokeDescriptorUtils;
 import agent.common.config.ModuleConfig;
-import agent.common.message.command.Command;
+import agent.cmdline.command.Command;
 import agent.common.message.result.ExecResult;
 import agent.common.message.result.entity.DefaultExecResult;
 import agent.invoke.DestInvoke;

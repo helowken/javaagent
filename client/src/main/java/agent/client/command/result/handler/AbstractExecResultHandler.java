@@ -3,7 +3,7 @@ package agent.client.command.result.handler;
 import agent.base.utils.ConsoleLogger;
 import agent.base.utils.Logger;
 import agent.client.command.result.ExecResultHandler;
-import agent.common.message.command.Command;
+import agent.cmdline.command.Command;
 import agent.common.message.result.ExecResult;
 
 public abstract class AbstractExecResultHandler implements ExecResultHandler {

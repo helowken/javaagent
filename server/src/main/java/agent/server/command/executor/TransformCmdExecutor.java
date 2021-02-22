@@ -1,6 +1,6 @@
 package agent.server.command.executor;
 
-import agent.common.message.command.Command;
+import agent.cmdline.command.Command;
 import agent.common.message.result.ExecResult;
 import agent.server.transform.TransformLock;
 import agent.server.transform.TransformMgr;

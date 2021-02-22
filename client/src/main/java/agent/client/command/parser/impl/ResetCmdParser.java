@@ -1,12 +1,11 @@
 package agent.client.command.parser.impl;
 
-import agent.base.args.parse.*;
-import agent.base.help.HelpArg;
-import agent.client.args.parse.DefaultParamParser;
 import agent.client.args.parse.ResetOptConfigs;
+import agent.cmdline.args.parse.*;
+import agent.cmdline.command.Command;
+import agent.cmdline.help.HelpArg;
 import agent.common.args.parse.FilterOptUtils;
 import agent.common.config.ResetConfig;
-import agent.common.message.command.Command;
 import agent.common.message.command.DefaultCommand;
 
 import java.util.Collections;
@@ -18,7 +17,7 @@ import static agent.common.args.parse.FilterOptUtils.getFilterOptParsers;
 import static agent.common.args.parse.FilterOptUtils.merge;
 import static agent.common.message.MessageType.CMD_RESET;
 
-public class ResetCmdParser extends AbstractCmdParser<CmdParams> {
+public class ResetCmdParser extends ClientAbstractCmdParser<CmdParams> {
     @Override
     public String[] getCmdNames() {
         return new String[]{"reset", "rs"};
@@ -30,7 +29,7 @@ public class ResetCmdParser extends AbstractCmdParser<CmdParams> {
     }
 
     @Override
-    CmdParamParser<CmdParams> createParamParser() {
+    protected CmdParamParser<CmdParams> createParamParser() {
         return new DefaultParamParser(
                 merge(
                         getFilterOptParsers(),
@@ -42,7 +41,7 @@ public class ResetCmdParser extends AbstractCmdParser<CmdParams> {
     }
 
     @Override
-    Command createCommand(CmdParams params) {
+    protected Command createCommand(CmdParams params) {
         Opts opts = params.getOpts();
         ResetConfig config = new ResetConfig();
         config.setTargetConfig(
@@ -62,7 +61,7 @@ public class ResetCmdParser extends AbstractCmdParser<CmdParams> {
     }
 
     @Override
-    List<HelpArg> createHelpArgList() {
+    protected List<HelpArg> createHelpArgList() {
         return Collections.singletonList(
                 new HelpArg(
                         "TIDs",

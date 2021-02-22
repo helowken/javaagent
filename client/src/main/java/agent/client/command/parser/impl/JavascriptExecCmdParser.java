@@ -1,35 +1,30 @@
 package agent.client.command.parser.impl;
 
-import agent.base.args.parse.CmdParamParser;
-import agent.base.args.parse.CmdParams;
-import agent.base.args.parse.KeyValueOptParser;
 import agent.base.utils.FileUtils;
 import agent.base.utils.IOUtils;
 import agent.base.utils.Utils;
-import agent.client.args.parse.DefaultParamParser;
+import agent.cmdline.args.parse.DefaultParamParser;
 import agent.client.args.parse.JavascriptExecOptConfigs;
-import agent.common.message.command.Command;
+import agent.cmdline.args.parse.CmdParamParser;
+import agent.cmdline.args.parse.CmdParams;
+import agent.cmdline.args.parse.KeyValueOptParser;
+import agent.cmdline.command.Command;
 import agent.common.message.command.DefaultCommand;
 
-import static agent.common.args.parse.FilterOptUtils.getHelpOptParser;
-import static agent.common.args.parse.FilterOptUtils.merge;
 import static agent.common.message.MessageType.CMD_JS_EXEC;
 
-public class JavascriptExecCmdParser extends AbstractCmdParser<CmdParams> {
+public class JavascriptExecCmdParser extends ClientAbstractCmdParser<CmdParams> {
     @Override
-    CmdParamParser<CmdParams> createParamParser() {
-        return new DefaultParamParser(
-                merge(
-                        getHelpOptParser(),
-                        new KeyValueOptParser(
-                                JavascriptExecOptConfigs.getSuite()
-                        )
+    protected CmdParamParser<CmdParams> createParamParser() {
+        return DefaultParamParser.addMore(
+                new KeyValueOptParser(
+                        JavascriptExecOptConfigs.getSuite()
                 )
         );
     }
 
     @Override
-    void checkParams(CmdParams params) throws Exception {
+    protected void checkParams(CmdParams params) throws Exception {
         super.checkParams(params);
         String filePath = JavascriptExecOptConfigs.getFile(
                 params.getOpts()
@@ -39,7 +34,7 @@ public class JavascriptExecCmdParser extends AbstractCmdParser<CmdParams> {
     }
 
     @Override
-    Command createCommand(CmdParams params) {
+    protected Command createCommand(CmdParams params) {
         StringBuilder sb = new StringBuilder();
         String filePath = JavascriptExecOptConfigs.getFile(
                 params.getOpts()

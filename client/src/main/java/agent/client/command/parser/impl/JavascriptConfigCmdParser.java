@@ -1,13 +1,13 @@
 package agent.client.command.parser.impl;
 
-import agent.base.args.parse.CmdParamParser;
-import agent.base.args.parse.CmdParams;
-import agent.base.help.HelpArg;
 import agent.base.utils.FileUtils;
 import agent.base.utils.IOUtils;
 import agent.base.utils.Utils;
-import agent.client.args.parse.DefaultParamParser;
-import agent.common.message.command.Command;
+import agent.cmdline.args.parse.CmdParamParser;
+import agent.cmdline.args.parse.CmdParams;
+import agent.cmdline.args.parse.DefaultParamParser;
+import agent.cmdline.command.Command;
+import agent.cmdline.help.HelpArg;
 import agent.common.message.command.DefaultCommand;
 
 import java.util.Collections;
@@ -15,9 +15,9 @@ import java.util.List;
 
 import static agent.common.message.MessageType.CMD_JS_CONFIG;
 
-public class JavascriptConfigCmdParser extends AbstractCmdParser<CmdParams> {
+public class JavascriptConfigCmdParser extends ClientAbstractCmdParser<CmdParams> {
     @Override
-    List<HelpArg> createHelpArgList() {
+    protected List<HelpArg> createHelpArgList() {
         return Collections.singletonList(
                 new HelpArg(
                         "JS_CONFIG_FILE",
@@ -27,12 +27,12 @@ public class JavascriptConfigCmdParser extends AbstractCmdParser<CmdParams> {
     }
 
     @Override
-    CmdParamParser<CmdParams> createParamParser() {
+    protected CmdParamParser<CmdParams> createParamParser() {
         return DefaultParamParser.DEFAULT;
     }
 
     @Override
-    Command createCommand(CmdParams params) {
+    protected Command createCommand(CmdParams params) {
         String script = Utils.wrapToRtError(
                 () -> IOUtils.readToString(
                         FileUtils.getAbsolutePath(

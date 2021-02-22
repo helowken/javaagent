@@ -1,8 +1,8 @@
 package agent.client.args.parse;
 
-import agent.base.args.parse.OptConfig;
-import agent.base.args.parse.OptConfigSuite;
-import agent.base.args.parse.Opts;
+import agent.cmdline.args.parse.OptConfig;
+import agent.cmdline.args.parse.OptConfigSuite;
+import agent.cmdline.args.parse.Opts;
 
 public class SaveClassOptConfigs {
     private static final String KEY_WITH_SUB_CLASSES = "WITH_SUB_CLASSES";

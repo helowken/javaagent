@@ -15,7 +15,7 @@ public class JavascriptTransformer extends CallChainTransformer {
     private static final String KEY_CONFIG_SCRIPT = "script";
     private static final String FUNC_ON_BEFORE = "onBefore";
     private static final String FUNC_ON_RETURN = "onReturn";
-    private static final String FUNC_ON_THROW = "onError";
+    private static final String FUNC_ON_ERROR = "onError";
     private static final String FUNC_ON_CATCH = "onCatch";
     private static final String FUNC_ON_AFTER = "onAfter";
     private static final String FUNC_ON_COMPLETE = "onComplete";
@@ -69,7 +69,7 @@ public class JavascriptTransformer extends CallChainTransformer {
         @Override
         protected JavascriptItem processOnThrowing(JavascriptItem data, Throwable error, Object instanceOrNull, DestInvoke destInvoke, Object[] otherArgs) {
             ignoreError(
-                    () -> ScriptEngineMgr.javascript().invoke(instanceKey, FUNC_ON_THROW, data, destInvoke, error, instanceOrNull),
+                    () -> ScriptEngineMgr.javascript().invoke(instanceKey, FUNC_ON_ERROR, data, destInvoke, error, instanceOrNull),
                     "onThrow failed."
             );
             return data;

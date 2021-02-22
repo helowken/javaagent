@@ -5,7 +5,7 @@ import agent.client.command.result.handler.DefaultExecResultHandler;
 import agent.client.command.result.handler.InfoResultHandler;
 import agent.client.command.result.handler.ResetResultHandler;
 import agent.client.command.result.handler.TransformResultHandler;
-import agent.common.message.command.Command;
+import agent.cmdline.command.Command;
 import agent.common.message.result.ExecResult;
 
 import java.util.HashMap;

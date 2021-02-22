@@ -1,6 +1,6 @@
 package agent.client.command.result.handler;
 
-import agent.common.message.command.Command;
+import agent.cmdline.command.Command;
 import agent.common.message.result.ExecResult;
 
 public class TransformResultHandler extends AbstractTransformResultHandler {

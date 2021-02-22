@@ -1,35 +1,29 @@
 package agent.client.command.parser.impl;
 
-import agent.base.args.parse.CmdParamParser;
-import agent.base.args.parse.CmdParams;
-import agent.base.help.HelpArg;
 import agent.base.utils.FileUtils;
 import agent.base.utils.IOUtils;
 import agent.base.utils.StringParser;
 import agent.base.utils.Utils;
-import agent.client.args.parse.DefaultParamParser;
-import agent.client.command.parser.CommandParserMgr;
-import agent.common.message.command.CmdItem;
-import agent.common.message.command.Command;
+import agent.client.command.parser.ClientCommandParserMgr;
+import agent.cmdline.args.parse.CmdParamParser;
+import agent.cmdline.args.parse.CmdParams;
+import agent.cmdline.args.parse.DefaultParamParser;
+import agent.cmdline.command.CmdItem;
+import agent.cmdline.command.Command;
+import agent.cmdline.help.HelpArg;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import static agent.common.args.parse.FilterOptUtils.getHelpOptParser;
-
-public class CommandFileCmdParser extends AbstractCmdParser<CmdParams> {
+public class CommandFileCmdParser extends ClientAbstractCmdParser<CmdParams> {
     @Override
-    CmdParamParser<CmdParams> createParamParser() {
-        return new DefaultParamParser(
-                Collections.singletonList(
-                        getHelpOptParser()
-                )
-        );
+    protected CmdParamParser<CmdParams> createParamParser() {
+        return DefaultParamParser.DEFAULT;
     }
 
     @Override
-    List<HelpArg> createHelpArgList() {
+    protected List<HelpArg> createHelpArgList() {
         return Collections.singletonList(
                 new HelpArg(
                         "FILE_PATH",
@@ -57,7 +51,7 @@ public class CommandFileCmdParser extends AbstractCmdParser<CmdParams> {
     }
 
     @Override
-    Command createCommand(CmdParams params) {
+    protected Command createCommand(CmdParams params) {
         throw new UnsupportedOperationException();
     }
 
@@ -80,7 +74,7 @@ public class CommandFileCmdParser extends AbstractCmdParser<CmdParams> {
                                         !line.startsWith("#") &&
                                         !line.startsWith("//")) {
                                     List<String> argList = splitStringToArgs(line);
-                                    List<CmdItem> itemList = CommandParserMgr.parse(argList);
+                                    List<CmdItem> itemList = ClientCommandParserMgr.getInstance().parse(argList);
                                     for (CmdItem item : itemList) {
                                         item.setCmdLine(line);
                                     }
