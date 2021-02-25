@@ -22,6 +22,10 @@
             <groupId>javaagent</groupId>
             <artifactId>cmdline</artifactId>
         </dependency>
+        <dependency>
+            <groupId>javaagent</groupId>
+            <artifactId>native</artifactId>
+        </dependency>
 
         <!-- test -->
         <dependency>

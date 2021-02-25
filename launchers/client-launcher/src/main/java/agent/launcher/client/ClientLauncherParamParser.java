@@ -15,7 +15,7 @@ public class ClientLauncherParamParser extends AbstractCmdParamParser<CmdParams>
                         CommonOptConfigs.getSuite()
                 ),
                 new KeyValueOptParser(
-                        ClientLauncherOptConfigs.getSuite()
+                        AddressOptConfigs.getSuite()
                 ),
                 storeOtherArgsOptParser
         );

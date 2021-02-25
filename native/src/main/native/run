@@ -16,4 +16,4 @@ rm -f *.o *.so
 cc $OPTS -c *.c
 cc $OPTS -Wl,-soname=$LIB_SO -static-libgcc  -z noexecstack -shared -o $LIB_SO *.o -lc
 
-cp $LIB_SO ../../../../packaging/resources/server/lib/native
+cp $LIB_SO ../../../../packaging/resources/common/lib/so

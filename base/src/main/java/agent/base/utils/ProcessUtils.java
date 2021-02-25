@@ -30,30 +30,29 @@ public class ProcessUtils {
     }
 
     public static ProcessExecResult exec(ProcConfig procConfig) throws Exception {
-        BufferedInputConsumer inputConsumer = new BufferedInputConsumer();
-        BufferedInputConsumer errorConsumer = new BufferedInputConsumer();
-        int exitValue = exec(procConfig, inputConsumer, errorConsumer);
-        return new ProcessExecResult(inputConsumer.getContent(), errorConsumer.getContent(), exitValue);
+        BufferedOutputConsumer outputConsumer = new BufferedOutputConsumer();
+        BufferedOutputConsumer errorConsumer = new BufferedOutputConsumer();
+        int exitValue = exec(procConfig, outputConsumer, errorConsumer);
+        return new ProcessExecResult(outputConsumer.getContent(), errorConsumer.getContent(), exitValue);
     }
 
-    public static int exec(ProcConfig procConfig, InputConsumer inputConsumer, InputConsumer errorConsumer) throws Exception {
-        return exec(procConfig, inputConsumer, errorConsumer, DEFAULT_JOIN_DURATION_MS, TimeUnit.MILLISECONDS);
+    public static int exec(ProcConfig procConfig, OutputConsumer outputConsumer, OutputConsumer errorConsumer) throws Exception {
+        return exec(procConfig, outputConsumer, errorConsumer, DEFAULT_JOIN_DURATION_MS, TimeUnit.MILLISECONDS);
     }
 
-    public static int exec(ProcConfig procConfig, InputConsumer inputConsumer, InputConsumer errorConsumer, long joinDuration, TimeUnit timeUnit) throws Exception {
+    public static int exec(ProcConfig procConfig, OutputConsumer outputConsumer, OutputConsumer errorConsumer, long joinDuration, TimeUnit timeUnit) throws Exception {
         Process proc = Runtime.getRuntime().exec(procConfig.cmd, procConfig.envp, procConfig.dir);
-        Thread inputThread = createAndStart(proc.getInputStream(), inputConsumer);
+        Thread outputThread = createAndStart(proc.getInputStream(), outputConsumer);
         Thread errorThread = createAndStart(proc.getErrorStream(), errorConsumer);
         int exitValue = proc.waitFor();
-        waitJoin(Arrays.asList(inputThread, errorThread), joinDuration, timeUnit);
+        waitJoin(Arrays.asList(outputThread, errorThread), joinDuration, timeUnit);
         return exitValue;
     }
 
-    private static Thread createAndStart(InputStream inputStream, InputConsumer inputConsumer) {
-        Thread inputThread = new ProcessInputThread(inputStream, inputConsumer);
-        inputThread.setDaemon(true);
-        inputThread.start();
-        return inputThread;
+    private static Thread createAndStart(InputStream inputStream, OutputConsumer outputConsumer) {
+        Thread outputThread = new ProcessOutputThread(inputStream, outputConsumer);
+        outputThread.start();
+        return outputThread;
     }
 
     private static void waitJoin(List<Thread> threadList, long duration, TimeUnit timeUnit) {
@@ -74,13 +73,13 @@ public class ProcessUtils {
         }
     }
 
-    private static class ProcessInputThread extends Thread {
+    private static class ProcessOutputThread extends Thread {
         private final InputStream inputStream;
-        private final InputConsumer inputConsumer;
+        private final OutputConsumer outputConsumer;
 
-        private ProcessInputThread(InputStream inputStream, InputConsumer inputConsumer) {
+        private ProcessOutputThread(InputStream inputStream, OutputConsumer outputConsumer) {
             this.inputStream = new BufferedInputStream(inputStream);
-            this.inputConsumer = inputConsumer;
+            this.outputConsumer = outputConsumer;
         }
 
         @Override
@@ -89,21 +88,21 @@ public class ProcessUtils {
             try {
                 int offset;
                 while ((offset = inputStream.read(buff)) > -1) {
-                    inputConsumer.consume(buff, 0, offset);
+                    outputConsumer.consume(buff, 0, offset);
                 }
             } catch (Exception e) {
-                logger.error("Read input failed.", e);
+                logger.error("Read output failed.", e);
             } finally {
                 IOUtils.close(this.inputStream);
             }
         }
     }
 
-    public interface InputConsumer {
+    public interface OutputConsumer {
         void consume(byte[] buff, int pos, int offset);
     }
 
-    private static class BufferedInputConsumer implements InputConsumer {
+    private static class BufferedOutputConsumer implements OutputConsumer {
         private ByteArrayOutputStream out = new ByteArrayOutputStream(1024);
 
         @Override
@@ -117,16 +116,15 @@ public class ProcessUtils {
     }
 
     public static class ProcessExecResult {
-        private final byte[] input;
+        private final byte[] output;
         private final byte[] error;
         private final int exitValue;
-        private volatile String inputString;
+        private volatile String outputString;
         private volatile String errorString;
-        private final LockObject rsLock = new LockObject();
 
-        private ProcessExecResult(byte[] input, byte[] error, int exitValue) {
-            this.input = input;
-            this.error = error;
+        private ProcessExecResult(byte[] output, byte[] error, int exitValue) {
+            this.output = Arrays.copyOf(output, output.length);
+            this.error = Arrays.copyOf(error, error.length);
             this.exitValue = exitValue;
         }
 
@@ -134,8 +132,8 @@ public class ProcessUtils {
             return exitValue == 0;
         }
 
-        public byte[] getInput() {
-            return input;
+        public byte[] getOutput() {
+            return output;
         }
 
         public byte[] getError() {
@@ -146,21 +144,23 @@ public class ProcessUtils {
             return exitValue;
         }
 
-        public String getInputString() {
-            if (inputString == null)
-                rsLock.sync(lock -> {
-                    if (inputString == null)
-                        inputString = new String(input);
-                });
-            return inputString;
+        public boolean hasOutputContent() {
+            return output.length > 0;
         }
 
-        public String getErrorString() {
+        public boolean hasErrorContent() {
+            return error.length > 0;
+        }
+
+        public synchronized String getOutputString() {
+            if (outputString == null)
+                outputString = new String(output);
+            return outputString;
+        }
+
+        public synchronized String getErrorString() {
             if (errorString == null)
-                rsLock.sync(lock -> {
-                    if (errorString == null)
-                        errorString = new String(input);
-                });
+                errorString = new String(error);
             return errorString;
         }
     }

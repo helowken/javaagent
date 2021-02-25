@@ -32,7 +32,7 @@ public class AgentClientRunner implements Runner {
         socketMgr = new SocketMgr(
                 Utils.getArgValue(args, 0)
         );
-        CmdHelpUtils.setOptConfigList(
+        CmdHelpUtils.setGlobalOptConfigList(
                 Utils.getArgValue(args, 1)
         );
         List<String> cmdArgs = Utils.getArgValue(args, 2);

@@ -16,6 +16,7 @@ public class ConsoleLogger extends AbstractLoggerImpl {
         if (t != null)
             s += "\nError: " + t.getMessage();
         System.out.println(s);
+        System.out.flush();
     }
 
     @Override

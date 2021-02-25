@@ -4,7 +4,6 @@ export type=server
 source $(dirname $0)/../../common/bin/env
 
 server_launcher_jar=$lib_dir/agent/server-launcher-$version.jar
-native_jar=$lib_dir/core/native-$version.jar
 tools_jar=$JAVA_HOME/lib/tools.jar
 
 if [ ! -f $tools_jar ]
@@ -13,7 +12,9 @@ then
     exit 1
 fi
 
-classpath=$common_lib_base_dir/*:$launcher_dir/*:$native_jar:$tools_jar
+classpath=$common_lib_base_dir/*:$launcher_dir/*:$common_lib_native_dir/*:$tools_jar
+
+export LD_LIBRARY_PATH=$common_lib_so_dir
 
 $JAVA_HOME/bin/java -cp $classpath \
 	agent.dynamic.attach.AgentLoader \

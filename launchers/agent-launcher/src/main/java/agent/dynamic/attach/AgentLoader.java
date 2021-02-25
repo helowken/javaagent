@@ -30,6 +30,7 @@ public class AgentLoader {
             System.exit(-1);
         }
         try {
+            JvmtiUtils.getInstance().loadSelfLibrary();
             List<JarPathAndOptions> jarPathAndOptionsList = parseJarPathAndOptions(args, 0, 1);
             List<JvmEndpoint> jvmEndpointList = parseJvmEndpoints(args, 1, args.length);
             run(jvmEndpointList, jarPathAndOptionsList);

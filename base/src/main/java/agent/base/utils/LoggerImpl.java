@@ -23,7 +23,7 @@ class LoggerImpl extends AbstractLoggerImpl {
     private static Thread logThread;
     private static volatile boolean shutdown = false;
 
-    private final Class<?> clazz;
+    private final String className;
 
     static {
         logThread = new Thread(LoggerImpl::asyncWrite, Constants.AGENT_THREAD_PREFIX + "Logger");
@@ -33,6 +33,10 @@ class LoggerImpl extends AbstractLoggerImpl {
                 () -> {
                     shutdown = true;
                     logThread.interrupt();
+                    try {
+                        logThread.join();
+                    } catch (InterruptedException e) {
+                    }
                 },
                 "Logger-shutdown"
         );
@@ -77,7 +81,7 @@ class LoggerImpl extends AbstractLoggerImpl {
     }
 
     LoggerImpl(Class<?> clazz) {
-        this.clazz = clazz;
+        this.className = clazz.getName();
     }
 
     private static void setOutputFile(String outputPath) {
@@ -95,7 +99,7 @@ class LoggerImpl extends AbstractLoggerImpl {
 
     @Override
     protected void println(String prefix, String pattern, Throwable t, Object... pvs) {
-        LogItem item = new LogItem(clazz, prefix, pattern, t, pvs);
+        LogItem item = new LogItem(className, prefix, pattern, t, pvs);
         if (async) {
             try {
                 itemQueue.put(item);
@@ -124,6 +128,6 @@ class LoggerImpl extends AbstractLoggerImpl {
 
     private static String getPrefix(LogItem item) {
         date.setTime(System.currentTimeMillis());
-        return MessageFormat.format(PREFIX_FORMAT, df.format(date), item.prefix, item.clazz.getName());
+        return MessageFormat.format(PREFIX_FORMAT, df.format(date), item.prefix, item.className);
     }
 }

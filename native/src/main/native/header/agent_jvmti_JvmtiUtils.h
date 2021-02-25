@@ -31,6 +31,14 @@ JNIEXPORT jobject JNICALL Java_agent_jvmti_JvmtiUtils_getLoadedClasses
 JNIEXPORT jboolean JNICALL Java_agent_jvmti_JvmtiUtils_tryToSetEuidAndEgid
   (JNIEnv *, jobject, jint);
 
+/*
+ * Class:     agent_jvmti_JvmtiUtils
+ * Method:    getProcId
+ * Signature: ()I
+ */
+JNIEXPORT jint JNICALL Java_agent_jvmti_JvmtiUtils_getProcId
+  (JNIEnv *, jobject);
+
 #ifdef __cplusplus
 }
 #endif

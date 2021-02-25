@@ -3,8 +3,10 @@
 export type=client
 source $(dirname $0)/../../common/bin/env
 
-classpath=$common_lib_base_dir/*:$common_lib_cmd_dir/*:$launcher_dir/*
+classpath=$common_lib_base_dir/*:$common_lib_cmd_dir/*:$common_lib_native_dir/*:$launcher_dir/*
 main_class=agent.launcher.client.ClientLauncher
+
+export LD_LIBRARY_PATH=$common_lib_so_dir
 
 $JAVA_HOME/bin/java \
         -cp $classpath \

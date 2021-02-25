@@ -20,6 +20,11 @@ public class JvmtiUtils {
     private JvmtiUtils() {
     }
 
+    public void loadSelfLibrary() {
+        String libName = getClass().getName().replaceAll("\\.", "_");
+        System.loadLibrary(libName);
+    }
+
     public void load(List<File> fileList) {
         load(fileList.stream()
                 .map(File::getAbsolutePath)
@@ -68,6 +73,10 @@ public class JvmtiUtils {
             System.out.println("Failed!!!");
     }
 
+    public int getPid() {
+        return getProcId();
+    }
+
     public List<Class<?>> findLoadedClassList() {
         return getLoadedClasses();
     }
@@ -77,4 +86,6 @@ public class JvmtiUtils {
     private native List<Class<?>> getLoadedClasses();
 
     private native boolean tryToSetEuidAndEgid(int pid);
+
+    private native int getProcId();
 }

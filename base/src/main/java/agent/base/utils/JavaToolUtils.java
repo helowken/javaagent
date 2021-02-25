@@ -100,7 +100,7 @@ public class JavaToolUtils {
         ProcessExecResult result = exec(getFullPathCmd("jps -l"));
         if (result.isSuccess()) {
 //            logger.debug("Get jvm pid success, Input: \n{}", result.getInputString());
-            List<String[]> jpsList = filterMultiLine(result.getInputString())
+            List<String[]> jpsList = filterMultiLine(result.getOutputString())
                     .map(s -> s.split(" "))
                     .filter(ts -> ts.length == 2 && ts[1].contains(displayName))
                     .collect(Collectors.toList());
@@ -112,7 +112,7 @@ public class JavaToolUtils {
             return jpsList.get(0)[0].trim();
         }
         String msg = "Get jvm pid failed, exit value: " + result.getExitValue() +
-                "\nInput: " + result.getInputString() +
+                "\nInput: " + result.getOutputString() +
                 "\nError:\n" + result.getErrorString();
         throw new RuntimeException(msg);
     }
@@ -146,7 +146,7 @@ public class JavaToolUtils {
                                 String filePath = file.getAbsolutePath();
                                 ProcessExecResult result = exec(getFullPathCmd("jar tf " + filePath));
                                 if (result.isSuccess()) {
-                                    Set<String> classNamesInJar = filterMultiLine(result.getInputString())
+                                    Set<String> classNamesInJar = filterMultiLine(result.getOutputString())
                                             .collect(Collectors.toSet());
                                     classNameSet.forEach(className -> {
                                         if (classNamesInJar.contains(className))

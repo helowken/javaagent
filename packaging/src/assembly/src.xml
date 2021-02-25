@@ -23,6 +23,13 @@
         </dependencySet>
         <dependencySet>
             <useStrictFiltering>true</useStrictFiltering>
+            <outputDirectory>common/lib/native</outputDirectory>
+            <includes>
+                <include>javaagent:native</include>
+            </includes>
+        </dependencySet>
+        <dependencySet>
+            <useStrictFiltering>true</useStrictFiltering>
             <outputDirectory>common/lib/core</outputDirectory>
             <includes>
                 <include>javaagent:common</include>
@@ -41,7 +48,6 @@
             <includes>
                 <include>javaagent:invoke-proxy:jar</include>
                 <include>javaagent:server:jar</include>
-                <include>javaagent:native</include>
             </includes>
         </dependencySet>
         <dependencySet>

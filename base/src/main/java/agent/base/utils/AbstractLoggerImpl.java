@@ -93,15 +93,15 @@ public abstract class AbstractLoggerImpl implements LoggerIntf {
         }
     }
 
-    protected static class LogItem {
-        final Class<?> clazz;
+    static class LogItem {
+        final String className;
         final String prefix;
         final String pattern;
         final Throwable error;
         final Object[] pvs;
 
-        protected LogItem(Class<?> clazz, String prefix, String pattern, Throwable error, Object[] pvs) {
-            this.clazz = clazz;
+        LogItem(String className, String prefix, String pattern, Throwable error, Object[] pvs) {
+            this.className = className;
             this.prefix = prefix;
             this.pattern = pattern;
             this.error = error;

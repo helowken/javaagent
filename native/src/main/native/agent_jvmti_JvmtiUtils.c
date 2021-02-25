@@ -1,3 +1,4 @@
+#include <unistd.h>
 #include "jvmti.h"
 #include "header/agent_jvmti_JvmtiUtils.h"
 #include "header/util.h"
@@ -160,3 +161,8 @@ JNIEXPORT jboolean JNICALL Java_agent_jvmti_JvmtiUtils_tryToSetEuidAndEgid
     return tryToSetEuidAndEgid(pid) == 0? JNI_TRUE : JNI_FALSE;
 }
 
+
+JNIEXPORT jint JNICALL Java_agent_jvmti_JvmtiUtils_getProcId
+  (JNIEnv *env, jobject thisObj) {
+	return getpid();
+}

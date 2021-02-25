@@ -198,6 +198,10 @@ public class LogMgr {
                 stop = true;
                 lock.notify();
             }
+            try {
+                this.join();
+            } catch (InterruptedException e) {
+            }
         }
     }
 }

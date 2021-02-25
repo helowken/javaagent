@@ -9,4 +9,6 @@ public class JvmtiUtils {
     private native List<Class<?>> getLoadedClasses();
 
     private native boolean tryToSetEuidAndEgid(int pid);
+
+    private native int getProcId();
 }

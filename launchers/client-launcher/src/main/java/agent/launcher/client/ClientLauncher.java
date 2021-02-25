@@ -1,110 +1,191 @@
 package agent.launcher.client;
 
-import agent.base.runner.Runner;
 import agent.base.utils.ConsoleLogger;
 import agent.base.utils.HostAndPort;
-import agent.base.utils.Utils;
-import agent.cmdline.args.parse.CommonOptConfigs;
-import agent.cmdline.args.parse.OptConfig;
+import agent.base.utils.LockObject;
+import agent.base.utils.ProcessUtils;
+import agent.cmdline.args.parse.ArgsOptsParser;
+import agent.cmdline.args.parse.KeyValueOptParser;
 import agent.cmdline.args.parse.Opts;
-import agent.launcher.basic.AbstractLauncher;
+import agent.cmdline.args.parse.StoreOtherArgsOptParser;
+import agent.jvmti.JvmtiUtils;
 
-import java.io.File;
+import java.io.BufferedInputStream;
+import java.io.FileInputStream;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
-import java.util.Map;
+import java.util.concurrent.CountDownLatch;
 
-public class ClientLauncher extends AbstractLauncher {
-    private static final String KEY_HOST = "host";
-    private static final String KEY_PORT = "port";
-    private static final String DEFAULT_RUNNER_TYPE = "clientRunner";
-    private static final ClientLauncher instance = new ClientLauncher();
-    private static final ClientLauncherParamParser paramParser = new ClientLauncherParamParser();
+import static agent.base.utils.ProcessUtils.ProcConfig;
+import static agent.base.utils.ProcessUtils.ProcessExecResult;
+
+public class ClientLauncher {
+    private static final ConsoleLogger logger = ConsoleLogger.getInstance();
+    private static final long JOIN_TIMEOUT = 5000;
+    private static final LockObject logLock = new LockObject();
 
     public static void main(String[] args) {
         try {
-            Opts opts = paramParser.parse(args).getOpts();
-            List<String> restArgList = new ArrayList<>(
-                    paramParser.getRestArgs()
-            );
-            HostAndPort hostAndPort = ClientLauncherOptConfigs.getHostAndPort(opts);
-            instance.init(
-                    getConfigFile(restArgList),
-                    getInitParams(hostAndPort)
-            );
-            instance.loadLibs();
-            restArgList.remove(0);
+            JvmtiUtils.getInstance().loadSelfLibrary();
+            List<String> cmdArgs = getCmdArgsForChildProc(args.length);
+            StoreOtherArgsOptParser storeOtherArgsOptParser = new StoreOtherArgsOptParser();
+            Opts opts = getOpts(cmdArgs, storeOtherArgsOptParser);
+            Collection<HostAndPort> hostAndPorts = parseAddrs(opts);
+            List<String> restArgs = storeOtherArgsOptParser.getArgs();
 
-            List<String> invalidOpts = getInvalidOpts(restArgList);
-            if (!invalidOpts.isEmpty()) {
-                System.out.println(
-                        "Unknown options: " + Utils.join(", ", invalidOpts)
-                );
-                return;
+            int addrCount = hostAndPorts.size();
+            if (addrCount == 1)
+                ChildProcessLauncher.main(args);
+            else {
+                CountDownLatch startLatch = new CountDownLatch(1);
+                CountDownLatch endLatch = new CountDownLatch(addrCount);
+                List<Thread> ts = new ArrayList<>();
+                for (HostAndPort hostAndPort : hostAndPorts) {
+                    ts.add(
+                            startChildThread(restArgs, hostAndPort, startLatch, endLatch)
+                    );
+                }
+                startLatch.countDown();
+                try {
+                    endLatch.await();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                joinThreads(ts);
             }
-
-            if (CommonOptConfigs.isVersion(opts)) {
-                System.out.println("JavaAgent 1.0.0");
-                return;
-            }
-
-            Runner runner = getRunner(DEFAULT_RUNNER_TYPE);
-            if (restArgList.isEmpty())
-                restArgList.add("help");
-            else if (CommonOptConfigs.isHelp(opts))
-                restArgList.add(
-                        CommonOptConfigs.getHelpOptName()
-                );
-
-            instance.startRunner(
-                    runner,
-                    hostAndPort,
-                    paramParser.getOptConfigList(),
-                    restArgList
-            );
         } catch (Throwable t) {
             t.printStackTrace();
             ConsoleLogger.getInstance().error("Error: {}", t.getMessage());
         }
     }
 
-    private static List<String> getInvalidOpts(List<String> args) {
-        List<String> invalidOpts = new ArrayList<>();
-        for (String arg : args) {
-            if (OptConfig.isOpt(arg))
-                invalidOpts.add(arg);
-            else
-                break;
+    private static void joinThreads(List<Thread> ts) {
+        ts.forEach(
+                t -> {
+                    try {
+                        t.join(JOIN_TIMEOUT);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+        );
+    }
+
+    private static Thread startChildThread(List<String> restArgs, HostAndPort hostAndPort, CountDownLatch startLatch, CountDownLatch endLatch) {
+        String[] childArgs = getChildArgs(
+                restArgs,
+                hostAndPort
+        );
+        Thread t = new Thread(
+                () -> {
+                    try {
+                        startLatch.await();
+                        ProcessExecResult rs = ProcessUtils.exec(
+                                new ProcConfig(childArgs)
+                        );
+                        logProcResult(rs, hostAndPort);
+                    } catch (Exception e) {
+                        logLock.sync(
+                                lock -> logger.error("Start child process failed.", e)
+                        );
+                    } finally {
+                        endLatch.countDown();
+                    }
+                }
+        );
+        t.start();
+        return t;
+    }
+
+    private static void logProcResult(ProcessExecResult rs, HostAndPort hostAndPort) {
+        logLock.sync(
+                lock -> {
+                    logger.error(
+                            "\n========== {}: {}",
+                            hostAndPort,
+                            rs.isSuccess() ? "Success" : "Failed"
+                    );
+                    if (rs.hasOutputContent())
+                        logger.error(
+                                "{}",
+                                rs.getOutputString()
+                        );
+                    if (rs.hasErrorContent())
+                        logger.error(
+                                "--------- Error:\n{}",
+                                rs.getErrorString()
+                        );
+                }
+        );
+    }
+
+    private static String[] getChildArgs(List<String> restArgs, HostAndPort hostAndPort) {
+        List<String> childArgs = new ArrayList<>(restArgs);
+        Collections.addAll(
+                childArgs,
+                AddressOptConfigs.OPT_ADDR,
+                hostAndPort.toString()
+        );
+        return childArgs.toArray(new String[0]);
+    }
+
+    private static List<String> getCmdArgsForChildProc(int argLen) throws Exception {
+        List<String> cmdArgs = getCmdArgList(
+                JvmtiUtils.getInstance().getPid()
+        );
+        cmdArgs.set(
+                cmdArgs.size() - argLen - 1,
+                ChildProcessLauncher.class.getName()
+        );
+        return cmdArgs;
+    }
+
+    private static Opts getOpts(List<String> cmdArgs, StoreOtherArgsOptParser storeOtherArgsOptParser) {
+        return new ArgsOptsParser(
+                new KeyValueOptParser(
+                        AddressOptConfigs.getSuite()
+                ),
+                storeOtherArgsOptParser
+        ).parse(
+                cmdArgs.toArray(new String[0])
+        ).getOpts();
+    }
+
+    private static Collection<HostAndPort> parseAddrs(Opts opts) {
+        Collection<HostAndPort> hostAndPorts = AddressUtils.parseAddrs(
+                AddressOptConfigs.getAddress(opts)
+        );
+        if (hostAndPorts.isEmpty())
+            throw new RuntimeException("No address specified.");
+        return hostAndPorts;
+    }
+
+    private static List<String> getCmdArgList(int pid) throws Exception {
+        List<String> argList = new ArrayList<>();
+        String cmdlineFilePath = "/proc/" + pid + "/cmdline";
+        StringBuilder sb = null;
+        try (BufferedInputStream in = new BufferedInputStream(new FileInputStream(cmdlineFilePath))) {
+            byte[] bs = new byte[512];
+            int offset;
+            while ((offset = in.read(bs, 0, bs.length)) > -1) {
+                for (int i = 0; i < offset; ++i) {
+                    if (bs[i] == 0) {
+                        if (sb != null) {
+                            argList.add(
+                                    sb.toString()
+                            );
+                            sb = null;
+                        }
+                    } else {
+                        if (sb == null)
+                            sb = new StringBuilder();
+                        sb.append((char) bs[i]);
+                    }
+                }
+            }
         }
-        return invalidOpts;
-    }
-
-    private static Map<String, Object> getInitParams(HostAndPort hostAndPort) {
-        Map<String, Object> initParams = new HashMap<>();
-        initParams.put(
-                KEY_HOST,
-                formatHost(
-                        hostAndPort.host
-                )
-        );
-        initParams.put(
-                KEY_PORT,
-                hostAndPort.port
-        );
-        return initParams;
-    }
-
-    private static String formatHost(String host) {
-        return host.replaceAll("\\.", "_");
-    }
-
-    private static String getConfigFile(List<String> args) {
-        if (args.isEmpty())
-            throw new RuntimeException("No config file found.");
-        String configFilePath = args.get(0);
-        if (!new File(configFilePath).exists())
-            throw new RuntimeException("Config file does not exist: " + configFilePath);
-        return configFilePath;
+        return argList;
     }
 }

@@ -14,10 +14,10 @@ import static agent.cmdline.help.HelpSection.PADDING_1;
 import static agent.cmdline.help.HelpSection.PADDING_2;
 
 public class CmdHelpUtils {
-    private static List<OptConfig> optConfigList;
+    private static List<OptConfig> globalOptConfigList;
 
-    public static void setOptConfigList(List<OptConfig> optConfigs) {
-        optConfigList = optConfigs;
+    public static void setGlobalOptConfigList(List<OptConfig> optConfigs) {
+        globalOptConfigList = optConfigs;
     }
 
     public static HelpSection getHelp() {
@@ -31,12 +31,12 @@ public class CmdHelpUtils {
                                 )
                 );
 
-        if (optConfigList != null && !optConfigList.isEmpty())
+        if (globalOptConfigList != null && !globalOptConfigList.isEmpty())
             section.add(
                     new HelpSection("Global Options:\n", PADDING_2)
                             .invoke(
                                     sc -> sc.add(
-                                            HelpUtils.convert(optConfigList)
+                                            HelpUtils.convert(globalOptConfigList)
                                     )
                             )
             );
