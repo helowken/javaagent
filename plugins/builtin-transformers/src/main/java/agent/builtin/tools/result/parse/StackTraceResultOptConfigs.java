@@ -64,7 +64,7 @@ public class StackTraceResultOptConfigs {
                     includeDescendants = false;
                 if (Utils.isNotBlank(num))
                     rsMap.put(
-                            Utils.parseInt(num, "\"" + n + "\n"),
+                            Utils.parseInt(num, "Number"),
                             includeDescendants
                     );
             }

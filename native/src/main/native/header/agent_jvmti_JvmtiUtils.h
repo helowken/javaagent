@@ -25,11 +25,19 @@ JNIEXPORT jobject JNICALL Java_agent_jvmti_JvmtiUtils_getLoadedClasses
 
 /*
  * Class:     agent_jvmti_JvmtiUtils
- * Method:    tryToSetEuidAndEgid
+ * Method:    changeCredential
  * Signature: (I)Z
  */
-JNIEXPORT jboolean JNICALL Java_agent_jvmti_JvmtiUtils_tryToSetEuidAndEgid
+JNIEXPORT jboolean JNICALL Java_agent_jvmti_JvmtiUtils_changeCredential
   (JNIEnv *, jobject, jint);
+
+/*
+ * Class:     agent_jvmti_JvmtiUtils
+ * Method:    resetCredential
+ * Signature: ()Z
+ */
+JNIEXPORT jboolean JNICALL Java_agent_jvmti_JvmtiUtils_resetCredential
+  (JNIEnv *, jobject);
 
 /*
  * Class:     agent_jvmti_JvmtiUtils

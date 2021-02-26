@@ -75,7 +75,7 @@ public class AgentLoader {
         return rsList;
     }
 
-    private static List<JarPathAndOptions> parseJarPathAndOptions(String[] args, int startIdx, int endIdx) throws Exception {
+    private static List<JarPathAndOptions> parseJarPathAndOptions(String[] args, int startIdx, int endIdx) {
         List<JarPathAndOptions> rsList = new ArrayList<>();
         String jarPath;
         String options;
@@ -114,21 +114,24 @@ public class AgentLoader {
     private static void run(List<JvmEndpoint> jvmEndpointList, List<JarPathAndOptions> jarPathAndOptionsList) {
         jvmEndpointList.forEach(
                 jvmEndpoint -> {
-//                    JvmtiUtils.getInstance().changeCredentialToTargetProcess(
-//                            Utils.parseInt(jvmEndpoint.pid, "PID")
-//                    );
                     logger.info("Attaching to target JVM with: {}", jvmEndpoint);
                     VirtualMachine jvm = null;
                     try {
-                        jvm = VirtualMachine.attach(jvmEndpoint.pid);
-                        for (JarPathAndOptions jarPathAndOptions : jarPathAndOptionsList) {
-                            logger.debug("Load agent with: {}", jarPathAndOptions);
-                            jvm.loadAgent(
-                                    jarPathAndOptions.jarPath,
-                                    "port=" + jvmEndpoint.port + ";conf=" + jarPathAndOptions.options
-                            );
-                        }
-                        logger.info("Attached to target JVM and loaded Java agent successfully");
+                        boolean rs = JvmtiUtils.getInstance().changeCredentialToTargetProcess(
+                                Utils.parseInt(jvmEndpoint.pid, "PID")
+                        );
+                        if (rs) {
+                            jvm = VirtualMachine.attach(jvmEndpoint.pid);
+                            for (JarPathAndOptions jarPathAndOptions : jarPathAndOptionsList) {
+                                logger.debug("Load agent with: {}", jarPathAndOptions);
+                                jvm.loadAgent(
+                                        jarPathAndOptions.jarPath,
+                                        "port=" + jvmEndpoint.port + ";conf=" + jarPathAndOptions.options
+                                );
+                            }
+                            logger.info("Attached to target JVM and loaded Java agent successfully");
+                        } else
+                            logger.error("{}", "Change credential failed.");
                     } catch (Throwable t) {
                         logger.error("Load agent failed with: {}, {}", t, jvmEndpoint, jarPathAndOptionsList);
                     } finally {
@@ -139,6 +142,8 @@ public class AgentLoader {
                                 logger.error("Detach jvm failed.", e);
                             }
                         }
+                        if (!JvmtiUtils.getInstance().resetCredentialToSelfProcess())
+                            logger.error("{}", "Reset credential failed.");
                     }
                 }
         );

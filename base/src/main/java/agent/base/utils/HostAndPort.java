@@ -50,7 +50,7 @@ public class HostAndPort {
                 throw new RuntimeException("Invalid port: " + addr);
             port = Utils.parseInt(
                     portStr,
-                    "Port " + portStr
+                    "Port"
             );
         }
         return new HostAndPort(host, port);

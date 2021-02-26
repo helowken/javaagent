@@ -68,9 +68,12 @@ public class JvmtiUtils {
         ).orElse(Collections.emptyList());
     }
 
-    public void changeCredentialToTargetProcess(int pid) {
-        if (!tryToSetEuidAndEgid(pid))
-            System.out.println("Failed!!!");
+    public boolean changeCredentialToTargetProcess(int pid) {
+        return changeCredential(pid);
+    }
+
+    public boolean resetCredentialToSelfProcess() {
+        return resetCredential();
     }
 
     public int getPid() {
@@ -85,7 +88,9 @@ public class JvmtiUtils {
 
     private native List<Class<?>> getLoadedClasses();
 
-    private native boolean tryToSetEuidAndEgid(int pid);
+    private native boolean changeCredential(int pid);
+
+    private native boolean resetCredential();
 
     private native int getProcId();
 }

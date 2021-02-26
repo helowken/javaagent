@@ -8,7 +8,9 @@ public class JvmtiUtils {
 
     private native List<Class<?>> getLoadedClasses();
 
-    private native boolean tryToSetEuidAndEgid(int pid);
+    private native boolean changeCredential(int pid);
+
+    private native boolean resetCredential();
 
     private native int getProcId();
 }

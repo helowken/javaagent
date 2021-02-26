@@ -55,7 +55,7 @@ public class Utils {
         try {
             return Integer.parseInt(s);
         } catch (NumberFormatException e) {
-            throw new RuntimeException(name + " is not a int string.");
+            throw new RuntimeException(name + "\"" + s + "\" is not a int string.");
         }
     }
 
@@ -65,7 +65,7 @@ public class Utils {
         try {
             return Long.parseLong(s);
         } catch (NumberFormatException e) {
-            throw new RuntimeException(name + " is not a long string.");
+            throw new RuntimeException(name + "\"" + s + "\" is not a long string.");
         }
     }
 

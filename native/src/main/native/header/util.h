@@ -1,3 +1,7 @@
 #include <fcntl.h>
 
-int tryToSetEuidAndEgid(pid_t pid);
+void outputError(const char*, ...);
+
+int changeCredential(pid_t pid);
+
+int resetCredential();

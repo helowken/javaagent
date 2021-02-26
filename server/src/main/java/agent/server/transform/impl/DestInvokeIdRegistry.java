@@ -136,7 +136,7 @@ public class DestInvokeIdRegistry {
             throw new RuntimeException("Invalid classInvoke: " + s);
         return new InvokeMetadata(
                 ts[0],
-                Utils.parseInt(ts[1], "class idx"),
+                Utils.parseInt(ts[1], "Class idx"),
                 ts[2]
         );
     }

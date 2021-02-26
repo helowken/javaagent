@@ -11,8 +11,6 @@
 
 static char *procStatusTmp = "/proc/%d/status";
 
-static void outputError(const char *format, ...);
-
 
 static char* getProcStatusPath(pid_t pid) {
 	char *path = malloc(MAX_PATH_SIZE);
@@ -20,7 +18,7 @@ static char* getProcStatusPath(pid_t pid) {
 	return path;
 }
 
-static int getProcEuidAndEgid(pid_t pid, uid_t* uid, gid_t* gid) {
+static int getProcEuidAndEgid(pid_t pid, uid_t* euid, gid_t* egid) {
 	char *statusPath = getProcStatusPath(pid);
 	FILE *statusFile = fopen(statusPath, "r");
 	if (statusFile == NULL) {
@@ -30,27 +28,27 @@ static int getProcEuidAndEgid(pid_t pid, uid_t* uid, gid_t* gid) {
 	}
 	char *line = NULL;
 	size_t lineSize;
-	int uidFound = 0, gidFound = 0;
+	int euidFound = 0, egidFound = 0;
 	while (getline(&line, &lineSize, statusFile) != -1) {
-		if (!uidFound && strncmp(line, "Uid:", 4) == 0) {
-			uidFound = 1;
-			*uid = atoi(strchr(line + 5, '\t'));
-		} else if (!gidFound && strncmp(line, "Gid:", 4) == 0) {
-			gidFound = 1;
-			*gid = atoi(strchr(line + 5, '\t'));
+		if (!euidFound && strncmp(line, "Uid:", 4) == 0) {
+			euidFound = 1;
+			*euid = atoi(strchr(line + 5, '\t'));
+		} else if (!egidFound && strncmp(line, "Gid:", 4) == 0) {
+			egidFound = 1;
+			*egid = atoi(strchr(line + 5, '\t'));
 		}
-		if (uidFound && gidFound)
+		if (euidFound && egidFound)
 		  break;
 	}
 	free(statusPath);
 	free(line);
-	if (!uidFound || !gidFound)
+	if (!euidFound || !egidFound)
 	  return 0;
 	fclose(statusFile);
 	return 1;
 }
 
-static void outputError(const char *format, ...) {
+void outputError(const char *format, ...) {
 	int savedErrno = errno;
 #define BUF_SIZE 500
 	char userMsg[BUF_SIZE], errText[BUF_SIZE], buf[BUF_SIZE];
@@ -73,25 +71,33 @@ static void outputError(const char *format, ...) {
 	errno = savedErrno;
 }
 
-int tryToSetEuidAndEgid(pid_t pid) {
+static int tryToSetEuidAndEgid(uid_t euid, gid_t egid) {
+	if (getegid() != egid && setegid(egid) == -1) {
+		outputError("Set egid failed.\n");
+		return -1;
+	}
+	if (geteuid() != euid && seteuid(euid) == -1) {
+		outputError("Set euid failed.\n");
+		return -1;
+	}
+	return 0;
+}
+
+int changeCredential(pid_t pid) {
 	if (pid <= 0) {
 		outputError("Invalid pid: %d\n", pid);
 		return -1;
 	}
-	uid_t uid;
-	gid_t gid;
-	if (getProcEuidAndEgid(pid, &uid, &gid)) {
-		if (setegid(gid) == -1) {
-			outputError("Set egid failed from pid: %d\n", pid);
-			return -1;
-		}
-		if (seteuid(uid) == -1) {
-			outputError("Set euid failed from pid: %d\n", pid);
-			return -1;
-		}
-		return 0;
+	uid_t euid;
+	gid_t egid;
+	if (getProcEuidAndEgid(pid, &euid, &egid)) {
+		if (tryToSetEuidAndEgid(euid, egid) == 0)
+		  return 0;
 	} else
-	  outputError("No uid and gid found from pid: %d\n", pid);
+	  outputError("No euid and egid found from pid: %d\n", pid);
 	return -1;
 }
 
+int resetCredential() {
+	return tryToSetEuidAndEgid(getuid(), getgid()); 
+}

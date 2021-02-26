@@ -156,9 +156,14 @@ Java_agent_jvmti_JvmtiUtils_getLoadedClasses(JNIEnv *env, jobject thisObj) {
 }
 
 
-JNIEXPORT jboolean JNICALL Java_agent_jvmti_JvmtiUtils_tryToSetEuidAndEgid
+JNIEXPORT jboolean JNICALL Java_agent_jvmti_JvmtiUtils_changeCredential
   (JNIEnv *env, jobject thisObj, jint pid) {
-    return tryToSetEuidAndEgid(pid) == 0? JNI_TRUE : JNI_FALSE;
+    return changeCredential(pid) == 0? JNI_TRUE : JNI_FALSE;
+}
+
+JNIEXPORT jboolean JNICALL Java_agent_jvmti_JvmtiUtils_resetCredential
+  (JNIEnv *env, jobject thisObj) {
+    return resetCredential() == 0? JNI_TRUE : JNI_FALSE;
 }
 
 
