@@ -5,7 +5,7 @@ import agent.cmdline.args.parse.*;
 import java.util.Arrays;
 import java.util.List;
 
-public class ClientLauncherParamParser extends AbstractCmdParamParser<CmdParams> {
+public class ChildProcessParamParser extends AbstractCmdParamParser<CmdParams> {
     private final StoreOtherArgsOptParser storeOtherArgsOptParser = new StoreOtherArgsOptParser();
 
     @Override

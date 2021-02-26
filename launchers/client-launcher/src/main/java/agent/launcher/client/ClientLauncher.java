@@ -12,10 +12,7 @@ import agent.jvmti.JvmtiUtils;
 
 import java.io.BufferedInputStream;
 import java.io.FileInputStream;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.CountDownLatch;
 
 import static agent.base.utils.ProcessUtils.ProcConfig;
@@ -28,16 +25,22 @@ public class ClientLauncher {
 
     public static void main(String[] args) {
         try {
+            ChildProcessLauncher childProcessLauncher = new ChildProcessLauncher();
+            if (childProcessLauncher.isHelp(args)) {
+                childProcessLauncher.process(args);
+                return;
+            }
+
             JvmtiUtils.getInstance().loadSelfLibrary();
             List<String> cmdArgs = getCmdArgsForChildProc(args.length);
             StoreOtherArgsOptParser storeOtherArgsOptParser = new StoreOtherArgsOptParser();
             Opts opts = getOpts(cmdArgs, storeOtherArgsOptParser);
-            Collection<HostAndPort> hostAndPorts = parseAddrs(opts);
+            List<HostAndPort> hostAndPorts = parseAddrs(opts);
             List<String> restArgs = storeOtherArgsOptParser.getArgs();
 
             int addrCount = hostAndPorts.size();
             if (addrCount == 1)
-                ChildProcessLauncher.main(args);
+                childProcessLauncher.process(args);
             else {
                 CountDownLatch startLatch = new CountDownLatch(1);
                 CountDownLatch endLatch = new CountDownLatch(addrCount);
@@ -103,10 +106,14 @@ public class ClientLauncher {
         logLock.sync(
                 lock -> {
                     logger.error(
-                            "\n========== {}: {}",
-                            hostAndPort,
-                            rs.isSuccess() ? "Success" : "Failed"
+                            "\n========== {}: ",
+                            hostAndPort
                     );
+                    if (!rs.isSuccess())
+                        logger.error(
+                                "Exit value: {}",
+                                rs.getExitValue()
+                        );
                     if (rs.hasOutputContent())
                         logger.error(
                                 "{}",
@@ -153,13 +160,13 @@ public class ClientLauncher {
         ).getOpts();
     }
 
-    private static Collection<HostAndPort> parseAddrs(Opts opts) {
+    private static List<HostAndPort> parseAddrs(Opts opts) {
         Collection<HostAndPort> hostAndPorts = AddressUtils.parseAddrs(
                 AddressOptConfigs.getAddress(opts)
         );
         if (hostAndPorts.isEmpty())
             throw new RuntimeException("No address specified.");
-        return hostAndPorts;
+        return new LinkedList<>(hostAndPorts);
     }
 
     private static List<String> getCmdArgList(int pid) throws Exception {

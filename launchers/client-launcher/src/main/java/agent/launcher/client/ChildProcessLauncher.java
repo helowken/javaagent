@@ -1,12 +1,12 @@
 package agent.launcher.client;
 
-import agent.base.runner.Runner;
 import agent.base.utils.ConsoleLogger;
 import agent.base.utils.HostAndPort;
 import agent.base.utils.Utils;
 import agent.cmdline.args.parse.CommonOptConfigs;
 import agent.cmdline.args.parse.OptConfig;
 import agent.cmdline.args.parse.Opts;
+import agent.cmdline.command.parser.AbstractHelpCmdParser;
 import agent.launcher.basic.AbstractLauncher;
 
 import java.io.File;
@@ -16,59 +16,77 @@ import java.util.List;
 import java.util.Map;
 
 public class ChildProcessLauncher extends AbstractLauncher {
+    private static final ConsoleLogger logger = ConsoleLogger.getInstance();
     private static final String KEY_HOST = "host";
     private static final String KEY_PORT = "port";
     private static final String DEFAULT_RUNNER_TYPE = "clientRunner";
-    private static final ChildProcessLauncher instance = new ChildProcessLauncher();
-    private static final ClientLauncherParamParser paramParser = new ClientLauncherParamParser();
 
     public static void main(String[] args) {
+        new ChildProcessLauncher().process(args);
+    }
+
+    void process(String[] args) {
+        exec(args, false);
+    }
+
+    boolean isHelp(String[] args) {
+        return exec(args, true);
+    }
+
+    private boolean exec(String[] args, boolean test) {
+        boolean help = false;
         try {
+            ChildProcessParamParser paramParser = new ChildProcessParamParser();
             Opts opts = paramParser.parse(args).getOpts();
             List<String> restArgList = new ArrayList<>(
                     paramParser.getRestArgs()
             );
-            HostAndPort hostAndPort = AddressUtils.parseAddr(
-                    AddressOptConfigs.getAddress(opts)
-            );
-            instance.init(
-                    getConfigFile(restArgList),
-                    getInitParams(hostAndPort)
-            );
-            instance.loadLibs();
-            restArgList.remove(0);
+            String configFilePath = getConfigFile(restArgList);
 
             List<String> invalidOpts = getInvalidOpts(restArgList);
             if (!invalidOpts.isEmpty()) {
-                System.out.println(
-                        "Unknown options: " + Utils.join(", ", invalidOpts)
+                logger.error(
+                        "Unknown options: {}",
+                        Utils.join(", ", invalidOpts)
                 );
-                return;
+                help = true;
+            } else if (CommonOptConfigs.isVersion(opts)) {
+                logger.error("{}", "JavaAgent 1.0.0");
+                help = true;
+            } else {
+                if (restArgList.isEmpty()) {
+                    restArgList.add("help");
+                    help = true;
+                } else if (CommonOptConfigs.isHelp(opts)) {
+                    restArgList.add(
+                            CommonOptConfigs.getHelpOptName()
+                    );
+                    help = true;
+                } else if (AbstractHelpCmdParser.isHelpCmd(restArgList.get(0)))
+                    help = true;
+
+                if (!test) {
+                    HostAndPort hostAndPort = AddressUtils.parseAddr(
+                            AddressOptConfigs.getAddress(opts)
+                    );
+                    init(
+                            configFilePath,
+                            getInitParams(hostAndPort)
+                    );
+                    loadLibs();
+                    startRunner(
+                            getRunner(DEFAULT_RUNNER_TYPE),
+                            hostAndPort,
+                            paramParser.getOptConfigList(),
+                            restArgList
+                    );
+                }
             }
-
-            if (CommonOptConfigs.isVersion(opts)) {
-                System.out.println("JavaAgent 1.0.0");
-                return;
-            }
-
-            Runner runner = getRunner(DEFAULT_RUNNER_TYPE);
-            if (restArgList.isEmpty())
-                restArgList.add("help");
-            else if (CommonOptConfigs.isHelp(opts))
-                restArgList.add(
-                        CommonOptConfigs.getHelpOptName()
-                );
-
-            instance.startRunner(
-                    runner,
-                    hostAndPort,
-                    paramParser.getOptConfigList(),
-                    restArgList
-            );
         } catch (Throwable t) {
             t.printStackTrace();
             ConsoleLogger.getInstance().error("Error: {}", t.getMessage());
         }
+        return help;
     }
 
     private static List<String> getInvalidOpts(List<String> args) {
@@ -104,7 +122,7 @@ public class ChildProcessLauncher extends AbstractLauncher {
     private static String getConfigFile(List<String> args) {
         if (args.isEmpty())
             throw new RuntimeException("No config file found.");
-        String configFilePath = args.get(0);
+        String configFilePath = args.remove(0);
         if (!new File(configFilePath).exists())
             throw new RuntimeException("Config file does not exist: " + configFilePath);
         return configFilePath;

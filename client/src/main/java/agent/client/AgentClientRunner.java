@@ -110,7 +110,7 @@ public class AgentClientRunner implements Runner {
             if (socket == null) {
                 try {
                     socket = new Socket();
-                    ConsoleLogger.getInstance().info("Connect to: {}:{}", hostAndPort.host, hostAndPort.port);
+                    ConsoleLogger.getInstance().info("Connect to: {}", hostAndPort);
                     socket.connect(
                             new InetSocketAddress(
                                     hostAndPort.host,
