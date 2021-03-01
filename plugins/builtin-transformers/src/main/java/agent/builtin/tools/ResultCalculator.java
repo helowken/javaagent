@@ -39,6 +39,7 @@ public class ResultCalculator {
 
     public static class CostTimeByInvoke {
         public static void main(String[] args) {
+            args = new String[] {"/home/helowken/cost-time/ct"};
             run(
                     args,
                     new CostTimeInvokeResultParamParser(),

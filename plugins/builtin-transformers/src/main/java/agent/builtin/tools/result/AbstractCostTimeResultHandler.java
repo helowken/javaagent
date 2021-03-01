@@ -3,17 +3,30 @@ package agent.builtin.tools.result;
 import agent.base.utils.IOUtils;
 import agent.base.utils.Logger;
 import agent.builtin.tools.result.parse.CostTimeResultParams;
+import agent.common.struct.impl.StructContext;
 import agent.common.tree.Node;
 import agent.server.transform.impl.DestInvokeIdRegistry;
 
 import java.io.File;
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 abstract class AbstractCostTimeResultHandler<T> extends AbstractResultHandler<T, CostTimeResultParams> {
     private static final Logger logger = Logger.getLogger(AbstractCostTimeResultHandler.class);
     private static final String CACHE_FILE_SUFFIX = "_cache";
+    static final StructContext context = new StructContext();
+
+    static {
+        context.addPojoInfo(
+                CostTimeStatItem.class,
+                CostTimeStatItem.POJO_TYPE
+        ).setValueSerializeFunc(
+                (value, index) -> index == 1 || index == 2 ? value.toString() : value
+        ).setValueDeserializeFunc(
+                (value, index) -> index == 1 || index == 2 ? new BigDecimal(value.toString()) : value
+        );
+    }
 
     private String getCacheFilePath(String inputPath) {
         return inputPath + "." + getCacheType() + CACHE_FILE_SUFFIX;
@@ -26,7 +39,7 @@ abstract class AbstractCostTimeResultHandler<T> extends AbstractResultHandler<T,
     }
 
     @Override
-    public void exec(CostTimeResultParams params) throws Exception {
+    public void exec(CostTimeResultParams params) {
         logger.debug("Params: {}", params);
         String inputPath = params.getInputPath();
         List<File> dataFiles = findDataFiles(inputPath);
@@ -63,7 +76,7 @@ abstract class AbstractCostTimeResultHandler<T> extends AbstractResultHandler<T,
             try {
                 System.out.println("Read data from cache file: " + cacheFilePath);
                 return deserializeResult(
-                        IOUtils.readToString(cacheFilePath)
+                        IOUtils.readBytes(cacheFilePath)
                 );
             } catch (Exception e) {
                 logger.error("Print with cache failed: {}", e, cacheFilePath);
@@ -74,12 +87,13 @@ abstract class AbstractCostTimeResultHandler<T> extends AbstractResultHandler<T,
 
     private void cacheResult(String cacheFilePath, T result) {
         try {
-            IOUtils.writeString(
+            IOUtils.writeBytes(
                     cacheFilePath,
                     serializeResult(result),
                     false
             );
         } catch (Throwable t) {
+            t.printStackTrace();
             logger.error("Save result to file failed: {}", t, cacheFilePath);
         }
     }
@@ -106,7 +120,7 @@ abstract class AbstractCostTimeResultHandler<T> extends AbstractResultHandler<T,
     }
 
     Node<String> newInvokeNode(String invoke, CostTimeStatItem item, CostTimeResultParams params) {
-        Set<Float> range = params.getRange();
+//        Set<Float> range = params.getRange();
         return new Node<>(
                 "[" + item.getAvgTimeString() + ", " + item.getCountString() + "] " +
 //                        (range != null ? " " + item.getTimeDistributionString(range) + " " : "") +
@@ -116,9 +130,9 @@ abstract class AbstractCostTimeResultHandler<T> extends AbstractResultHandler<T,
 
     abstract String getCacheType();
 
-    abstract String serializeResult(T result);
+    abstract byte[] serializeResult(T result);
 
-    abstract T deserializeResult(String content);
+    abstract T deserializeResult(byte[] content);
 
     abstract void doPrint(Map<Integer, DestInvokeIdRegistry.InvokeMetadata> idToClassInvoke, T result, CostTimeResultParams params);
 

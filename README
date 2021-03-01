@@ -28,6 +28,5 @@ Structure:
                 server/lib/native
 
             uses dependent jars under:
-                common/lib/dependent
                 server/lib/dependent
 

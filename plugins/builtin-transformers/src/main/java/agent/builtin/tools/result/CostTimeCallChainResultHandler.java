@@ -1,18 +1,18 @@
 package agent.builtin.tools.result;
 
 import agent.builtin.tools.result.data.CallChainData;
-import agent.builtin.tools.result.data.CallChainDataConverter;
 import agent.builtin.tools.result.filter.CostTimeCallChainResultFilter;
 import agent.builtin.tools.result.filter.TreeResultConverter;
 import agent.builtin.tools.result.parse.CostTimeResultParams;
+import agent.common.buffer.ByteUtils;
+import agent.common.struct.impl.Struct;
 import agent.common.tree.Node;
-import agent.common.tree.NodeMapper;
 import agent.common.tree.Tree;
 import agent.common.tree.TreeUtils;
-import agent.common.utils.JsonUtils;
 import agent.server.transform.impl.DestInvokeIdRegistry.InvokeMetadata;
 
 import java.io.File;
+import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,6 +23,23 @@ import java.util.stream.Collectors;
 
 public class CostTimeCallChainResultHandler extends AbstractCostTimeResultHandler<Tree<CallChainData>> {
     private static final String CACHE_TYPE = "chain";
+
+    static {
+        context.setPojoCreator(
+                type -> {
+                    switch (type) {
+                        case CallChainData.POJO_TYPE:
+                            return new CallChainData();
+                        case Node.POJO_TYPE:
+                            return new Node<>();
+                        case Tree.POJO_TYPE:
+                            return new Tree<>();
+                        default:
+                            return null;
+                    }
+                }
+        );
+    }
 
     @Override
     void doPrint(Map<Integer, InvokeMetadata> metadata, Tree<CallChainData> tree, CostTimeResultParams params) {
@@ -41,20 +58,29 @@ public class CostTimeCallChainResultHandler extends AbstractCostTimeResultHandle
     }
 
     @Override
-    String serializeResult(Tree<CallChainData> tree) {
-        return JsonUtils.writeAsString(
-                NodeMapper.serialize(tree, CallChainDataConverter::serialize)
+    byte[] serializeResult(Tree<CallChainData> tree) {
+        TreeUtils.traverse(
+                tree,
+                node -> {
+                    CallChainData data = node.getData();
+                    if (data != null)
+                        data.item.freeze();
+                }
+        );
+        return ByteUtils.getBytes(
+                Struct.serialize(tree, context)
         );
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    Tree<CallChainData> deserializeResult(String content) {
-        return (Tree) NodeMapper.deserialize(
-                null,
-                JsonUtils.read(content),
-                CallChainDataConverter::deserialize
+    Tree<CallChainData> deserializeResult(byte[] content) {
+        Tree<CallChainData> tree = Struct.deserialize(
+                ByteBuffer.wrap(content),
+                context
         );
+        tree.refreshParent();
+        return tree;
     }
 
     private Tree<String> convertTree(Tree<CallChainData> tree, final Map<Integer, InvokeMetadata> idToMetadata, CostTimeResultParams params) {

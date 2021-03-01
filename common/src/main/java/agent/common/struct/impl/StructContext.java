@@ -73,7 +73,10 @@ public class StructContext {
     }
 
     private <T> void setPojoValues(T pojo, List<Object> fieldValues) {
-        List<PojoFieldProperty<T>> fieldPropertyList = (List) getPojoInfo(pojo.getClass()).getAllFieldProperties();
+        PojoInfo<T> pojoInfo = getPojoInfo(
+                (Class<T>) pojo.getClass()
+        );
+        List<PojoFieldProperty<T>> fieldPropertyList = pojoInfo.getAllFieldProperties();
         Utils.wrapToRtError(
                 () -> {
                     Object fieldValue;
@@ -84,7 +87,10 @@ public class StructContext {
                             break;
                         fieldValue = convertValue(
                                 fieldProperty.type,
-                                fieldValues.get(idx++)
+                                pojoInfo.deserializeValue(
+                                        fieldValues.get(idx++),
+                                        fieldProperty.index
+                                )
                         );
                         fieldProperty.setter.invoke(pojo, fieldValue);
                     }
@@ -176,7 +182,10 @@ public class StructContext {
                             .stream()
                             .map(
                                     fieldProperty -> Utils.wrapToRtError(
-                                            () -> fieldProperty.getter.invoke(o)
+                                            () -> pojoInfo.serializeValue(
+                                                    fieldProperty.getter.invoke(o),
+                                                    fieldProperty.index
+                                            )
                                     )
                             )
                             .collect(
@@ -223,10 +232,10 @@ public class StructContext {
         Class<?> tmp = clazz;
         PojoClass pojoAnnt;
         while (tmp != null) {
-             pojoAnnt = tmp.getAnnotation(PojoClass.class);
-             if (pojoAnnt != null)
-                 return pojoAnnt;
-             tmp = tmp.getSuperclass();
+            pojoAnnt = tmp.getAnnotation(PojoClass.class);
+            if (pojoAnnt != null)
+                return pojoAnnt;
+            tmp = tmp.getSuperclass();
         }
         throw new RuntimeException("No pojo type found for class: " + clazz);
     }

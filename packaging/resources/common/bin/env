@@ -19,7 +19,6 @@ export common_lib_base_dir=$common_dir/lib/base
 export common_lib_cmd_dir=$common_dir/lib/cmd
 export common_lib_native_dir=$common_dir/lib/native
 export common_lib_core_dir=$common_dir/lib/core
-export common_lib_dependent_dir=$common_dir/lib/dependent
 export common_lib_so_dir=$common_dir/lib/so
 export lib_dir=$base_dir/lib
 export launcher_dir=$lib_dir/launcher

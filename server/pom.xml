@@ -45,13 +45,12 @@
         <!-- test app -->
         <dependency>
             <groupId>javaagent</groupId>
-            <artifactId>json-dependent</artifactId>
+            <artifactId>asm-dependent</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>javaagent</groupId>
-            <artifactId>asm-dependent</artifactId>
-            <scope>test</scope>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
         </dependency>
     </dependencies>
 

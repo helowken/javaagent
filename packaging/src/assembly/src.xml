@@ -37,13 +37,6 @@
         </dependencySet>
         <dependencySet>
             <useStrictFiltering>true</useStrictFiltering>
-            <outputDirectory>common/lib/dependent</outputDirectory>
-            <includes>
-                <include>javaagent:json-dependent</include>
-            </includes>
-        </dependencySet>
-        <dependencySet>
-            <useStrictFiltering>true</useStrictFiltering>
             <outputDirectory>server/lib/core</outputDirectory>
             <includes>
                 <include>javaagent:invoke-proxy:jar</include>

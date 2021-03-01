@@ -36,10 +36,6 @@
         </dependency>
         <dependency>
             <groupId>javaagent</groupId>
-            <artifactId>json-dependent</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>javaagent</groupId>
             <artifactId>bootstrap</artifactId>
         </dependency>
         <dependency>

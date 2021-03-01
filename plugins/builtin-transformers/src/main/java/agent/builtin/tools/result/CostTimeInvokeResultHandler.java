@@ -1,17 +1,21 @@
 package agent.builtin.tools.result;
 
-import agent.builtin.tools.result.data.InvokeDataConverter;
 import agent.builtin.tools.result.filter.CostTimeInvokeResultFilter;
 import agent.builtin.tools.result.filter.ResultFilterData;
 import agent.builtin.tools.result.parse.CostTimeResultParams;
+import agent.common.buffer.ByteUtils;
+import agent.common.struct.impl.Struct;
 import agent.common.tree.Node;
 import agent.common.tree.Tree;
 import agent.common.tree.TreeUtils;
-import agent.common.utils.JsonUtils;
 import agent.server.transform.impl.DestInvokeIdRegistry.InvokeMetadata;
 
 import java.io.File;
-import java.util.*;
+import java.nio.ByteBuffer;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static agent.builtin.tools.result.filter.ResultFilterUtils.populateFilter;
@@ -25,16 +29,18 @@ public class CostTimeInvokeResultHandler extends AbstractCostTimeResultHandler<M
     }
 
     @Override
-    String serializeResult(Map<Integer, CostTimeStatItem> result) {
-        return JsonUtils.writeAsString(
-                InvokeDataConverter.serialize(result)
+    byte[] serializeResult(Map<Integer, CostTimeStatItem> result) {
+        result.values().forEach(CostTimeStatItem::freeze);
+        return ByteUtils.getBytes(
+                Struct.serialize(result, context)
         );
     }
 
     @Override
-    Map<Integer, CostTimeStatItem> deserializeResult(String content) {
-        return InvokeDataConverter.deserialize(
-                JsonUtils.read(content)
+    Map<Integer, CostTimeStatItem> deserializeResult(byte[] content) {
+        return Struct.deserialize(
+                ByteBuffer.wrap(content),
+                context
         );
     }
 

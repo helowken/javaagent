@@ -11,9 +11,9 @@ import agent.builtin.transformer.CostTimeStatisticsTransformer;
 import agent.builtin.transformer.TraceInvokeTransformer;
 import agent.common.config.InfoQuery;
 import agent.common.config.TargetConfig;
-import agent.common.utils.JsonUtils;
 import agent.server.transform.ConfigTransformer;
 import agent.server.transform.impl.InfoMgr;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Test;
 import test.server.AbstractTest;
 
@@ -128,10 +128,11 @@ public class TraceInvokeTransformerTest2 extends AbstractTest {
                             infoQuery.setLevel(InfoQuery.INFO_PROXY);
                             infoQuery.setTargetConfig(new TargetConfig());
                             System.out.println(
-                                    JsonUtils.writeAsString(
-                                            InfoMgr.create(infoQuery),
-                                            true
-                                    )
+                                    new ObjectMapper()
+                                            .writerWithDefaultPrettyPrinter()
+                                            .writeValueAsString(
+                                                    InfoMgr.create(infoQuery)
+                                            )
                             );
                         }
                 )

@@ -7,7 +7,4 @@ core_dir=$lib_dir/core
 plugin_dir=$lib_dir/plugin
 classpath=$common_lib_base_dir/*:$common_lib_cmd_dir/*:$common_lib_core_dir/*:$plugin_dir/*:$core_dir/*
 
-$JAVA_HOME/bin/java -cp $classpath \
-    -Ddependent.lib.dir=$common_lib_dependent_dir \
-    $main_class \
-    "$@"
+$JAVA_HOME/bin/java -cp $classpath $main_class "$@"

@@ -29,6 +29,7 @@ public class JavascriptExecCmdExecutorTest extends AbstractTest {
          o = CmdExecutorMgr.exec(
                 new DefaultCommand(CMD_JS_EXEC, s)
         ).getContent();
+         System.out.println("=========: " + o);
         ((Map)o).forEach(
                 (k, v) -> System.out.println(k + ": " + v)
         );

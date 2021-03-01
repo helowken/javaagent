@@ -48,11 +48,6 @@
         </dependency>
         <dependency>
             <groupId>javaagent</groupId>
-            <artifactId>json-dependent</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>javaagent</groupId>
             <artifactId>asm-dependent</artifactId>
             <scope>test</scope>
         </dependency>

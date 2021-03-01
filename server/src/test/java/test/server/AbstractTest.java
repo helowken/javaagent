@@ -3,7 +3,6 @@ package test.server;
 import agent.base.utils.*;
 import agent.common.config.*;
 import agent.common.utils.DependentClassItem;
-import agent.common.utils.JsonUtils;
 import agent.common.utils.MetadataUtils;
 import agent.invoke.DestInvoke;
 import agent.invoke.MethodInvoke;
@@ -22,7 +21,6 @@ import agent.server.transform.tools.asm.AsmUtils;
 import agent.server.transform.tools.asm.ProxyTransformMgr;
 import agent.server.utils.log.LogMgr;
 import agent.tools.asm.AsmDelegate;
-import agent.tools.json.JsonDelegate;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 
@@ -68,7 +66,6 @@ public abstract class AbstractTest {
             );
 
             DependentClassItem.getInstance().mock(AsmUtils.ASM_DELEGATE_CLASS, AsmDelegate.class);
-            DependentClassItem.getInstance().mock(JsonUtils.JSON_DELEGATE_CLASS, JsonDelegate.class);
 
             Object[] args = new Object[]{instrumentation};
             InstrumentationMgr.getInstance().onStartup(args);

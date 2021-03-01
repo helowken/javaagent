@@ -1,12 +1,12 @@
 package agent.builtin.tools.result;
 
-import agent.cmdline.args.parse.Opts;
 import agent.base.utils.FileUtils;
 import agent.base.utils.IOUtils;
 import agent.base.utils.Logger;
 import agent.base.utils.Utils;
 import agent.builtin.tools.result.parse.StackTraceResultOptConfigs;
 import agent.builtin.tools.result.parse.StackTraceResultParams;
+import agent.cmdline.args.parse.Opts;
 import agent.common.args.parse.StackTraceOptConfigs;
 import agent.common.struct.impl.Struct;
 import agent.common.struct.impl.StructContext;

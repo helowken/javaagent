@@ -1,19 +1,58 @@
 package agent.builtin.tools.result;
 
+import agent.common.struct.impl.annotation.PojoClass;
+import agent.common.struct.impl.annotation.PojoProperty;
+
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import static agent.builtin.tools.result.CostTimeStatItem.POJO_TYPE;
+
+@PojoClass(type = POJO_TYPE)
 public class CostTimeStatItem {
+    public static final int POJO_TYPE = 2;
     private static final BigDecimal millisecondUnit = new BigDecimal(1000 * 1000);
+    @PojoProperty(index = 1)
     private BigDecimal totalTime = BigDecimal.ZERO;
+    @PojoProperty(index = 2)
     private BigDecimal count = BigDecimal.ZERO;
+    @PojoProperty(index = 3)
+    private long maxTime = 0;
+    @PojoProperty(index = 4)
+    private boolean frozen = false;
     private long currTotalTime = 0;
     private long currCount = 0;
-    private long maxTime = 0;
-    private boolean frozen = false;
+
+    public BigDecimal getTotalTime() {
+        return totalTime;
+    }
+
+    public void setTotalTime(BigDecimal totalTime) {
+        this.totalTime = totalTime;
+    }
+
+    public void setCount(BigDecimal count) {
+        this.count = count;
+    }
+
+    public void setMaxTime(long maxTime) {
+        this.maxTime = maxTime;
+    }
+
+    public long getMaxTime() {
+        return maxTime;
+    }
+
+    public void setFrozen(boolean frozen) {
+        this.frozen = frozen;
+    }
+
+    public boolean isFrozen() {
+        return frozen;
+    }
 
     private void checkFrozen() {
         if (frozen)
@@ -109,10 +148,6 @@ public class CostTimeStatItem {
         if (avgTime % 1 == 0)
             s = String.valueOf((long) avgTime);
         return "avg=" + s + "ms";
-    }
-
-    public long getMaxTime() {
-        return maxTime;
     }
 
     public String getMaxTimeString() {
