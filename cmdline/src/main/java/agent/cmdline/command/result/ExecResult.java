@@ -1,4 +1,4 @@
-package agent.common.message.result;
+package agent.cmdline.command.result;
 
 public interface ExecResult {
     byte SUCCESS = 0;

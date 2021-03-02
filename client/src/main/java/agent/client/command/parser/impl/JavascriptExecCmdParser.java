@@ -9,7 +9,7 @@ import agent.cmdline.args.parse.CmdParamParser;
 import agent.cmdline.args.parse.CmdParams;
 import agent.cmdline.args.parse.KeyValueOptParser;
 import agent.cmdline.command.Command;
-import agent.common.message.command.DefaultCommand;
+import agent.cmdline.command.DefaultCommand;
 
 import static agent.common.message.MessageType.CMD_JS_EXEC;
 

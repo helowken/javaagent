@@ -2,7 +2,8 @@ package agent.client.command.result.handler;
 
 import agent.base.utils.ConsoleLogger;
 import agent.base.utils.Utils;
-import agent.common.message.result.ExecResult;
+import agent.cmdline.command.result.AbstractExecResultHandler;
+import agent.cmdline.command.result.ExecResult;
 import agent.common.message.result.entity.ErrorEntity;
 import agent.common.message.result.entity.TransformResultEntity;
 

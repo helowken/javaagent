@@ -3,9 +3,9 @@ package test.transformer;
 import agent.builtin.tools.result.StackTraceResultHandler;
 import agent.builtin.tools.result.parse.StackTraceResultParamParser;
 import agent.builtin.tools.result.parse.StackTraceResultParams;
-import agent.client.command.parser.ClientCommandParserMgr;
-import agent.common.message.result.ExecResult;
-import agent.server.command.executor.CmdExecutorMgr;
+import agent.client.ClientMgr;
+import agent.cmdline.command.result.ExecResult;
+import agent.server.command.executor.ServerCmdExecMgr;
 import org.junit.Test;
 import test.server.AbstractTest;
 
@@ -17,8 +17,8 @@ public class StackTraceTest extends AbstractTest {
     public void test2() throws Exception {
         runWithFile(
                 (outputPath, config) -> {
-                    ExecResult result = CmdExecutorMgr.exec(
-                            ClientCommandParserMgr.getInstance().parse(
+                    ExecResult result = ServerCmdExecMgr.exec(
+                            ClientMgr.getCmdRunner().getCmdParseMgr().parse(
                                     "st",
                                     new String[]{
                                             "-i", "7",

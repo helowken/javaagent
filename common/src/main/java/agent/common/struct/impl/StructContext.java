@@ -280,45 +280,12 @@ public class StructContext {
                     nameSet.add(propertyName);
 
                     fieldPropertyList.add(
-                            new PojoFieldProperty(
-                                    field.getGenericType(),
-                                    index,
-                                    getMethod(clazz, propertyName, field.getType())::invoke,
-                                    getMethod(clazz, propertyName, null)::invoke
-                            )
+                            PojoFieldProperty.create(field, propertyName, index)
                     );
                 }
             }
         }
         return new PojoFieldPropertyList<>(fieldPropertyList);
-    }
-
-    private Method getMethod(Class<?> clazz, String propertyName, Class<?> fieldClass) {
-        String name = propertyName.substring(0, 1).toUpperCase() + propertyName.substring(1);
-        String[] methodNames;
-        Class[] argClasses;
-        if (fieldClass == null) {
-            methodNames = new String[]{
-                    "get" + name,
-                    "is" + name
-            };
-            argClasses = new Class[0];
-        } else {
-            methodNames = new String[]{
-                    "set" + name
-            };
-            argClasses = new Class[]{fieldClass};
-        }
-        for (String methodName : methodNames) {
-            try {
-                return clazz.getMethod(methodName, argClasses);
-            } catch (NoSuchMethodException e) {
-            }
-        }
-        throw new RuntimeException(
-                "No method found for property: " + propertyName +
-                        " for " + (fieldClass == null ? "getting" : "setting")
-        );
     }
 
     private static class PojoConfig<T> {

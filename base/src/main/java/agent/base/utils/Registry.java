@@ -37,6 +37,11 @@ public class Registry<K, V> {
         return get(key, k -> new RuntimeException("No value found by key: " + k));
     }
 
+    public V get(K key, V defaultValue) {
+        V v = map.get(key);
+        return v == null ? defaultValue : v;
+    }
+
     public <T extends RuntimeException> V get(K key, NotFoundErrorSupplier<K, T> errorSupplier) {
         V v = map.get(key);
         if (v == null && errorSupplier != null)

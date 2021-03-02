@@ -19,7 +19,7 @@ public abstract class AbstractHelpCmdParser extends AbstractCmdParser<CmdParams>
         return Utils.isIn(cmdNames, cmd);
     }
 
-    protected abstract CommandParseMgr getCmdParseMgr();
+    protected abstract List<CmdItem> parse(String cmd, String[] cmdArgs);
 
     protected abstract HelpInfo getFullHelp();
 
@@ -65,7 +65,7 @@ public abstract class AbstractHelpCmdParser extends AbstractCmdParser<CmdParams>
         if (Utils.isIn(getCmdNames(), cmdName))
             return getHelpSelf();
 
-        List<CmdItem> itemList = getCmdParseMgr().parse(
+        List<CmdItem> itemList = parse(
                 cmdName,
                 new String[]{
                         CommonOptConfigs.getHelpOptName()

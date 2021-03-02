@@ -1,11 +1,10 @@
-package agent.server.command.executor;
+package agent.cmdline.command.execute;
 
 import agent.base.utils.Logger;
 import agent.base.utils.Utils;
 import agent.cmdline.command.Command;
-import agent.common.message.command.CommandExecutor;
-import agent.common.message.result.ExecResult;
-import agent.common.message.result.entity.DefaultExecResult;
+import agent.cmdline.command.result.DefaultExecResult;
+import agent.cmdline.command.result.ExecResult;
 
 import java.util.Optional;
 
@@ -34,5 +33,5 @@ public abstract class AbstractCmdExecutor implements CommandExecutor {
         );
     }
 
-    abstract ExecResult doExec(Command cmd) throws Exception;
+    protected abstract ExecResult doExec(Command cmd) throws Exception;
 }

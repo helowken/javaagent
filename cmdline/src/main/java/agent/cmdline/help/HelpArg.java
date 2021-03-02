@@ -10,6 +10,7 @@ public class HelpArg {
     private final String name;
     private final String desc;
     private final boolean isOpt;
+    private final boolean canBeMultiple;
     private final List<HelpArgValue> values = new ArrayList<>();
 
     public HelpArg(String name, String desc) {
@@ -17,9 +18,14 @@ public class HelpArg {
     }
 
     public HelpArg(String name, String desc, boolean isOptional) {
+        this(name, desc, isOptional, false);
+    }
+
+    public HelpArg(String name, String desc, boolean isOptional, boolean canBeMultiple) {
         this.name = name;
         this.desc = desc;
         this.isOpt = isOptional;
+        this.canBeMultiple = canBeMultiple;
     }
 
     public boolean isOptional() {
@@ -31,7 +37,12 @@ public class HelpArg {
     }
 
     public String getUsageName() {
-        return isOpt ? "[<" + name + ">]" : "<" + name + ">";
+        return (isOpt ? "[<" + name + ">]" : "<" + name + ">") +
+                (canBeMultiple ? "..." : "");
+    }
+
+    public boolean isCanBeMultiple() {
+        return canBeMultiple;
     }
 
     public HelpArg add(String value, String desc, boolean isDefault) {

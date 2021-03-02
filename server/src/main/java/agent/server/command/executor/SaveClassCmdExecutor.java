@@ -2,10 +2,11 @@ package agent.server.command.executor;
 
 import agent.base.utils.Logger;
 import agent.base.utils.ReflectionUtils;
-import agent.common.config.SaveClassConfig;
 import agent.cmdline.command.Command;
-import agent.common.message.result.ExecResult;
-import agent.common.message.result.entity.DefaultExecResult;
+import agent.cmdline.command.execute.AbstractCmdExecutor;
+import agent.cmdline.command.result.DefaultExecResult;
+import agent.cmdline.command.result.ExecResult;
+import agent.common.config.SaveClassConfig;
 import agent.server.transform.revision.ClassDataRepository;
 import agent.server.transform.revision.ClassDataStore;
 import agent.server.transform.search.ClassCache;
@@ -21,7 +22,7 @@ class SaveClassCmdExecutor extends AbstractCmdExecutor {
     private static final Logger logger = Logger.getLogger(SaveClassCmdExecutor.class);
 
     @Override
-    ExecResult doExec(Command cmd) throws Exception {
+    protected ExecResult doExec(Command cmd) throws Exception {
         SaveClassConfig config = cmd.getContent();
         return DefaultExecResult.toSuccess(
                 cmd.getType(),

@@ -8,7 +8,7 @@ import agent.cmdline.command.Command;
 import agent.cmdline.exception.ArgMissingException;
 import agent.common.config.ModuleConfig;
 import agent.common.config.TransformerConfig;
-import agent.common.message.command.DefaultCommand;
+import agent.cmdline.command.DefaultCommand;
 
 import java.util.Collections;
 

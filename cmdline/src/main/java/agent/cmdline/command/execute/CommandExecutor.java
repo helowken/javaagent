@@ -1,7 +1,7 @@
-package agent.common.message.command;
+package agent.cmdline.command.execute;
 
 import agent.cmdline.command.Command;
-import agent.common.message.result.ExecResult;
+import agent.cmdline.command.result.ExecResult;
 
 public interface CommandExecutor {
     ExecResult exec(Command cmd);

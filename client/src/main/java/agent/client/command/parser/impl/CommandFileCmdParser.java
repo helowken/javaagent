@@ -4,7 +4,7 @@ import agent.base.utils.FileUtils;
 import agent.base.utils.IOUtils;
 import agent.base.utils.StringParser;
 import agent.base.utils.Utils;
-import agent.client.command.parser.ClientCommandParserMgr;
+import agent.client.ClientMgr;
 import agent.cmdline.args.parse.CmdParamParser;
 import agent.cmdline.args.parse.CmdParams;
 import agent.cmdline.args.parse.DefaultParamParser;
@@ -74,7 +74,7 @@ public class CommandFileCmdParser extends ClientAbstractCmdParser<CmdParams> {
                                         !line.startsWith("#") &&
                                         !line.startsWith("//")) {
                                     List<String> argList = splitStringToArgs(line);
-                                    List<CmdItem> itemList = ClientCommandParserMgr.getInstance().parse(argList);
+                                    List<CmdItem> itemList = ClientMgr.getCmdRunner().getCmdParseMgr().parse(argList);
                                     for (CmdItem item : itemList) {
                                         item.setCmdLine(line);
                                     }

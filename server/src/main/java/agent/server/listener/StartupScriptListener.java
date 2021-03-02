@@ -3,10 +3,10 @@ package agent.server.listener;
 import agent.base.utils.Utils;
 import agent.cmdline.command.CmdItem;
 import agent.cmdline.command.Command;
-import agent.common.message.result.ExecResult;
+import agent.cmdline.command.result.ExecResult;
 import agent.server.ServerListener;
 import agent.server.command.client.ClientUtils;
-import agent.server.command.executor.CmdExecutorMgr;
+import agent.server.command.executor.ServerCmdExecMgr;
 
 import java.io.File;
 import java.util.List;
@@ -33,7 +33,7 @@ public class StartupScriptListener implements ServerListener {
                 item.print();
                 cmd = item.getCmd();
                 if (cmd != null) {
-                    ExecResult rs = CmdExecutorMgr.exec(cmd);
+                    ExecResult rs = ServerCmdExecMgr.exec(cmd);
                     ClientUtils.handleResult(cmd, rs);
                     if (!rs.isSuccess())
                         break;

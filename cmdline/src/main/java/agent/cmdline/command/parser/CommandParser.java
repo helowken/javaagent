@@ -1,4 +1,6 @@
-package agent.cmdline.command;
+package agent.cmdline.command.parser;
+
+import agent.cmdline.command.CmdItem;
 
 import java.util.List;
 

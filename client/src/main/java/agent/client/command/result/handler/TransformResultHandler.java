@@ -1,7 +1,7 @@
 package agent.client.command.result.handler;
 
 import agent.cmdline.command.Command;
-import agent.common.message.result.ExecResult;
+import agent.cmdline.command.result.ExecResult;
 
 public class TransformResultHandler extends AbstractTransformResultHandler {
     @Override

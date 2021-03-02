@@ -1,18 +1,9 @@
-package agent.common.message.result.entity;
-
-import agent.common.message.result.ExecResult;
-import agent.common.struct.impl.annotation.PojoProperty;
-
-import static agent.common.message.MessageType.CMD_NONE;
+package agent.cmdline.command.result;
 
 public class DefaultExecResult implements ExecResult {
-    @PojoProperty(index = 0)
     private int cmdType;
-    @PojoProperty(index = 1)
     private byte status;
-    @PojoProperty(index = 2)
     private String message;
-    @PojoProperty(index = 3)
     private Object content;
 
     public static DefaultExecResult toSuccess(int cmdType) {
@@ -32,7 +23,7 @@ public class DefaultExecResult implements ExecResult {
     }
 
     public static DefaultExecResult toRuntimeError(String errMsg) {
-        return toError(CMD_NONE, errMsg, null);
+        return toError(-1, errMsg, null);
     }
 
     private static DefaultExecResult toResult(int cmdType, byte status, String msg, Object content) {

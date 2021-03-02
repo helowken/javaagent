@@ -1,6 +1,9 @@
 package agent.common.struct.impl;
 
+import agent.base.utils.Utils;
+
 import java.util.*;
+import java.util.function.Function;
 
 public class PojoFieldPropertyList<T> {
     private static final Comparator<PojoFieldProperty> comparator = (o1, o2) -> {
@@ -38,5 +41,29 @@ public class PojoFieldPropertyList<T> {
                         throw new RuntimeException("Getter and Setter can not both be null.");
                 }
         );
+    }
+
+    public static <V> PojoFieldPropertyList<V> create(Class<V> clazz, String... fieldNames) {
+        return create(clazz, null, null, fieldNames);
+    }
+
+    public static <V> PojoFieldPropertyList<V> create(Class<V> clazz, Function<String, String> fieldToPropertyFunc,
+                                                      Function<String, Integer> indexFunc, String... fieldNames) {
+        if (fieldNames == null || fieldNames.length == 0)
+            throw new IllegalArgumentException("Field names can not be blank.");
+        int idx = 0;
+        int currIdx;
+        String propertyName;
+        List<PojoFieldProperty<V>> rsList = new ArrayList<>(fieldNames.length);
+        for (String fieldName : fieldNames) {
+            if (Utils.isBlank(fieldName))
+                throw new IllegalArgumentException("Illegal field name: " + fieldName);
+            currIdx = indexFunc == null ? idx++ : indexFunc.apply(fieldName);
+            propertyName = fieldToPropertyFunc == null ? fieldName : fieldToPropertyFunc.apply(fieldName);
+            rsList.add(
+                    PojoFieldProperty.create(clazz, fieldName, propertyName, currIdx)
+            );
+        }
+        return new PojoFieldPropertyList<>(rsList);
     }
 }

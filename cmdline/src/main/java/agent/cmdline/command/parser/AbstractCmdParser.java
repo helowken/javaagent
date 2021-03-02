@@ -5,7 +5,6 @@ import agent.cmdline.args.parse.CmdParams;
 import agent.cmdline.args.parse.OptConfig;
 import agent.cmdline.command.CmdItem;
 import agent.cmdline.command.Command;
-import agent.cmdline.command.CommandParser;
 import agent.cmdline.exception.TooFewArgsException;
 import agent.cmdline.help.HelpArg;
 import agent.cmdline.help.HelpInfo;

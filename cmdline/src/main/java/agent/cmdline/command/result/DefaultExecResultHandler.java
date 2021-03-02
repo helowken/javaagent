@@ -1,4 +1,4 @@
-package agent.client.command.result.handler;
+package agent.cmdline.command.result;
 
 public class DefaultExecResultHandler extends AbstractExecResultHandler {
     private static final DefaultExecResultHandler instance = new DefaultExecResultHandler();

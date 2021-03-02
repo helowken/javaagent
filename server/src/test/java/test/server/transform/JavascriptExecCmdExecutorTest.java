@@ -1,13 +1,10 @@
 package test.server.transform;
 
-import agent.common.message.command.DefaultCommand;
-import agent.jvmti.JvmtiUtils;
-import agent.server.command.executor.CmdExecutorMgr;
-import agent.server.transform.TransformMgr;
+import agent.cmdline.command.DefaultCommand;
+import agent.server.command.executor.ServerCmdExecMgr;
 import org.junit.Test;
 import test.server.AbstractTest;
 
-import java.util.Collection;
 import java.util.Date;
 import java.util.Map;
 
@@ -18,7 +15,7 @@ public class JavascriptExecCmdExecutorTest extends AbstractTest {
     public void test() {
         String className = Date.class.getName();
         String s = "$.fields('" + className + "')";
-        Object o = CmdExecutorMgr.exec(
+        Object o = ServerCmdExecMgr.exec(
                 new DefaultCommand(CMD_JS_EXEC, s)
         ).getContent();
         ((Map)o).forEach(
@@ -26,7 +23,7 @@ public class JavascriptExecCmdExecutorTest extends AbstractTest {
         );
 
         s = "$.methods('" + className + "')";
-         o = CmdExecutorMgr.exec(
+         o = ServerCmdExecMgr.exec(
                 new DefaultCommand(CMD_JS_EXEC, s)
         ).getContent();
          System.out.println("=========: " + o);
@@ -35,7 +32,7 @@ public class JavascriptExecCmdExecutorTest extends AbstractTest {
         );
 
         s = "$.clsInfo('" + className + "')";
-        o = CmdExecutorMgr.exec(
+        o = ServerCmdExecMgr.exec(
                 new DefaultCommand(CMD_JS_EXEC, s)
         ).getContent();
         ((Map)o).forEach(

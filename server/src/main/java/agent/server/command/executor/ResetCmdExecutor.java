@@ -1,8 +1,8 @@
 package agent.server.command.executor;
 
-import agent.common.config.ResetConfig;
 import agent.cmdline.command.Command;
-import agent.common.message.result.ExecResult;
+import agent.cmdline.command.result.ExecResult;
+import agent.common.config.ResetConfig;
 import agent.invoke.DestInvoke;
 import agent.server.transform.TransformLock;
 import agent.server.transform.TransformMgr;
@@ -21,7 +21,7 @@ class ResetCmdExecutor extends AbstractTransformCmdExecutor {
     private static final String PREFIX = "Reset";
 
     @Override
-    ExecResult doExec(Command cmd) {
+    protected ExecResult doExec(Command cmd) {
         ResetConfig config = cmd.getContent();
         config.validate();
 

@@ -9,8 +9,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import static agent.client.command.parser.CmdHelpUtils.getOutputPathHelpArg;
-import static agent.client.command.parser.CmdHelpUtils.getTransformerIdHelpArg;
+import static agent.client.command.parser.ClientCmdHelpUtils.getOutputPathHelpArg;
+import static agent.client.command.parser.ClientCmdHelpUtils.getTransformerIdHelpArg;
 
 public abstract class BuiltInTransformCmdParser extends AbstractTransformCmdParser {
     @Override

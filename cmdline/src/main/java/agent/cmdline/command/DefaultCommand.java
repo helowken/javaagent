@@ -1,12 +1,7 @@
-package agent.common.message.command;
-
-import agent.cmdline.command.Command;
-import agent.common.struct.impl.annotation.PojoProperty;
+package agent.cmdline.command;
 
 public class DefaultCommand implements Command {
-    @PojoProperty(index = 0)
     private int type;
-    @PojoProperty(index = 1)
     private Object content;
 
     public DefaultCommand() {
@@ -33,5 +28,9 @@ public class DefaultCommand implements Command {
     @Override
     public <T> T getContent() {
         return (T) content;
+    }
+
+    public static String[] getFieldNames() {
+        return new String[]{"type", "content"};
     }
 }

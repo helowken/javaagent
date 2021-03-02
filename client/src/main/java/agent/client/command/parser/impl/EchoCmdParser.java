@@ -6,7 +6,7 @@ import agent.cmdline.args.parse.CmdParams;
 import agent.cmdline.args.parse.DefaultParamParser;
 import agent.cmdline.command.Command;
 import agent.cmdline.help.HelpArg;
-import agent.common.message.command.DefaultCommand;
+import agent.cmdline.command.DefaultCommand;
 
 import java.util.Collections;
 import java.util.List;

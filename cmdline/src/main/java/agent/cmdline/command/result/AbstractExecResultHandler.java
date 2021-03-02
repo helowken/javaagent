@@ -1,10 +1,8 @@
-package agent.client.command.result.handler;
+package agent.cmdline.command.result;
 
 import agent.base.utils.ConsoleLogger;
 import agent.base.utils.Logger;
-import agent.client.command.result.ExecResultHandler;
 import agent.cmdline.command.Command;
-import agent.common.message.result.ExecResult;
 
 public abstract class AbstractExecResultHandler implements ExecResultHandler {
     private static final Logger logger = Logger.getLogger(AbstractExecResultHandler.class);

@@ -3,7 +3,7 @@ package agent.client.command.parser.impl;
 import agent.base.utils.FileUtils;
 import agent.base.utils.IOUtils;
 import agent.base.utils.Utils;
-import agent.client.command.parser.CmdHelpUtils;
+import agent.client.command.parser.ClientCmdHelpUtils;
 import agent.cmdline.args.parse.CmdParams;
 import agent.cmdline.help.HelpArg;
 import agent.common.config.TransformerConfig;
@@ -16,7 +16,7 @@ public class JavascriptTransformCmdParser extends AbstractTransformCmdParser {
     @Override
     protected List<HelpArg> createHelpArgList() {
         return Arrays.asList(
-                CmdHelpUtils.getTransformerIdHelpArg(),
+                ClientCmdHelpUtils.getTransformerIdHelpArg(),
                 new HelpArg(
                         "JS_FILE",
                         "Javascript file used for transformation."

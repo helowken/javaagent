@@ -4,7 +4,7 @@ import agent.base.utils.ReflectionUtils;
 import agent.base.utils.Utils;
 import agent.cmdline.command.CmdItem;
 import agent.cmdline.command.Command;
-import agent.common.message.result.ExecResult;
+import agent.cmdline.command.result.ExecResult;
 import agent.common.utils.DependentClassItem;
 
 import java.util.List;

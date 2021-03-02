@@ -3,7 +3,8 @@ package agent.client.command.result.handler;
 import agent.base.utils.ConsoleLogger;
 import agent.base.utils.IndentUtils;
 import agent.cmdline.command.Command;
-import agent.common.message.result.ExecResult;
+import agent.cmdline.command.result.AbstractExecResultHandler;
+import agent.cmdline.command.result.ExecResult;
 
 import java.util.Collection;
 import java.util.Map;

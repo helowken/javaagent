@@ -3,8 +3,8 @@ package test.transformer;
 import agent.base.utils.IOUtils;
 import agent.base.utils.ReflectionUtils;
 import agent.common.config.InvokeChainConfig;
-import agent.common.message.command.DefaultCommand;
-import agent.server.command.executor.CmdExecutorMgr;
+import agent.cmdline.command.DefaultCommand;
+import agent.server.command.executor.ServerCmdExecMgr;
 import agent.server.transform.ConfigTransformer;
 import agent.server.transform.TransformerRegistry;
 import agent.server.transform.impl.JavascriptTransformer;
@@ -60,7 +60,7 @@ public class JavascriptTransformerTest extends AbstractTest {
 
                     System.out.println("========= After Reset ==========");
                     script = "function reset(r) {r.set(0);} rs=$.data('" + instanceKey + "').getIntMap().values().forEach(reset);";
-                    CmdExecutorMgr.exec(
+                    ServerCmdExecMgr.exec(
                             new DefaultCommand(CMD_JS_EXEC, script)
                     );
                     TransformerRegistry.getTransformerData(instanceKey).getIntMap().forEach(

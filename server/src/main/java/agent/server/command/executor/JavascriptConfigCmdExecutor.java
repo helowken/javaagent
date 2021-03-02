@@ -1,13 +1,14 @@
 package agent.server.command.executor;
 
 import agent.cmdline.command.Command;
-import agent.common.message.result.ExecResult;
+import agent.cmdline.command.execute.AbstractCmdExecutor;
+import agent.cmdline.command.result.ExecResult;
 import agent.server.transform.impl.ScriptEngineMgr;
 
 
 class JavascriptConfigCmdExecutor extends AbstractCmdExecutor {
     @Override
-    ExecResult doExec(Command cmd) throws Exception {
+    protected ExecResult doExec(Command cmd) throws Exception {
         ScriptEngineMgr.javascript().setGlobalBindings(
                 cmd.getContent()
         );

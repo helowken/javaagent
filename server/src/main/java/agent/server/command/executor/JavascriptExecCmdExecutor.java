@@ -2,8 +2,9 @@ package agent.server.command.executor;
 
 import agent.base.utils.Utils;
 import agent.cmdline.command.Command;
-import agent.common.message.result.ExecResult;
-import agent.common.message.result.entity.DefaultExecResult;
+import agent.cmdline.command.execute.AbstractCmdExecutor;
+import agent.cmdline.command.result.DefaultExecResult;
+import agent.cmdline.command.result.ExecResult;
 import agent.server.command.executor.script.ScriptUtils;
 
 import java.io.StringWriter;
@@ -14,7 +15,7 @@ import java.util.stream.Collectors;
 
 class JavascriptExecCmdExecutor extends AbstractCmdExecutor {
     @Override
-    ExecResult doExec(Command cmd) throws Exception {
+    protected ExecResult doExec(Command cmd) throws Exception {
         String script = cmd.getContent();
         Object rs = null;
         Map<String, Object> rsMap = new HashMap<>();

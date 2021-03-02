@@ -12,7 +12,8 @@ class AddressOptConfigs {
                     OPT_ADDR,
                     "--addr",
                     KEY_ADDRESS,
-                    "Specify server address. Multiple addresses are separated by ','. " +
+                    "Specify server address.\n" +
+                            "Multiple addresses are separated by ','.\n" +
                             "Default: \"" + AddressUtils.defaultAddress + "\""
             )
     );

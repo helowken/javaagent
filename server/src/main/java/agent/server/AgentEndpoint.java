@@ -3,9 +3,9 @@ package agent.server;
 import agent.base.utils.Logger;
 import agent.common.message.DefaultMessage;
 import agent.cmdline.command.Command;
-import agent.common.message.result.entity.DefaultExecResult;
+import agent.cmdline.command.result.DefaultExecResult;
 import agent.common.network.MessageIO;
-import agent.server.command.executor.CmdExecutorMgr;
+import agent.server.command.executor.ServerCmdExecMgr;
 
 import java.io.IOException;
 import java.net.Socket;
@@ -47,7 +47,7 @@ public class AgentEndpoint implements Runnable {
             Command cmd = io.receive().getBody();
             io.send(
                     DefaultMessage.toMessage(
-                            CmdExecutorMgr.exec(cmd)
+                            ServerCmdExecMgr.exec(cmd)
                     )
             );
         } catch (Exception e) {

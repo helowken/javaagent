@@ -2,12 +2,14 @@ package agent.common.message;
 
 import agent.base.utils.Logger;
 import agent.base.utils.Utils;
+import agent.cmdline.command.DefaultCommand;
 import agent.common.config.*;
-import agent.common.message.command.DefaultCommand;
-import agent.common.message.result.entity.DefaultExecResult;
+import agent.cmdline.command.result.DefaultExecResult;
 import agent.common.message.result.entity.ErrorEntity;
 import agent.common.message.result.entity.TransformResultEntity;
 import agent.common.message.version.ApiVersion;
+import agent.common.struct.impl.PojoFieldPropertyList;
+import agent.common.struct.impl.PojoInfo;
 import agent.common.struct.impl.Struct;
 import agent.common.struct.impl.StructContext;
 
@@ -22,7 +24,6 @@ public class MessageMgr {
                 ApiVersion.class,
                 DefaultMessage.class,
 
-                DefaultCommand.class,
                 DefaultExecResult.class,
                 ErrorEntity.class,
                 TransformResultEntity.class,
@@ -41,9 +42,23 @@ public class MessageMgr {
                 SaveClassConfig.class,
                 StackTraceConfig.class
         };
-        for (int i = 0; i < pojoClasses.length; ++i) {
-            context.addPojoInfo(pojoClasses[i], i);
+
+        int pojoType = 0;
+        for (Class<?> pojoClass : pojoClasses) {
+            context.addPojoInfo(pojoClass, pojoType++);
         }
+
+        context.addPojoInfo(
+                DefaultCommand.class,
+                new PojoInfo<>(
+                        pojoType,
+                        DefaultCommand::new,
+                        PojoFieldPropertyList.create(
+                                DefaultCommand.class,
+                                DefaultCommand.getFieldNames()
+                        )
+                )
+        );
     }
 
     public static Message deserialize(ByteBuffer bb) {

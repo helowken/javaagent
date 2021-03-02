@@ -1,10 +1,11 @@
 package agent.server.command.executor;
 
 import agent.base.utils.InvokeDescriptorUtils;
-import agent.common.config.ModuleConfig;
 import agent.cmdline.command.Command;
-import agent.common.message.result.ExecResult;
-import agent.common.message.result.entity.DefaultExecResult;
+import agent.cmdline.command.execute.AbstractCmdExecutor;
+import agent.cmdline.command.result.DefaultExecResult;
+import agent.cmdline.command.result.ExecResult;
+import agent.common.config.ModuleConfig;
 import agent.invoke.DestInvoke;
 import agent.server.transform.TransformMgr;
 
@@ -16,7 +17,7 @@ import java.util.TreeSet;
 class SearchCmdExecutor extends AbstractCmdExecutor {
 
     @Override
-    ExecResult doExec(Command cmd) {
+    protected ExecResult doExec(Command cmd) {
         return DefaultExecResult.toSuccess(
                 cmd.getType(),
                 null,

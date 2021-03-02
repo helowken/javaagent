@@ -1,8 +1,9 @@
 package agent.server.command.executor;
 
 import agent.base.utils.Utils;
-import agent.common.message.result.ExecResult;
-import agent.common.message.result.entity.DefaultExecResult;
+import agent.cmdline.command.execute.AbstractCmdExecutor;
+import agent.cmdline.command.result.ExecResult;
+import agent.cmdline.command.result.DefaultExecResult;
 import agent.common.message.result.entity.ErrorEntity;
 import agent.common.message.result.entity.TransformResultEntity;
 import agent.server.transform.TransformResult;

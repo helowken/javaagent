@@ -1,7 +1,7 @@
 package agent.server.command.executor;
 
 import agent.cmdline.command.Command;
-import agent.common.message.result.ExecResult;
+import agent.cmdline.command.result.ExecResult;
 import agent.server.transform.TransformLock;
 import agent.server.transform.TransformMgr;
 import agent.server.transform.TransformResult;
@@ -12,7 +12,7 @@ class TransformCmdExecutor extends AbstractTransformCmdExecutor {
     private static final String PREFIX = "Transform";
 
     @Override
-    ExecResult doExec(Command cmd) {
+    protected ExecResult doExec(Command cmd) {
         return convert(
                 TransformLock.useLock(
                         () -> {
