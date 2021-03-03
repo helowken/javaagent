@@ -11,7 +11,6 @@ import agent.cmdline.exception.CommandParseException;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 public abstract class AbstractCommandRunner {
@@ -28,13 +27,6 @@ public abstract class AbstractCommandRunner {
         run(
                 Arrays.asList(args)
         );
-    }
-
-    public void run(String cmd, String[] cmdArgs) {
-        List<String> argList = new ArrayList<>();
-        argList.add(cmd);
-        Collections.addAll(argList, cmdArgs);
-        run(argList);
     }
 
     public void run(List<String> argList) {

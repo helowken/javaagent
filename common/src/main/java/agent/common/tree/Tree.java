@@ -1,6 +1,6 @@
 package agent.common.tree;
 
-import agent.common.struct.impl.annotation.PojoClass;
+import agent.base.struct.annotation.PojoClass;
 
 import static agent.common.tree.Tree.POJO_TYPE;
 

@@ -3,7 +3,7 @@ package agent.builtin.tools.result;
 import agent.base.utils.*;
 import agent.base.utils.InvokeDescriptorUtils.TextConfig;
 import agent.builtin.tools.result.parse.ResultParams;
-import agent.common.struct.impl.Struct;
+import agent.base.struct.impl.Struct;
 import agent.common.utils.MetadataUtils;
 import agent.server.transform.impl.DestInvokeIdRegistry;
 import agent.server.transform.impl.DestInvokeIdRegistry.InvokeMetadata;

@@ -1,17 +1,15 @@
 package agent.common.message;
 
+import agent.base.struct.impl.Struct;
+import agent.base.struct.impl.StructContext;
 import agent.base.utils.Logger;
 import agent.base.utils.Utils;
 import agent.cmdline.command.DefaultCommand;
-import agent.common.config.*;
 import agent.cmdline.command.result.DefaultExecResult;
+import agent.common.config.*;
 import agent.common.message.result.entity.ErrorEntity;
 import agent.common.message.result.entity.TransformResultEntity;
 import agent.common.message.version.ApiVersion;
-import agent.common.struct.impl.PojoFieldPropertyList;
-import agent.common.struct.impl.PojoInfo;
-import agent.common.struct.impl.Struct;
-import agent.common.struct.impl.StructContext;
 
 import java.nio.ByteBuffer;
 
@@ -23,8 +21,9 @@ public class MessageMgr {
         Class<?>[] pojoClasses = new Class[]{
                 ApiVersion.class,
                 DefaultMessage.class,
-
+                DefaultCommand.class,
                 DefaultExecResult.class,
+
                 ErrorEntity.class,
                 TransformResultEntity.class,
 
@@ -47,18 +46,6 @@ public class MessageMgr {
         for (Class<?> pojoClass : pojoClasses) {
             context.addPojoInfo(pojoClass, pojoType++);
         }
-
-        context.addPojoInfo(
-                DefaultCommand.class,
-                new PojoInfo<>(
-                        pojoType,
-                        DefaultCommand::new,
-                        PojoFieldPropertyList.create(
-                                DefaultCommand.class,
-                                DefaultCommand.getFieldNames()
-                        )
-                )
-        );
     }
 
     public static Message deserialize(ByteBuffer bb) {

@@ -1,6 +1,6 @@
 package agent.common.config;
 
-import agent.common.struct.impl.annotation.PojoProperty;
+import agent.base.struct.annotation.PojoProperty;
 
 import java.util.Collections;
 import java.util.Objects;

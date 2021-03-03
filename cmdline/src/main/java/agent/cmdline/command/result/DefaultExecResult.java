@@ -1,10 +1,20 @@
 package agent.cmdline.command.result;
 
+import agent.base.struct.annotation.PojoProperty;
+
 public class DefaultExecResult implements ExecResult {
+    @PojoProperty(index=1)
     private int cmdType;
+    @PojoProperty(index=2)
     private byte status;
+    @PojoProperty(index=3)
     private String message;
+    @PojoProperty(index=4)
     private Object content;
+
+    public static String[] getFieldNames() {
+        return new String[]{"cmdType", "status", "message", "content"};
+    }
 
     public static DefaultExecResult toSuccess(int cmdType) {
         return toSuccess(cmdType, null);

@@ -2,16 +2,14 @@ package agent.dynamic.attach;
 
 import agent.base.utils.ConsoleLogger;
 import agent.base.utils.Logger;
-import agent.cmdline.command.CmdItem;
-import agent.cmdline.command.parser.AbstractHelpCmdParser;
+import agent.cmdline.args.parse.CommonOptConfigs;
 import agent.cmdline.command.runner.DefaultCommandRunner;
-import agent.cmdline.help.HelpInfo;
-import agent.cmdline.help.HelpSection;
 import agent.jvmti.JvmtiUtils;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
-import static agent.cmdline.help.HelpSection.PADDING_1;
 import static agent.dynamic.attach.AttachCmdType.CMD_ATTACH;
 
 public class AttachLauncher {
@@ -23,13 +21,9 @@ public class AttachLauncher {
         );
         Logger.setAsync(false);
 
-        cmdRunner.getCmdParseMgr()
-                .reg(
-                        new AttachCmdParser()
-                )
-                .reg(
-                        new AttachHelpCmdParser()
-                );
+        cmdRunner.getCmdParseMgr().reg(
+                new AttachCmdParser()
+        );
 
         cmdRunner.getCmdExecMgr().reg(
                 CMD_ATTACH,
@@ -39,22 +33,15 @@ public class AttachLauncher {
 
     public static void main(String[] args) {
         JvmtiUtils.getInstance().loadSelfLibrary();
-        cmdRunner.run(AttachCmdParser.CMD, args);
+        List<String> argList = new ArrayList<>();
+        argList.add(0, AttachCmdParser.CMD);
+        if (args.length == 0)
+            argList.add(
+                    CommonOptConfigs.getHelpOptName()
+            );
+        else
+            Collections.addAll(argList, args);
+        cmdRunner.run(argList);
     }
 
-
-    private static class AttachHelpCmdParser extends AbstractHelpCmdParser {
-        @Override
-        protected List<CmdItem> parse(String cmd, String[] cmdArgs) {
-            return null;
-        }
-
-        @Override
-        protected HelpInfo getFullHelp() {
-            return new HelpSection("Commands:\n", PADDING_1)
-                    .add(
-                            cmdRunner.getCmdParseMgr().getCmdHelps()
-                    );
-        }
-    }
 }

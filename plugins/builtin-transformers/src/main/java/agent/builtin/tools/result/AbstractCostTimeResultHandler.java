@@ -3,7 +3,7 @@ package agent.builtin.tools.result;
 import agent.base.utils.IOUtils;
 import agent.base.utils.Logger;
 import agent.builtin.tools.result.parse.CostTimeResultParams;
-import agent.common.struct.impl.StructContext;
+import agent.base.struct.impl.StructContext;
 import agent.common.tree.Node;
 import agent.server.transform.impl.DestInvokeIdRegistry;
 

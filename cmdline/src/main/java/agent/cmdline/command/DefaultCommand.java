@@ -1,7 +1,11 @@
 package agent.cmdline.command;
 
+import agent.base.struct.annotation.PojoProperty;
+
 public class DefaultCommand implements Command {
+    @PojoProperty(index=1)
     private int type;
+    @PojoProperty(index=2)
     private Object content;
 
     public DefaultCommand() {

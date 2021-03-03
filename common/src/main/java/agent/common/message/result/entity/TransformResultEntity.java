@@ -1,6 +1,6 @@
 package agent.common.message.result.entity;
 
-import agent.common.struct.impl.annotation.PojoProperty;
+import agent.base.struct.annotation.PojoProperty;
 
 import java.util.ArrayList;
 import java.util.HashMap;

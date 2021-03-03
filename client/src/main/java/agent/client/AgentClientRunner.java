@@ -24,9 +24,7 @@ public class AgentClientRunner implements Runner {
         );
         List<String> cmdArgs = Utils.getArgValue(args, 2);
         logger.debug("Cmd args: {}", cmdArgs);
-        ClientMgr.getCmdRunner().run(
-                cmdArgs.toArray(new String[0])
-        );
+        ClientMgr.getCmdRunner().run(cmdArgs);
     }
 
     @Override

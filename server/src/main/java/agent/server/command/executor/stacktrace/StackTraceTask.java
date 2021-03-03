@@ -2,8 +2,8 @@ package agent.server.command.executor.stacktrace;
 
 import agent.base.utils.Logger;
 import agent.common.config.StackTraceConfig;
-import agent.common.struct.impl.Struct;
-import agent.common.struct.impl.StructContext;
+import agent.base.struct.impl.Struct;
+import agent.base.struct.impl.StructContext;
 import agent.server.schedule.ScheduleTask;
 import agent.server.utils.log.LogMgr;
 

@@ -1,12 +1,9 @@
 package agent.common.config;
 
-import agent.common.struct.impl.annotation.PojoProperty;
+import agent.base.struct.annotation.PojoProperty;
 
 import java.util.Map;
 import java.util.Objects;
-import java.util.regex.Pattern;
-
-import static agent.base.utils.AssertUtils.assertTrue;
 
 public class TransformerConfig extends AbstractValidConfig {
     @PojoProperty(index = 0)

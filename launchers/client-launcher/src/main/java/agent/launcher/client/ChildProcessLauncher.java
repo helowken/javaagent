@@ -6,7 +6,7 @@ import agent.base.utils.Utils;
 import agent.cmdline.args.parse.CommonOptConfigs;
 import agent.cmdline.args.parse.OptConfig;
 import agent.cmdline.args.parse.Opts;
-import agent.cmdline.command.parser.AbstractHelpCmdParser;
+import agent.cmdline.help.HelpUtils;
 import agent.launcher.basic.AbstractLauncher;
 
 import java.io.File;
@@ -20,73 +20,76 @@ public class ChildProcessLauncher extends AbstractLauncher {
     private static final String KEY_HOST = "host";
     private static final String KEY_PORT = "port";
     private static final String DEFAULT_RUNNER_TYPE = "clientRunner";
+    static final int STATUS_STOP = 0;
+    static final int STATUS_HELP = 1;
+    private static final int STATUS_TO_RUN = 2;
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
         new ChildProcessLauncher().process(args);
     }
 
-    void process(String[] args) {
+    void process(String[] args) throws Exception {
         exec(args, false);
     }
 
-    boolean isHelp(String[] args) {
+    int test(String[] args) throws Exception {
         return exec(args, true);
     }
 
-    private boolean exec(String[] args, boolean test) {
-        boolean help = false;
-        try {
-            ChildProcessParamParser paramParser = new ChildProcessParamParser();
-            Opts opts = paramParser.parse(args).getOpts();
-            List<String> restArgList = new ArrayList<>(
-                    paramParser.getRestArgs()
+    private int exec(String[] args, boolean test) throws Exception {
+        int status = STATUS_TO_RUN;
+        ChildProcessParamParser paramParser = new ChildProcessParamParser();
+        Opts opts = paramParser.parse(args).getOpts();
+        List<String> restArgList = new ArrayList<>(
+                paramParser.getRestArgs()
+        );
+        String configFilePath = getConfigFile(restArgList);
+
+        List<String> invalidOpts = getInvalidOpts(restArgList);
+        if (!invalidOpts.isEmpty()) {
+            logger.error(
+                    "Unknown options: {}",
+                    Utils.join(", ", invalidOpts)
             );
-            String configFilePath = getConfigFile(restArgList);
-
-            List<String> invalidOpts = getInvalidOpts(restArgList);
-            if (!invalidOpts.isEmpty()) {
-                logger.error(
-                        "Unknown options: {}",
-                        Utils.join(", ", invalidOpts)
+            status = STATUS_STOP;
+        } else if (CommonOptConfigs.isVersion(opts)) {
+            logger.error("{}", "JavaAgent 1.0.0");
+            status = STATUS_STOP;
+        } else {
+            if (restArgList.isEmpty()) {
+                restArgList.add(
+                        HelpUtils.getHelpCmdName()
                 );
-                help = true;
-            } else if (CommonOptConfigs.isVersion(opts)) {
-                logger.error("{}", "JavaAgent 1.0.0");
-                help = true;
+                status = STATUS_HELP;
+            } else if (CommonOptConfigs.isHelp(opts)) {
+                restArgList.add(
+                        CommonOptConfigs.getHelpOptName()
+                );
+                status = STATUS_HELP;
             } else {
-                if (restArgList.isEmpty()) {
-                    restArgList.add("help");
-                    help = true;
-                } else if (CommonOptConfigs.isHelp(opts)) {
-                    restArgList.add(
-                            CommonOptConfigs.getHelpOptName()
-                    );
-                    help = true;
-                } else if (AbstractHelpCmdParser.isHelpCmd(restArgList.get(0)))
-                    help = true;
-
-                if (!test) {
-                    HostAndPort hostAndPort = AddressUtils.parseAddr(
-                            AddressOptConfigs.getAddress(opts)
-                    );
-                    init(
-                            configFilePath,
-                            getInitParams(hostAndPort)
-                    );
-                    loadLibs();
-                    startRunner(
-                            getRunner(DEFAULT_RUNNER_TYPE),
-                            hostAndPort,
-                            paramParser.getOptConfigList(),
-                            restArgList
-                    );
-                }
+                String cmdName = restArgList.get(0);
+                if (HelpUtils.isHelpCmd(cmdName))
+                    status = STATUS_HELP;
             }
-        } catch (Throwable t) {
-            t.printStackTrace();
-            ConsoleLogger.getInstance().error("Error: {}", t.getMessage());
+
+            if (!test) {
+                HostAndPort hostAndPort = AddressUtils.parseAddr(
+                        AddressOptConfigs.getAddress(opts)
+                );
+                init(
+                        configFilePath,
+                        getInitParams(hostAndPort)
+                );
+                loadLibs();
+                startRunner(
+                        getRunner(DEFAULT_RUNNER_TYPE),
+                        hostAndPort,
+                        paramParser.getOptConfigList(),
+                        restArgList
+                );
+            }
         }
-        return help;
+        return status;
     }
 
     private static List<String> getInvalidOpts(List<String> args) {

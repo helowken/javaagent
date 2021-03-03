@@ -1,7 +1,7 @@
 package agent.common.message;
 
 import agent.common.message.version.ApiVersion;
-import agent.common.struct.impl.annotation.PojoProperty;
+import agent.base.struct.annotation.PojoProperty;
 
 public class DefaultMessage implements Message {
     @PojoProperty(index = 1)

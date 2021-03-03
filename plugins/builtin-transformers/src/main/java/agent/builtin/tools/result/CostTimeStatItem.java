@@ -1,7 +1,7 @@
 package agent.builtin.tools.result;
 
-import agent.common.struct.impl.annotation.PojoClass;
-import agent.common.struct.impl.annotation.PojoProperty;
+import agent.base.struct.annotation.PojoClass;
+import agent.base.struct.annotation.PojoProperty;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;

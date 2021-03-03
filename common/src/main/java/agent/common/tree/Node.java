@@ -1,7 +1,7 @@
 package agent.common.tree;
 
-import agent.common.struct.impl.annotation.PojoClass;
-import agent.common.struct.impl.annotation.PojoProperty;
+import agent.base.struct.annotation.PojoClass;
+import agent.base.struct.annotation.PojoProperty;
 
 import java.util.*;
 import java.util.function.Predicate;

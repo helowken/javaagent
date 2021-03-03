@@ -1,6 +1,6 @@
 package agent.server.utils;
 
-import agent.common.buffer.BufferAllocator;
+import agent.base.buffer.BufferAllocator;
 
 import java.nio.ByteBuffer;
 import java.util.Collection;

@@ -1,8 +1,8 @@
 package agent.builtin.transformer.utils;
 
 import agent.base.utils.Utils;
-import agent.common.struct.impl.annotation.PojoClass;
-import agent.common.struct.impl.annotation.PojoProperty;
+import agent.base.struct.annotation.PojoClass;
+import agent.base.struct.annotation.PojoProperty;
 
 import java.math.RoundingMode;
 import java.text.DecimalFormat;

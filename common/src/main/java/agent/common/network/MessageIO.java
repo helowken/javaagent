@@ -2,7 +2,7 @@ package agent.common.network;
 
 import agent.base.utils.IOUtils;
 import agent.base.utils.Logger;
-import agent.common.buffer.ByteUtils;
+import agent.base.buffer.ByteUtils;
 import agent.common.message.Message;
 import agent.common.message.MessageMgr;
 import agent.common.network.exception.ConnectionClosedException;

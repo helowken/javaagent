@@ -1,7 +1,7 @@
 package agent.common.config;
 
 import agent.base.utils.Utils;
-import agent.common.struct.impl.annotation.PojoProperty;
+import agent.base.struct.annotation.PojoProperty;
 
 import java.util.HashSet;
 import java.util.Objects;

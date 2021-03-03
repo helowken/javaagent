@@ -1,6 +1,6 @@
 package agent.common.message.version;
 
-import agent.common.struct.impl.annotation.PojoProperty;
+import agent.base.struct.annotation.PojoProperty;
 
 public class ApiVersion {
     private static final ApiVersion instance = create();

@@ -9,15 +9,11 @@ import agent.cmdline.command.CmdItem;
 import agent.cmdline.command.Command;
 import agent.cmdline.help.HelpInfo;
 import agent.cmdline.help.HelpSingleValue;
+import agent.cmdline.help.HelpUtils;
 
 import java.util.List;
 
 public abstract class AbstractHelpCmdParser extends AbstractCmdParser<CmdParams> {
-    private static final String[] cmdNames = {"help", "?"};
-
-    public static boolean isHelpCmd(String cmd) {
-        return Utils.isIn(cmdNames, cmd);
-    }
 
     protected abstract List<CmdItem> parse(String cmd, String[] cmdArgs);
 
@@ -40,7 +36,7 @@ public abstract class AbstractHelpCmdParser extends AbstractCmdParser<CmdParams>
 
     @Override
     public String[] getCmdNames() {
-        return cmdNames;
+        return HelpUtils.getHelpCmdNames();
     }
 
     @Override

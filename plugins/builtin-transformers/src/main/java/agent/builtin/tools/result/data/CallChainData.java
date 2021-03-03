@@ -1,8 +1,8 @@
 package agent.builtin.tools.result.data;
 
 import agent.builtin.tools.result.CostTimeStatItem;
-import agent.common.struct.impl.annotation.PojoClass;
-import agent.common.struct.impl.annotation.PojoProperty;
+import agent.base.struct.annotation.PojoClass;
+import agent.base.struct.annotation.PojoProperty;
 
 import static agent.builtin.tools.result.data.CallChainData.POJO_TYPE;
 

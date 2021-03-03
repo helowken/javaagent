@@ -1,14 +1,11 @@
 package agent.common.struct;
 
-import agent.common.buffer.ByteUtils;
-import agent.common.struct.impl.Struct;
-import agent.common.struct.impl.StructFields;
+import agent.base.struct.impl.Struct;
 import org.junit.Test;
 import utils.TestUtils;
 
 import java.lang.reflect.Array;
 import java.nio.ByteBuffer;
-import java.util.Arrays;
 
 import static org.junit.Assert.*;
 

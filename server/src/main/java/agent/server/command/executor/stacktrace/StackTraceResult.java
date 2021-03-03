@@ -1,8 +1,8 @@
 package agent.server.command.executor.stacktrace;
 
 
-import agent.common.struct.impl.annotation.PojoClass;
-import agent.common.struct.impl.annotation.PojoProperty;
+import agent.base.struct.annotation.PojoClass;
+import agent.base.struct.annotation.PojoProperty;
 import agent.common.tree.Tree;
 
 import java.util.Map;

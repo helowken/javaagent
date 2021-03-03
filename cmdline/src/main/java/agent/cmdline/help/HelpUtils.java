@@ -8,6 +8,20 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class HelpUtils {
+    private static final String[] cmdNames = {"help", "?"};
+
+    public static String getHelpCmdName() {
+        return cmdNames[0];
+    }
+
+    public static String[] getHelpCmdNames() {
+        return cmdNames;
+    }
+
+    public static boolean isHelpCmd(String cmd) {
+        return Utils.isIn(cmdNames, cmd);
+    }
+
     public static List<HelpInfo> convert(List<OptConfig> optConfigList) {
         return optConfigList.stream()
                 .map(

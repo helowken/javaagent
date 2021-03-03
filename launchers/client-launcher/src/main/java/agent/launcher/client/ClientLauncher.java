@@ -17,6 +17,8 @@ import java.util.concurrent.CountDownLatch;
 
 import static agent.base.utils.ProcessUtils.ProcConfig;
 import static agent.base.utils.ProcessUtils.ProcessExecResult;
+import static agent.launcher.client.ChildProcessLauncher.STATUS_HELP;
+import static agent.launcher.client.ChildProcessLauncher.STATUS_STOP;
 
 public class ClientLauncher {
     private static final ConsoleLogger logger = ConsoleLogger.getInstance();
@@ -26,7 +28,10 @@ public class ClientLauncher {
     public static void main(String[] args) {
         try {
             ChildProcessLauncher childProcessLauncher = new ChildProcessLauncher();
-            if (childProcessLauncher.isHelp(args)) {
+            int status = childProcessLauncher.test(args);
+            if (status == STATUS_STOP)
+                return;
+            else if (status == STATUS_HELP) {
                 childProcessLauncher.process(args);
                 return;
             }
@@ -59,7 +64,7 @@ public class ClientLauncher {
                 joinThreads(ts);
             }
         } catch (Throwable t) {
-            t.printStackTrace();
+//            t.printStackTrace();
             ConsoleLogger.getInstance().error("Error: {}", t.getMessage());
         }
     }

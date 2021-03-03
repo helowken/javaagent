@@ -1,9 +1,11 @@
 package agent.common.struct;
 
-import agent.common.buffer.BufferAllocator;
-import agent.common.struct.impl.*;
-import agent.common.struct.impl.annotation.PojoClass;
-import agent.common.struct.impl.annotation.PojoProperty;
+import agent.base.buffer.BufferAllocator;
+import agent.base.struct.BBuff;
+import agent.base.struct.DefaultBBuff;
+import agent.base.struct.impl.*;
+import agent.base.struct.annotation.PojoClass;
+import agent.base.struct.annotation.PojoProperty;
 import com.alibaba.fastjson.JSONObject;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Test;

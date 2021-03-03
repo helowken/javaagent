@@ -1,7 +1,6 @@
 package agent.common.struct;
 
-import agent.common.struct.impl.Struct;
-import agent.common.struct.impl.StructFields;
+import agent.base.struct.impl.Struct;
 import org.junit.Test;
 
 import java.nio.ByteBuffer;

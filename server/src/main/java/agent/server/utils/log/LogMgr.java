@@ -1,7 +1,7 @@
 package agent.server.utils.log;
 
 import agent.base.utils.*;
-import agent.common.struct.BBuff;
+import agent.base.struct.BBuff;
 import agent.server.transform.impl.DestInvokeIdRegistry;
 import agent.server.utils.log.binary.BinaryLogItem;
 import agent.server.utils.log.binary.BinaryLogItemPool;

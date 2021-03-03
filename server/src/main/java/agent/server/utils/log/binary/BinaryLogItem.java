@@ -1,6 +1,6 @@
 package agent.server.utils.log.binary;
 
-import agent.common.struct.BBuff;
+import agent.base.struct.BBuff;
 import agent.server.utils.MemoryPool;
 import agent.server.utils.log.AbstractLogItem;
 
