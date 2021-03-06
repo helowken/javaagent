@@ -7,6 +7,7 @@ import agent.cmdline.args.parse.CommonOptConfigs;
 import agent.cmdline.args.parse.DefaultParamParser;
 import agent.cmdline.command.CmdItem;
 import agent.cmdline.command.Command;
+import agent.cmdline.command.runner.CommandRunner;
 import agent.cmdline.help.HelpInfo;
 import agent.cmdline.help.HelpSingleValue;
 import agent.cmdline.help.HelpUtils;
@@ -14,8 +15,6 @@ import agent.cmdline.help.HelpUtils;
 import java.util.List;
 
 public abstract class AbstractHelpCmdParser extends AbstractCmdParser<CmdParams> {
-
-    protected abstract List<CmdItem> parse(String cmd, String[] cmdArgs);
 
     protected abstract HelpInfo getFullHelp();
 
@@ -61,12 +60,12 @@ public abstract class AbstractHelpCmdParser extends AbstractCmdParser<CmdParams>
         if (Utils.isIn(getCmdNames(), cmdName))
             return getHelpSelf();
 
-        List<CmdItem> itemList = parse(
-                cmdName,
-                new String[]{
+        List<CmdItem> itemList = CommandRunner.getInstance()
+                .getCmdParseMgr()
+                .parse(
+                        cmdName,
                         CommonOptConfigs.getHelpOptName()
-                }
-        );
+                );
         if (itemList.isEmpty())
             throw new RuntimeException("No help info!");
         return itemList.get(0).getHelpInfo();

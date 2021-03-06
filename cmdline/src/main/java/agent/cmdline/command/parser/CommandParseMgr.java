@@ -14,23 +14,32 @@ import java.util.*;
 
 public class CommandParseMgr {
     private static final Logger logger = Logger.getLogger(CommandParseMgr.class);
+    private static final String BLANK_SECTION_NAME = "";
     private final Registry<String, CommandParser> registry = new Registry<>();
     private final Map<String, List<CommandParser>> headerToParser = new LinkedHashMap<>();
 
-    public CommandParseMgr reg(String sectionName, List<CommandParser> cmdParsers) {
-        headerToParser.put(sectionName, cmdParsers);
-        cmdParsers.forEach(this::reg);
-        return this;
+    public CommandParseMgr reg(CommandParser... cmdParsers) {
+        return reg(BLANK_SECTION_NAME, cmdParsers);
     }
 
-    public CommandParseMgr reg(CommandParser cmdParser) {
-        for (String cmdName : cmdParser.getCmdNames()) {
-            registry.reg(cmdName, cmdParser);
+    public CommandParseMgr reg(String sectionName, CommandParser... cmdParsers) {
+        if (cmdParsers == null || cmdParsers.length == 0)
+            throw new IllegalArgumentException();
+        headerToParser.put(
+                sectionName,
+                Arrays.asList(cmdParsers)
+        );
+        for (CommandParser cmdParser : cmdParsers) {
+            for (String cmdName : cmdParser.getCmdNames()) {
+                registry.reg(cmdName, cmdParser);
+            }
         }
         return this;
     }
 
-    public List<CmdItem> parse(String[] args) {
+    public List<CmdItem> parse(String... args) {
+        if (args == null || args.length == 0)
+            throw new IllegalArgumentException();
         return parse(
                 Arrays.asList(args)
         );
@@ -45,7 +54,7 @@ public class CommandParseMgr {
         );
     }
 
-    public List<CmdItem> parse(String cmdName, String[] args) {
+    private List<CmdItem> parse(String cmdName, String[] args) {
         try {
             return registry.get(cmdName,
                     key -> new CommandNotFoundException("Unknown command '" + key + "'")

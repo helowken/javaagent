@@ -22,9 +22,10 @@ public abstract class AbstractExecResultHandler implements ExecResultHandler {
     }
 
     private void handleFatal(Command command, ExecResult result) {
-        String message = result.getMessage();
-        logger.error("{} failed! Error: {}", command.getClass().getName(), message);
-        ConsoleLogger.getInstance().error("Failed: {}", message);
+        ConsoleLogger.getInstance().error(
+                "Failed: {}",
+                result.getMessage()
+        );
     }
 
     protected void handleFail(Command command, ExecResult result) throws Exception {

@@ -3,7 +3,7 @@ package agent.dynamic.attach;
 import agent.base.utils.ConsoleLogger;
 import agent.base.utils.Logger;
 import agent.cmdline.args.parse.CommonOptConfigs;
-import agent.cmdline.command.runner.DefaultCommandRunner;
+import agent.cmdline.command.runner.CommandRunner;
 import agent.jvmti.JvmtiUtils;
 
 import java.util.ArrayList;
@@ -13,7 +13,6 @@ import java.util.List;
 import static agent.dynamic.attach.AttachCmdType.CMD_ATTACH;
 
 public class AttachLauncher {
-    private static final DefaultCommandRunner cmdRunner = new DefaultCommandRunner();
 
     static {
         Logger.setSystemLogger(
@@ -21,14 +20,6 @@ public class AttachLauncher {
         );
         Logger.setAsync(false);
 
-        cmdRunner.getCmdParseMgr().reg(
-                new AttachCmdParser()
-        );
-
-        cmdRunner.getCmdExecMgr().reg(
-                CMD_ATTACH,
-                new AttachCmdExecutor()
-        );
     }
 
     public static void main(String[] args) {
@@ -41,7 +32,16 @@ public class AttachLauncher {
             );
         else
             Collections.addAll(argList, args);
-        cmdRunner.run(argList);
+
+        CommandRunner.getInstance()
+                .regParse(
+                        new AttachCmdParser()
+                )
+                .regExec(
+                        new AttachCmdExecutor(),
+                        CMD_ATTACH
+                )
+                .run(argList);
     }
 
 }

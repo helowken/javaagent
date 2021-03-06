@@ -1,11 +1,9 @@
 package test.transformer;
 
-import agent.builtin.tools.result.StackTraceResultHandler;
-import agent.builtin.tools.result.parse.StackTraceResultParamParser;
-import agent.builtin.tools.result.parse.StackTraceResultParams;
-import agent.client.ClientMgr;
+import agent.builtin.tools.ResultLauncher;
+import agent.client.command.parser.impl.StackTraceCmdParser;
 import agent.cmdline.command.result.ExecResult;
-import agent.server.command.executor.ServerCmdExecMgr;
+import agent.server.command.executor.StackTraceCmdExecutor;
 import org.junit.Test;
 import test.server.AbstractTest;
 
@@ -17,34 +15,22 @@ public class StackTraceTest extends AbstractTest {
     public void test2() throws Exception {
         runWithFile(
                 (outputPath, config) -> {
-                    ExecResult result = ServerCmdExecMgr.exec(
-                            ClientMgr.getCmdRunner().getCmdParseMgr().parse(
-                                    "st",
+                    ExecResult result = new StackTraceCmdExecutor().exec(
+                            new StackTraceCmdParser().parse(
                                     new String[]{
-                                            "-i", "7",
-                                            "-c", "100",
+                                            "st", "-i", "7", "-c", "100",
 //                                            "-ee", "test.*",
-                                            "keyAAA",
-                                            outputPath
+                                            "aaa", outputPath
                                     }
                             ).get(0).getCmd()
                     );
                     assertTrue(result.isSuccess());
                     Thread.sleep(2000);
-
-                    StackTraceResultParams params = new StackTraceResultParamParser().parse(
-                            new String[]{outputPath}
+                    ResultLauncher.main(
+                            new String[]{"st", outputPath}
                     );
-                    new StackTraceResultHandler().exec(params);
                 }
         );
     }
 
-    @Test
-    public void test3() throws Exception {
-        StackTraceResultParams params = new StackTraceResultParamParser().parse(
-                new String[]{"/home/helowken/cost-time/st"}
-        );
-        new StackTraceResultHandler().exec(params);
-    }
 }

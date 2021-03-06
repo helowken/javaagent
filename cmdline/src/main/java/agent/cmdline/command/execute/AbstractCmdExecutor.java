@@ -22,7 +22,7 @@ public abstract class AbstractCmdExecutor implements CommandExecutor {
                     )
             );
         } catch (Exception e) {
-            logger.error("Execute command {} failed.", e, getClass().getName());
+            logger.error("Execute command failed.", e);
             return handleError(e, cmd);
         }
     }

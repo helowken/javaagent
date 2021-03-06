@@ -2,11 +2,7 @@ package agent.common.config;
 
 import agent.base.struct.annotation.PojoProperty;
 
-import java.util.Map;
-
-public class StackTraceConfig extends AbstractScheduleConfig {
-    @PojoProperty(index = 0)
-    private Map<String, Object> logConfig;
+public class StackTraceConfig {
     @PojoProperty(index = 1)
     private StringFilterConfig elementFilterConfig;
     @PojoProperty(index = 2)
@@ -15,20 +11,6 @@ public class StackTraceConfig extends AbstractScheduleConfig {
     private StringFilterConfig stackFilterConfig;
     @PojoProperty(index = 4)
     private boolean merge = false;
-
-    @Override
-    public void validate() {
-        super.validate();
-        validateNotNull(logConfig, "Log config");
-    }
-
-    public Map<String, Object> getLogConfig() {
-        return logConfig;
-    }
-
-    public void setLogConfig(Map<String, Object> logConfig) {
-        this.logConfig = logConfig;
-    }
 
     public StringFilterConfig getThreadFilterConfig() {
         return threadFilterConfig;

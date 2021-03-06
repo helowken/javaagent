@@ -1,9 +1,7 @@
 package test.transformer;
 
 import agent.base.utils.ReflectionUtils;
-import agent.builtin.tools.result.TraceInvokeResultHandler;
-import agent.builtin.tools.result.parse.TraceResultParamParser;
-import agent.builtin.tools.result.parse.TraceResultParams;
+import agent.builtin.tools.ResultLauncher;
 import agent.builtin.transformer.TraceInvokeTransformer;
 import agent.common.config.InvokeChainConfig;
 import agent.server.transform.ConfigTransformer;
@@ -65,18 +63,13 @@ abstract class AbstractTraceTest extends AbstractTest {
 
                     flushAndWaitMetadata(transformer.getTid());
 
-                    TraceInvokeResultHandler handler = new TraceInvokeResultHandler();
-
-                    TraceResultParams params = new TraceResultParamParser().parse(
-                            new String[]{"-s", "10000", outputPath}
+                    ResultLauncher.main(
+                            new String[]{"tr", "-s", "10000", outputPath}
                     );
-                    handler.exec(params);
-
                     System.out.println("\n==============================");
-                    params = new TraceResultParamParser().parse(
-                            new String[]{"-o", "' '", outputPath}
+                    ResultLauncher.main(
+                            new String[]{"tr", "-o", "' '", outputPath}
                     );
-                    handler.exec(params);
                 }
         );
     }

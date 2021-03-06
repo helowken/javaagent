@@ -1,0 +1,204 @@
+package agent.builtin.tools.execute.tree;
+
+import agent.base.utils.IndentUtils;
+import agent.base.utils.InvokeDescriptorUtils;
+import agent.builtin.tools.config.TraceResultConfig;
+import agent.builtin.tools.execute.ResultExecUtils;
+import agent.builtin.transformer.utils.DefaultValueConverter;
+import agent.builtin.transformer.utils.TraceItem;
+import agent.common.tree.Node;
+import agent.server.transform.impl.DestInvokeIdRegistry.InvokeMetadata;
+
+import java.util.Map;
+import java.util.TreeMap;
+
+import static agent.builtin.transformer.utils.DefaultValueConverter.*;
+
+public class TraceRsTreeConverter extends RsTreeConverter<String, TraceItem, TraceResultConfig> {
+    private static final String indent = IndentUtils.getIndent(1);
+    private final Map<Integer, String> valueCache;
+
+    public TraceRsTreeConverter(Map<Integer, String> valueCache) {
+        this.valueCache = valueCache;
+    }
+
+    @Override
+    protected InvokeMetadata findMetadata(Map<Integer, InvokeMetadata> idToMetadata, TraceItem data) {
+        return ResultExecUtils.getMetadata(
+                idToMetadata,
+                data.getInvokeId()
+        );
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    protected Node<String> createNode(Node<TraceItem> node, Map<Integer, InvokeMetadata> idToMetadata, InvokeMetadata pnMetadata, TraceResultConfig config) {
+        TraceItem item = node.getData();
+        DefaultValueConverter.transformValues(
+                item.getArgs(),
+                valueCache
+        );
+        DefaultValueConverter.transformValue(
+                item.getReturnValue(),
+                valueCache
+        );
+        DefaultValueConverter.transformValue(
+                item.getError(),
+                valueCache
+        );
+
+        return item.getType() == TraceItem.TYPE_INVOKE ?
+                createInvokeNode(node, idToMetadata, pnMetadata, config) :
+                createCatchNode(node, config);
+    }
+
+    private Node<String> createInvokeNode(Node<TraceItem> node, Map<Integer, InvokeMetadata> idToMetadata,
+                                          InvokeMetadata metadata, TraceResultConfig config) {
+        StringBuilder sb = new StringBuilder();
+        TraceItem item = node.getData();
+        if (config.isDisplayTime())
+            sb.append("[").append(
+                    item.costTimeString()
+            ).append("ms] ");
+
+        sb.append(
+                ResultExecUtils.convertInvoke(
+                        item.getParentId() == -1 ? null : node.getParent().getData().getInvokeId(),
+                        idToMetadata,
+                        metadata
+                )
+        );
+        if (item.hasArgs() && config.isDisplayArgs()) {
+            sb.append("\nArgs: \n");
+            item.getArgs().forEach(
+                    arg -> appendArg(
+                            sb.append(indent),
+                            new TreeMap<>(arg),
+                            config
+                    )
+            );
+        }
+        if (item.hasReturnValue() && config.isDisplayRetValue()) {
+            String className = (String) item.getReturnValue().get(KEY_CLASS);
+            if (className == null || !className.equals(void.class.getName())) {
+                addWrapIfNeeded(sb);
+                append(
+                        sb.append("Return: \n").append(indent),
+                        new TreeMap<>(
+                                item.getReturnValue()
+                        ),
+                        config
+                );
+            }
+        }
+        if (item.hasError() && config.isDisplayError()) {
+            addWrapIfNeeded(sb);
+            appendError("Throw Error", sb, item, config);
+        }
+        return new Node<>(
+                sb.toString()
+        );
+    }
+
+    private void appendError(String prefix, StringBuilder sb, TraceItem item, TraceResultConfig config) {
+        append(
+                sb.append(prefix).append(": \n").append(indent),
+                new TreeMap<>(
+                        item.getError()
+                ),
+                config
+        );
+    }
+
+    private Node<String> createCatchNode(Node<TraceItem> node, TraceResultConfig config) {
+        StringBuilder sb = new StringBuilder();
+        TraceItem item = node.getData();
+        if (config.isDisplayError()) {
+            appendError("Catch Error", sb, item, config);
+        } else {
+            sb.append("Catch Error: ");
+            appendClassName(
+                    sb,
+                    new TreeMap<>(
+                            item.getError()
+                    )
+            );
+        }
+        return new Node<>(
+                sb.toString()
+        );
+    }
+
+    private void addWrapIfNeeded(StringBuilder sb) {
+        if (sb.charAt(sb.length() - 1) != '\n')
+            sb.append('\n');
+    }
+
+    private StringBuilder appendArg(StringBuilder sb, Map<String, Object> map, TraceResultConfig config) {
+        if (map.containsKey(KEY_INDEX)) {
+            sb.append('[').append(
+                    map.remove(KEY_INDEX)
+            ).append("] ");
+        }
+        return append(sb, map, config);
+    }
+
+    private String formatClass(String className) {
+        return InvokeDescriptorUtils.shortForPkgLang(className);
+    }
+
+    private void appendClassName(StringBuilder sb, Map<String, Object> rsMap) {
+        if (rsMap.containsKey(KEY_CLASS)) {
+            sb.append('<').append(
+                    formatClass(
+                            String.valueOf(
+                                    rsMap.remove(KEY_CLASS)
+                            )
+                    )
+            ).append(">");
+        }
+    }
+
+    private void appendValue(StringBuilder sb, Map<String, Object> rsMap, TraceResultConfig config) {
+        if (rsMap.containsKey(KEY_VALUE)) {
+            sb.append(
+                    formatContent(
+                            rsMap.remove(KEY_VALUE),
+                            config
+                    )
+            );
+        }
+    }
+
+    private StringBuilder append(StringBuilder sb, Map<String, Object> rsMap, TraceResultConfig config) {
+        appendClassName(sb, rsMap);
+        sb.append(": ");
+        appendValue(sb, rsMap, config);
+        int i = 0;
+        for (Map.Entry<String, Object> entry : rsMap.entrySet()) {
+            if (i > 0)
+                sb.append(", ");
+            sb.append(
+                    entry.getKey()
+            ).append("=").append(
+                    formatContent(
+                            entry.getValue(),
+                            config
+                    )
+            );
+            ++i;
+        }
+        sb.append('\n');
+        return sb;
+    }
+
+    private String formatContent(Object value, TraceResultConfig config) {
+        if (value == null)
+            return null;
+        String content = value.toString();
+        int contentSize = config.getContentSize();
+        return content.length() > contentSize ?
+                content.substring(0, contentSize) + "... (first " + contentSize + " chars)" :
+                content;
+    }
+}

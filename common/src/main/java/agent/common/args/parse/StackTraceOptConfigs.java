@@ -1,8 +1,10 @@
 package agent.common.args.parse;
 
+import agent.base.utils.Utils;
 import agent.cmdline.args.parse.OptConfig;
 import agent.cmdline.args.parse.OptConfigSuite;
 import agent.cmdline.args.parse.Opts;
+import agent.common.config.StackTraceConfig;
 
 public class StackTraceOptConfigs {
     private static final String KEY_STACK_FILTER = "STACK_FILTER";
@@ -46,19 +48,26 @@ public class StackTraceOptConfigs {
         return boolSuite;
     }
 
-    public static String getStackFilter(Opts opts) {
-        return opts.get(KEY_STACK_FILTER);
-    }
-
-    public static String getElementFilter(Opts opts) {
-        return opts.get(KEY_ELEMENT_FILTER);
-    }
-
-    public static String getThreadFilter(Opts opts) {
-        return opts.get(KEY_THREAD_FILTER);
-    }
-
-    public static boolean isMerge(Opts opts) {
-        return !opts.getNotNull(KEY_PER_THREAD, false);
+    public static StackTraceConfig getConfig(Opts opts) {
+        StackTraceConfig config = new StackTraceConfig();
+        String threadExpr = opts.get(KEY_THREAD_FILTER);
+        if (Utils.isNotBlank(threadExpr))
+            config.setThreadFilterConfig(
+                    FilterOptUtils.newStringFilterConfig(threadExpr)
+            );
+        String stackExpr = opts.get(KEY_STACK_FILTER);
+        if (Utils.isNotBlank(stackExpr))
+            config.setStackFilterConfig(
+                    FilterOptUtils.newStringFilterConfig(stackExpr)
+            );
+        String elementExpr = opts.get(KEY_ELEMENT_FILTER);
+        if (Utils.isNotBlank(elementExpr))
+            config.setElementFilterConfig(
+                    FilterOptUtils.newStringFilterConfig(elementExpr)
+            );
+        config.setMerge(
+                !opts.getNotNull(KEY_PER_THREAD, false)
+        );
+        return config;
     }
 }

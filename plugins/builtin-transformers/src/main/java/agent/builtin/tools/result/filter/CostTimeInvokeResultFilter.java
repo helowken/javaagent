@@ -1,12 +1,12 @@
 package agent.builtin.tools.result.filter;
 
-import agent.builtin.tools.result.CostTimeStatItem;
+import agent.builtin.tools.result.data.CostTimeStatItem;
 
 import java.util.HashMap;
 import java.util.Map;
 
 
-public class CostTimeInvokeResultFilter extends AbstractResultFilter<CostTimeStatItem> {
+public class CostTimeInvokeResultFilter extends AbstractRsFilter<CostTimeStatItem> {
     private static final String PARAM_COUNT = "count";
     private static final String PARAM_MAX_TIME = "max";
     private static final String PARAM_AVG_TIME = "avg";

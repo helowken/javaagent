@@ -1,9 +1,7 @@
 package test.transformer;
 
 import agent.base.utils.ReflectionUtils;
-import agent.builtin.tools.result.TraceInvokeResultHandler;
-import agent.builtin.tools.result.parse.TraceResultParamParser;
-import agent.builtin.tools.result.parse.TraceResultParams;
+import agent.builtin.tools.ResultLauncher;
 import agent.builtin.transformer.TraceInvokeTransformer;
 import agent.common.config.InvokeChainConfig;
 import agent.server.transform.ConfigTransformer;
@@ -50,45 +48,35 @@ public class TraceHeadAndTailTest extends AbstractTest {
                     }
 
                     flushAndWaitMetadata(transformer.getTid());
-
-                    TraceInvokeResultHandler handler = new TraceInvokeResultHandler();
-                    TraceResultParams params;
-
                     System.out.println("\n=========== from head 0 ~ 4 ===================");
-                    params = new TraceResultParamParser().parse(
-                            new String[]{"-hn", "5", outputPath}
+                    ResultLauncher.main(
+                            new String[]{"tr", "-hn", "5", outputPath}
                     );
-                    handler.exec(params);
 
                     System.out.println("\n=========== from head 0 ~ 9 ===================");
-                    params = new TraceResultParamParser().parse(
-                            new String[]{"-hn", "15", outputPath}
+                    ResultLauncher.main(
+                            new String[]{"tr", "-hn", "15", outputPath}
                     );
-                    handler.exec(params);
 
                     System.out.println("\n=========== from tail 5 ~ 9 ===================");
-                    params = new TraceResultParamParser().parse(
-                            new String[]{"-tn", "5", outputPath}
+                    ResultLauncher.main(
+                            new String[]{"tr", "-tn", "5", outputPath}
                     );
-                    handler.exec(params);
 
                     System.out.println("\n=========== from tail 0 ~ 9 ===================");
-                    params = new TraceResultParamParser().parse(
-                            new String[]{"-tn", "11", outputPath}
+                    ResultLauncher.main(
+                            new String[]{"tr", "-tn", "11", outputPath}
                     );
-                    handler.exec(params);
 
                     System.out.println("\n=========== from head 0 ~ 2 && from tail 3 ~ 9 ===================");
-                    params = new TraceResultParamParser().parse(
-                            new String[]{"-hn", "3", "-tn", "7", outputPath}
+                    ResultLauncher.main(
+                            new String[]{"tr", "-hn", "3", "-tn", "7", outputPath}
                     );
-                    handler.exec(params);
 
                     System.out.println("\n=========== display all ===================");
-                    params = new TraceResultParamParser().parse(
-                            new String[]{outputPath}
+                    ResultLauncher.main(
+                            new String[]{"tr", outputPath}
                     );
-                    handler.exec(params);
                 }
         );
     }

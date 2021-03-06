@@ -1,7 +1,7 @@
 package agent.server.command.executor.stacktrace;
 
 import agent.base.utils.Logger;
-import agent.common.config.StackTraceConfig;
+import agent.common.config.StackTraceScheduleConfig;
 import agent.base.struct.impl.Struct;
 import agent.base.struct.impl.StructContext;
 import agent.server.schedule.ScheduleTask;
@@ -14,11 +14,11 @@ import java.util.UUID;
 public class StackTraceTask implements ScheduleTask {
     private static final StructContext context = new StructContext();
     private static final Logger logger = Logger.getLogger(StackTraceTask.class);
-    private final StackTraceConfig config;
+    private final StackTraceScheduleConfig config;
     private final String logKey = UUID.randomUUID().toString();
     private final StackTraceGenerator stGen;
 
-    public StackTraceTask(StackTraceConfig config) {
+    public StackTraceTask(StackTraceScheduleConfig config) {
         this.config = config;
         this.stGen = new StackTraceGenerator(config);
     }

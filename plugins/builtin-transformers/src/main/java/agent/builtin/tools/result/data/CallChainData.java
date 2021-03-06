@@ -1,6 +1,5 @@
 package agent.builtin.tools.result.data;
 
-import agent.builtin.tools.result.CostTimeStatItem;
 import agent.base.struct.annotation.PojoClass;
 import agent.base.struct.annotation.PojoProperty;
 

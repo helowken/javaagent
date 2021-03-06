@@ -39,6 +39,7 @@ public class MessageMgr {
                 InfoQuery.class,
                 ResetConfig.class,
                 SaveClassConfig.class,
+                StackTraceScheduleConfig.class,
                 StackTraceConfig.class
         };
 

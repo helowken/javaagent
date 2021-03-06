@@ -2,6 +2,7 @@ package agent.server.command.executor.stacktrace;
 
 import agent.base.utils.Constants;
 import agent.common.config.StackTraceConfig;
+import agent.common.config.StackTraceScheduleConfig;
 import agent.common.tree.Tree;
 import agent.server.transform.search.filter.AgentFilter;
 import agent.server.transform.search.filter.CompoundFilter;
@@ -22,7 +23,8 @@ class StackTraceGenerator {
     private final AgentFilter<String> stackFilter;
     private final AgentFilter<String> elementFilter;
 
-    StackTraceGenerator(StackTraceConfig config) {
+    StackTraceGenerator(StackTraceScheduleConfig scheduleConfig) {
+        StackTraceConfig config = scheduleConfig.getStackTraceConfig();
         this.merge = config.isMerge();
         this.threadFilter = newThreadFilter(config);
         this.stackFilter = FilterUtils.newStringFilter(

@@ -1,11 +1,7 @@
 package test.transformer;
 
 import agent.base.utils.ReflectionUtils;
-import agent.builtin.tools.result.CostTimeCallChainResultHandler;
-import agent.builtin.tools.result.CostTimeInvokeResultHandler;
-import agent.builtin.tools.result.parse.CostTimeCallChainResultParamParser;
-import agent.builtin.tools.result.parse.CostTimeInvokeResultParamParser;
-import agent.builtin.tools.result.parse.CostTimeResultParams;
+import agent.builtin.tools.ResultLauncher;
 import agent.builtin.transformer.CostTimeStatisticsTransformer;
 import agent.common.config.InvokeChainConfig;
 import agent.server.transform.ConfigTransformer;
@@ -51,39 +47,29 @@ public class CostTimeStatisticsTransformerTest extends AbstractTest {
                     ReflectionUtils.invoke("service", a);
 
                     flushAndWaitMetadata(transformer.getTid());
-
-                    CostTimeCallChainResultParamParser callChainOptParser = new CostTimeCallChainResultParamParser();
-                    CostTimeResultParams params = callChainOptParser.parse(
-                            new String[]{outputPath}
+                    ResultLauncher.main(
+                            new String[]{"ct", outputPath}
                     );
-                    CostTimeCallChainResultHandler chainHandler = new CostTimeCallChainResultHandler();
-                    chainHandler.exec(params);
 
                     System.out.println("\n======= Use cache 1 =======");
-                    params = callChainOptParser.parse(
-                            new String[]{"-f", "m=service; cm=runApi4", "-e", "avg > 20", outputPath}
+                    ResultLauncher.main(
+                            new String[]{"ct", "-f", "m=service; cm=runApi4", "-e", "avg > 20", outputPath}
                     );
-                    chainHandler.exec(params);
 
                     System.out.println("\n======= Use cache 2 =======");
-                    params = callChainOptParser.parse(
-                            new String[]{"-ce", "avg > 20", outputPath}
+                    ResultLauncher.main(
+                            new String[]{"ct", "-ce", "avg > 20", outputPath}
                     );
-                    chainHandler.exec(params);
 
                     System.out.println("=========== For invoke =========\n");
-                    CostTimeInvokeResultHandler invokeHandler = new CostTimeInvokeResultHandler();
-                    CostTimeInvokeResultParamParser invokeParser = new CostTimeInvokeResultParamParser();
-                    params = invokeParser.parse(
-                            new String[]{"-f", "m=runApi*,service", outputPath}
+                    ResultLauncher.main(
+                            new String[]{"ct", "-i", "-f", "m=runApi*,service", outputPath}
                     );
-                    invokeHandler.exec(params);
 
                     System.out.println("\n======= Use cache 4 =======");
-                    params = invokeParser.parse(
-                            new String[]{"-e", "avg > 20", outputPath}
+                    ResultLauncher.main(
+                            new String[]{"ct", "-i", "-e", "avg > 20", outputPath}
                     );
-                    invokeHandler.exec(params);
                 }
         );
     }

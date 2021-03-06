@@ -1,6 +1,6 @@
 package agent.base.utils;
 
-interface LoggerIntf {
+public interface LoggerIntf {
     void info(String pattern, Object... pvs);
 
     void debug(String pattern, Object... pvs);

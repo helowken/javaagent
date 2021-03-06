@@ -1,12 +1,7 @@
 package test.transformer;
 
 import agent.base.utils.ReflectionUtils;
-import agent.builtin.tools.result.CostTimeCallChainResultHandler;
-import agent.builtin.tools.result.TraceInvokeResultHandler;
-import agent.builtin.tools.result.parse.CostTimeCallChainResultParamParser;
-import agent.builtin.tools.result.parse.CostTimeResultParams;
-import agent.builtin.tools.result.parse.TraceResultParamParser;
-import agent.builtin.tools.result.parse.TraceResultParams;
+import agent.builtin.tools.ResultLauncher;
 import agent.builtin.transformer.CostTimeStatisticsTransformer;
 import agent.builtin.transformer.TraceInvokeTransformer;
 import agent.common.config.InfoQuery;
@@ -72,56 +67,44 @@ public class TraceInvokeTransformerTest2 extends AbstractTest {
                             flushAndWaitMetadata(costTimeTransformer.getTid());
                             flushAndWaitMetadata(traceTransformer.getTid());
 
-                            TraceResultParamParser parser = new TraceResultParamParser();
-                            TraceInvokeResultHandler traceHandler = new TraceInvokeResultHandler();
-                            TraceResultParams traceParams = parser.parse(
-                                    new String[]{outputPath}
+                            ResultLauncher.main(
+                                    new String[]{"tr", outputPath}
                             );
-                            traceHandler.exec(traceParams);
 
                             System.out.println("\n=================");
-                            traceParams = parser.parse(
-                                    new String[]{"-f", "m=recursive*", outputPath}
+                            ResultLauncher.main(
+                                    new String[]{"tr", "-f", "m=recursive*", outputPath}
                             );
-                            traceHandler.exec(traceParams);
 
                             System.out.println("\n=================");
-                            traceParams = parser.parse(
-                                    new String[]{"-f", "m=recursive*; sl=3", outputPath}
+                            ResultLauncher.main(
+                                    new String[]{"tr", "-f", "m=recursive*; sl=3", outputPath}
                             );
-                            traceHandler.exec(traceParams);
 
                             System.out.println("\n=================");
-                            traceParams = parser.parse(
-                                    new String[]{"-f", "m=load; sl=1", outputPath}
+                            ResultLauncher.main(
+                                    new String[]{"tr", "-f", "m=load; sl=1", outputPath}
                             );
-                            traceHandler.exec(traceParams);
 
                             System.out.println("\n=================");
-                            CostTimeCallChainResultHandler costTimeHandler = new CostTimeCallChainResultHandler();
-                            CostTimeCallChainResultParamParser timeParser = new CostTimeCallChainResultParamParser();
-                            CostTimeResultParams costTimeParams = timeParser.parse(
-                                    new String[]{outputPath2}
+                            ResultLauncher.main(
+                                    new String[]{"ct", outputPath2}
                             );
-                            costTimeHandler.exec(costTimeParams);
 
                             System.out.println("\n=================");
-                            costTimeParams = timeParser.parse(
-                                    new String[]{"-f", "m=test", outputPath2}
+                            ResultLauncher.main(
+                                    new String[]{"ct", "-f", "m=test", outputPath2}
                             );
-                            costTimeHandler.exec(costTimeParams);
 
                             System.out.println("\n=================");
-                            costTimeParams = timeParser.parse(
-                                    new String[]{"-f", "cm=recursive*", outputPath2}
+                            ResultLauncher.main(
+                                    new String[]{"ct", "-f", "cm=recursive*", outputPath2}
                             );
-                            costTimeHandler.exec(costTimeParams);
 
                             System.out.println("\n=================");
-                            costTimeParams = timeParser.parse(
-                                    new String[]{"-f", "cm=recursive*; sl=3", outputPath2}
+                            ResultLauncher.main(
+                                    new String[]{"ct", "-f", "cm=recursive*; sl=3", outputPath2}
                             );
-                            costTimeHandler.exec(costTimeParams);
 
                             System.out.println("\n=================");
                             InfoQuery infoQuery = new InfoQuery();
