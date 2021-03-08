@@ -6,6 +6,7 @@ import agent.base.plugin.PluginFactory;
 import agent.base.runner.Runner;
 import agent.base.utils.*;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public abstract class AbstractLauncher {
@@ -13,9 +14,15 @@ public abstract class AbstractLauncher {
     private static final String KEY_LOG_PATH = "log.path";
     private static final String KEY_LOG_LEVEL = "log.level";
     private static final String KEY_LIB_DIR = "lib.dir";
+    private static final String PROPERTY_USER = "user";
 
     protected void init(String configFilePath, Map<String, Object> pvs) throws Exception {
-        SystemConfig.load(configFilePath, pvs);
+        Map<String, Object> newPvs = new HashMap<>(pvs);
+        newPvs.put(
+                PROPERTY_USER,
+                System.getProperty("user.name")
+        );
+        SystemConfig.load(configFilePath, newPvs);
         Logger.setSystemLogger(null);
         Logger.init(
                 SystemConfig.getNotBlank(KEY_LOG_PATH),

@@ -65,33 +65,38 @@ public class ServerLauncher extends AbstractLauncher {
     }
 
     private static void initAgent(String agentArgs, Instrumentation instrumentation) throws Exception {
-        if (!inited.compareAndSet(false, true)) {
+        if (!inited.compareAndSet(false, true))
             logger.debug("Agent has been inited.");
-            return;
-        }
-        if (Utils.isBlank(agentArgs))
-            throw new IllegalArgumentException("Agent arguments can not be empty.");
-        Map<String, String> pvs = parseArgs(agentArgs);
-        logger.debug("Agent args: {}", pvs);
-        Integer port = getPort(pvs);
-        String configFilePath = getConfigFilePath(pvs);
-        String scriptFilePath = pvs.get(KEY_SCRIPT);
+        else {
+            try {
+                if (Utils.isBlank(agentArgs))
+                    throw new IllegalArgumentException("Agent arguments can not be empty.");
+                Map<String, String> pvs = parseArgs(agentArgs);
+                logger.debug("Agent args: {}", pvs);
+                Integer port = getPort(pvs);
+                String configFilePath = getConfigFilePath(pvs);
+                String scriptFilePath = pvs.get(KEY_SCRIPT);
 
-        instance.init(
-                configFilePath,
-                Collections.singletonMap(
-                        KEY_PORT,
-                        port == null ? "" : port
-                )
-        );
-        instance.loadBootstrapJars(instrumentation);
-        instance.loadLibs();
-        instance.startRunner(
-                getRunner(RUNNER_TYPE),
-                port,
-                instrumentation,
-                scriptFilePath
-        );
+                instance.init(
+                        configFilePath,
+                        Collections.singletonMap(
+                                KEY_PORT,
+                                port == null ? "" : port
+                        )
+                );
+                instance.loadBootstrapJars(instrumentation);
+                instance.loadLibs();
+                instance.startRunner(
+                        getRunner(RUNNER_TYPE),
+                        port,
+                        instrumentation,
+                        scriptFilePath
+                );
+            } catch (Throwable t) {
+                inited.set(false);
+                throw t;
+            }
+        }
     }
 
     private void loadBootstrapJars(Instrumentation instrumentation) throws Exception {

@@ -1,4 +1,0 @@
-#!/bin/bash
-
-export main_class="agent.builtin.tools.ResultCalculator\$StackTrace"
-$(dirname "$0")/calculate_result "$@"

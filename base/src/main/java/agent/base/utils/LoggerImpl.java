@@ -86,10 +86,12 @@ class LoggerImpl extends AbstractLoggerImpl {
 
     private static void setOutputFile(String outputPath) {
         lo.sync(lock -> {
-            if (outputStream == null) {
-                FileUtils.mkdirsByFile(outputPath);
-                outputStream = new PrintStream(new FileOutputStream(outputPath, true));
+            if (outputStream != null) {
+                IOUtils.close(outputStream);
+                outputStream = null;
             }
+            FileUtils.mkdirsByFile(outputPath);
+            outputStream = new PrintStream(new FileOutputStream(outputPath, true));
         });
     }
 

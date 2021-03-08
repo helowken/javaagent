@@ -3,6 +3,7 @@ package agent.base.utils;
 import java.util.Objects;
 
 public class HostAndPort {
+    private static final String LOCAL_HOST = "127.0.0.1";
     private static final String HOST_PORT_SEP = ":";
     public final String host;
     public final int port;
@@ -42,7 +43,7 @@ public class HostAndPort {
             throw new RuntimeException("Invalid address: " + addr + ", it must be \"host[:port]\"");
         String host = hostPort[0].trim();
         if (Utils.isBlank(host))
-            throw new RuntimeException("Invalid host: " + addr);
+            host = LOCAL_HOST;
         int port = defaultPort;
         if (hostPort.length == 2) {
             String portStr = hostPort[1].trim();
