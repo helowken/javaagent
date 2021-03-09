@@ -2,7 +2,7 @@ package agent.builtin.tools;
 
 import agent.base.utils.ConsoleLogger;
 import agent.base.utils.Logger;
-import agent.base.utils.LoggerIntf;
+import agent.base.utils.SystemConfig;
 import agent.builtin.tools.execute.CostTimeResultCmdExecutor;
 import agent.builtin.tools.execute.StackTraceResultCmdExecutor;
 import agent.builtin.tools.execute.TraceResultCmdExecutor;
@@ -21,35 +21,11 @@ import static agent.builtin.tools.ResultCmdType.*;
 
 public class ResultLauncher {
 
-    static {
-        Logger.setAsync(false);
-        Logger.setSystemLogger(
-                new LoggerIntf() {
-                    @Override
-                    public void info(String pattern, Object... pvs) {
-                    }
-
-                    @Override
-                    public void debug(String pattern, Object... pvs) {
-                    }
-
-                    @Override
-                    public void warn(String pattern, Object... pvs) {
-                    }
-
-                    @Override
-                    public void error(String pattern, Object... pvs) {
-                    }
-
-                    @Override
-                    public void error(String pattern, Throwable t, Object... pvs) {
-                        t.printStackTrace();
-                    }
-                }
-        );
-    }
-
     public static void main(String[] args) {
+        String logPath = "/tmp/jr-" + SystemConfig.getUserName() + ".log";
+        Logger.setAsync(false);
+        Logger.init(logPath, "DEBUG");
+
         List<String> argList = new ArrayList<>();
         Collections.addAll(argList, args);
         if (argList.isEmpty())

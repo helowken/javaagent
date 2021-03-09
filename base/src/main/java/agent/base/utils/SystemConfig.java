@@ -81,4 +81,8 @@ public class SystemConfig {
     public static String getBaseDir() {
         return baseDir;
     }
+
+    public static String getUserName() {
+        return System.getProperty("user.name");
+    }
 }

@@ -50,10 +50,7 @@ public class ClassDataRepository {
                 dir = Utils.wrapToRtError(
                         () -> Files.createTempDirectory(TMP_DIR).toFile().getAbsolutePath()
                 );
-            baseDir = new File(
-                    SystemConfig.getBaseDir(),
-                    dir
-            ).getAbsolutePath();
+            baseDir = new File(dir).getAbsolutePath();
         }
         return baseDir;
     }

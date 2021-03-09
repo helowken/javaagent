@@ -20,7 +20,7 @@ public abstract class AbstractLauncher {
         Map<String, Object> newPvs = new HashMap<>(pvs);
         newPvs.put(
                 PROPERTY_USER,
-                System.getProperty("user.name")
+                SystemConfig.getUserName()
         );
         SystemConfig.load(configFilePath, newPvs);
         Logger.setSystemLogger(null);

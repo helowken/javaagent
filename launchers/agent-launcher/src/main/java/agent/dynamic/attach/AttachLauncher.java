@@ -14,15 +14,12 @@ import static agent.dynamic.attach.AttachCmdType.CMD_ATTACH;
 
 public class AttachLauncher {
 
-    static {
+    public static void main(String[] args) {
         Logger.setSystemLogger(
                 ConsoleLogger.getInstance()
         );
         Logger.setAsync(false);
 
-    }
-
-    public static void main(String[] args) {
         JvmtiUtils.getInstance().loadSelfLibrary();
         List<String> argList = new ArrayList<>();
         argList.add(0, AttachCmdParser.CMD);
