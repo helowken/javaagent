@@ -13,14 +13,24 @@ import java.util.List;
 import static agent.dynamic.attach.AttachCmdType.CMD_ATTACH;
 
 public class AttachLauncher {
-
-    public static void main(String[] args) {
+    static {
         Logger.setSystemLogger(
                 ConsoleLogger.getInstance()
         );
         Logger.setAsync(false);
 
         JvmtiUtils.getInstance().loadSelfLibrary();
+        CommandRunner.getInstance()
+                .regParse(
+                        new AttachCmdParser()
+                )
+                .regExec(
+                        new AttachCmdExecutor(),
+                        CMD_ATTACH
+                );
+    }
+
+    public static void main(String[] args) {
         List<String> argList = new ArrayList<>();
         argList.add(0, AttachCmdParser.CMD);
         if (args.length == 0)
@@ -30,15 +40,7 @@ public class AttachLauncher {
         else
             Collections.addAll(argList, args);
 
-        CommandRunner.getInstance()
-                .regParse(
-                        new AttachCmdParser()
-                )
-                .regExec(
-                        new AttachCmdExecutor(),
-                        CMD_ATTACH
-                )
-                .run(argList);
+        CommandRunner.getInstance().run(argList);
     }
 
 }

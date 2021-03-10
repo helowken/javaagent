@@ -46,6 +46,11 @@
         </dependency>
         <dependency>
             <groupId>javaagent</groupId>
+            <artifactId>bootstrap</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>javaagent</groupId>
             <artifactId>asm-dependent</artifactId>
             <scope>test</scope>
         </dependency>

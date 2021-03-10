@@ -43,9 +43,14 @@ public class DefaultValueConverter implements ValueConverter {
         if (map != null) {
             Object value = map.get(KEY_VALUE);
             if (value instanceof Integer) {
-                String str = valueCache.get(value);
-                if (str != null)
-                    map.put(KEY_VALUE, str);
+                int v = (Integer) value;
+                String str = null;
+                if (v != NULL_INDEX) {
+                    str = valueCache.get(value);
+                    if (str == null)
+                        str = "## Unknown value: " + value;
+                }
+                map.put(KEY_VALUE, str);
             }
         }
     }

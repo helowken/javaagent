@@ -20,18 +20,10 @@ import java.util.List;
 import static agent.builtin.tools.ResultCmdType.*;
 
 public class ResultLauncher {
-
-    public static void main(String[] args) {
+    static {
         String logPath = "/tmp/jr-" + SystemConfig.getUserName() + ".log";
         Logger.setAsync(false);
         Logger.init(logPath, "DEBUG");
-
-        List<String> argList = new ArrayList<>();
-        Collections.addAll(argList, args);
-        if (argList.isEmpty())
-            argList.add(
-                    HelpUtils.getHelpCmdName()
-            );
 
         CommandRunner.getInstance()
                 .regParse(
@@ -60,8 +52,17 @@ public class ResultLauncher {
                                 "{}",
                                 "Type 'jr help' to get a list of global options and commands."
                         )
-                )
-                .run(argList);
+                );
+    }
+
+    public static void main(String[] args) {
+        List<String> argList = new ArrayList<>();
+        Collections.addAll(argList, args);
+        if (argList.isEmpty())
+            argList.add(
+                    HelpUtils.getHelpCmdName()
+            );
+        CommandRunner.getInstance().run(argList);
     }
 
 }

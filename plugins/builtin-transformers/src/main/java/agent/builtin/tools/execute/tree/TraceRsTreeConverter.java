@@ -91,18 +91,21 @@ public class TraceRsTreeConverter extends RsTreeConverter<String, TraceItem, Tra
                 );
             }
         }
-        if (item.hasError() && config.isDisplayError()) {
+        if (item.hasError()) {
             addWrapIfNeeded(sb);
-            appendError("Throw Error", sb, item, config);
+            if (config.isDisplayError()) {
+                appendDetailError("throw an Error:", sb, item, config);
+            } else
+                appendSimpleError("throw an Error: ", sb, item);
         }
         return new Node<>(
                 sb.toString()
         );
     }
 
-    private void appendError(String prefix, StringBuilder sb, TraceItem item, TraceResultConfig config) {
+    private void appendDetailError(String prefix, StringBuilder sb, TraceItem item, TraceResultConfig config) {
         append(
-                sb.append(prefix).append(": \n").append(indent),
+                sb.append(prefix).append("\n").append(indent),
                 new TreeMap<>(
                         item.getError()
                 ),
@@ -110,20 +113,23 @@ public class TraceRsTreeConverter extends RsTreeConverter<String, TraceItem, Tra
         );
     }
 
+    private void appendSimpleError(String prefix, StringBuilder sb, TraceItem item) {
+        sb.append(prefix);
+        appendClassName(
+                sb,
+                new TreeMap<>(
+                        item.getError()
+                )
+        );
+    }
+
     private Node<String> createCatchNode(Node<TraceItem> node, TraceResultConfig config) {
         StringBuilder sb = new StringBuilder();
         TraceItem item = node.getData();
-        if (config.isDisplayError()) {
-            appendError("Catch Error", sb, item, config);
-        } else {
-            sb.append("Catch Error: ");
-            appendClassName(
-                    sb,
-                    new TreeMap<>(
-                            item.getError()
-                    )
-            );
-        }
+        if (config.isDisplayError())
+            appendDetailError("Catch Error:", sb, item, config);
+        else
+            appendSimpleError("Catch Error: ", sb, item);
         return new Node<>(
                 sb.toString()
         );

@@ -191,7 +191,10 @@ public class InvokeDescriptorUtils {
     }
 
     public static String shortForPkgLang(String className) {
-        return className.startsWith(JAVA_LANG_PACKAGE) ?
+        int pos = className.lastIndexOf('.');
+        return pos > -1 &&
+                pos == JAVA_LANG_PACKAGE_LENGTH - 1 &&
+                className.startsWith(JAVA_LANG_PACKAGE) ?
                 className.substring(JAVA_LANG_PACKAGE_LENGTH) :
                 className;
     }
