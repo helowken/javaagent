@@ -17,6 +17,7 @@ public class ProxyCallSite {
     static {
         posToProxyClass.put(ON_BEFORE, ProxyCallBefore::new);
         posToProxyClass.put(ON_RETURNING, ProxyCallOnReturning::new);
+        posToProxyClass.put(ON_THROWING_NOT_CATCH, ProxyCallOnThrowingNotCatch::new);
         posToProxyClass.put(ON_THROWING, ProxyCallOnThrowing::new);
         posToProxyClass.put(ON_CATCHING, ProxyCallOnCatching::new);
         posToProxyClass.put(ON_AFTER, ProxyCallAfter::new);
@@ -100,9 +101,13 @@ public class ProxyCallSite {
         invoke(ON_AFTER, instanceOrNull, null);
     }
 
+    public void invokeOnThrowingNotCatch(Object instanceOrNull, Object pv) {
+        invoke(ON_THROWING_NOT_CATCH, instanceOrNull, pv);
+        invoke(ON_AFTER, instanceOrNull, null);
+    }
+
     public void invokeOnThrowing(Object instanceOrNull, Object pv) {
         invoke(ON_THROWING, instanceOrNull, pv);
-        invoke(ON_AFTER, instanceOrNull, null);
     }
 
     public void invokeOnCatching(Object instanceOrNull, Object pv) {

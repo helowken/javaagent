@@ -40,6 +40,10 @@ public class ProxyRegInfo {
         return add(ON_RETURNING, proxyCallInfos);
     }
 
+    public ProxyRegInfo addOnThrowingNotCatch(ProxyCallInfo... proxyCallInfos) {
+        return add(ON_THROWING_NOT_CATCH, proxyCallInfos);
+    }
+
     public ProxyRegInfo addOnThrowing(ProxyCallInfo... proxyCallInfos) {
         return add(ON_THROWING, proxyCallInfos);
     }

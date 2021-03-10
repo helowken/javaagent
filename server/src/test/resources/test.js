@@ -13,8 +13,8 @@ function onReturning_test1(pvs) {
     aa.test();
 }
 
-function onThrowing_test1(pvs) {
-    print("onThrowing..."+ pvs["methodName"]);
+function onThrowingNotCatch_test1(pvs) {
+    print("onThrowingNotCatch..."+ pvs["methodName"]);
     aa.test();
 }
 

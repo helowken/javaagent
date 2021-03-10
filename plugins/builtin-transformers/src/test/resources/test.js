@@ -13,9 +13,15 @@ function onAfter(data, inv) {
     $d.aInt("afterCount").incrementAndGet();
 }
 
-function onError(data, inv) {
-    test("onError", data, inv);
+function onThrowNotCatch(data, inv) {
+    test("onThrowNotCatch", data, inv);
     $d.aInt("errorCount").incrementAndGet();
+}
+
+function onThrow(data, inv, error) {
+    data.kvs.put("error", error);
+    test("onThrow", data, inv);
+    $d.aInt("throwCount").incrementAndGet();
 }
 
 function onCatch(data, inv, error) {

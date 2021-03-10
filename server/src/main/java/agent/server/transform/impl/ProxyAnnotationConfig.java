@@ -12,9 +12,10 @@ public abstract class ProxyAnnotationConfig<T, R> {
     public static final int ARGS_NONE = -1;
     public static final int ARGS_ON_BEFORE = 1;
     public static final int ARGS_ON_RETURNING = 2;
-    public static final int ARGS_ON_THROWING = 3;
-    public static final int ARGS_ON_CATCHING = 4;
-    public static final int ARGS_ON_AFTER = 5;
+    public static final int ARGS_ON_THROWING_NOT_CATCH = 3;
+    public static final int ARGS_ON_THROWING = 4;
+    public static final int ARGS_ON_CATCHING = 5;
+    public static final int ARGS_ON_AFTER = 6;
     private static final Logger logger = Logger.getLogger(ProxyAnnotationConfig.class);
     private final static Object dummy = new Object();
 
@@ -63,6 +64,18 @@ public abstract class ProxyAnnotationConfig<T, R> {
             );
     }
 
+    @OnThrowing(mask = DEFAULT_ON_THROWING | DEFAULT_METADATA, argsHint = ARGS_ON_THROWING)
+    public void onThrowing(Throwable error, Object instanceOrNull, DestInvoke destInvoke, Object... otherArgs) {
+        if (isBanning())
+            return;
+        AroundItem<T, R> currAroundItem = getAroundItem("throwing", destInvoke);
+        if (currAroundItem != null)
+            currAroundItem.complete(
+                    data -> processOnThrowing(data, error, instanceOrNull, destInvoke, otherArgs),
+                    true
+            );
+    }
+
     @OnCatching(mask = DEFAULT_ON_CATCHING | DEFAULT_METADATA, argsHint = ARGS_ON_CATCHING)
     public void onCatching(Throwable error, Object instanceOrNull, DestInvoke destInvoke, Object... otherArgs) {
         if (isBanning())
@@ -75,14 +88,14 @@ public abstract class ProxyAnnotationConfig<T, R> {
             );
     }
 
-    @OnThrowing(mask = DEFAULT_ON_THROWING | DEFAULT_METADATA, argsHint = ARGS_ON_THROWING)
-    public void onThrowing(Throwable error, Object instanceOrNull, DestInvoke destInvoke, Object... otherArgs) {
+    @OnThrowingNotCatch(mask = DEFAULT_ON_THROWING_NOT_CATCH | DEFAULT_METADATA, argsHint = ARGS_ON_THROWING_NOT_CATCH)
+    public void onThrowingNotCatch(Throwable error, Object instanceOrNull, DestInvoke destInvoke, Object... otherArgs) {
         if (isBanning())
             return;
-        AroundItem<T, R> currAroundItem = getAroundItem("throwing", destInvoke);
+        AroundItem<T, R> currAroundItem = getAroundItem("throwingNotCatch", destInvoke);
         if (currAroundItem != null)
             currAroundItem.complete(
-                    data -> processOnThrowing(data, error, instanceOrNull, destInvoke, otherArgs),
+                    data -> processOnThrowingNotCatch(data, error, instanceOrNull, destInvoke, otherArgs),
                     false
             );
     }
@@ -123,9 +136,11 @@ public abstract class ProxyAnnotationConfig<T, R> {
 
     protected abstract R processOnReturning(T data, Object returnValue, Class<?> returnType, Object instanceOrNull, DestInvoke destInvoke, Object[] otherArgs);
 
+    protected abstract R processOnThrowing(T data, Throwable error, Object instanceOrNull, DestInvoke destInvoke, Object[] otherArgs);
+
     protected abstract R processOnCatching(T data, Throwable error, Object instanceOrNull, DestInvoke destInvoke, Object[] otherArgs);
 
-    protected abstract R processOnThrowing(T data, Throwable error, Object instanceOrNull, DestInvoke destInvoke, Object[] otherArgs);
+    protected abstract R processOnThrowingNotCatch(T data, Throwable error, Object instanceOrNull, DestInvoke destInvoke, Object[] otherArgs);
 
     protected abstract void processOnAfter(R result, Object instanceOrNull, DestInvoke destInvoke, Object[] otherArgs);
 

@@ -87,7 +87,7 @@ public class ViewMgrTest extends AbstractInfoTest {
 //        ).collect(
 //                Collectors.toMap(
 //                        AsmTestUtils::methodToString,
-//                        method -> newProxyMap("onBefore", "onReturning", "onThrowing", "onAfter")
+//                        method -> newProxyMap("onBefore", "onReturning", "onThrowingNotCatch", "onAfter")
 //                )
 //        );
 //        Map constructorResult = Stream.of(
@@ -95,7 +95,7 @@ public class ViewMgrTest extends AbstractInfoTest {
 //        ).collect(
 //                Collectors.toMap(
 //                        AsmTestUtils::constructorToString,
-//                        method -> newProxyMap("onBefore", "onReturning", "onThrowing", "onAfter")
+//                        method -> newProxyMap("onBefore", "onReturning", "onThrowingNotCatch", "onAfter")
 //                )
 //        );
 //        Map allResult = new TreeMap(methodResult);

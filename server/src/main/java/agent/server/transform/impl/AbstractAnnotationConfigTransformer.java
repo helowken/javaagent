@@ -14,6 +14,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public abstract class AbstractAnnotationConfigTransformer extends AbstractConfigTransformer implements AnnotationConfigTransformer {
@@ -81,84 +82,43 @@ public abstract class AbstractAnnotationConfigTransformer extends AbstractConfig
                 anntType = annt.annotationType();
                 if (OnBefore.class.equals(anntType))
                     regInfo.addBefore(
-                            newCallInfo(destInvoke, anntClass, anntMethod, (OnBefore) annt)
+                            newCallInfo(destInvoke, anntClass, anntMethod, (OnBefore) annt, OnBefore::mask, OnBefore::argsHint)
                     );
                 else if (OnAfter.class.equals(anntType))
                     regInfo.addAfter(
-                            newCallInfo(destInvoke, anntClass, anntMethod, (OnAfter) annt)
+                            newCallInfo(destInvoke, anntClass, anntMethod, (OnAfter) annt, OnAfter::mask, OnAfter::argsHint)
                     );
                 else if (OnReturning.class.equals(anntType))
                     regInfo.addOnReturning(
-                            newCallInfo(destInvoke, anntClass, anntMethod, (OnReturning) annt)
+                            newCallInfo(destInvoke, anntClass, anntMethod, (OnReturning) annt, OnReturning::mask, OnReturning::argsHint)
+                    );
+                else if (OnThrowingNotCatch.class.equals(anntType))
+                    regInfo.addOnThrowingNotCatch(
+                            newCallInfo(destInvoke, anntClass, anntMethod, (OnThrowingNotCatch) annt, OnThrowingNotCatch::mask, OnThrowingNotCatch::argsHint)
                     );
                 else if (OnThrowing.class.equals(anntType))
                     regInfo.addOnThrowing(
-                            newCallInfo(destInvoke, anntClass, anntMethod, (OnThrowing) annt)
+                            newCallInfo(destInvoke, anntClass, anntMethod, (OnThrowing) annt, OnThrowing::mask, OnThrowing::argsHint)
                     );
                 else if (OnCatching.class.equals(anntType))
                     regInfo.addOnCatching(
-                            newCallInfo(destInvoke, anntClass, anntMethod, (OnCatching) annt)
+                            newCallInfo(destInvoke, anntClass, anntMethod, (OnCatching) annt, OnCatching::mask, OnCatching::argsHint)
                     );
             }
         }
     }
 
-    private ProxyCallInfo newCallInfo(DestInvoke destInvoke, Class<?> anntClass, Method anntMethod, OnBefore annt) {
-        return newCallInfo(
-                destInvoke,
-                anntClass,
-                anntMethod,
-                annt.mask(),
-                annt.argsHint()
-        );
-    }
-
-    private ProxyCallInfo newCallInfo(DestInvoke destInvoke, Class<?> anntClass, Method anntMethod, OnAfter annt) {
-        return newCallInfo(
-                destInvoke,
-                anntClass,
-                anntMethod,
-                annt.mask(),
-                annt.argsHint()
-        );
-    }
-
-    private ProxyCallInfo newCallInfo(DestInvoke destInvoke, Class<?> anntClass, Method anntMethod, OnReturning annt) {
-        return newCallInfo(
-                destInvoke,
-                anntClass,
-                anntMethod,
-                annt.mask(),
-                annt.argsHint()
-        );
-    }
-
-    private ProxyCallInfo newCallInfo(DestInvoke destInvoke, Class<?> anntClass, Method anntMethod, OnThrowing annt) {
-        return newCallInfo(
-                destInvoke,
-                anntClass,
-                anntMethod,
-                annt.mask(),
-                annt.argsHint()
-        );
-    }
-
-    private ProxyCallInfo newCallInfo(DestInvoke destInvoke, Class<?> anntClass, Method anntMethod, OnCatching annt) {
-        return newCallInfo(
-                destInvoke,
-                anntClass,
-                anntMethod,
-                annt.mask(),
-                annt.argsHint()
-        );
-    }
-
-    private ProxyCallInfo newCallInfo(DestInvoke destInvoke, Class<?> anntClass, Method anntMethod, int mask, int argsHint) {
+    private <T> ProxyCallInfo newCallInfo(DestInvoke destInvoke, Class<?> anntClass, Method anntMethod,
+                                          T obj, Function<T, Integer> maskFunc, Function<T, Integer> argsHintFunc) {
         return new ProxyCallInfo(
                 getInstanceOrNull(anntClass, anntMethod),
                 anntMethod,
-                mask,
-                getOtherArgs(destInvoke, anntMethod, argsHint),
+                maskFunc.apply(obj),
+                getOtherArgs(
+                        destInvoke,
+                        anntMethod,
+                        argsHintFunc.apply(obj)
+                ),
                 getTid()
         );
     }

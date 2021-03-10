@@ -12,6 +12,7 @@ import org.objectweb.asm.tree.*;
 
 import java.lang.reflect.Method;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 import static agent.tools.asm.AsmMethod.*;
@@ -20,6 +21,7 @@ import static org.objectweb.asm.tree.AbstractInsnNode.*;
 
 class AsmTransformProxy {
     private static final String TARGET_PROXY_CLASS = "agent.bootstrap.ProxyDelegate";
+    private static final Map<String, Method> nameToProxyMethod = new ConcurrentHashMap<>();
 
     static void doTransform(ClassNode classNode, Map<Integer, DestInvoke> idToInvoke) {
         Map<String, Map<String, Integer>> nameToDescToId = getNameToDescToId(idToInvoke);
@@ -63,7 +65,7 @@ class AsmTransformProxy {
                 transformConstructorInvoke(methodNode, invokeId, (ConstructorInvoke) destInvoke);
                 break;
             case METHOD:
-                transformMethodInvoke(methodNode, invokeId, (MethodInvoke) destInvoke, false);
+                transformMethodInvoke(methodNode, invokeId, (MethodInvoke) destInvoke);
                 break;
             default:
                 throw new IllegalArgumentException("Unknown dest invoke type: " + destInvoke.getType());
@@ -81,18 +83,22 @@ class AsmTransformProxy {
                         node,
                         newVoidReturnList(true, invokeId)
                 );
-            } else if (opcode == ATHROW &&
-                    !isInCatchBlock(node, labelToIdx, ranges)) {
+            } else if (opcode == ATHROW) {
                 methodNode.instructions.insertBefore(
                         node,
-                        newThrowList(false, invokeId, newLocalIdx)
+                        newThrowing(false, invokeId, newLocalIdx)
                 );
+                if (!isInCatchBlock(node, labelToIdx, ranges))
+                    methodNode.instructions.insertBefore(
+                            node,
+                            newThrowNotCatchList(false, invokeId, newLocalIdx)
+                    );
             }
         }
         methodNode.instructions.insert(
                 newBeforeList(invokeId, invoke, true)
         );
-        processTryCatch(false, methodNode, invokeId, newLocalIdx);
+        processCatch(false, methodNode, invokeId, newLocalIdx);
     }
 
     private static boolean isInCatchBlock(AbstractInsnNode node, Map<Label, Integer> labelToIdx, List<Pair<Integer, Integer>> ranges) {
@@ -156,18 +162,10 @@ class AsmTransformProxy {
         return rs;
     }
 
-    private static void transformMethodInvoke(MethodNode methodNode, int invokeId, MethodInvoke invoke, boolean weaveInnerCalls) {
+    private static void transformMethodInvoke(MethodNode methodNode, int invokeId, MethodInvoke invoke) {
         boolean useNull = invoke.isStatic();
         int newLocalIdx = methodNode.maxLocals;
-        int innerCallLocalIdx = -1;
-        if (weaveInnerCalls) {
-            innerCallLocalIdx = newLocalIdx;
-            newLocalIdx += Type.LONG_TYPE.getSize();
-        }
-        ListIterator<AbstractInsnNode> iter = methodNode.instructions.iterator();
-        LabelNode startLabelNode = null;
-        while (iter.hasNext()) {
-            AbstractInsnNode node = iter.next();
+        for (AbstractInsnNode node : methodNode.instructions) {
             int opcode = node.getOpcode();
             if (opcode >= IRETURN && opcode < RETURN) {
                 methodNode.instructions.insertBefore(
@@ -183,116 +181,23 @@ class AsmTransformProxy {
                         node,
                         newVoidReturnList(useNull, invokeId)
                 );
-            } else if (node.getType() == AbstractInsnNode.LABEL) {
-                if (startLabelNode == null)
-                    startLabelNode = (LabelNode) node;
-            } else if (weaveInnerCalls && isInvoke(opcode)) {
-                if (isInvokeDynamic(opcode)) {
-                    // TODO
-                } else {
-                    methodNode.instructions.insertBefore(
-                            node,
-                            newBeforeInnerCall(
-                                    (MethodInsnNode) node,
-                                    innerCallLocalIdx,
-                                    newLocalIdx
-                            )
-                    );
-                    methodNode.instructions.insertBefore(
-                            node.getNext(),
-                            newAfterInnerCall(
-                                    (MethodInsnNode) node,
-                                    innerCallLocalIdx,
-                                    newLocalIdx
-                            )
-                    );
-                }
+            } else if (opcode == ATHROW) {
+                methodNode.instructions.insertBefore(
+                        node,
+                        newThrowing(useNull, invokeId, newLocalIdx)
+                );
             }
         }
-        if (startLabelNode == null) {
-            startLabelNode = newLabel();
-            methodNode.instructions.insert(startLabelNode);
-        }
+        LabelNode startLabelNode = newLabel();
+        methodNode.instructions.insert(startLabelNode);
         methodNode.instructions.insert(
                 newBeforeList(invokeId, invoke, false)
         );
-        if (weaveInnerCalls)
-            methodNode.instructions.insert(
-                    newInitInnerCallNum(innerCallLocalIdx)
-            );
-        processTryCatch(useNull, methodNode, invokeId, newLocalIdx);
-        addTryCatchForFunc(useNull, methodNode, startLabelNode, invokeId, newLocalIdx);
+        processCatch(useNull, methodNode, invokeId, newLocalIdx);
+        addNotCatch(useNull, methodNode, startLabelNode, invokeId, newLocalIdx);
     }
 
-    private static InsnList newInitInnerCallNum(int innerCallIdx) {
-        return addTo(
-                new InsnList(),
-                initLong(0, innerCallIdx)
-        );
-    }
-
-    private static String getMethodFullDesc(MethodInsnNode node) {
-        return node.owner + "#" + node.name + node.desc;
-    }
-
-    private static InsnList newBeforeInnerCall(MethodInsnNode node, int innerCallIdx, int newLocalIdx) {
-        Type[] argTypes = Type.getMethodType(node.desc).getArgumentTypes();
-        Type[] reversedTypes = Utils.reverse(argTypes);
-        return addTo(
-                new InsnList(),
-                updateLong(1, innerCallIdx),
-                storeByTypes(reversedTypes, newLocalIdx),
-                newGetInstance(),
-                loadLongType(innerCallIdx),
-                loadLdc(
-                        getMethodFullDesc(node)
-                ),
-                loadArgArray(
-                        Utils.reverse(
-                                newParamObjects(reversedTypes, newLocalIdx)
-                        )
-                ),
-                newOnBeforeInnerCallMethod(),
-                Utils.reverse(
-                        loadByTypes(reversedTypes, newLocalIdx)
-                )
-        );
-    }
-
-    private static InsnList newAfterInnerCall(MethodInsnNode node, int innerCallIdx, int newLocalIdx) {
-        Type returnType = Type.getReturnType(node.desc);
-        return returnType.getSort() == Type.VOID ?
-                addTo(
-                        new InsnList(),
-                        newGetInstance(),
-                        loadLongType(innerCallIdx),
-                        loadNull(1),
-                        newOnAfterInnerCallMethod()
-                ) :
-                addTo(
-                        new InsnList(),
-                        storeByType(returnType, newLocalIdx),
-                        newGetInstance(),
-                        loadLongType(innerCallIdx),
-                        loadMayWrapPrimitive(returnType, newLocalIdx),
-                        newOnAfterInnerCallMethod(),
-                        loadByType(returnType, newLocalIdx)
-                );
-    }
-
-    private static boolean isInvoke(int opcode) {
-        return opcode == INVOKEVIRTUAL ||
-                opcode == INVOKESPECIAL ||
-                opcode == INVOKESTATIC ||
-                opcode == INVOKEINTERFACE ||
-                opcode == INVOKEDYNAMIC;
-    }
-
-    private static boolean isInvokeDynamic(int opcode) {
-        return opcode == INVOKEDYNAMIC;
-    }
-
-    private static void processTryCatch(boolean useNull, MethodNode methodNode, int invokeId, int newLocalIdx) {
+    private static void processCatch(boolean useNull, MethodNode methodNode, int invokeId, int newLocalIdx) {
         if (methodNode.tryCatchBlocks != null) {
             Set<String> rangeSet = new HashSet<>();
             methodNode.tryCatchBlocks.forEach(
@@ -323,7 +228,7 @@ class AsmTransformProxy {
         }
     }
 
-    private static void addTryCatchForFunc(boolean useNull, MethodNode methodNode, LabelNode startLabelNode, int invokeId, int newLocalIdx) {
+    private static void addNotCatch(boolean useNull, MethodNode methodNode, LabelNode startLabelNode, int invokeId, int newLocalIdx) {
         LabelNode handlerLabelNode = newLabel();
         TryCatchBlockNode tryCatchNode = newTryCatch(
                 startLabelNode,
@@ -335,7 +240,7 @@ class AsmTransformProxy {
         addTo(
                 methodNode.instructions,
                 handlerLabelNode,
-                newThrowList(useNull, invokeId, newLocalIdx),
+                newThrowNotCatchList(useNull, invokeId, newLocalIdx),
                 newThrow()
         );
     }
@@ -381,7 +286,16 @@ class AsmTransformProxy {
         );
     }
 
-    private static InsnList newThrowList(boolean useNull, int invokeId, int newLocalIdx) {
+    private static InsnList newThrowNotCatchList(boolean useNull, int invokeId, int newLocalIdx) {
+        return newErrorList(
+                useNull,
+                invokeId,
+                newLocalIdx,
+                newOnThrowingNotCatchMethod()
+        );
+    }
+
+    private static InsnList newThrowing(boolean useNull, int invokeId, int newLocalIdx) {
         return newErrorList(
                 useNull,
                 invokeId,
@@ -412,15 +326,6 @@ class AsmTransformProxy {
         );
     }
 
-    private static Object collectArgs(Method method) {
-        return loadArgArray(
-                getParamObjects(
-                        method,
-                        ReflectionUtils.isStatic(method) ? 0 : 1
-                )
-        );
-    }
-
     private static Object collectArgs(Class[] paramTypes, int startIdx) {
         return loadArgArray(
                 getParamObjects(paramTypes, startIdx)
@@ -447,29 +352,28 @@ class AsmTransformProxy {
         return newProxyMethod("onReturning");
     }
 
-    private static Object newOnCatchingMethod() {
-        return newProxyMethod("onCatching");
-    }
-
     private static Object newOnThrowingMethod() {
         return newProxyMethod("onThrowing");
     }
 
-    private static Object newOnBeforeInnerCallMethod() {
-        return newProxyMethod("onBeforeInnerCall");
+    private static Object newOnCatchingMethod() {
+        return newProxyMethod("onCatching");
     }
 
-    private static Object newOnAfterInnerCallMethod() {
-        return newProxyMethod("onAfterInnerCall");
+    private static Object newOnThrowingNotCatchMethod() {
+        return newProxyMethod("onThrowingNotCatch");
     }
 
     private static Method findMethod(String methodName) {
-        return Optional.ofNullable(
-                Utils.wrapToRtError(
-                        () -> ReflectionUtils.findFirstMethod(TARGET_PROXY_CLASS, methodName)
+        return nameToProxyMethod.computeIfAbsent(
+                methodName,
+                key -> Optional.ofNullable(
+                        Utils.wrapToRtError(
+                                () -> ReflectionUtils.findFirstMethod(TARGET_PROXY_CLASS, key)
+                        )
+                ).orElseThrow(
+                        () -> new RuntimeException("No method found by name: " + key)
                 )
-        ).orElseThrow(
-                () -> new RuntimeException("No method found by name: " + methodName)
         );
     }
 }

@@ -22,6 +22,11 @@ public class ProxyDelegate {
             proxy.onReturning(invokeId, instanceOrNull, returnValue);
     }
 
+    public void onThrowingNotCatch(int invokeId, Object instanceOrNull, Throwable error) {
+        if (proxy != null)
+            proxy.onThrowingNotCatch(invokeId, instanceOrNull, error);
+    }
+
     public void onThrowing(int invokeId, Object instanceOrNull, Throwable error) {
         if (proxy != null)
             proxy.onThrowing(invokeId, instanceOrNull, error);

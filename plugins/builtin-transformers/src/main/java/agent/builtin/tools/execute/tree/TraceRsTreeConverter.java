@@ -47,9 +47,16 @@ public class TraceRsTreeConverter extends RsTreeConverter<String, TraceItem, Tra
                 valueCache
         );
 
-        return item.getType() == TraceItem.TYPE_INVOKE ?
-                createInvokeNode(node, idToMetadata, pnMetadata, config) :
-                createCatchNode(node, config);
+        switch (item.getType()) {
+            case TraceItem.TYPE_INVOKE:
+                return createInvokeNode(node, idToMetadata, pnMetadata, config);
+            case TraceItem.TYPE_THROW:
+                return createThrowNode(node, config);
+            case TraceItem.TYPE_CATCH:
+                return createCatchNode(node, config);
+            default:
+                throw new RuntimeException("Unknown type: " + item.getType());
+        }
     }
 
     private Node<String> createInvokeNode(Node<TraceItem> node, Map<Integer, InvokeMetadata> idToMetadata,
@@ -92,11 +99,11 @@ public class TraceRsTreeConverter extends RsTreeConverter<String, TraceItem, Tra
             }
         }
         if (item.hasError()) {
-            addWrapIfNeeded(sb);
             if (config.isDisplayError()) {
-                appendDetailError("throw an Error:", sb, item, config);
+                addWrapIfNeeded(sb);
+                appendDetailError("Error:", sb, item, config);
             } else
-                appendSimpleError("throw an Error: ", sb, item);
+                sb.insert(0, "[Error] ");
         }
         return new Node<>(
                 sb.toString()
@@ -123,13 +130,21 @@ public class TraceRsTreeConverter extends RsTreeConverter<String, TraceItem, Tra
         );
     }
 
+    private Node<String> createThrowNode(Node<TraceItem> node, TraceResultConfig config) {
+        return createErrorNode("Throw Error:", node, config);
+    }
+
     private Node<String> createCatchNode(Node<TraceItem> node, TraceResultConfig config) {
+        return createErrorNode("Catch Error:", node, config);
+    }
+
+    private Node<String> createErrorNode(String prefix, Node<TraceItem> node, TraceResultConfig config) {
         StringBuilder sb = new StringBuilder();
         TraceItem item = node.getData();
         if (config.isDisplayError())
-            appendDetailError("Catch Error:", sb, item, config);
+            appendDetailError(prefix, sb, item, config);
         else
-            appendSimpleError("Catch Error: ", sb, item);
+            appendSimpleError(prefix, sb, item);
         return new Node<>(
                 sb.toString()
         );

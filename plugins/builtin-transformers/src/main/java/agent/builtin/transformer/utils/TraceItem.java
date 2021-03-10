@@ -17,6 +17,7 @@ public class TraceItem {
     public static final int POJO_TYPE = 0;
     public static final int TYPE_INVOKE = 0;
     public static final int TYPE_CATCH = 1;
+    public static final int TYPE_THROW = 2;
     @PojoProperty(index = 0)
     private int id;
     @PojoProperty(index = 1)

@@ -44,6 +44,11 @@ public abstract class CallChainTransformer extends ProxyAnnotationConfigTransfor
         }
 
         @Override
+        protected R processOnThrowing(T data, Throwable error, Object instanceOrNull, DestInvoke destInvoke, Object[] otherArgs) {
+            return null;
+        }
+
+        @Override
         protected R processOnCatching(T data, Throwable error, Object instanceOrNull, DestInvoke destInvoke, Object[] otherArgs) {
             return null;
         }
@@ -70,7 +75,7 @@ public abstract class CallChainTransformer extends ProxyAnnotationConfigTransfor
         }
 
         @Override
-        protected R processOnThrowing(T data, Throwable error, Object instanceOrNull, DestInvoke destInvoke, Object[] otherArgs) {
+        protected R processOnThrowingNotCatch(T data, Throwable error, Object instanceOrNull, DestInvoke destInvoke, Object[] otherArgs) {
             data.endTime = System.nanoTime();
             data.error = error;
             return convertTo(data);

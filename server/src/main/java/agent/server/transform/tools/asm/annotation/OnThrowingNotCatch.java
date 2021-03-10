@@ -7,9 +7,10 @@ import java.lang.annotation.Target;
 
 import static agent.invoke.proxy.ProxyArgsMask.MASK_NONE;
 
+
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
-public @interface OnThrowing {
+public @interface OnThrowingNotCatch {
     int mask() default MASK_NONE;
 
     int argsHint() default -1;

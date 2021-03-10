@@ -1,11 +1,11 @@
 package agent.builtin.transformer;
 
+import agent.base.struct.impl.Struct;
+import agent.base.struct.impl.StructContext;
 import agent.base.utils.Utils;
 import agent.builtin.transformer.utils.DefaultValueConverter;
 import agent.builtin.transformer.utils.TraceItem;
 import agent.builtin.transformer.utils.ValueConverter;
-import agent.base.struct.impl.Struct;
-import agent.base.struct.impl.StructContext;
 import agent.invoke.DestInvoke;
 import agent.server.transform.impl.CallChainTransformer;
 import agent.server.utils.log.LogConfigParser;
@@ -14,8 +14,7 @@ import agent.server.utils.log.LogMgr;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static agent.builtin.transformer.utils.TraceItem.TYPE_CATCH;
-import static agent.builtin.transformer.utils.TraceItem.TYPE_INVOKE;
+import static agent.builtin.transformer.utils.TraceItem.*;
 
 public class TraceInvokeTransformer extends CallChainTransformer {
     public static final String REG_KEY = "@traceInvoke";
@@ -55,13 +54,13 @@ public class TraceInvokeTransformer extends CallChainTransformer {
         }
 
         @Override
+        protected TraceResult processOnThrowing(TraceInvokeInfo data, Throwable error, Object instanceOrNull, DestInvoke destInvoke, Object[] otherArgs) {
+            return newErrorResult(data, error, TYPE_THROW);
+        }
+
+        @Override
         protected TraceResult processOnCatching(TraceInvokeInfo data, Throwable error, Object instanceOrNull, DestInvoke destInvoke, Object[] otherArgs) {
-            TraceCatchInfo result = new TraceCatchInfo();
-            result.id = getAroundItem().nextSeq();
-            result.parentId = data.id;
-            result.invokeId = data.invokeId;
-            result.error = error;
-            return result;
+            return newErrorResult(data, error, TYPE_CATCH);
         }
 
         @Override
@@ -87,6 +86,15 @@ public class TraceInvokeTransformer extends CallChainTransformer {
                     ),
                     true
             );
+        }
+
+        private TraceResult newErrorResult(TraceInvokeInfo data, Throwable error, int type) {
+            TraceErrorInfo result = new TraceErrorInfo(type);
+            result.id = getAroundItem().nextSeq();
+            result.parentId = data.id;
+            result.invokeId = data.invokeId;
+            result.error = error;
+            return result;
         }
     }
 
@@ -146,12 +154,17 @@ public class TraceInvokeTransformer extends CallChainTransformer {
         }
     }
 
-    private static class TraceCatchInfo extends InvokeItem implements TraceResult {
+    private static class TraceErrorInfo extends InvokeItem implements TraceResult {
+        private final int type;
         private Throwable error;
+
+        private TraceErrorInfo(int type) {
+            this.type = type;
+        }
 
         @Override
         public TraceItem convert(ValueConverter converter) {
-            TraceItem traceItem = newTraceItem(this, TYPE_CATCH);
+            TraceItem traceItem = newTraceItem(this, type);
             traceItem.setError(
                     converter.convertError(this.error)
             );

@@ -36,44 +36,43 @@ public class AsmProxyMethodTest extends AbstractTest {
     @Test
     public void testThrowException() throws Exception {
         String methodName = "throwException";
-        callError(methodName, false);
+        callError(methodName, true, "onThrowing");
     }
 
     @Test
     public void testCallErrorFunc() throws Exception {
         String methodName = "callErrorFunc";
-        callError(methodName, false);
+        callError(methodName, true );
     }
 
     @Test
     public void testTryFinally() throws Exception {
-        String methodName = "tryFinally";
-        callError(methodName, false);
+        callError("tryFinally", true, "onThrowing", "onThrowing");
     }
 
     @Test
     public void testTryCatch() throws Exception {
-        callWithoutArgs("tryCatch", true);
+        callWithoutArgs("tryCatch", false, "onThrowing", "onCatching");
     }
 
     @Test
     public void testTryCatchThrow() throws Exception {
-        callError("tryCatchThrow", true);
+        callError("tryCatchThrow", true, "onThrowing", "onCatching", "onThrowing");
     }
 
     @Test
     public void testTrySyncThrow() throws Exception {
-        callError("trySyncThrow", false);
+        callError("trySyncThrow", true, "onThrowing", "onThrowing");
     }
 
     @Test
     public void trySyncMethodThrow() throws Exception {
-        callError("trySyncMethodThrow", false);
+        callError("trySyncMethodThrow", true, "onThrowing");
     }
 
     @Test
     public void testTryNotCatch() throws Exception {
-        callError("tryNotCatch", false);
+        callError("tryNotCatch", true, "onThrowing");
     }
 
     @Test
@@ -86,7 +85,7 @@ public class AsmProxyMethodTest extends AbstractTest {
         callWithoutArgs("returnVoid", false);
     }
 
-    private void callWithoutArgs(String methodName, boolean catchError) throws Exception {
+    private void callWithoutArgs(String methodName, boolean throwNotCatch, String... prefixes) throws Exception {
         List<String> logList = new ArrayList<>();
         Class<?> newAClass = AsmTestUtils.prepareClassMethod(count, logList, A.class, methodName);
         ReflectionUtils.invoke(
@@ -95,10 +94,10 @@ public class AsmProxyMethodTest extends AbstractTest {
                 new Class[0],
                 newAClass.newInstance()
         );
-        doCheck(count, logList, catchError, false);
+        doCheck(count, logList, throwNotCatch, prefixes);
     }
 
-    private void callError(String methodName, boolean catchError) throws Exception {
+    private void callError(String methodName, boolean throwNotCatch, String... prefixes) throws Exception {
         List<String> logList = new ArrayList<>();
         Class<?> newAClass = AsmTestUtils.prepareClassMethod(count, logList, A.class, methodName);
         try {
@@ -115,7 +114,7 @@ public class AsmProxyMethodTest extends AbstractTest {
             assertTrue(t instanceof RuntimeException);
             assertEquals(errorMsg, t.getMessage());
         }
-        doCheck(count, logList, catchError, true);
+        doCheck(count, logList, throwNotCatch, prefixes);
     }
 
     private void callWithArgs(String methodName) throws Exception {
@@ -136,7 +135,7 @@ public class AsmProxyMethodTest extends AbstractTest {
                 "sss",
                 (short) 111
         );
-        doCheck(count, logList, false, false);
+        doCheck(count, logList, false);
     }
 
     public static class A {

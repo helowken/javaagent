@@ -4,7 +4,7 @@ package test.server;
 import agent.server.transform.tools.asm.annotation.OnAfter;
 import agent.server.transform.tools.asm.annotation.OnBefore;
 import agent.server.transform.tools.asm.annotation.OnReturning;
-import agent.server.transform.tools.asm.annotation.OnThrowing;
+import agent.server.transform.tools.asm.annotation.OnThrowingNotCatch;
 
 public class TestProxy {
     @OnBefore
@@ -15,8 +15,8 @@ public class TestProxy {
     void onAfter() {
     }
 
-    @OnThrowing
-    void onThrowing() {
+    @OnThrowingNotCatch
+    void onThrowingNotCatch() {
     }
 
     @OnReturning

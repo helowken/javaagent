@@ -19,40 +19,41 @@ public class AsmProxyConstructorTest extends AbstractTest {
 
     @Test
     public void testNoArgs() throws Exception {
-        call("()V", false, false, new Class[0]);
+        call("()V", false, new String[0], new Class[0]);
     }
 
     @Test
     public void testThrowError() throws Exception {
-        call("(I)V", false, true, new Class[]{int.class}, 333);
+        call("(I)V", true, new String[]{"onThrowing"}, new Class[]{int.class}, 333);
     }
 
     @Test
     public void testCatchError() throws Exception {
-        call("(Ljava/lang/String;)V", true, false, new Class[]{String.class}, "xxx");
+        call("(Ljava/lang/String;)V", false, new String[]{"onThrowing", "onCatching"}, new Class[]{String.class}, "xxx");
     }
 
     @Test
     public void testCatchAndThrowError() throws Exception {
-        call("(J)V", true, true, new Class[]{long.class}, 111L);
+        call("(J)V", true, new String[]{"onThrowing", "onCatching", "onThrowing"}, new Class[]{long.class}, 111L);
     }
 
     @Test
     public void testTryFinally() throws Exception {
-        call("(II)V", false, true, new Class[]{int.class, int.class}, 1, 2);
+        call("(II)V", true, new String[]{"onThrowing", "onThrowing"}, new Class[]{int.class, int.class}, 1, 2);
     }
 
     @Test
     public void testWithArgs() throws Exception {
-        call("(ILjava/lang/String;)V", false, false, new Class[]{int.class, String.class}, 111, "xxxx");
+        call("(ILjava/lang/String;)V", false, new String[0], new Class[]{int.class, String.class}, 111, "xxxx");
     }
 
-    private void call(String desc, boolean catchError, boolean error, Class[] argTypes, Object... args) throws Exception {
+    private void call(String desc, boolean throwNotCatch, String[] prefixes,
+                      Class[] argTypes, Object... args) throws Exception {
         List<String> logList = new ArrayList<>();
         Class<?> newAClass = AsmTestUtils.prepareClassConstructor(count, logList, A.class, desc);
         try {
             ReflectionUtils.newInstance(newAClass, argTypes, args);
-            if (error)
+            if (throwNotCatch)
                 fail();
         } catch (Exception e) {
             Throwable t = Utils.getMeaningfulCause(e);
@@ -60,7 +61,7 @@ public class AsmProxyConstructorTest extends AbstractTest {
             assertTrue(t instanceof RuntimeException);
             assertEquals(errorMsg, t.getMessage());
         }
-        doCheck(count, logList, catchError, error);
+        doCheck(count, logList, throwNotCatch, prefixes);
     }
 
     private Class<?> newClass(String desc) throws Exception {

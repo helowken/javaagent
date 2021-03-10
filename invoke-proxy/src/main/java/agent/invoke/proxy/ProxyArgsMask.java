@@ -13,8 +13,9 @@ public class ProxyArgsMask {
     public static final int DEFAULT_METADATA = MASK_INSTANCE | MASK_INVOKE;
     public static final int DEFAULT_BEFORE = MASK_ARGS | MASK_ARG_TYPES;
     public static final int DEFAULT_ON_RETURNING = MASK_RETURN_VALUE | MASK_RETURN_TYPE;
-    public static final int DEFAULT_ON_CATCHING = MASK_ERROR;
     public static final int DEFAULT_ON_THROWING = MASK_ERROR;
+    public static final int DEFAULT_ON_CATCHING = MASK_ERROR;
+    public static final int DEFAULT_ON_THROWING_NOT_CATCH = MASK_ERROR;
     public static final int DEFAULT_AFTER = MASK_NONE;
 
     static boolean useArgs(int mask) {

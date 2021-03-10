@@ -1,6 +1,5 @@
 package agent.server.transform.tools.asm;
 
-import agent.base.utils.InvokeDescriptorUtils;
 import agent.base.utils.Logger;
 import agent.bootstrap.ProxyDelegate;
 import agent.bootstrap.ProxyIntf;
@@ -203,6 +202,13 @@ public class ProxyTransformMgr implements ProxyIntf, ServerListener {
         );
     }
 
+    public void onThrowingNotCatch(int invokeId, Object instanceOrNull, Throwable error) {
+        controller.onThrowingNotCatch(
+                invokeId,
+                () -> getCallSite(invokeId).invokeOnThrowingNotCatch(instanceOrNull, error)
+        );
+    }
+
     public void onThrowing(int invokeId, Object instanceOrNull, Throwable error) {
         controller.onThrowing(
                 invokeId,
@@ -217,22 +223,6 @@ public class ProxyTransformMgr implements ProxyIntf, ServerListener {
         );
     }
 
-    public void onBeforeInnerCall(long callNum, String methodName, Object[] args) {
-        String[] ts = methodName.split("#");
-        System.out.println(
-                "Before Inner Call " + callNum + ": " + ts[0] + " # " + InvokeDescriptorUtils.descToText(ts[1]) +
-                        Arrays.toString(
-                                args == null ? new Object[0] : args
-                        )
-        );
-    }
-
-    public void onAfterInnerCall(long callNum, Object returnValue) {
-        System.out.println(
-                "After Inner Call " + callNum + ": " + returnValue
-        );
-    }
-
     @Override
     public void onStartup(Object[] args) {
         ProxyDelegate.getInstance().setProxy(this);
@@ -244,6 +234,7 @@ public class ProxyTransformMgr implements ProxyIntf, ServerListener {
 
     private static class ProxyController {
         private final ThreadLocal<Set<Integer>> before = new ThreadLocal<>();
+        private final ThreadLocal<Set<Integer>> throwingNotCatch = new ThreadLocal<>();
         private final ThreadLocal<Set<Integer>> throwing = new ThreadLocal<>();
         private final ThreadLocal<Set<Integer>> catching = new ThreadLocal<>();
         private final ThreadLocal<Set<Integer>> returning = new ThreadLocal<>();
@@ -254,6 +245,10 @@ public class ProxyTransformMgr implements ProxyIntf, ServerListener {
 
         void onReturning(int invokeId, Runnable runnable) {
             run(returning, invokeId, runnable);
+        }
+
+        void onThrowingNotCatch(int invokeId, Runnable runnable) {
+            run(throwingNotCatch, invokeId, runnable);
         }
 
         void onThrowing(int invokeId, Runnable runnable) {

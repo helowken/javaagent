@@ -25,21 +25,20 @@ import static org.junit.Assert.assertFalse;
 
 public class AsmTestUtils {
 
-    static void doCheck(int count, List<String> logList, boolean catchError, boolean throwError) {
+    static void doCheck(int count, List<String> logList, boolean throwNotCatch, String... prefixes) {
         assertEquals(
-                newExpectedList(count, catchError, throwError),
+                newExpectedList(count, throwNotCatch, prefixes),
                 logList
         );
     }
 
-    private static List<String> newExpectedList(int count, boolean catchError, boolean throwError) {
+    private static List<String> newExpectedList(int count, boolean throwNotCatch, String... prefixes) {
         List<String> prefixList = new ArrayList<>();
         prefixList.add("before");
-        if (catchError)
-            prefixList.add("onCatching");
-        prefixList.add(throwError ? "onThrowing" : "onReturning");
+        if (prefixes != null && prefixes.length > 0)
+            Collections.addAll(prefixList, prefixes);
+        prefixList.add(throwNotCatch ? "onThrowingNotCatch" : "onReturning");
         prefixList.add("after");
-
         List<String> expectedList = new ArrayList<>();
         for (String prefix : prefixList) {
             for (int i = 0; i < count; ++i) {
@@ -130,6 +129,14 @@ public class AsmTestUtils {
                             null,
                             tag
                     )
+            ).addOnThrowing(
+                    new ProxyCallInfo(
+                            b,
+                            ReflectionUtils.findFirstMethod(TestProxyB.class, "testOnThrowing"),
+                            DEFAULT_ON_THROWING,
+                            null,
+                            tag
+                    )
             ).addOnCatching(
                     new ProxyCallInfo(
                             b,
@@ -138,11 +145,11 @@ public class AsmTestUtils {
                             null,
                             tag
                     )
-            ).addOnThrowing(
+            ).addOnThrowingNotCatch(
                     new ProxyCallInfo(
                             b,
-                            ReflectionUtils.findFirstMethod(TestProxyB.class, "testOnThrowing"),
-                            DEFAULT_ON_THROWING,
+                            ReflectionUtils.findFirstMethod(TestProxyB.class, "testOnThrowingNotCatch"),
+                            DEFAULT_ON_THROWING_NOT_CATCH,
                             null,
                             tag
                     )
