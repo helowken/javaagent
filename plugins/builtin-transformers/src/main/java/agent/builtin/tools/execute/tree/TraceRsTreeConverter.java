@@ -206,7 +206,9 @@ public class TraceRsTreeConverter extends RsTreeConverter<String, TraceItem, Tra
         if (withClassName) {
             appendClassName(sb, rsMap);
             sb.append(": ");
-        }
+        } else
+            rsMap.remove(KEY_CLASS);
+
         appendValue(sb, rsMap, config);
         int i = 0;
         for (Map.Entry<String, Object> entry : rsMap.entrySet()) {
