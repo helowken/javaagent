@@ -101,7 +101,7 @@ public class TraceRsTreeConverter extends RsTreeConverter<String, TraceItem, Tra
         if (item.hasError()) {
             if (config.isDisplayError()) {
                 addWrapIfNeeded(sb);
-                appendDetailError("Error:", sb, item, config);
+                appendDetailError("Raise Error:", sb, item, config);
             } else
                 sb.insert(0, "[Error] ");
         }
@@ -116,26 +116,33 @@ public class TraceRsTreeConverter extends RsTreeConverter<String, TraceItem, Tra
                 new TreeMap<>(
                         item.getError()
                 ),
-                config
+                config,
+                false
         );
     }
 
     private void appendSimpleError(String prefix, StringBuilder sb, TraceItem item) {
         sb.append(prefix);
+        Map<String, Object> errMap = item.getError();
+        String valueStr = (String) errMap.get(KEY_VALUE);
+        int pos = valueStr.indexOf('\n');
+        if (pos > -1)
+            valueStr = valueStr.substring(0, pos);
+        pos = valueStr.indexOf(':');
+        valueStr = pos > -1 ? valueStr.substring(pos + 1) : "";
         appendClassName(
                 sb,
-                new TreeMap<>(
-                        item.getError()
-                )
+                new TreeMap<>(errMap)
         );
+        sb.append(valueStr);
     }
 
     private Node<String> createThrowNode(Node<TraceItem> node, TraceResultConfig config) {
-        return createErrorNode("Throw Error:", node, config);
+        return createErrorNode("Throw Error: ", node, config);
     }
 
     private Node<String> createCatchNode(Node<TraceItem> node, TraceResultConfig config) {
-        return createErrorNode("Catch Error:", node, config);
+        return createErrorNode("Catch Error: ", node, config);
     }
 
     private Node<String> createErrorNode(String prefix, Node<TraceItem> node, TraceResultConfig config) {
@@ -192,8 +199,14 @@ public class TraceRsTreeConverter extends RsTreeConverter<String, TraceItem, Tra
     }
 
     private StringBuilder append(StringBuilder sb, Map<String, Object> rsMap, TraceResultConfig config) {
-        appendClassName(sb, rsMap);
-        sb.append(": ");
+        return append(sb, rsMap, config, true);
+    }
+
+    private StringBuilder append(StringBuilder sb, Map<String, Object> rsMap, TraceResultConfig config, boolean withClassName) {
+        if (withClassName) {
+            appendClassName(sb, rsMap);
+            sb.append(": ");
+        }
         appendValue(sb, rsMap, config);
         int i = 0;
         for (Map.Entry<String, Object> entry : rsMap.entrySet()) {

@@ -9,7 +9,6 @@ import agent.builtin.transformer.utils.TraceItem;
 import agent.cmdline.command.Command;
 import agent.cmdline.command.execute.AbstractCmdExecutor;
 import agent.cmdline.command.result.ExecResult;
-import agent.common.tree.INode;
 import agent.common.tree.Node;
 import agent.common.tree.Tree;
 import agent.common.tree.TreeUtils;
@@ -108,7 +107,10 @@ public class TraceResultCmdExecutor extends AbstractCmdExecutor {
         if (tree.hasChild()) {
             TreeUtils.traverse(
                     tree,
-                    INode::reverseChildren
+                    node -> {
+                        removeDuplicatedThrow(node);
+                        node.reverseChildren();
+                    }
             );
             Tree<String> rsTree = new TraceRsTreeConverter(valueCache).convertTree(tree, idToMetadata, rsConfig);
             TreeUtils.printTree(
@@ -118,6 +120,24 @@ public class TraceResultCmdExecutor extends AbstractCmdExecutor {
             );
         }
         return totalSize;
+    }
+
+    private void removeDuplicatedThrow(Node<TraceItem> node) {
+        if (node.countChildren() > 1) {
+            Node<TraceItem> firstChild = node.firstChild();
+            TraceItem fcData = firstChild.getData();
+            if (fcData.hasError()) {
+                while (node.countChildren() > 1) {
+                    Node<TraceItem> secChild = node.getChildAt(1);
+                    TraceItem secData = secChild.getData();
+                    if (secData.getType() == fcData.getType() &&
+                            fcData.getError().equals(secData.getError())) {
+                        secChild.destroy();
+                    } else
+                        break;
+                }
+            }
+        }
     }
 
     @SuppressWarnings("unchecked")

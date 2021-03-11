@@ -1,9 +1,11 @@
 package test.transformer;
 
 import org.junit.Test;
+import sun.jvm.hotspot.debugger.AddressException;
 
 import java.io.FileNotFoundException;
 import java.net.NoRouteToHostException;
+import java.net.SocketTimeoutException;
 import java.util.*;
 import java.util.stream.Stream;
 
@@ -46,6 +48,11 @@ public class TraceTest extends AbstractTraceTest {
 
             po.test7(6);
             po.test8();
+            try {
+                po.test9();
+            } catch (Throwable t) {
+                System.out.println("Catch it.");
+            }
 
             try {
                 po.test6();
@@ -159,6 +166,26 @@ public class TraceTest extends AbstractTraceTest {
         }
 
         private void test8111() {
+        }
+
+        private void test9() {
+            try {
+                try {
+                    try {
+                        throw new AddressException("Multi throw through", 9999);
+                    } catch (IllegalArgumentException e) {
+                        System.out.println("Not catch 1.");
+                    } finally {
+                        System.out.println("Throw through 1.");
+                    }
+                } catch (IllegalArgumentException e2) {
+                    System.out.println("Not catch 2.");
+                } finally {
+                    System.out.println("Throw through 2.");
+                }
+            } finally {
+                System.out.println("Throw through 3.");
+            }
         }
     }
 
