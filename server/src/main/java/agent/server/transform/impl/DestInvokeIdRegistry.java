@@ -1,35 +1,48 @@
 package agent.server.transform.impl;
 
+import agent.base.buffer.ByteUtils;
+import agent.base.struct.annotation.PojoClass;
+import agent.base.struct.annotation.PojoProperty;
+import agent.base.struct.impl.Struct;
+import agent.base.struct.impl.StructContext;
 import agent.base.utils.IOUtils;
 import agent.base.utils.LockObject;
 import agent.base.utils.Logger;
 import agent.base.utils.Utils;
-import agent.base.buffer.ByteUtils;
-import agent.base.struct.impl.Struct;
 import agent.common.utils.MetadataUtils;
 import agent.invoke.DestInvoke;
 import agent.server.event.EventListenerMgr;
 import agent.server.event.impl.DestInvokeMetadataFlushedEvent;
 
+import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static agent.server.transform.impl.DestInvokeIdRegistry.InvokeMetadata.POJO_TYPE;
+
 public class DestInvokeIdRegistry {
-    private static final String SEP = "#";
     private static final Logger logger = Logger.getLogger(DestInvokeIdRegistry.class);
     private static final DestInvokeIdRegistry instance = new DestInvokeIdRegistry();
 
     private final LockObject lo = new LockObject();
     private final Map<Class<?>, Map<DestInvoke, Integer>> classToInvokeToId = new HashMap<>();
     private final AtomicInteger idGen = new AtomicInteger(0);
+    private final StructContext context = new StructContext();
 
     public static DestInvokeIdRegistry getInstance() {
         return instance;
     }
 
     private DestInvokeIdRegistry() {
+        context.setPojoCreator(
+                type -> {
+                    if (type == POJO_TYPE)
+                        return new InvokeMetadata();
+                    throw new RuntimeException("Unknown pojo type: " + type);
+                }
+        );
     }
 
     public int reg(DestInvoke destInvoke) {
@@ -68,7 +81,8 @@ public class DestInvokeIdRegistry {
                     try {
                         return ByteUtils.getBytes(
                                 Struct.serialize(
-                                        convertMetadata()
+                                        convertMetadata(),
+                                        context
                                 )
                         );
                     } catch (Throwable e) {
@@ -97,47 +111,28 @@ public class DestInvokeIdRegistry {
         }
     }
 
-    private Map<Integer, String> convertMetadata() {
-        Map<Integer, String> rsMap = new HashMap<>();
-        Map<Class<?>, Integer> classToIdx = new HashMap<>();
-        Map<String, Integer> classNameToIdx = new HashMap<>();
+    private Map<Integer, InvokeMetadata> convertMetadata() {
+        Map<Integer, InvokeMetadata> rsMap = new HashMap<>();
         classToInvokeToId.forEach(
                 (clazz, invokeToId) -> invokeToId.forEach(
-                        (invoke, id) -> rsMap.computeIfAbsent(
-                                id,
-                                key -> clazz.getName() + SEP +
-                                        getClassNameIdx(classToIdx, classNameToIdx, clazz) + SEP +
-                                        invoke.getName() + invoke.getDescriptor()
+                        (invoke, invokeId) -> rsMap.computeIfAbsent(
+                                invokeId,
+                                key -> new InvokeMetadata(
+                                        clazz.getName(),
+                                        Utils.identityHashCode(clazz),
+                                        invoke.getName() + invoke.getDescriptor(),
+                                        false
+                                )
                         )
                 )
         );
         return rsMap;
     }
 
-    private int getClassNameIdx(Map<Class<?>, Integer> classToIdx, Map<String, Integer> classNameToIdx, Class<?> clazz) {
-        return classToIdx.computeIfAbsent(
-                clazz,
-                cls -> {
-                    String className = clazz.getName();
-                    Integer idx = classNameToIdx.get(className);
-                    if (idx == null)
-                        idx = 1;
-                    else
-                        idx += 1;
-                    classNameToIdx.put(className, idx);
-                    return idx;
-                }
-        );
-    }
-
-    public static InvokeMetadata parse(String s) {
-        String[] ts = s.split(SEP);
-        if (ts.length != 3)
-            throw new RuntimeException("Invalid classInvoke: " + s);
-        return new InvokeMetadata(
-                ts[0],
-                Utils.parseInt(ts[1], "Class idx"),
-                ts[2]
+    public Map<Integer, InvokeMetadata> parse(byte[] bs) {
+        return Struct.deserialize(
+                ByteBuffer.wrap(bs),
+                context
         );
     }
 
@@ -149,9 +144,7 @@ public class DestInvokeIdRegistry {
 
     public void reset() {
         lo.sync(
-                lock -> {
-                    classToInvokeToId.clear();
-                }
+                lock -> classToInvokeToId.clear()
         );
     }
 
@@ -159,19 +152,23 @@ public class DestInvokeIdRegistry {
         V run(Map<Class<?>, Map<DestInvoke, Integer>> classToInvokeToId);
     }
 
+    @PojoClass(type = POJO_TYPE)
     public static class InvokeMetadata {
-        public final String clazz;
-        public final int idx;
-        public final String invoke;
-        private final boolean unknown;
+        static final int POJO_TYPE = 1;
+        @PojoProperty(index = 0)
+        public String clazz;
+        @PojoProperty(index = 1)
+        public int cid;
+        @PojoProperty(index = 2)
+        public String invoke;
+        private boolean unknown;
 
-        InvokeMetadata(String clazz, int idx, String invoke) {
-            this(clazz, idx, invoke, false);
+        InvokeMetadata() {
         }
 
-        InvokeMetadata(String clazz, int idx, String invoke, boolean unknown) {
+        InvokeMetadata(String clazz, int cid, String invoke, boolean unknown) {
             this.clazz = clazz;
-            this.idx = idx;
+            this.cid = cid;
             this.invoke = invoke;
             this.unknown = unknown;
         }
@@ -183,7 +180,7 @@ public class DestInvokeIdRegistry {
         public static InvokeMetadata unknown(int invokeId) {
             return new InvokeMetadata(
                     "",
-                    1,
+                    0,
                     "invokeId=" + invokeId,
                     true
             );

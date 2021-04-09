@@ -185,6 +185,11 @@ public class ReflectionUtils {
         );
     }
 
+//    public static List<Field> getAllFields(Object classOrClassName) throws Exception {
+//        Class<?> clazz = convert(classOrClassName);
+//        clazz.getFields()
+//    }
+
     private static Class[] convertToTypes(Object... args) {
         Class<?>[] argTypes = args == null ?
                 new Class<?>[0] :

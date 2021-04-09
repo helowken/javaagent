@@ -134,11 +134,11 @@ public class TransformMgr {
         transformContext.getTransformerList().forEach(
                 transformer -> {
                     try {
+                        transformer.init();
                         transformer.transform(transformContext);
                         regInfos.addAll(
                                 transformer.getProxyRegInfos()
                         );
-                        transformer.init();
                     } catch (Throwable t) {
                         logger.error("transform failed.", t);
                         transformResult.addTransformError(t, transformer.getRegKey());
@@ -171,21 +171,22 @@ public class TransformMgr {
         return doReTransform(
                 transformResult,
                 proxyResults,
-                ProxyResult::getTargetClass
+                ProxyResult::getTargetClass,
+                ClassDataRepository.getInstance()::getCurrentClassData
         );
     }
 
-    public <P> List<P> doReTransform(TransformResult transformResult, List<P> dataList, Function<P, Class<?>> convertFunc) {
+    public <P> List<P> doReTransform(TransformResult transformResult, List<P> inputList, Function<P, Class<?>> convertFunc, Function<Class<?>, byte[]> classDataFunc) {
         List<P> validRsList = new ArrayList<>();
-        for (P data : dataList) {
-            Class<?> clazz = convertFunc.apply(data);
+        for (P input : inputList) {
+            Class<?> clazz = convertFunc.apply(input);
             try {
-                byte[] classData = ClassDataRepository.getInstance().getCurrentClassData(clazz);
+                byte[] classData = classDataFunc.apply(clazz);
                 ClassDefinition newClassDef = new ClassDefinition(clazz, classData);
                 InstrumentationMgr.getInstance().run(
                         instrumentation -> instrumentation.redefineClasses(newClassDef)
                 );
-                validRsList.add(data);
+                validRsList.add(input);
             } catch (Throwable t) {
                 transformResult.addReTransformError(clazz, t);
                 logger.error("Update class data failed: {}", t, clazz);

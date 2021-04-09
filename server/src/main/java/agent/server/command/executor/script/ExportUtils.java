@@ -142,4 +142,11 @@ class ExportUtils {
         );
         return sb.toString();
     }
+
+//    private static Map<String, Object> convertToMap(Object o) {
+//        if (o == null)
+//            return null;
+//        ReflectionUtils.get
+//        o.getClass().getDe
+//    }
 }

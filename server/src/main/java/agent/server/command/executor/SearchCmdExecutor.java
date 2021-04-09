@@ -1,6 +1,7 @@
 package agent.server.command.executor;
 
 import agent.base.utils.InvokeDescriptorUtils;
+import agent.base.utils.Utils;
 import agent.cmdline.command.Command;
 import agent.cmdline.command.execute.AbstractCmdExecutor;
 import agent.cmdline.command.result.DefaultExecResult;
@@ -33,7 +34,9 @@ class SearchCmdExecutor extends AbstractCmdExecutor {
             Map<String, Collection<String>> classToInvokes = new TreeMap<>();
             invokes.forEach(
                     invoke -> classToInvokes.computeIfAbsent(
-                            invoke.getDeclaringClass().getName(),
+                            Utils.getClassNameWithId(
+                                    invoke.getDeclaringClass()
+                            ),
                             className -> new TreeSet<>()
                     ).add(
                             InvokeDescriptorUtils.descToText(

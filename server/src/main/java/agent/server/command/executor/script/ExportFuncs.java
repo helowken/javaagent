@@ -138,7 +138,7 @@ public class ExportFuncs {
         return ReflectionUtils.getFieldValue(fieldName, o);
     }
 
-    public void sv(Object o, String fieldName, Object value) throws Exception {
+    public void v(Object o, String fieldName, Object value) throws Exception {
         ReflectionUtils.setFieldValue(fieldName, o, value);
     }
 
@@ -147,7 +147,7 @@ public class ExportFuncs {
         return ReflectionUtils.getFieldValue(clazz, fieldName, null);
     }
 
-    public void scv(Object classOrClassName, String fieldName, Object value) throws Exception {
+    public void cv(Object classOrClassName, String fieldName, Object value) throws Exception {
         Class<?> clazz = cls(classOrClassName);
         ReflectionUtils.setFieldValue(clazz, fieldName, null, value);
     }

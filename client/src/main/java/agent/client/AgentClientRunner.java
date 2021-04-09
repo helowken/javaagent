@@ -7,6 +7,7 @@ import agent.base.utils.Utils;
 import agent.client.command.RemoteCommandExecutor;
 import agent.client.command.parser.impl.*;
 import agent.client.command.result.handler.InfoResultHandler;
+import agent.client.command.result.handler.TransformResultHandler;
 import agent.cmdline.args.parse.OptConfig;
 import agent.cmdline.command.runner.CommandRunner;
 
@@ -60,10 +61,13 @@ public class AgentClientRunner implements Runner {
                         infoResultHandler,
                         CMD_SEARCH,
                         CMD_INFO,
-                        CMD_TRANSFORM,
                         CMD_RESET,
                         CMD_SAVE_CLASS,
                         CMD_JS_EXEC
+                )
+                .regResult(
+                        new TransformResultHandler(),
+                        CMD_TRANSFORM
                 )
                 .setCmdNotFoundHandler(
                         e -> ConsoleLogger.getInstance().error(

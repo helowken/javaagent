@@ -53,9 +53,19 @@ public class PojoFieldProperty<T> {
         return new PojoFieldProperty(
                 field.getGenericType(),
                 index,
-                getMethod(clazz, propertyName, field.getType())::invoke,
-                getMethod(clazz, propertyName, null)::invoke
+                getFieldValueSetter(clazz, propertyName, field),
+                getFieldValueGetter(clazz, propertyName, field)
         );
+    }
+
+    private static <T> PojoFieldValueSetter<T, Object> getFieldValueSetter(Class<?> clazz, String propertyName, Field field) {
+        Method method = getMethod(clazz, propertyName, field.getType());
+        return method != null ? method::invoke : field::set;
+    }
+
+    private static <T> PojoFieldValueGetter<T, Object> getFieldValueGetter(Class<?> clazz, String propertyName, Field field) {
+        Method method = getMethod(clazz, propertyName, null);
+        return method != null ? method::invoke : field::get;
     }
 
     private static Method getMethod(Class<?> clazz, String propertyName, Class<?> fieldClass) {
@@ -81,10 +91,7 @@ public class PojoFieldProperty<T> {
 //                e.printStackTrace();
             }
         }
-        throw new RuntimeException(
-                "No method found for property: " + propertyName +
-                        " for " + (fieldClass == null ? "getting" : "setting")
-        );
+        return null;
     }
 
     @Override

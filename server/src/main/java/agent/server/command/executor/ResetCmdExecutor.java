@@ -9,6 +9,7 @@ import agent.server.transform.TransformMgr;
 import agent.server.transform.TransformResult;
 import agent.server.transform.TransformerRegistry;
 import agent.server.transform.impl.DestInvokeIdRegistry;
+import agent.server.transform.revision.ClassDataRepository;
 import agent.server.transform.search.filter.ClassFilter;
 import agent.server.transform.search.filter.FilterUtils;
 import agent.server.transform.search.filter.InvokeFilter;
@@ -64,7 +65,8 @@ class ResetCmdExecutor extends AbstractTransformCmdExecutor {
         return TransformMgr.getInstance().doReTransform(
                 transformResult,
                 classList,
-                clazz -> clazz
+                clazz -> clazz,
+                ClassDataRepository.getInstance()::getOriginalClassData
         );
     }
 

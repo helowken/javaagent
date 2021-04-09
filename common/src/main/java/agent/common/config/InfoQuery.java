@@ -23,6 +23,8 @@ public class InfoQuery extends AbstractValidConfig {
     private int level;
     @PojoProperty(index = 1)
     private TargetConfig targetConfig;
+    @PojoProperty(index = 2)
+    private boolean withCalls;
 
     @Override
     public void validate() {
@@ -41,6 +43,14 @@ public class InfoQuery extends AbstractValidConfig {
         this.level = level;
     }
 
+    public boolean isWithCalls() {
+        return withCalls;
+    }
+
+    public void setWithCalls(boolean withCalls) {
+        this.withCalls = withCalls;
+    }
+
     public TargetConfig getTargetConfig() {
         return targetConfig;
     }
@@ -54,6 +64,7 @@ public class InfoQuery extends AbstractValidConfig {
         return "InfoQuery{" +
                 "level=" + level +
                 ", targetConfig=" + targetConfig +
+                ", withCalls=" + withCalls +
                 '}';
     }
 }

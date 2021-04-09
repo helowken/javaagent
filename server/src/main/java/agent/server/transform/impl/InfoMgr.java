@@ -34,7 +34,8 @@ public class InfoMgr {
         return pattern == null || pattern.matcher(value).matches();
     }
 
-    public static Object create(InfoQuery infoQuery) {
+    @SuppressWarnings("unchecked")
+    public static <T> T create(InfoQuery infoQuery) {
         TargetConfig targetConfig = infoQuery.getTargetConfig();
         final ClassFilter classFilter = FilterUtils.newClassFilter(
                 targetConfig.getClassFilter(),
@@ -47,7 +48,7 @@ public class InfoMgr {
                 targetConfig.getConstructorFilter()
         );
         final Pattern proxyPattern = newPattern(null);
-        return DestInvokeIdRegistry.getInstance().run(
+        return (T) DestInvokeIdRegistry.getInstance().run(
                 classToInvokeToId -> newValue(
                         INFO_CLASS,
                         infoQuery.getLevel(),
@@ -64,8 +65,10 @@ public class InfoMgr {
                                     return FilterUtils.isAccept(
                                             value instanceof ConstructorInvoke ? constructorFilter : methodFilter,
                                             invoke
-                                    ) && ProxyTransformMgr.getInstance().hasCalls(
-                                            DestInvokeIdRegistry.getInstance().get(invoke)
+                                    ) && (!infoQuery.isWithCalls() ||
+                                            ProxyTransformMgr.getInstance().hasCalls(
+                                                    DestInvokeIdRegistry.getInstance().get(invoke)
+                                            )
                                     );
                                 default:
                                     throw new RuntimeException("Unsupported level: " + currLevel);
@@ -74,7 +77,9 @@ public class InfoMgr {
                         (currLevel, mLevel, value) -> {
                             switch (currLevel) {
                                 case INFO_CLASS:
-                                    return ((Class<?>) value).getName();
+                                    return Utils.getClassNameWithId(
+                                            (Class<?>) value
+                                    );
                                 case INFO_INVOKE:
                                     DestInvoke destInvoke = (DestInvoke) value;
                                     return InvokeDescriptorUtils.descToText(

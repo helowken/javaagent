@@ -64,7 +64,7 @@ public class TraceResultCmdParser extends AbstractResultCmdParser {
 
     private Collection<String> parseOutputSetting(Opts opts) {
         String output = TraceResultOptConfigs.getOutput(opts);
-        return Utils.isBlank(output) ?
+        return output == null ?
                 Arrays.asList(
                         DISPLAY_ARGS,
                         DISPLAY_ERROR,

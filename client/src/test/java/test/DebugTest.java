@@ -1,14 +1,15 @@
 package test;
 
-import agent.base.utils.Utils;
+//import agent.base.utils.Utils;
+
 import sun.jvm.hotspot.oops.*;
 import sun.jvm.hotspot.runtime.VM;
 import sun.jvm.hotspot.tools.Tool;
-import sun.jvmstat.monitor.MonitoredHost;
-import sun.jvmstat.monitor.MonitoredVm;
-import sun.jvmstat.monitor.VmIdentifier;
+
+import java.lang.reflect.Modifier;
 
 public class DebugTest {
+    // cmd: java -cp $dir/sa-jdi.jar DebugTest PID
     public static void main(String[] args) {
         TestTool tool = new TestTool();
         tool.test(args);
@@ -19,12 +20,23 @@ public class DebugTest {
         @Override
         public void run() {
 //            printClassAndLoader();
-            findPrivateKey();
+//            findPrivateKey();
+            removeFinal();
         }
 
-        public void test(String[] args){
+        public void test(String[] args) {
             execute(args);
         }
+    }
+
+    private static void removeFinal() {
+        VM.getVM().getSystemDictionary().classesDo(
+                klass -> {
+//                    if (klass.getName().asString().equals(className)) {
+//                        klass.getAddress().getJCharAt()
+//                    }
+                }
+        );
     }
 
     private static void findPrivateKey() {
@@ -57,23 +69,23 @@ public class DebugTest {
     }
 
     private static void printVmMonitors() throws Exception {
-        MonitoredHost host = MonitoredHost.getMonitoredHost((String) null);
-        host.activeVms().forEach(
-                pid -> Utils.wrapToRtError(
-                        () -> {
-                            if (pid == 20720) {
-                                MonitoredVm vm = host.getMonitoredVm(
-                                        new VmIdentifier(pid.toString())
-                                );
-                                vm.findByPattern(".*").forEach(
-                                        monitor -> System.out.println(
-                                                monitor.getName() + " = " + monitor.getValue()
-                                        )
-                                );
-                                System.out.println("=========================");
-                            }
-                        }
-                )
-        );
+//        MonitoredHost host = MonitoredHost.getMonitoredHost((String) null);
+//        host.activeVms().forEach(
+//                pid -> Utils.wrapToRtError(
+//                        () -> {
+//                            if (pid == 20720) {
+//                                MonitoredVm vm = host.getMonitoredVm(
+//                                        new VmIdentifier(pid.toString())
+//                                );
+//                                vm.findByPattern(".*").forEach(
+//                                        monitor -> System.out.println(
+//                                                monitor.getName() + " = " + monitor.getValue()
+//                                        )
+//                                );
+//                                System.out.println("=========================");
+//                            }
+//                        }
+//                )
+//        );
     }
 }

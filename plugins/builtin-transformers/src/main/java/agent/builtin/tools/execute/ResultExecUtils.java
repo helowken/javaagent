@@ -1,6 +1,5 @@
 package agent.builtin.tools.execute;
 
-import agent.base.struct.impl.Struct;
 import agent.base.utils.*;
 import agent.common.utils.MetadataUtils;
 import agent.server.transform.impl.DestInvokeIdRegistry;
@@ -9,7 +8,6 @@ import agent.server.transform.impl.DestInvokeIdRegistry.InvokeMetadata;
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -70,29 +68,15 @@ public class ResultExecUtils {
         );
     }
 
-    private static <V> V readMetadata(String inputPath) throws IOException {
-        byte[] bs = IOUtils.readBytes(
-                FileUtils.getAbsolutePath(
-                        MetadataUtils.getMetadataFile(inputPath),
-                        true
-                )
-        );
-        return Struct.deserialize(
-                ByteBuffer.wrap(bs)
-        );
-    }
-
     public static Map<Integer, InvokeMetadata> readInvokeMetadata(String inputPath) {
         try {
-            Map<Integer, String> idToClassInvoke = readMetadata(inputPath);
-            Map<Integer, InvokeMetadata> rsMap = new HashMap<>();
-            idToClassInvoke.forEach(
-                    (id, classInvoke) -> rsMap.put(
-                            id,
-                            DestInvokeIdRegistry.parse(classInvoke)
+            byte[] bs = IOUtils.readBytes(
+                    FileUtils.getAbsolutePath(
+                            MetadataUtils.getMetadataFile(inputPath),
+                            true
                     )
             );
-            return rsMap;
+            return DestInvokeIdRegistry.getInstance().parse(bs);
         } catch (Exception e) {
             logger.error("Read metadata failed.", e);
             return Collections.emptyMap();
@@ -111,10 +95,10 @@ public class ResultExecUtils {
     public static String formatClassName(InvokeMetadata metadata) {
         if (metadata.isUnknown())
             return metadata.clazz;
-        String result = InvokeDescriptorUtils.getSimpleName(metadata.clazz);
-        if (metadata.idx > 1)
-            result += "#" + metadata.idx + "";
-        return result;
+        String className = InvokeDescriptorUtils.getSimpleName(metadata.clazz);
+        return metadata.cid > 1 ?
+                Utils.getClassNameWithId(className, metadata.cid) :
+                className;
     }
 
     public static void calculateBinaryFile(File dataFile, CalculateBytesFunc calculateFunc) {
@@ -185,7 +169,7 @@ public class ResultExecUtils {
         else {
             InvokeMetadata parentMetadata = getMetadata(idToInvoke, parentInvokeId);
             if (!parentMetadata.clazz.equals(metadata.clazz) ||
-                    parentMetadata.idx != metadata.idx)
+                    parentMetadata.cid != metadata.cid)
                 className = formatClassName(metadata);
         }
         return Utils.isNotBlank(className) ?

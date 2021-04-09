@@ -55,11 +55,9 @@ public class FilterOptUtils {
         );
         FilterItem item;
         for (String filterStr : filterStrList) {
-            if (filterStr != null) {
-                item = doParse(filterStr);
-                if (item != null)
-                    rsList.add(item);
-            }
+            item = doParse(filterStr);
+            if (item != null)
+                rsList.add(item);
         }
         return rsList;
     }
@@ -76,18 +74,20 @@ public class FilterOptUtils {
         StringBuilder sb;
         String prefix;
         for (String t : ts) {
-            kvs = t.split(KV_SEP);
-            if (kvs.length != 2)
-                throw new RuntimeException("Invalid filter part: " + t);
-            prefix = kvs[0].trim();
-            sb = prefixToSb.get(prefix);
-            if (sb == null)
-                throw new RuntimeException("Invalid prefix: " + prefix + " in: " + t);
-            if (sb.length() > 0)
-                sb.append(VALUE_SEP);
-            sb.append(
-                    kvs[1].trim()
-            );
+            if (Utils.isNotBlank(t)) {
+                kvs = t.split(KV_SEP);
+                if (kvs.length != 2)
+                    throw new RuntimeException("Invalid filter part: " + t);
+                prefix = kvs[0].trim();
+                sb = prefixToSb.get(prefix);
+                if (sb == null)
+                    throw new RuntimeException("Invalid prefix: " + prefix + " in: " + t);
+                if (sb.length() > 0)
+                    sb.append(VALUE_SEP);
+                sb.append(
+                        kvs[1].trim()
+                );
+            }
         }
 
         return new FilterItem(

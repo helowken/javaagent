@@ -13,8 +13,20 @@ import java.util.stream.Stream;
 
 @SuppressWarnings("unchecked")
 public class Utils {
-    public static String sUuid() {
-        return UUID.randomUUID().toString();
+
+    public static int identityHashCode(Object v) {
+        return System.identityHashCode(v);
+    }
+
+    public static String getClassNameWithId(Class<?> clazz) {
+        return getClassNameWithId(
+                clazz.getName(),
+                identityHashCode(clazz)
+        );
+    }
+
+    public static String getClassNameWithId(String className, int cid) {
+        return className + " (id=" + cid + ")";
     }
 
     public static void wrapToRtError(WithoutValueFunc func) {

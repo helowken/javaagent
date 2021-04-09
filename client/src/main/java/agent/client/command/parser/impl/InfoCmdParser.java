@@ -61,6 +61,7 @@ public class InfoCmdParser extends ClientAbstractCmdParser<CmdParams> {
                         args.length > 0 ? args[0] : CATALOG_INVOKE
                 )
         );
+        infoQuery.setWithCalls(true);
 
         return new DefaultCommand(CMD_INFO, infoQuery);
     }

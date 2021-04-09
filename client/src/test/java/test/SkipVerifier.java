@@ -17,17 +17,17 @@ public class SkipVerifier {
         byte[] data = new byte[len / 2];
         for (int i = 0; i < len; i += 2) {
             data[i / 2] = (byte) ((Character.digit(s.charAt(i), 16) << 4)
-                    + Character.digit(s.charAt(i+1), 16));
+                    + Character.digit(s.charAt(i + 1), 16));
         }
         return data;
     }
 
     public static void main(String[] args) throws Exception {
-        if (true) {
-            byte[] bs = hexStringToByteArray("E68891");
-            System.out.println(new String(bs));
-            return;
-        }
+//        if (true) {
+//            byte[] bs = hexStringToByteArray("E68891");
+//            System.out.println(new String(bs));
+//            return;
+//        }
 
         unsafe = ReflectionUtils.getStaticFieldValue(
                 Unsafe.class,
@@ -50,15 +50,24 @@ public class SkipVerifier {
 //        );
 
 
-        JVMType.getTypeMap(
+        Map<String, JVMType> map = JVMType.getTypeMap(
                 JVMStruct.getStructMap()
-        ).forEach(
-                (name, jvmType) -> {
-                    if (SkipVerifier.class.getName().equals(name)) {
-
-                    }
-                }
         );
+        for (Map.Entry<String, JVMType> entry : map.entrySet()) {
+            String name = entry.getKey();
+//            System.out.println(name);
+            if (name.equals("Klass")) {
+                JVMType jvmType = entry.getValue();
+                JVMField field = jvmType.getField("_modifier_flags");
+                System.out.println(field);
+                long modifiers = unsafe.getInt(field.offset);
+                System.out.println(modifiers);
+                break;
+            }
+        }
+//                    if (SkipVerifier.class.getName().equals(name)) {
+//
+//                    }
     }
 
     private static long findNative(String name) throws Exception {

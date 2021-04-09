@@ -3,6 +3,7 @@ package agent.server.transform.revision;
 import agent.base.utils.IOUtils;
 import agent.base.utils.Logger;
 import agent.base.utils.StringItem;
+import agent.base.utils.Utils;
 
 import java.io.File;
 
@@ -21,8 +22,7 @@ public class ClassDataStore {
                 .replaceAll("\\", "_")
                 .replaceAll("$", "#")
                 .replaceAll(".", File.separator) + "_" +
-                System.identityHashCode(clazz.getClassLoader()) + "_" +
-                System.identityHashCode(clazz) + ".class";
+                Utils.identityHashCode(clazz) + ".class";
         return new File(dir, relativePath);
     }
 
