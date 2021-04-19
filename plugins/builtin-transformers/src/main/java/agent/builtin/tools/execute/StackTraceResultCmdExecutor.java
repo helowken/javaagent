@@ -199,8 +199,7 @@ public class StackTraceResultCmdExecutor extends AbstractCmdExecutor {
         for (Node<StackTraceCountItem> node : nodeList) {
             StackTraceCountItem currData = node.getData();
             cn = pn.findFirstChild(
-                    data -> data.getClassId() == currData.getClassId() &&
-                            data.getMethodId() == currData.getMethodId()
+                    data -> data.getId() == currData.getId()
             );
             if (cn == null) {
                 cn = new Node<>(currData);
