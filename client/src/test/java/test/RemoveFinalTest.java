@@ -1,5 +1,6 @@
 package test;
 
+import org.apache.commons.lang3.reflect.MethodUtils;
 import org.junit.Test;
 
 import java.lang.reflect.Field;
@@ -27,6 +28,9 @@ public class RemoveFinalTest {
         System.out.println("============================");
         Class<A> aClass = A.class;
         System.out.println(aClass.getModifiers());
+
+        MethodUtils.invokeMethod(A.class, "");
+
     }
 
     private static final class A {

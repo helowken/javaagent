@@ -8,6 +8,7 @@ public class StackTraceResultConfig extends AbstractResultConfig {
     private StackTraceConfig stackTraceConfig;
     private float rate;
     private String outputFormat;
+    private boolean displayAll;
     private Map<Integer, Boolean> numMap;
 
     public StackTraceConfig getStackTraceConfig() {
@@ -16,6 +17,14 @@ public class StackTraceResultConfig extends AbstractResultConfig {
 
     public void setStackTraceConfig(StackTraceConfig stackTraceConfig) {
         this.stackTraceConfig = stackTraceConfig;
+    }
+
+    public boolean isDisplayAll() {
+        return displayAll;
+    }
+
+    public void setDisplayAll(boolean displayAll) {
+        this.displayAll = displayAll;
     }
 
     public float getRate() {

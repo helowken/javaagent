@@ -12,6 +12,7 @@ public class StackTraceResultOptConfigs {
     private static final String KEY_OUTPUT_FORMAT = "OUTPUT_FORMAT";
     private static final String KEY_RATE = "RATE";
     private static final String KEY_NUMS = "NUMS";
+    private static final String KEY_DISPLAY_ALL = "DISPLAY_ALL";
     private static final String DEFAULT_RATE = "0.01";
     private static final String NUM_SEP = ",";
     private static final String NUM_PLUS = "+";
@@ -35,9 +36,21 @@ public class StackTraceResultOptConfigs {
                     "Samples rate."
             )
     );
+    private static final OptConfigSuite boolSuite = new OptConfigSuite(
+            new OptConfig(
+                    "-d",
+                    "--display-all",
+                    KEY_DISPLAY_ALL,
+                    "Display info on all nodes."
+            )
+    );
 
     public static OptConfigSuite getKvSuite() {
         return kvSuite;
+    }
+
+    public static OptConfigSuite getBoolSuite() {
+        return boolSuite;
     }
 
     public static String getOutputFormat(Opts opts) {
@@ -81,5 +94,9 @@ public class StackTraceResultOptConfigs {
         } catch (NumberFormatException e) {
             throw new RuntimeException("Rate must be a float.");
         }
+    }
+
+    public static boolean isDisplayAll(Opts opts) {
+        return opts.getNotNull(KEY_DISPLAY_ALL, false);
     }
 }

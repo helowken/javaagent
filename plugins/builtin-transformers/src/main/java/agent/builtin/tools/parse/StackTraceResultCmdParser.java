@@ -18,7 +18,8 @@ public class StackTraceResultCmdParser extends AbstractResultCmdParser {
                         StackTraceResultOptConfigs.getKvSuite()
                 ),
                 new BooleanOptParser(
-                        StackTraceOptConfigs.getBoolSuite()
+                        StackTraceOptConfigs.getBoolSuite(),
+                        StackTraceResultOptConfigs.getBoolSuite()
                 )
         );
     }
@@ -38,6 +39,9 @@ public class StackTraceResultCmdParser extends AbstractResultCmdParser {
         );
         config.setNumMap(
                 StackTraceResultOptConfigs.getNumMap(opts)
+        );
+        config.setDisplayAll(
+                StackTraceResultOptConfigs.isDisplayAll(opts)
         );
         populateConfig(params, config);
         return new DefaultCommand(CMD_STACK_TRACE_RESULT, config);
