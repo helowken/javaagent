@@ -103,14 +103,10 @@ public class StackTraceResultCmdExecutor extends AbstractCmdExecutor {
         );
     }
 
-    private void printTotalCount(long totalCount) {
-        System.out.println("## Total samples: " + totalCount);
-    }
-
     private void outputCostTimeTree(STResult stResult, StackTraceResultConfig rsConfig) {
         Tree<StackTraceCountItem> tree = stResult.getMergedTree();
         long totalCount = stResult.getTotalCount();
-        printTotalCount(totalCount);
+        System.out.println("## Total samples: " + totalCount);
         TreeUtils.printTree(
                 calculateCostTimeTree(tree, rsConfig, totalCount),
                 new TreeUtils.PrintConfig(false),
@@ -220,7 +216,6 @@ public class StackTraceResultCmdExecutor extends AbstractCmdExecutor {
     private void outputCostTimeConfig(STResult stResult, StackTraceResultConfig config) throws Exception {
         Tree<StackTraceCountItem> tree = stResult.getMergedTree();
         long totalCount = stResult.getTotalCount();
-        printTotalCount(totalCount);
         Map<String, Set<String>> classToMethods = new TreeMap<>();
         TreeUtils.traverse(
                 calculateCostTimeTree(tree, config, totalCount),
