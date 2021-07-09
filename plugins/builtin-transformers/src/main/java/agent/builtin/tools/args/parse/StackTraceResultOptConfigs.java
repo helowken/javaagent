@@ -14,6 +14,7 @@ public class StackTraceResultOptConfigs {
     private static final String KEY_NUMS = "NUMS";
     private static final String KEY_DISPLAY_ALL = "DISPLAY_ALL";
     private static final String KEY_SHORT_NAME = "SHORT_NAME";
+    private static final String KEY_RATE_OF_FILTER = "KEY_RATE_OF_FILTER";
     private static final String DEFAULT_RATE = "0.01";
     private static final String NUM_SEP = ",";
     private static final String NUM_PLUS = "+";
@@ -34,7 +35,7 @@ public class StackTraceResultOptConfigs {
                     "-r",
                     "--rate",
                     KEY_RATE,
-                    "Samples rate."
+                    "Filter nodes which sample rate >= this value."
             )
     );
     private static final OptConfigSuite boolSuite = new OptConfigSuite(
@@ -49,6 +50,12 @@ public class StackTraceResultOptConfigs {
                     "--short-name",
                     KEY_SHORT_NAME,
                     "Show short name for class."
+            ),
+            new OptConfig(
+                    "-R",
+                    "--rate-of-filter",
+                    KEY_RATE_OF_FILTER,
+                    "Calculate sample rate after filtering."
             )
     );
 
@@ -94,10 +101,17 @@ public class StackTraceResultOptConfigs {
     }
 
     public static float getRate(Opts opts) {
-        try {
-            return Float.parseFloat(
-                    opts.getNotNull(KEY_RATE, DEFAULT_RATE)
+        int scale = 1;
+        String rateStr = opts.getNotNull(KEY_RATE, DEFAULT_RATE);
+        if (rateStr.endsWith("%")) {
+            rateStr = rateStr.substring(
+                    0,
+                    rateStr.length() - 1
             );
+            scale = 100;
+        }
+        try {
+            return Float.parseFloat(rateStr) / scale;
         } catch (NumberFormatException e) {
             throw new RuntimeException("Rate must be a float.");
         }
@@ -109,5 +123,9 @@ public class StackTraceResultOptConfigs {
 
     public static boolean isShortName(Opts opts) {
         return opts.getNotNull(KEY_SHORT_NAME, false);
+    }
+
+    public static boolean isRateOfFilter(Opts opts) {
+        return opts.getNotNull(KEY_RATE_OF_FILTER, false);
     }
 }

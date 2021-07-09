@@ -103,9 +103,14 @@ public class StackTraceResultCmdExecutor extends AbstractCmdExecutor {
         );
     }
 
+    private void printTotalCount(long totalCount) {
+        System.out.println("## Total samples: " + totalCount);
+    }
+
     private void outputCostTimeTree(STResult stResult, StackTraceResultConfig rsConfig) {
         Tree<StackTraceCountItem> tree = stResult.getMergedTree();
         long totalCount = stResult.getTotalCount();
+        printTotalCount(totalCount);
         TreeUtils.printTree(
                 calculateCostTimeTree(tree, rsConfig, totalCount),
                 new TreeUtils.PrintConfig(false),
@@ -215,6 +220,7 @@ public class StackTraceResultCmdExecutor extends AbstractCmdExecutor {
     private void outputCostTimeConfig(STResult stResult, StackTraceResultConfig config) throws Exception {
         Tree<StackTraceCountItem> tree = stResult.getMergedTree();
         long totalCount = stResult.getTotalCount();
+        printTotalCount(totalCount);
         Map<String, Set<String>> classToMethods = new TreeMap<>();
         TreeUtils.traverse(
                 calculateCostTimeTree(tree, config, totalCount),
@@ -395,7 +401,8 @@ public class StackTraceResultCmdExecutor extends AbstractCmdExecutor {
             );
             if (merged) {
                 mergedTree = rs.getTree();
-                totalCount = calculateTotalCount(mergedTree);
+                if (!config.isRateOfFilter())
+                    totalCount = calculateTotalCount(mergedTree);
                 if (elementFilter != null)
                     filterElements(
                             Collections.singletonList(mergedTree),
@@ -403,8 +410,10 @@ public class StackTraceResultCmdExecutor extends AbstractCmdExecutor {
                     );
                 treeMap.put(NO_THREAD, mergedTree);
             } else {
-                for (Tree<StackTraceCountItem> tree : rs.getThreadIdToTree().values()) {
-                    totalCount += calculateTotalCount(tree);
+                if (!config.isRateOfFilter()) {
+                    for (Tree<StackTraceCountItem> tree : rs.getThreadIdToTree().values()) {
+                        totalCount += calculateTotalCount(tree);
+                    }
                 }
 
                 Map<Object, Tree<StackTraceCountItem>> rsMap = new HashMap<>();
@@ -435,6 +444,11 @@ public class StackTraceResultCmdExecutor extends AbstractCmdExecutor {
                     treeMap.put(NO_THREAD, mergedTree);
                 } else
                     treeMap = rsMap;
+            }
+            if (config.isRateOfFilter()) {
+                for (Tree<StackTraceCountItem> tree : treeMap.values()) {
+                    totalCount += calculateTotalCount(tree);
+                }
             }
         }
 

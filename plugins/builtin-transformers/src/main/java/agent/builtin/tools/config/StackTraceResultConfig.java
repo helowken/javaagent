@@ -10,6 +10,7 @@ public class StackTraceResultConfig extends AbstractResultConfig {
     private String outputFormat;
     private boolean displayAll;
     private boolean shortName;
+    private boolean rateOfFilter;
     private Map<Integer, Boolean> numMap;
 
     public StackTraceConfig getStackTraceConfig() {
@@ -34,6 +35,14 @@ public class StackTraceResultConfig extends AbstractResultConfig {
 
     public void setShortName(boolean shortName) {
         this.shortName = shortName;
+    }
+
+    public boolean isRateOfFilter() {
+        return rateOfFilter;
+    }
+
+    public void setRateOfFilter(boolean rateOfFilter) {
+        this.rateOfFilter = rateOfFilter;
     }
 
     public float getRate() {
