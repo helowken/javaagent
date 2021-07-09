@@ -13,6 +13,7 @@ public class StackTraceResultOptConfigs {
     private static final String KEY_RATE = "RATE";
     private static final String KEY_NUMS = "NUMS";
     private static final String KEY_DISPLAY_ALL = "DISPLAY_ALL";
+    private static final String KEY_SHORT_NAME = "SHORT_NAME";
     private static final String DEFAULT_RATE = "0.01";
     private static final String NUM_SEP = ",";
     private static final String NUM_PLUS = "+";
@@ -24,8 +25,8 @@ public class StackTraceResultOptConfigs {
                     "Output format."
             ),
             new OptConfig(
-                    "-ns",
-                    "--nums",
+                    "-n",
+                    "--number",
                     KEY_NUMS,
                     "Include numbers."
             ),
@@ -42,6 +43,12 @@ public class StackTraceResultOptConfigs {
                     "--display-all",
                     KEY_DISPLAY_ALL,
                     "Display info on all nodes."
+            ),
+            new OptConfig(
+                    "-s",
+                    "--short-name",
+                    KEY_SHORT_NAME,
+                    "Show short name for class."
             )
     );
 
@@ -98,5 +105,9 @@ public class StackTraceResultOptConfigs {
 
     public static boolean isDisplayAll(Opts opts) {
         return opts.getNotNull(KEY_DISPLAY_ALL, false);
+    }
+
+    public static boolean isShortName(Opts opts) {
+        return opts.getNotNull(KEY_SHORT_NAME, false);
     }
 }

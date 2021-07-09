@@ -56,6 +56,15 @@ public class ResultLauncher {
     }
 
     public static void main(String[] args) {
+//        args = new String[] {
+//                "st",
+//                "-s",
+//                "-r",
+//                "0.0001",
+//                "-ef",
+//                "com.eric*",
+//                "/home/helowken/share/download/st",
+//        };
         List<String> argList = new ArrayList<>();
         Collections.addAll(argList, args);
         if (argList.isEmpty())

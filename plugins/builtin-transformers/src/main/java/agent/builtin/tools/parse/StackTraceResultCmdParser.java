@@ -43,6 +43,9 @@ public class StackTraceResultCmdParser extends AbstractResultCmdParser {
         config.setDisplayAll(
                 StackTraceResultOptConfigs.isDisplayAll(opts)
         );
+        config.setShortName(
+                StackTraceResultOptConfigs.isShortName(opts)
+        );
         populateConfig(params, config);
         return new DefaultCommand(CMD_STACK_TRACE_RESULT, config);
     }

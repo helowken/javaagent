@@ -345,6 +345,7 @@ public class StackTraceResultCmdExecutor extends AbstractCmdExecutor {
         private Map<Object, Tree<StackTraceCountItem>> treeMap = new HashMap<>();
         private Tree<StackTraceCountItem> mergedTree;
         private long totalCount = 0;
+        private final StackTraceResultConfig config;
 
         private STResult(StackTraceResult rs, StackTraceResultConfig config, boolean forceMerge) {
             this.merged = rs.isMerged();
@@ -359,7 +360,8 @@ public class StackTraceResultCmdExecutor extends AbstractCmdExecutor {
                                     rs.getThreadNameToIds()
                             )
                     );
-            process(rs, config);
+            this.config = config;
+            process(rs);
         }
 
         private long getTotalCount() {
@@ -381,7 +383,7 @@ public class StackTraceResultCmdExecutor extends AbstractCmdExecutor {
             return total.get();
         }
 
-        private void process(StackTraceResult rs, StackTraceResultConfig config) {
+        private void process(StackTraceResult rs) {
             AgentFilter<String> threadFilter = FilterUtils.newStringFilter(
                     config.getStackTraceConfig().getThreadFilterConfig()
             );
@@ -442,7 +444,7 @@ public class StackTraceResultCmdExecutor extends AbstractCmdExecutor {
                             tree,
                             data -> new PredicateResult(
                                     elementFilter.accept(
-                                            getElementName(data, false)
+                                            getElementFullName(data)
                                     ),
                                     true
                             )
@@ -490,12 +492,32 @@ public class StackTraceResultCmdExecutor extends AbstractCmdExecutor {
             return name == null ? "" : name;
         }
 
+        String getElementFullName(StackTraceCountItem el) {
+            return calculateElementName(el, null);
+        }
+
         String getElementName(StackTraceCountItem el, boolean formatClass) {
+            return calculateElementName(
+                    el,
+                    className -> {
+                        String cn = className;
+                        if (config.isShortName()) {
+                            int pos = cn.lastIndexOf(".");
+                            if (pos > -1)
+                                cn = cn.substring(pos + 1);
+                        } else if (formatClass)
+                            cn = formatClassName(cn);
+                        return cn;
+                    }
+            );
+        }
+
+        private String calculateElementName(StackTraceCountItem el, Function<String, String> classNameFunc) {
             String className = getName(
                     el.getClassId()
             );
-            if (formatClass)
-                className = formatClassName(className);
+            if (classNameFunc != null)
+                className = classNameFunc.apply(className);
             return className + CLASS_METHOD_SEP + getName(
                     el.getMethodId()
             );
