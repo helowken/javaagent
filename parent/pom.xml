@@ -15,7 +15,7 @@
         <mockito.version>1.9.5</mockito.version>
         <jetty-runner.version>9.4.14.v20181114</jetty-runner.version>
         <aspectjweaver.version>1.8.10</aspectjweaver.version>
-        <spring.version>4.3.9.RELEASE</spring.version>
+        <spring.version>5.3.18</spring.version>
         <asm.version>7.3.1</asm.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
