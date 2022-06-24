@@ -3,13 +3,16 @@ package agent.client.command.parser.impl;
 import agent.base.utils.FileUtils;
 import agent.base.utils.IOUtils;
 import agent.base.utils.Utils;
-import agent.cmdline.args.parse.DefaultParamParser;
 import agent.client.args.parse.JavascriptExecOptConfigs;
-import agent.cmdline.args.parse.CmdParamParser;
-import agent.cmdline.args.parse.CmdParams;
-import agent.cmdline.args.parse.KeyValueOptParser;
+import agent.cmdline.args.parse.*;
 import agent.cmdline.command.Command;
 import agent.cmdline.command.DefaultCommand;
+import agent.cmdline.exception.CommandParseException;
+import agent.cmdline.help.HelpArg;
+import agent.common.config.JsExec;
+
+import java.util.Collections;
+import java.util.List;
 
 import static agent.common.message.MessageType.CMD_JS_EXEC;
 
@@ -31,14 +34,15 @@ public class JavascriptExecCmdParser extends ClientAbstractCmdParser<CmdParams> 
         );
         if (filePath != null)
             FileUtils.getAbsolutePath(filePath, true);
+        else if (params.getArgs().length == 0)
+            throw new CommandParseException("Script or file must be specified.");
     }
 
     @Override
     protected Command createCommand(CmdParams params) {
+        Opts opts = params.getOpts();
         StringBuilder sb = new StringBuilder();
-        String filePath = JavascriptExecOptConfigs.getFile(
-                params.getOpts()
-        );
+        String filePath = JavascriptExecOptConfigs.getFile(opts);
         if (filePath != null)
             Utils.wrapToRtError(
                     () -> sb.append(
@@ -52,9 +56,24 @@ public class JavascriptExecCmdParser extends ClientAbstractCmdParser<CmdParams> 
                 sb.append(arg).append("\n");
             }
         }
-        return new DefaultCommand(
-                CMD_JS_EXEC,
+        JsExec jse = new JsExec();
+        jse.setSessionId(
+                JavascriptExecOptConfigs.getSessionId(opts)
+        );
+        jse.setScript(
                 sb.toString()
+        );
+        return new DefaultCommand(CMD_JS_EXEC, jse);
+    }
+
+    @Override
+    protected List<HelpArg> createHelpArgList() {
+        return Collections.singletonList(
+                new HelpArg(
+                        "SCRIPT",
+                        "Javascript to be executed.",
+                        true
+                )
         );
     }
 

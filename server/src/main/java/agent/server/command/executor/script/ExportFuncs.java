@@ -207,4 +207,12 @@ public class ExportFuncs {
     public TransformerData data(String tid) {
         return TransformerRegistry.getTransformerData(tid);
     }
+
+    public List<String> listSession() {
+        return ScriptSessionMgr.getInstance().listSessionKeys();
+    }
+
+    public void killSession(String key) {
+        ScriptSessionMgr.getInstance().killSession(key);
+    }
 }

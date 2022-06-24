@@ -16,7 +16,7 @@ public class ScriptFilter implements AgentFilter<Map<String, Object>> {
     @Override
     public boolean accept(Map<String, Object> pvs) {
         try {
-            return ScriptUtils.eval(script, pvs, null, null);
+            return ScriptUtils.eval(script, pvs);
         } catch (Exception e) {
             logger.error("Eval script failed: {}, paramValues: {}", e, script, pvs);
         }

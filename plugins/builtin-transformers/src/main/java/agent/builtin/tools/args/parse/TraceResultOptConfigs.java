@@ -11,15 +11,28 @@ public class TraceResultOptConfigs {
     private static final String KEY_HEAD_NUMBER = "HEAD_NUMBER";
     private static final String KEY_TAIL_NUMBER = "TAIL_NUMBER";
     private static final int DEFAULT_CONTENT_SIZE = 1000;
+
+    public static final String DISPLAY_CONSUMED_TIME = "ct";
+    public static final String DISPLAY_START_TIME = "st";
+    public static final String DISPLAY_ARGS = "args";
+    public static final String DISPLAY_RETURN_VALUE = "rv";
+    public static final String DISPLAY_ERROR = "err";
+
+    private static final String indent = "- ";
     private static OptConfigSuite suite = new OptConfigSuite(
             new OptConfig(
                     "-o",
                     "--output",
                     KEY_OUTPUT,
-                    "Config the output fields."
+                    "Config the output fields, separated by ','.\n" +
+                            indent + DISPLAY_CONSUMED_TIME + ":   Consumed time.\n" +
+                            indent + DISPLAY_START_TIME + ":   Start time.\n" +
+                            indent + DISPLAY_ARGS + ": Arguments.\n" +
+                            indent + DISPLAY_RETURN_VALUE + ":   Return value.\n" +
+                            indent + DISPLAY_ERROR + ":  Error if raised."
             ),
             new OptConfig(
-                    "-s",
+                    "-z",
                     "--content-size",
                     KEY_CONTENT_SIZE,
                     "The max size of each display string.",
@@ -28,7 +41,7 @@ public class TraceResultOptConfigs {
             ),
             new OptConfig(
                     "-hn",
-                    "--head-number",
+                    "--head",
                     KEY_HEAD_NUMBER,
                     "Display num traces from head.",
                     OptValueType.INT,
@@ -36,7 +49,7 @@ public class TraceResultOptConfigs {
             ),
             new OptConfig(
                     "-tn",
-                    "--tail-number",
+                    "--tail",
                     KEY_TAIL_NUMBER,
                     "Display num traces from tail.",
                     OptValueType.INT,

@@ -69,6 +69,13 @@
         </profile>
 
         <profile>
+            <id>native</id>
+            <modules>
+                <module>native</module>
+            </modules>
+        </profile>
+
+        <profile>
             <id>launchers</id>
             <modules>
                 <module>launchers/basic-launcher</module>

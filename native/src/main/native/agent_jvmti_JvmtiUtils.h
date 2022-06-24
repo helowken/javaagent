@@ -47,6 +47,14 @@ JNIEXPORT jboolean JNICALL Java_agent_jvmti_JvmtiUtils_resetCredential
 JNIEXPORT jint JNICALL Java_agent_jvmti_JvmtiUtils_getProcId
   (JNIEnv *, jobject);
 
+/*
+ * Class:     agent_jvmti_JvmtiUtils
+ * Method:    attachJvm
+ * Signature: (ILjava/lang/String;Ljava/lang/String;)Z
+ */
+JNIEXPORT jboolean JNICALL Java_agent_jvmti_JvmtiUtils_attachJvm
+  (JNIEnv *, jobject, jint, jstring, jstring);
+
 #ifdef __cplusplus
 }
 #endif

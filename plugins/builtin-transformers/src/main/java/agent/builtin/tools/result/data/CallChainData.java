@@ -13,12 +13,12 @@ public class CallChainData {
     @PojoProperty(index = 2)
     public int invokeId;
     @PojoProperty(index = 3)
-    public CostTimeStatItem item;
+    public ConsumedTimeStatItem item;
 
     public CallChainData() {
     }
 
-    public CallChainData(int id, int invokeId, CostTimeStatItem item) {
+    public CallChainData(int id, int invokeId, ConsumedTimeStatItem item) {
         this.id = id;
         this.invokeId = invokeId;
         this.item = item;
@@ -40,11 +40,11 @@ public class CallChainData {
         this.invokeId = invokeId;
     }
 
-    public CostTimeStatItem getItem() {
+    public ConsumedTimeStatItem getItem() {
         return item;
     }
 
-    public void setItem(CostTimeStatItem item) {
+    public void setItem(ConsumedTimeStatItem item) {
         this.item = item;
     }
 }

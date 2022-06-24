@@ -7,10 +7,6 @@ public class ResultFilterData<T> {
     public final T data;
     public final int level;
 
-    public ResultFilterData(InvokeMetadata metadata, T data) {
-        this(metadata, data, 0);
-    }
-
     public ResultFilterData(InvokeMetadata metadata, T data, int level) {
         this.metadata = metadata;
         this.data = data;

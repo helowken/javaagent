@@ -1,6 +1,7 @@
 package agent.builtin.tools.execute;
 
 import agent.base.utils.*;
+import agent.builtin.tools.config.AbstractResultConfig;
 import agent.common.utils.MetadataUtils;
 import agent.server.transform.impl.DestInvokeIdRegistry;
 import agent.server.transform.impl.DestInvokeIdRegistry.InvokeMetadata;
@@ -92,10 +93,12 @@ public class ResultExecUtils {
         return InvokeDescriptorUtils.descToText(metadata.invoke, config);
     }
 
-    public static String formatClassName(InvokeMetadata metadata) {
+    public static <T extends AbstractResultConfig> String formatClassName(InvokeMetadata metadata, T config) {
         if (metadata.isUnknown())
             return metadata.clazz;
-        String className = InvokeDescriptorUtils.getSimpleName(metadata.clazz);
+        String className = config.isShortName() ?
+                InvokeDescriptorUtils.getSimpleName(metadata.clazz) :
+                metadata.clazz;
         return metadata.cid > 1 ?
                 Utils.getClassNameWithId(className, metadata.cid) :
                 className;
@@ -161,16 +164,17 @@ public class ResultExecUtils {
         return invokeMetadata;
     }
 
-    public static String convertInvoke(Integer parentInvokeId, Map<Integer, InvokeMetadata> idToInvoke, InvokeMetadata metadata) {
+    public static <T extends AbstractResultConfig> String convertInvoke(Integer parentInvokeId, Map<Integer, InvokeMetadata> idToInvoke,
+                                                                        InvokeMetadata metadata, T config) {
         String invoke = formatInvoke(metadata);
         String className = null;
         if (parentInvokeId == null)
-            className = formatClassName(metadata);
+            className = formatClassName(metadata, config);
         else {
             InvokeMetadata parentMetadata = getMetadata(idToInvoke, parentInvokeId);
             if (!parentMetadata.clazz.equals(metadata.clazz) ||
                     parentMetadata.cid != metadata.cid)
-                className = formatClassName(metadata);
+                className = formatClassName(metadata, config);
         }
         return Utils.isNotBlank(className) ?
                 className + " # " + invoke :

@@ -3,10 +3,10 @@ package agent.builtin.tools;
 import agent.base.utils.ConsoleLogger;
 import agent.base.utils.Logger;
 import agent.base.utils.SystemConfig;
-import agent.builtin.tools.execute.CostTimeResultCmdExecutor;
+import agent.builtin.tools.execute.ConsumedTimeResultCmdExecutor;
 import agent.builtin.tools.execute.StackTraceResultCmdExecutor;
 import agent.builtin.tools.execute.TraceResultCmdExecutor;
-import agent.builtin.tools.parse.CostTimeResultCmdParser;
+import agent.builtin.tools.parse.ConsumedTimeResultCmdParser;
 import agent.builtin.tools.parse.ResultHelpCmdParser;
 import agent.builtin.tools.parse.StackTraceResultCmdParser;
 import agent.builtin.tools.parse.TraceResultCmdParser;
@@ -32,7 +32,7 @@ public class ResultLauncher {
                 .regParse(
                         "Result Print",
                         new TraceResultCmdParser(),
-                        new CostTimeResultCmdParser(),
+                        new ConsumedTimeResultCmdParser(),
                         new StackTraceResultCmdParser()
                 )
                 .regExec(
@@ -40,8 +40,8 @@ public class ResultLauncher {
                         CMD_TRACE_RESULT
                 )
                 .regExec(
-                        new CostTimeResultCmdExecutor(),
-                        CMD_COST_TIME_RESULT
+                        new ConsumedTimeResultCmdExecutor(),
+                        CMD_CONSUMED_TIME_RESULT
                 )
                 .regExec(
                         new StackTraceResultCmdExecutor(),

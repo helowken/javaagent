@@ -39,32 +39,55 @@ public class AttachCmdExecutor extends AbstractCmdExecutor {
                                 Utils.parseInt(jvmEndpoint.pid, "PID")
                         );
                         if (rs) {
-                            jvm = VirtualMachine.attach(jvmEndpoint.pid);
-                            for (JarPathAndOption jarPathAndOptions : jarPathAndOptionsList) {
-                                logger.debug("Load agent with: {}", jarPathAndOptions);
-                                jvm.loadAgent(
-                                        jarPathAndOptions.jarPath,
-                                        "port=" + jvmEndpoint.port + ";conf=" + jarPathAndOptions.option
-                                );
-                            }
+                            jvm = attachJvm(jvmEndpoint, jarPathAndOptionsList);
                             logger.info("Attached to target JVM and loaded Java agent successfully");
-                        } else
+                        } else {
                             logger.error("{}", "Change credential failed.");
+                        }
                     } catch (Throwable t) {
                         logger.error("Load agent failed with: {}, {}", t, jvmEndpoint, jarPathAndOptionsList);
                     } finally {
-                        if (jvm != null) {
-                            try {
-                                jvm.detach();
-                            } catch (IOException e) {
-                                logger.error("Detach jvm failed.", e);
-                            }
-                        }
+                        detachJvm(jvm);
                         if (!JvmtiUtils.getInstance().resetCredentialToSelfProcess())
                             logger.error("{}", "Reset credential failed.");
                     }
                 }
         );
+    }
+
+    private String getAgentArgs(JavaEndpoint jvmEndpoint, JarPathAndOption jarPathAndOptions) {
+        return "port=" + jvmEndpoint.port + ";conf=" + jarPathAndOptions.option;
+    }
+
+    private VirtualMachine attachJvm(JavaEndpoint jvmEndpoint, List<JarPathAndOption> jarPathAndOptionsList) throws Exception {
+        VirtualMachine jvm = VirtualMachine.attach(jvmEndpoint.pid);
+        for (JarPathAndOption jarPathAndOptions : jarPathAndOptionsList) {
+            logger.debug("Load agent with: {}", jarPathAndOptions);
+            jvm.loadAgent(
+                    jarPathAndOptions.jarPath,
+                    getAgentArgs(jvmEndpoint, jarPathAndOptions)
+            );
+        }
+        return jvm;
+
+//        int pid = Utils.parseInt(jvmEndpoint.pid, "PID");
+//        for (JarPathAndOption jarPathAndOptions : jarPathAndOptionsList) {
+//            String args = getAgentArgs(jvmEndpoint, jarPathAndOptions);
+//            boolean rs = JvmtiUtils.getInstance().attachJarToJvm(pid, jarPathAndOptions.jarPath, args);
+//            if (!rs)
+//                throw new Exception("Load jar and config failed. pid: " + pid + ", jar: " + jarPathAndOptions.jarPath + ", config: " + args);
+//        }
+//        return null;
+    }
+
+    private void detachJvm(VirtualMachine jvm) {
+        if (jvm != null) {
+            try {
+                jvm.detach();
+            } catch (IOException e) {
+                logger.error("Detach jvm failed.", e);
+            }
+        }
     }
 
     private String getJvmPidByDisplayName(String jvmDisplayName) {

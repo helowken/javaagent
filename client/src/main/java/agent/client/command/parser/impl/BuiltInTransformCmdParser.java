@@ -56,20 +56,20 @@ public abstract class BuiltInTransformCmdParser extends AbstractTransformCmdPars
         }
     }
 
-    public static class CostTimeCmdParser extends BuiltInTransformCmdParser {
+    public static class ConsumedTimeCmdParser extends BuiltInTransformCmdParser {
         @Override
         String getTransformerKey() {
-            return "@costTimeStat";
+            return "@consumedTimeStat";
         }
 
         @Override
         public String[] getCmdNames() {
-            return new String[]{"cost-time", "ct"};
+            return new String[]{"consumed-time", "ct"};
         }
 
         @Override
         public String getDesc() {
-            return "Log cost time for methods and constructors.";
+            return "Log consumed time for methods and constructors.";
         }
 
     }

@@ -2,7 +2,8 @@ package agent.builtin.tools.execute;
 
 import agent.base.struct.impl.Struct;
 import agent.base.struct.impl.StructContext;
-import agent.base.utils.Utils;
+import agent.base.utils.IOUtils;
+import agent.base.utils.Pair;
 import agent.builtin.tools.config.TraceResultConfig;
 import agent.builtin.tools.execute.tree.TraceRsTreeConverter;
 import agent.builtin.transformer.utils.TraceItem;
@@ -18,11 +19,11 @@ import java.io.DataInput;
 import java.io.File;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Consumer;
 
 public class TraceResultCmdExecutor extends AbstractCmdExecutor {
     private static final String KEY_VALUE_CACHE = "VALUE_CACHE";
@@ -34,6 +35,47 @@ public class TraceResultCmdExecutor extends AbstractCmdExecutor {
         );
     }
 
+    private void readFromHead(RandomAccessFile raFile, Map<Integer, InvokeMetadata> idToMetadata,
+                              TraceResultConfig config, int headNum, final long fileSize, List<Tree<String>> rsList) throws Exception {
+        Pair<Integer, Tree<String>> rs;
+        int i = 0;
+        long leftSize = fileSize;
+        while (i < headNum && leftSize > 0) {
+            rs = computeTree(raFile, idToMetadata, config);
+            if (rs.right != null) {
+                rsList.add(rs.right);
+                ++i;
+            }
+            leftSize -= rs.left;
+        }
+    }
+
+    private void readFromTail(RandomAccessFile raFile, Map<Integer, InvokeMetadata> idToMetadata,
+                              TraceResultConfig config, int tailNum, final long fileSize, List<Tree<String>> rsList) throws Exception {
+        Pair<Integer, Tree<String>> rs;
+        long pos = fileSize;
+        int sizeLen = Integer.BYTES;
+        int dataLen;
+        int i = 0;
+        // format is: ... | [size] [data] [size] | [size[ [data] [size] | ...
+        while (i < tailNum && pos >= sizeLen) {
+            pos -= sizeLen;     /* ^ indicates the curr pos: ... | [size] [data] ^ [size] */
+            raFile.seek(pos);
+            dataLen = raFile.readInt();
+
+            pos -= (dataLen + sizeLen);     /* ... | ^ [size] [data] [size] */
+            if (pos < 0)
+                break;  /* Maybe a bug. */
+            raFile.seek(pos);
+
+            rs = computeTree(raFile, idToMetadata, config);
+            if (rs.right != null) {
+                rsList.add(rs.right);
+                ++i;
+            }
+        }
+    }
+
     @Override
     protected ExecResult doExec(Command cmd) throws Exception {
         TraceResultConfig config = cmd.getContent();
@@ -42,56 +84,35 @@ public class TraceResultCmdExecutor extends AbstractCmdExecutor {
         Map<Integer, InvokeMetadata> idToMetadata = ResultExecUtils.readInvokeMetadata(inputPath);
         int headNum = config.getHeadNum();
         int tailNum = config.getTailNum();
+        List<Tree<String>> rsList = new ArrayList<>(10);
         if (headNum > 0 || tailNum > 0) {
-            RandomAccessFile ra = new RandomAccessFile(dataFile, "r");
-            final long fileSize = ra.length();
-            Consumer<Integer> func = count -> Utils.wrapToRtError(
-                    () -> {
-                        long leftSize = fileSize;
-                        for (int i = 0; i < count; ++i) {
-                            leftSize -= displayTree(ra, idToMetadata, config);
-                            if (leftSize <= 0)
-                                break;
-                        }
-                    }
-            );
-
-            if (headNum > 0)
-                func.accept(headNum);
-
-            if (tailNum > 0) {
-                long pos = fileSize;
-                int sizeLen = Integer.BYTES;
-                int dataLen;
-                ra.seek(pos - sizeLen);
-                for (int i = 0; i < tailNum; ++i) {
-                    dataLen = ra.readInt();
-                    // format is: [size] [data] [size] | [size[ [data] [size]
-                    // so need to skip sizeLen * 3 to get the previous size at tail.
-                    pos -= (dataLen + sizeLen * 2);
-                    if (pos > 0) {
-                        if (i < tailNum - 1)
-                            ra.seek(pos - sizeLen);  // there are more than one records
-                        else
-                            ra.seek(pos);
-                    } else {
-                        ra.seek(pos);
-                        break;
-                    }
-                }
-                func.accept(tailNum);
+            RandomAccessFile raFile = new RandomAccessFile(dataFile, "r");
+            try {
+                final long fileSize = raFile.length();
+                if (headNum > 0)
+                    readFromHead(raFile, idToMetadata, config, headNum, fileSize, rsList);
+                if (tailNum > 0)
+                    readFromTail(raFile, idToMetadata, config, tailNum, fileSize, rsList);
+            } finally {
+                IOUtils.close(raFile);
             }
         } else {
             ResultExecUtils.calculateBinaryFile(
                     dataFile,
-                    in -> displayTree(in, idToMetadata, config)
+                    in -> {
+                        Pair<Integer, Tree<String>> rs = computeTree(in, idToMetadata, config);
+                        if (rs.right != null)
+                            rsList.add(rs.right);
+                        return rs.left;
+                    }
             );
         }
+        rsList.forEach(this::printTree);
         return null;
     }
 
 
-    private int displayTree(DataInput dataInput, Map<Integer, InvokeMetadata> idToMetadata, TraceResultConfig rsConfig) throws Exception {
+    private Pair<Integer, Tree<String>> computeTree(DataInput dataInput, Map<Integer, InvokeMetadata> idToMetadata, TraceResultConfig rsConfig) throws Exception {
         AtomicReference<Tree<TraceItem>> ref = new AtomicReference<>();
         Map<Integer, String> valueCache = new HashMap<>();
         int totalSize = ResultExecUtils.deserializeBytes(
@@ -104,6 +125,8 @@ public class TraceResultCmdExecutor extends AbstractCmdExecutor {
         Tree<TraceItem> tree = ref.get();
         if (tree == null)
             throw new RuntimeException("No tree found!");
+
+        Tree<String> rsTree = null;
         if (tree.hasChild()) {
             TreeUtils.traverse(
                     tree,
@@ -112,14 +135,20 @@ public class TraceResultCmdExecutor extends AbstractCmdExecutor {
                         node.reverseChildren();
                     }
             );
-            Tree<String> rsTree = new TraceRsTreeConverter(valueCache).convertTree(tree, idToMetadata, rsConfig);
-            TreeUtils.printTree(
-                    rsTree,
-                    new TreeUtils.PrintConfig(false),
-                    (node, config) -> node.getData()
-            );
+            rsTree = new TraceRsTreeConverter(valueCache).convertTree(tree, idToMetadata, rsConfig);
+            if (!rsTree.hasChild())
+                rsTree = null;
         }
-        return totalSize;
+        return new Pair<>(totalSize, rsTree);
+    }
+
+    private void printTree(Tree<String> tree) {
+        TreeUtils.printTree(
+                tree,
+                new TreeUtils.PrintConfig(false),
+                (node, config) -> node.getData()
+        );
+        System.out.println("\n\n");
     }
 
     private void removeDuplicatedThrow(Node<TraceItem> node) {

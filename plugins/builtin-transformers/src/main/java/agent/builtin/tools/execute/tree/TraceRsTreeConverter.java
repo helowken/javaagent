@@ -4,6 +4,7 @@ import agent.base.utils.IndentUtils;
 import agent.base.utils.InvokeDescriptorUtils;
 import agent.builtin.tools.config.TraceResultConfig;
 import agent.builtin.tools.execute.ResultExecUtils;
+import agent.builtin.tools.result.filter.ResultFilter;
 import agent.builtin.transformer.utils.DefaultValueConverter;
 import agent.builtin.transformer.utils.TraceItem;
 import agent.common.tree.Node;
@@ -59,20 +60,26 @@ public class TraceRsTreeConverter extends RsTreeConverter<String, TraceItem, Tra
         }
     }
 
+    @Override
+    protected ResultFilter<TraceItem> getFilter(TraceResultConfig config) {
+        return config.getFilter();
+    }
+
     private Node<String> createInvokeNode(Node<TraceItem> node, Map<Integer, InvokeMetadata> idToMetadata,
                                           InvokeMetadata metadata, TraceResultConfig config) {
         StringBuilder sb = new StringBuilder();
         TraceItem item = node.getData();
-        if (config.isDisplayTime())
+        if (config.isDisplayConsumedTime())
             sb.append("[").append(
-                    item.costTimeString()
+                    item.consumedTimeString()
             ).append("ms] ");
 
         sb.append(
                 ResultExecUtils.convertInvoke(
                         item.getParentId() == -1 ? null : node.getParent().getData().getInvokeId(),
                         idToMetadata,
-                        metadata
+                        metadata,
+                        config
                 )
         );
         if (item.hasArgs() && config.isDisplayArgs()) {

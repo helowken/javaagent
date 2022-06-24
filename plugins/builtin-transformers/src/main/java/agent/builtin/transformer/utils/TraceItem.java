@@ -121,7 +121,7 @@ public class TraceItem {
         this.type = type;
     }
 
-    public String costTimeString() {
+    public String consumedTimeString() {
         NumberFormat df = DecimalFormat.getInstance();
         df.setRoundingMode(RoundingMode.CEILING);
         df.setMaximumFractionDigits(3);

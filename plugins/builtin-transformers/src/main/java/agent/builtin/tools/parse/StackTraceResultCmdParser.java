@@ -1,5 +1,6 @@
 package agent.builtin.tools.parse;
 
+import agent.builtin.tools.args.parse.ResultOptConfigs;
 import agent.builtin.tools.args.parse.StackTraceResultOptConfigs;
 import agent.builtin.tools.config.StackTraceResultConfig;
 import agent.cmdline.args.parse.*;
@@ -18,6 +19,7 @@ public class StackTraceResultCmdParser extends AbstractResultCmdParser {
                         StackTraceResultOptConfigs.getKvSuite()
                 ),
                 new BooleanOptParser(
+                        ResultOptConfigs.getBoolSuite(),
                         StackTraceOptConfigs.getBoolSuite(),
                         StackTraceResultOptConfigs.getBoolSuite()
                 )
@@ -43,13 +45,10 @@ public class StackTraceResultCmdParser extends AbstractResultCmdParser {
         config.setDisplayAll(
                 StackTraceResultOptConfigs.isDisplayAll(opts)
         );
-        config.setShortName(
-                StackTraceResultOptConfigs.isShortName(opts)
+        config.setRateAfterFilter(
+                StackTraceResultOptConfigs.isRateAfterFilter(opts)
         );
-        config.setRateOfFilter(
-                StackTraceResultOptConfigs.isRateOfFilter(opts)
-        );
-        populateConfig(params, config);
+        populateConfig(params, config, true);
         return new DefaultCommand(CMD_STACK_TRACE_RESULT, config);
     }
 

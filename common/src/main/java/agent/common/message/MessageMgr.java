@@ -40,7 +40,8 @@ public class MessageMgr {
                 ResetConfig.class,
                 SaveClassConfig.class,
                 StackTraceScheduleConfig.class,
-                StackTraceConfig.class
+                StackTraceConfig.class,
+                JsExec.class
         };
 
         int pojoType = 0;

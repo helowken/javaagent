@@ -13,4 +13,6 @@ public class JvmtiUtils {
     private native boolean resetCredential();
 
     private native int getProcId();
+
+    private native boolean attachJvm(int pid, String jarPath, String args);
 }

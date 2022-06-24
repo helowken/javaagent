@@ -36,7 +36,8 @@ public class StackTraceOptConfigs {
                     "-p",
                     "--per-thread",
                     KEY_PER_THREAD,
-                    "Stack trace per thread."
+                    "Stack trace per thread. \n" +
+                            "If the result is merged before, this option has no effect."
             )
     );
 

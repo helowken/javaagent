@@ -4,8 +4,8 @@
 #include <unistd.h>
 #include <errno.h>
 #include <stdarg.h>
-#include "header/util.h"
-#include "header/ename.c.inc"
+#include "util.h"
+#include "ename.c.inc"
 
 #define MAX_PATH_SIZE 100
 

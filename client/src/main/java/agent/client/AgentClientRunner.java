@@ -48,7 +48,7 @@ public class AgentClientRunner implements Runner {
                 )
                 .regParse(
                         "Service Management:",
-                        new BuiltInTransformCmdParser.CostTimeCmdParser(),
+                        new BuiltInTransformCmdParser.ConsumedTimeCmdParser(),
                         new BuiltInTransformCmdParser.TraceCmdParser(),
                         new JavascriptTransformCmdParser(),
                         new JavascriptConfigCmdParser(),

@@ -1,12 +1,13 @@
 package agent.builtin.tools.parse;
 
 import agent.base.utils.Utils;
+import agent.builtin.tools.args.parse.ResultOptConfigs;
 import agent.builtin.tools.args.parse.TraceResultOptConfigs;
 import agent.builtin.tools.config.TraceResultConfig;
+import agent.builtin.tools.result.filter.TraceResultFilter;
 import agent.cmdline.args.parse.*;
 import agent.cmdline.command.Command;
 import agent.cmdline.command.DefaultCommand;
-import agent.common.args.parse.FilterOptConfigs;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -14,20 +15,20 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static agent.builtin.tools.ResultCmdType.CMD_TRACE_RESULT;
+import static agent.builtin.tools.args.parse.TraceResultOptConfigs.*;
 
 public class TraceResultCmdParser extends AbstractResultCmdParser {
-    private static final String SEP = " ";
-    private static final String DISPLAY_TIME = "time";
-    private static final String DISPLAY_ARGS = "args";
-    private static final String DISPLAY_RETURN_VALUE = "returnValue";
-    private static final String DISPLAY_ERROR = "error";
+    private static final String SEP = ",";
 
     @Override
     protected CmdParamParser<CmdParams> createParamParser() {
         return DefaultParamParser.addMore(
                 new KeyValueOptParser(
-                        FilterOptConfigs.getSuite(),
+                        ResultOptConfigs.getKvSuite(),
                         TraceResultOptConfigs.getSuite()
+                ),
+                new BooleanOptParser(
+                        ResultOptConfigs.getBoolSuite()
                 )
         );
     }
@@ -40,8 +41,11 @@ public class TraceResultCmdParser extends AbstractResultCmdParser {
         config.setContentSize(
                 TraceResultOptConfigs.getContentSize(opts)
         );
-        config.setDisplayTime(
-                attrs.contains(DISPLAY_TIME)
+        config.setDisplayStartTime(
+                attrs.contains(DISPLAY_START_TIME)
+        );
+        config.setDisplayConsumedTime(
+                attrs.contains(DISPLAY_CONSUMED_TIME)
         );
         config.setDisplayArgs(
                 attrs.contains(DISPLAY_ARGS)
@@ -58,7 +62,12 @@ public class TraceResultCmdParser extends AbstractResultCmdParser {
         config.setTailNum(
                 TraceResultOptConfigs.getTailNumber(opts)
         );
-        populateConfig(params, config);
+        String expr = ResultOptConfigs.getFilterExpr(opts);
+        if (Utils.isNotBlank(expr))
+            config.setFilter(
+                    new TraceResultFilter(expr)
+            );
+        populateConfig(params, config, true);
         return new DefaultCommand(CMD_TRACE_RESULT, config);
     }
 
@@ -69,7 +78,7 @@ public class TraceResultCmdParser extends AbstractResultCmdParser {
                         DISPLAY_ARGS,
                         DISPLAY_ERROR,
                         DISPLAY_RETURN_VALUE,
-                        DISPLAY_TIME
+                        DISPLAY_CONSUMED_TIME
                 ) :
                 Stream.of(
                         output.split(SEP)

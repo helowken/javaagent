@@ -2,7 +2,7 @@ package test.transformer;
 
 import agent.base.utils.ReflectionUtils;
 import agent.builtin.tools.ResultLauncher;
-import agent.builtin.transformer.CostTimeStatisticsTransformer;
+import agent.builtin.transformer.ConsumedTimeStatisticsTransformer;
 import agent.builtin.transformer.TraceInvokeTransformer;
 import agent.common.config.InfoQuery;
 import agent.common.config.TargetConfig;
@@ -28,8 +28,8 @@ public class TraceInvokeTransformerTest2 extends AbstractTest {
                             traceTransformer.setTid(
                                     newTransformerKey()
                             );
-                            CostTimeStatisticsTransformer costTimeTransformer = new CostTimeStatisticsTransformer();
-                            costTimeTransformer.setTid(
+                            ConsumedTimeStatisticsTransformer consumedTimeTransformer = new ConsumedTimeStatisticsTransformer();
+                            consumedTimeTransformer.setTid(
                                     newTransformerKey()
                             );
 
@@ -39,7 +39,7 @@ public class TraceInvokeTransformerTest2 extends AbstractTest {
                                     config
                             );
                             transformerToConfig.put(
-                                    costTimeTransformer,
+                                    consumedTimeTransformer,
                                     config2
                             );
                             Map<Class<?>, String> classToMethodFilter = new HashMap<>();
@@ -64,7 +64,7 @@ public class TraceInvokeTransformerTest2 extends AbstractTest {
                             ReflectionUtils.invoke("load", new Class[]{int.class}, b, 33);
                             ReflectionUtils.invoke("recursiveLoad", new Class[]{long.class}, b, (long) 4);
 
-                            flushAndWaitMetadata(costTimeTransformer.getTid());
+                            flushAndWaitMetadata(consumedTimeTransformer.getTid());
                             flushAndWaitMetadata(traceTransformer.getTid());
 
                             ResultLauncher.main(

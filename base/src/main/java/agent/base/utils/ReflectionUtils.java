@@ -185,11 +185,6 @@ public class ReflectionUtils {
         );
     }
 
-//    public static List<Field> getAllFields(Object classOrClassName) throws Exception {
-//        Class<?> clazz = convert(classOrClassName);
-//        clazz.getFields()
-//    }
-
     private static Class[] convertToTypes(Object... args) {
         Class<?>[] argTypes = args == null ?
                 new Class<?>[0] :
@@ -200,6 +195,10 @@ public class ReflectionUtils {
             }
         }
         return argTypes;
+    }
+
+    public static <T> T invokeStatic(Object classOrClassName, String methodName, Object... args) throws Exception {
+        return invoke(classOrClassName, methodName, convertToTypes(args), null, args);
     }
 
     public static <T> T invokeStatic(Object classOrClassName, String methodName, Object[] argClassOrClassNames, Object... args) throws Exception {

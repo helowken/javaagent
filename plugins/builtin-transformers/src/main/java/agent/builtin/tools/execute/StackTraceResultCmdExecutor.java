@@ -22,15 +22,16 @@ import java.nio.ByteBuffer;
 import java.text.DecimalFormat;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.BiFunction;
 import java.util.function.Function;
+
+import static agent.builtin.tools.args.parse.NumConfig.*;
+import static agent.builtin.tools.args.parse.StackTraceResultOptConfigs.*;
 
 public class StackTraceResultCmdExecutor extends AbstractCmdExecutor {
     private static final DecimalFormat df = new DecimalFormat("#.##");
     private static final String CLASS_METHOD_SEP = " # ";
     private static final char FG_SEP = ';';
-    private static final String OUTPUT_COST_TIME_CONFIG = "ctConfig";
-    private static final String OUTPUT_COST_TIME_TREE = "ctTree";
-    private static final String OUTPUT_FLAME_GRAPH = "fg";
     private static final String KEY_HOTSPOT = "hotspot";
     private static final StructContext context = new StructContext();
 
@@ -62,16 +63,16 @@ public class StackTraceResultCmdExecutor extends AbstractCmdExecutor {
         );
         String outputFormat = config.getOutputFormat();
         if (outputFormat == null)
-            outputFormat = OUTPUT_COST_TIME_TREE;
+            outputFormat = OUTPUT_CONSUMED_TIME_TREE;
         boolean forceMerge = config.getStackTraceConfig().isMerge() ||
                 isOutputForceMerge(outputFormat);
         STResult stResult = doCalculate(dataFile, config, forceMerge);
         switch (outputFormat) {
-            case OUTPUT_COST_TIME_TREE:
-                outputCostTimeTree(stResult, config);
+            case OUTPUT_CONSUMED_TIME_TREE:
+                outputConsumedTimeTree(stResult, config);
                 break;
-            case OUTPUT_COST_TIME_CONFIG:
-                outputCostTimeConfig(stResult, config);
+            case OUTPUT_CONSUMED_TIME_CONFIG:
+                outputConsumedTimeConfig(stResult, config);
                 break;
             case OUTPUT_FLAME_GRAPH:
                 outputFlameGraph(stResult);
@@ -83,8 +84,8 @@ public class StackTraceResultCmdExecutor extends AbstractCmdExecutor {
     }
 
     private boolean isOutputForceMerge(String outputFormat) {
-        return OUTPUT_COST_TIME_TREE.equals(outputFormat) ||
-                OUTPUT_COST_TIME_CONFIG.equals(outputFormat);
+        return OUTPUT_CONSUMED_TIME_TREE.equals(outputFormat) ||
+                OUTPUT_CONSUMED_TIME_CONFIG.equals(outputFormat);
     }
 
     private STResult doCalculate(File dataFile, StackTraceResultConfig config, boolean forceMerge) {
@@ -103,35 +104,21 @@ public class StackTraceResultCmdExecutor extends AbstractCmdExecutor {
         );
     }
 
-    private void outputCostTimeTree(STResult stResult, StackTraceResultConfig rsConfig) {
+    private void outputConsumedTimeTree(STResult stResult, StackTraceResultConfig rsConfig) {
         Tree<StackTraceCountItem> tree = stResult.getMergedTree();
         long totalCount = stResult.getTotalCount();
+        if (stResult.merged)
+            System.out.println("## Result is merged, not per thread.");
         System.out.println("## Total samples: " + totalCount);
+
         TreeUtils.printTree(
-                calculateCostTimeTree(tree, rsConfig, totalCount),
+                calculateConsumedTimeTree(tree, rsConfig, totalCount),
                 new TreeUtils.PrintConfig(false),
-                (node, config) -> getCostTimeNodeName(node, stResult, rsConfig)
+                (node, config) -> getConsumedTimeNodeName(node, stResult, rsConfig)
         );
     }
 
-    private void filterByNums(Tree<StackTraceCountItem> tree, StackTraceResultConfig config) {
-        Map<Integer, Boolean> numMap = config.getNumMap();
-        if (numMap != null)
-            filterTree(
-                    tree,
-                    data -> {
-                        Boolean v = numMap.get(
-                                data.getId()
-                        );
-                        return new PredicateResult(
-                                v != null,
-                                v == null || !v
-                        );
-                    }
-            );
-    }
-
-    private Tree<StackTraceCountItem> calculateCostTimeTree(Tree<StackTraceCountItem> tree, StackTraceResultConfig config, long totalCount) {
+    private Tree<StackTraceCountItem> calculateConsumedTimeTree(Tree<StackTraceCountItem> tree, StackTraceResultConfig config, long totalCount) {
         filterByNums(tree, config);
 
         float rate = config.getRate();
@@ -149,7 +136,7 @@ public class StackTraceResultCmdExecutor extends AbstractCmdExecutor {
                 }
         );
         hotspotNodes.forEach(
-                node -> populateCostTimeTree(
+                node -> populateConsumedTimeTree(
                         rsTree,
                         getPathNodes(node)
                 )
@@ -157,7 +144,7 @@ public class StackTraceResultCmdExecutor extends AbstractCmdExecutor {
         return rsTree;
     }
 
-    private String getCostTimeNodeName(Node<StackTraceCountItem> node, STResult stResult, StackTraceResultConfig rsConfig) {
+    private String getConsumedTimeNodeName(Node<StackTraceCountItem> node, STResult stResult, StackTraceResultConfig rsConfig) {
         long totalCount = stResult.getTotalCount();
         StackTraceCountItem data = node.getData();
         Node<StackTraceCountItem> pn = node.getParent();
@@ -192,7 +179,7 @@ public class StackTraceResultCmdExecutor extends AbstractCmdExecutor {
         return rsList;
     }
 
-    private void populateCostTimeTree(Tree<StackTraceCountItem> tree, List<Node<StackTraceCountItem>> nodeList) {
+    private void populateConsumedTimeTree(Tree<StackTraceCountItem> tree, List<Node<StackTraceCountItem>> nodeList) {
         Node<StackTraceCountItem> pn = tree;
         Node<StackTraceCountItem> cn;
         int idx = 0;
@@ -213,12 +200,12 @@ public class StackTraceResultCmdExecutor extends AbstractCmdExecutor {
         }
     }
 
-    private void outputCostTimeConfig(STResult stResult, StackTraceResultConfig config) throws Exception {
+    private void outputConsumedTimeConfig(STResult stResult, StackTraceResultConfig config) throws Exception {
         Tree<StackTraceCountItem> tree = stResult.getMergedTree();
         long totalCount = stResult.getTotalCount();
         Map<String, Set<String>> classToMethods = new TreeMap<>();
         TreeUtils.traverse(
-                calculateCostTimeTree(tree, config, totalCount),
+                calculateConsumedTimeTree(tree, config, totalCount),
                 node -> {
                     StackTraceCountItem data = node.getData();
                     if (data != null) {
@@ -251,17 +238,56 @@ public class StackTraceResultCmdExecutor extends AbstractCmdExecutor {
         }
     }
 
-    private static void filterTree(Tree<StackTraceCountItem> tree, Function<StackTraceCountItem, PredicateResult> predicate) {
+    private void filterByNums(Tree<StackTraceCountItem> tree, StackTraceResultConfig config) {
+        Map<Integer, Integer> numMap = config.getNumMap();
+        if (numMap != null)
+            filterTree(
+                    tree,
+                    (data, parentResult) -> {
+                        Integer v = numMap.get(
+                                data.getId()
+                        );
+                        int inheritFlags;
+                        boolean hit;
+                        if (v == null) {
+                            hit = false;
+                            inheritFlags = NONE;
+                            if (parentResult != null) {
+                                if (isIncludeDescendant(parentResult.inheritFlags))
+                                    hit = true;
+                                inheritFlags = parentResult.inheritFlags;
+                            }
+                        } else {
+                            hit = isIncludeSelf(v) ||
+                                    (!isExcludeSelf(v) &&
+                                            parentResult != null &&
+                                            isIncludeDescendant(parentResult.inheritFlags));
+
+                            if (isIncludeDescendant(v))
+                                inheritFlags = INCLUDE_DESCENDANT;
+                            else if (isExcludeDescendant(v))
+                                inheritFlags = EXCLUDE_DESCENDANT;
+                            else if (parentResult != null)
+                                inheritFlags = parentResult.inheritFlags;
+                            else
+                                inheritFlags = NONE;
+                        }
+                        return new FilterResult(hit, inheritFlags);
+                    }
+            );
+    }
+
+    private static void filterTree(Tree<StackTraceCountItem> tree, NodeFilter filter) {
         tree.getChildren().forEach(
-                child -> filterTree(tree, child, predicate)
+                child -> filterTree(tree, child, filter, null)
         );
     }
 
-    private static void filterTree(Node<StackTraceCountItem> pn, Node<StackTraceCountItem> cn, Function<StackTraceCountItem, PredicateResult> predicate) {
+    private static void filterTree(Node<StackTraceCountItem> pn, Node<StackTraceCountItem> cn, NodeFilter filter, FilterResult parentResult) {
         StackTraceCountItem data = cn.getData();
-        PredicateResult result = predicate.apply(data);
+        FilterResult result = filter.apply(data, parentResult);
         Node<StackTraceCountItem> newPn;
-        if (result.pass) {
+        if (result.hit) {
             if (!pn.containsChild(cn))
                 pn.appendChild(cn);
             newPn = cn;
@@ -273,10 +299,9 @@ public class StackTraceResultCmdExecutor extends AbstractCmdExecutor {
                 );
             newPn = pn;
         }
-        if (result.goOn)
-            cn.getChildren().forEach(
-                    child -> filterTree(newPn, child, predicate)
-            );
+        cn.getChildren().forEach(
+                child -> filterTree(newPn, child, filter, result)
+        );
     }
 
     private void outputFlameGraph(STResult stResult) throws Exception {
@@ -396,7 +421,7 @@ public class StackTraceResultCmdExecutor extends AbstractCmdExecutor {
             );
             if (merged) {
                 mergedTree = rs.getTree();
-                if (!config.isRateOfFilter())
+                if (!config.isRateAfterFilter())
                     totalCount = calculateTotalCount(mergedTree);
                 if (elementFilter != null)
                     filterElements(
@@ -405,7 +430,7 @@ public class StackTraceResultCmdExecutor extends AbstractCmdExecutor {
                     );
                 treeMap.put(NO_THREAD, mergedTree);
             } else {
-                if (!config.isRateOfFilter()) {
+                if (!config.isRateAfterFilter()) {
                     for (Tree<StackTraceCountItem> tree : rs.getThreadIdToTree().values()) {
                         totalCount += calculateTotalCount(tree);
                     }
@@ -440,7 +465,7 @@ public class StackTraceResultCmdExecutor extends AbstractCmdExecutor {
                 } else
                     treeMap = rsMap;
             }
-            if (config.isRateOfFilter()) {
+            if (config.isRateAfterFilter()) {
                 for (Tree<StackTraceCountItem> tree : treeMap.values()) {
                     totalCount += calculateTotalCount(tree);
                 }
@@ -451,11 +476,11 @@ public class StackTraceResultCmdExecutor extends AbstractCmdExecutor {
             trees.forEach(
                     tree -> filterTree(
                             tree,
-                            data -> new PredicateResult(
+                            (data, parentResult) -> new FilterResult(
                                     elementFilter.accept(
                                             getElementFullName(data)
                                     ),
-                                    true
+                                    NONE
                             )
                     )
             );
@@ -537,13 +562,16 @@ public class StackTraceResultCmdExecutor extends AbstractCmdExecutor {
         }
     }
 
-    private static class PredicateResult {
-        final boolean pass;
-        final boolean goOn;
+    interface NodeFilter extends BiFunction<StackTraceCountItem, FilterResult, FilterResult> {
+    }
 
-        private PredicateResult(boolean pass, boolean goOn) {
-            this.pass = pass;
-            this.goOn = goOn;
+    private static class FilterResult {
+        final boolean hit;
+        final int inheritFlags;
+
+        private FilterResult(boolean hit, int inheritFlags) {
+            this.hit = hit;
+            this.inheritFlags = inheritFlags;
         }
     }
 }

@@ -1,7 +1,7 @@
 #include <unistd.h>
 #include "jvmti.h"
-#include "header/agent_jvmti_JvmtiUtils.h"
-#include "header/util.h"
+#include "agent_jvmti_JvmtiUtils.h"
+#include "util.h"
 
 static jclass getListClass(JNIEnv* env);
 
@@ -171,3 +171,17 @@ JNIEXPORT jint JNICALL Java_agent_jvmti_JvmtiUtils_getProcId
   (JNIEnv *env, jobject thisObj) {
 	return getpid();
 }
+
+JNIEXPORT jboolean JNICALL Java_agent_jvmti_JvmtiUtils_attachJvm
+  (JNIEnv *env, jobject thisObj, jint pid, jstring jarPathString, jstring agentArgsString) {
+    const char *jarPath = (*env)->GetStringUTFChars(env, jarPathString, 0);
+    const char *agentArgs = (*env)->GetStringUTFChars(env, agentArgsString, 0);
+    int v = attachJvm(pid, jarPath, agentArgs) == 0 ? JNI_TRUE : JNI_FALSE;
+    (*env)->ReleaseStringUTFChars(env, jarPathString, jarPath);
+    (*env)->ReleaseStringUTFChars(env, agentArgsString, agentArgs);
+    return v;
+}
+
+
+
+

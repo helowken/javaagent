@@ -1,11 +1,9 @@
 package agent.builtin.tools.args.parse;
 
-import agent.base.utils.Utils;
 import agent.cmdline.args.parse.OptConfig;
 import agent.cmdline.args.parse.OptConfigSuite;
 import agent.cmdline.args.parse.Opts;
 
-import java.util.HashMap;
 import java.util.Map;
 
 public class StackTraceResultOptConfigs {
@@ -13,23 +11,37 @@ public class StackTraceResultOptConfigs {
     private static final String KEY_RATE = "RATE";
     private static final String KEY_NUMS = "NUMS";
     private static final String KEY_DISPLAY_ALL = "DISPLAY_ALL";
-    private static final String KEY_SHORT_NAME = "SHORT_NAME";
-    private static final String KEY_RATE_OF_FILTER = "KEY_RATE_OF_FILTER";
+    private static final String KEY_RATE_AFTER_FILTER = "KEY_RATE_AFTER_FILTER";
     private static final String DEFAULT_RATE = "0.01";
-    private static final String NUM_SEP = ",";
-    private static final String NUM_PLUS = "+";
+
+    public static final String OUTPUT_CONSUMED_TIME_CONFIG = "config";
+    public static final String OUTPUT_CONSUMED_TIME_TREE = "tree";
+    public static final String OUTPUT_FLAME_GRAPH = "fg";
+
+    private static final String indent = "- ";
     private static final OptConfigSuite kvSuite = new OptConfigSuite(
             new OptConfig(
                     "-o",
                     "--output",
                     KEY_OUTPUT_FORMAT,
-                    "Output format."
+                    "Output format.\n" +
+                            indent + OUTPUT_CONSUMED_TIME_CONFIG + ": Output result as filters which can be used in \"ja ct(consumed-time)\".\n" +
+                            indent + OUTPUT_CONSUMED_TIME_TREE + ":   Output result as trees.\n" +
+                            indent + OUTPUT_FLAME_GRAPH + ":     Output result as flame graph data."
             ),
             new OptConfig(
                     "-n",
                     "--number",
                     KEY_NUMS,
-                    "Include numbers."
+                    "Use number with expr to tailor the result.\n" +
+                            "Items are separated by ','.\n" +
+                            indent + "nr:  Just include this node.\n" +
+                            indent + "+nr: Include this node and its descendants.\n" +
+                            indent + "nr+: Include descendants of this node.\n" +
+                            indent + "^nr: Just exclude this node.\n" +
+                            indent + "-nr: Exclude this node and its descendants.\n" +
+                            indent + "nr-: Exclude descendants of this node\n" +
+                            "Example: -n '+1,^2,-3,4-,5+' "
             ),
             new OptConfig(
                     "-r",
@@ -46,15 +58,9 @@ public class StackTraceResultOptConfigs {
                     "Display info on all nodes."
             ),
             new OptConfig(
-                    "-s",
-                    "--short-name",
-                    KEY_SHORT_NAME,
-                    "Show short name for class."
-            ),
-            new OptConfig(
                     "-R",
-                    "--rate-of-filter",
-                    KEY_RATE_OF_FILTER,
+                    "--rate-after-filter",
+                    KEY_RATE_AFTER_FILTER,
                     "Calculate sample rate after filtering."
             )
     );
@@ -71,33 +77,10 @@ public class StackTraceResultOptConfigs {
         return opts.get(KEY_OUTPUT_FORMAT);
     }
 
-    public static Map<Integer, Boolean> getNumMap(Opts opts) {
-        String numStr = opts.get(KEY_NUMS);
-        if (Utils.isNotBlank(numStr)) {
-            Map<Integer, Boolean> rsMap = new HashMap<>();
-            String[] nums = numStr.split(NUM_SEP);
-            boolean includeDescendants;
-            String num;
-            for (String n : nums) {
-                n = n.trim();
-                num = n;
-                if (num.endsWith(NUM_PLUS)) {
-                    num = num.substring(
-                            0,
-                            num.length() - 1
-                    );
-                    includeDescendants = true;
-                } else
-                    includeDescendants = false;
-                if (Utils.isNotBlank(num))
-                    rsMap.put(
-                            Utils.parseInt(num, "Number"),
-                            includeDescendants
-                    );
-            }
-            return rsMap;
-        }
-        return null;
+    public static Map<Integer, Integer> getNumMap(Opts opts) {
+        return NumConfig.getNumMap(
+                opts.get(KEY_NUMS)
+        );
     }
 
     public static float getRate(Opts opts) {
@@ -121,11 +104,7 @@ public class StackTraceResultOptConfigs {
         return opts.getNotNull(KEY_DISPLAY_ALL, false);
     }
 
-    public static boolean isShortName(Opts opts) {
-        return opts.getNotNull(KEY_SHORT_NAME, false);
-    }
-
-    public static boolean isRateOfFilter(Opts opts) {
-        return opts.getNotNull(KEY_RATE_OF_FILTER, false);
+    public static boolean isRateAfterFilter(Opts opts) {
+        return opts.getNotNull(KEY_RATE_AFTER_FILTER, false);
     }
 }

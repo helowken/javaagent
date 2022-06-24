@@ -5,9 +5,10 @@ import agent.cmdline.command.Command;
 import agent.cmdline.command.execute.AbstractCmdExecutor;
 import agent.cmdline.command.result.DefaultExecResult;
 import agent.cmdline.command.result.ExecResult;
-import agent.server.command.executor.script.ScriptUtils;
+import agent.common.config.JsExec;
+import agent.server.command.executor.script.ScriptExecResult;
+import agent.server.command.executor.script.ScriptSessionMgr;
 
-import java.io.StringWriter;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -16,27 +17,23 @@ import java.util.stream.Collectors;
 class JavascriptExecCmdExecutor extends AbstractCmdExecutor {
     @Override
     protected ExecResult doExec(Command cmd) throws Exception {
-        String script = cmd.getContent();
-        Object rs = null;
+        JsExec jse = cmd.getContent();
+        String script = jse.getScript();
         Map<String, Object> rsMap = new HashMap<>();
+        ScriptExecResult<Object> result = null;
         if (Utils.isNotBlank(script)) {
-            StringWriter out = new StringWriter();
-            StringWriter err = new StringWriter();
-            rs = ScriptUtils.eval(script, null, out, err);
-            if (out.getBuffer().length() > 0)
-                rsMap.put(
-                        "Standard Output",
-                        out.toString()
-                );
-            if (err.getBuffer().length() > 0)
-                rsMap.put(
-                        "Standard Error",
-                        err.toString()
-                );
+            result = ScriptSessionMgr.getInstance().eval(
+                    jse.getSessionId(),
+                    script
+            );
+            if (result.hasContent)
+                rsMap.put("Standard Output", result.content);
+            if (result.hasError)
+                rsMap.put("Standard Error", result.errorContent);
         }
         rsMap.put(
                 "Value",
-                rs == null ? "null" : format(rs)
+                result == null ? "null" : format(result.value)
         );
         return DefaultExecResult.toSuccess(
                 cmd.getType(),

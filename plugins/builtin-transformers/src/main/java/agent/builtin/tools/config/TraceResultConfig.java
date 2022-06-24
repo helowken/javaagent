@@ -2,12 +2,21 @@ package agent.builtin.tools.config;
 
 public class TraceResultConfig extends AbstractResultConfig {
     private int contentSize;
-    private boolean displayTime;
+    private boolean displayConsumedTime;
+    private boolean displayStartTime;
     private boolean displayArgs;
     private boolean displayRetValue;
     private boolean displayError;
     private int headNum;
     private int tailNum;
+
+    public boolean isDisplayStartTime() {
+        return displayStartTime;
+    }
+
+    public void setDisplayStartTime(boolean displayStartTime) {
+        this.displayStartTime = displayStartTime;
+    }
 
     public int getContentSize() {
         return contentSize;
@@ -17,8 +26,8 @@ public class TraceResultConfig extends AbstractResultConfig {
         this.contentSize = contentSize;
     }
 
-    public void setDisplayTime(boolean displayTime) {
-        this.displayTime = displayTime;
+    public void setDisplayConsumedTime(boolean displayConsumedTime) {
+        this.displayConsumedTime = displayConsumedTime;
     }
 
     public void setDisplayArgs(boolean displayArgs) {
@@ -33,8 +42,8 @@ public class TraceResultConfig extends AbstractResultConfig {
         this.displayError = displayError;
     }
 
-    public boolean isDisplayTime() {
-        return displayTime;
+    public boolean isDisplayConsumedTime() {
+        return displayConsumedTime;
     }
 
     public boolean isDisplayArgs() {

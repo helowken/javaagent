@@ -39,8 +39,18 @@ public class FilterUtils {
                 .toString();
     }
 
+    private static String replaceParenthesis(String s) {
+        return new StringItem(s)
+                .replaceAll("(", "\\(")
+                .replaceAll(")", "\\)")
+                .toString();
+    }
+
     public static String parseForString(String fs) {
-        return "^" + parse(fs) + "$";
+        String s = parse(fs);
+        if (s.contains("("))
+            s = replaceParenthesis(s);
+        return "^" + s + "$";
     }
 
     private static String parseForClass(String fs) {
@@ -50,10 +60,7 @@ public class FilterUtils {
     private static String parseForInvoke(String fs) {
         String filterString = parse(fs);
         String result = filterString.contains("(") ?
-                new StringItem(filterString)
-                        .replaceAll("(", "\\(")
-                        .replaceAll(")", "\\)")
-                        .toString() :
+                replaceParenthesis(filterString) :
                 filterString + "\\(.*\\)";
         return "^" + result + "$";
     }

@@ -7,7 +7,7 @@ import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.util.*;
 
-public class BakCostTimeStatItem {
+class BakConsumedTimeStatItem {
     private static final DecimalFormat df = new DecimalFormat("#");
     private static final BigDecimal millisecondUnit = new BigDecimal(1000 * 1000);
     private BigDecimal totalTime = BigDecimal.ZERO;
@@ -74,8 +74,8 @@ public class BakCostTimeStatItem {
         );
     }
 
-    private void updateTimeToBigCount(long costTime, long timeCount) {
-        timeToBigCount.compute(costTime,
+    private void updateTimeToBigCount(long consumedTime, long timeCount) {
+        timeToBigCount.compute(consumedTime,
                 (key, oldValue) -> {
                     BigDecimal v = wrap(timeCount);
                     return oldValue == null ?
@@ -85,7 +85,7 @@ public class BakCostTimeStatItem {
         );
     }
 
-    public synchronized void merge(BakCostTimeStatItem other) {
+    public synchronized void merge(BakConsumedTimeStatItem other) {
         checkFrozen();
         updateTotalTime(other.totalTime);
         if (this.currTotalTime + other.currTotalTime < 0) {
@@ -107,9 +107,9 @@ public class BakCostTimeStatItem {
             this.maxTime = other.maxTime;
 
         other.timeToBigCount.forEach(
-                (costTime, bigCount) ->
+                (consumedTime, bigCount) ->
                         this.timeToBigCount.compute(
-                                costTime,
+                                consumedTime,
                                 (key, oldValue) -> oldValue == null ?
                                         bigCount :
                                         oldValue.add(bigCount)
@@ -117,9 +117,9 @@ public class BakCostTimeStatItem {
         );
 
         other.timeToCount.forEach(
-                (costTime, timeCount) ->
+                (consumedTime, timeCount) ->
                         this.timeToCount.compute(
-                                costTime,
+                                consumedTime,
                                 (key, oldValue) -> {
                                     if (oldValue == null)
                                         return timeCount;
@@ -172,7 +172,7 @@ public class BakCostTimeStatItem {
                     );
                 }
         );
-        Map<Float, Long> rateToCostTime = new TreeMap<>();
+        Map<Float, Long> rateToConsumedTime = new TreeMap<>();
         List<Map.Entry<Long, BigDecimal>> timeToBigCountList = new LinkedList<>(
                 timeToBigCount.entrySet()
         );
@@ -191,9 +191,9 @@ public class BakCostTimeStatItem {
                         break;
                 }
             }
-            rateToCostTime.put(rate, time);
+            rateToConsumedTime.put(rate, time);
         }
-        return rateToCostTime;
+        return rateToConsumedTime;
     }
 
     private String formatRate(float rate) {
@@ -237,9 +237,9 @@ public class BakCostTimeStatItem {
     public String getTimeDistributionString(Set<Float> rates) {
         StringBuilder sb = new StringBuilder();
         sb.append("[");
-        Map<Float, Long> rateToCostTime = calculateTimeDistribution(rates);
+        Map<Float, Long> rateToConsumedTime = calculateTimeDistribution(rates);
         int idx = 0;
-        for (Map.Entry<Float, Long> entry : rateToCostTime.entrySet()) {
+        for (Map.Entry<Float, Long> entry : rateToConsumedTime.entrySet()) {
             if (idx > 0)
                 sb.append(",  ");
             sb.append(
@@ -255,13 +255,13 @@ public class BakCostTimeStatItem {
     }
 
     @SuppressWarnings("unchecked")
-    public static class CostTimeItemConverter {
+    public static class ConsumedTimeItemConverter {
         private static final String KEY_TOTAL_TIME = "totalTme";
         private static final String KEY_COUNT = "count";
         private static final String KEY_MAX_TIME = "maxTime";
         private static final String KEY_TIME_TO_BIG_COUNT = "timeToBigCount";
 
-        public static Map<String, Object> serialize(BakCostTimeStatItem item) {
+        public static Map<String, Object> serialize(BakConsumedTimeStatItem item) {
             Map<String, Object> map = new HashMap<>();
             map.put(KEY_TOTAL_TIME, item.totalTime.toString());
             map.put(KEY_COUNT, item.count.toString());
@@ -273,8 +273,8 @@ public class BakCostTimeStatItem {
             return map;
         }
 
-        public static BakCostTimeStatItem deserialize(Map<String, Object> map) {
-            BakCostTimeStatItem item = new BakCostTimeStatItem();
+        public static BakConsumedTimeStatItem deserialize(Map<String, Object> map) {
+            BakConsumedTimeStatItem item = new BakConsumedTimeStatItem();
             item.totalTime = new BigDecimal((String) map.get(KEY_TOTAL_TIME));
             item.count = new BigDecimal((String) map.get(KEY_COUNT));
             item.maxTime = Long.parseLong(map.get(KEY_MAX_TIME).toString());
