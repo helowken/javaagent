@@ -10,3 +10,4 @@ logs/
 **/*.toDelete
 *.log
 **/*.swp
+**/*.o
