@@ -16,8 +16,7 @@ import java.io.Writer;
 import java.lang.reflect.Modifier;
 import java.util.*;
 
-import static agent.server.command.executor.script.ExportUtils.listFields;
-import static agent.server.command.executor.script.ExportUtils.listMethods;
+import static agent.server.command.executor.script.ExportUtils.*;
 
 @SuppressWarnings("unchecked")
 public class ExportFuncs {
@@ -54,6 +53,24 @@ public class ExportFuncs {
     public Map<String, Object> clsInfo(Object classOrClassName) throws Exception {
         Class<?> clazz = cls(classOrClassName);
         Map<String, Object> rsMap = new LinkedHashMap<>();
+        ClassLoader loader = clazz.getClassLoader();
+        rsMap.put(
+                "Class",
+                formatClassName(clazz)
+        );
+        rsMap.put(
+                "ClassLoader",
+                loader.toString() + " (id=" + System.identityHashCode(loader) + ")"
+        );
+        Class<?> superClass = clazz.getSuperclass();
+        rsMap.put(
+                "SuperClass",
+                superClass == null ? "" : formatClassName(superClass)
+        );
+        rsMap.put(
+                "Interfaces",
+                listInterfaces(clazz)
+        );
         rsMap.put(
                 "Fields",
                 listFields(clazz)

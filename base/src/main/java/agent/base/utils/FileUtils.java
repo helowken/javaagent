@@ -27,6 +27,14 @@ public class FileUtils {
         return file;
     }
 
+    public static String getPrettyPath(File file) {
+        try {
+            return file.getCanonicalPath();
+        } catch (Exception e) {
+            return file.getAbsolutePath();
+        }
+    }
+
     public static String getAbsolutePath(String path, boolean checkExists) {
         return getAbsoluteFile(path, checkExists).getAbsolutePath();
     }

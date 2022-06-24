@@ -86,7 +86,7 @@ class ExportUtils {
         return sb.toString();
     }
 
-    private static String formatClassName(Class<?> clazz) {
+    static String formatClassName(Class<?> clazz) {
         String className = clazz.getName();
         if (className.startsWith("java.lang.")) {
             int pos = className.lastIndexOf('.');
@@ -94,6 +94,26 @@ class ExportUtils {
                 return className.substring(pos + 1);
         }
         return className;
+    }
+
+    static Collection<String> listInterfaces(Class<?> clazz) {
+        List<Class<?>> clsList = new ArrayList<>();
+        Set<Class<?>> rsSet = new HashSet<>();
+        clsList.add(clazz);
+        Class<?> cls, superCls;
+        Class<?>[] intfs;
+        while (!clsList.isEmpty()) {
+            cls = clsList.remove(0);
+            superCls = cls.getSuperclass();
+            if (superCls != null)
+                clsList.add(superCls);
+            intfs = cls.getInterfaces();
+            if (intfs != null)
+                Collections.addAll(rsSet, intfs);
+        }
+        return rsSet.stream()
+                .map(ExportUtils::formatClassName)
+                .collect(Collectors.toList());
     }
 
     static Collection<String> listMethods(Object o, Predicate<Method> filter) {

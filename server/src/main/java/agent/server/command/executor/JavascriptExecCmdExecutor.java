@@ -11,6 +11,7 @@ import agent.server.command.executor.script.ScriptSessionMgr;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -53,7 +54,7 @@ class JavascriptExecCmdExecutor extends AbstractCmdExecutor {
                             Collectors.toList()
                     );
         else if (o instanceof Map) {
-            Map<Object, Object> rsMap = new HashMap<>();
+            Map<Object, Object> rsMap = new LinkedHashMap<>();
             ((Map) o).forEach(
                     (key, value) -> rsMap.put(
                             format(key),

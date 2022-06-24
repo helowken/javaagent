@@ -71,15 +71,15 @@ class SaveClassCmdExecutor extends AbstractCmdExecutor {
                 clazz -> {
                     String msg = clazz.getName() + " (" + System.identityHashCode(
                             clazz.getClassLoader()
-                    ) + ")";
+                    ) + ") => ";
                     try {
-                        store.save(
+                        msg += store.save(
                                 clazz,
-                                ClassDataRepository.getInstance().getCurrentClassData(clazz)
+                                ClassDataRepository.getInstance().getOriginalClassData(clazz)
                         );
                     } catch (Throwable e) {
                         logger.error("Save class data failed.", e);
-                        msg += " failed by: " + e.getMessage();
+                        msg += "[Error] " + e.getMessage();
                     }
                     msgs.add(msg);
                 }

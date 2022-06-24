@@ -1,9 +1,6 @@
 package agent.server.transform.revision;
 
-import agent.base.utils.IOUtils;
-import agent.base.utils.Logger;
-import agent.base.utils.StringItem;
-import agent.base.utils.Utils;
+import agent.base.utils.*;
 
 import java.io.File;
 
@@ -26,13 +23,14 @@ public class ClassDataStore {
         return new File(dir, relativePath);
     }
 
-    public void save(Class<?> clazz, byte[] data) throws Exception {
+    public String save(Class<?> clazz, byte[] data) throws Exception {
         File file = getClassDataFile(clazz);
         File parentFile = file.getParentFile();
         if (!parentFile.mkdirs() && !parentFile.exists())
             throw new RuntimeException("Create dir failed: " + parentFile.getAbsolutePath());
         logger.debug("Save class {} [loader={}] data to: {}", clazz.getName(), clazz.getClassLoader(), file.getAbsolutePath());
         IOUtils.writeBytes(file, data, false);
+        return FileUtils.getPrettyPath(file);
     }
 
     void remove(Class<?> clazz) {

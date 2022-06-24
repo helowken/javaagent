@@ -41,7 +41,8 @@ public final class StructFields {
     private static final byte T_SET = 26;
     private static final byte T_COLLECTION = 27;
     private static final byte T_TREE_MAP = 28;
-    private static final byte T_MAP = 29;
+    private static final byte T_LINKED_MAP = 29;
+    private static final byte T_MAP = 30;
 
     private static final byte T_POJO_ARRAY = 100;
     static final byte T_POJO = 101;
@@ -81,6 +82,7 @@ public final class StructFields {
         regComplexField(T_SET, newSet());
         regComplexField(T_COLLECTION, newCollection());
         regComplexField(T_TREE_MAP, newTreeMap());
+        regComplexField(T_LINKED_MAP, newLinkedMap());
         regComplexField(T_MAP, newMap());
 
         regComplexField(T_POJO_ARRAY, newPojoArray());
@@ -272,6 +274,10 @@ public final class StructFields {
 
     private static MapStructField newTreeMap() {
         return new MapStructField(T_TREE_MAP, TreeMap.class, TreeMap::new);
+    }
+
+    private static MapStructField newLinkedMap() {
+        return new MapStructField(T_LINKED_MAP, LinkedHashMap.class, LinkedHashMap::new);
     }
 
     private static MapStructField newMap() {
