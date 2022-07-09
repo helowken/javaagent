@@ -1,0 +1,24 @@
+# How to get pid in host
+
+# docker
+docker ps -f [name=xxx|id=xxx] -q
+docker inspect --format '{{.State.Pid}},{{.Path}}'
+
+
+# k3s: (may need k3s prefix)
+# get container id by name
+crictl ps --name=$containerName -q
+# get prcoess pid in container
+crictl inspect -o json $containerId | jq '.info.pid' 
+# check if it is a java process
+crictl inspect -o json $containerId | jq '.info.runtimeSpec.process.args'
+# if PID is a shell:
+pstree -pT $PID (-p: show pid, -T: hide thread ids)
+
+=========================================
+
+# Run tests.
+$ cd test
+$ /* Get pid by methods above. */
+$ ./run_test $pid
+

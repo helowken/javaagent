@@ -84,10 +84,6 @@ public class JvmtiUtils {
         return getLoadedClasses();
     }
 
-    public boolean attachJarToJvm(int pid, String jarPath, String args) {
-        return attachJvm(pid, jarPath, args);
-    }
-
     private native <T> List<T> findObjectsByClassHelper(Class<T> clazz, int maxCount);
 
     private native List<Class<?>> getLoadedClasses();
@@ -98,5 +94,4 @@ public class JvmtiUtils {
 
     private native int getProcId();
 
-    private native boolean attachJvm(int pid, String jarPath, String args);
 }

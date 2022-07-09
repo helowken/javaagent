@@ -3,6 +3,7 @@ package agent.dynamic.attach;
 import agent.base.utils.FileUtils;
 import agent.base.utils.JavaToolUtils;
 import agent.base.utils.Utils;
+import agent.cmdline.args.parse.BooleanOptParser;
 import agent.cmdline.args.parse.CmdParamParser;
 import agent.cmdline.args.parse.CmdParams;
 import agent.cmdline.args.parse.DefaultParamParser;
@@ -26,7 +27,7 @@ class AttachCmdParser extends AbstractCmdParser<CmdParams> {
         return Collections.singletonList(
                 new HelpArg(
                         "NAME_OR_PID[=PORT]",
-                        "Name: java process display name which can be used for: \"jps -l $NAME\".\n" +
+                        "NAME: java process display name which can be used for: \"jps -l $NAME\".\n" +
                                 "PID: pid of the target java process.\n" +
                                 "PORT: port of agent server.",
                         false,
@@ -37,7 +38,11 @@ class AttachCmdParser extends AbstractCmdParser<CmdParams> {
 
     @Override
     protected CmdParamParser<CmdParams> createParamParser() {
-        return DefaultParamParser.DEFAULT;
+        return DefaultParamParser.addMore(
+                new BooleanOptParser(
+                        AttachOptConfigs.getSuite()
+                )
+        );
     }
 
     @Override
@@ -52,6 +57,16 @@ class AttachCmdParser extends AbstractCmdParser<CmdParams> {
         config.setJavaEndpointList(
                 parseJvmEndpoints(
                         params.getArgs()
+                )
+        );
+        config.setLegacy(
+                AttachOptConfigs.isLegacy(
+                        params.getOpts()
+                )
+        );
+        config.setVerbose(
+                AttachOptConfigs.isVerbose(
+                        params.getOpts()
                 )
         );
         return new DefaultCommand(CMD_ATTACH, config);

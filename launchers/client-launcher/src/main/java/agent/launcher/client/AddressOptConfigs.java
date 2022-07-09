@@ -16,7 +16,8 @@ class AddressOptConfigs {
                     KEY_ADDRESS,
                     "Specify server address.\n" +
                             "Multiple addresses are separated by ','.\n" +
-                            "Default: \"" + AddressUtils.defaultAddress + "\""
+                            "Default: \"" + AddressUtils.defaultAddress + "\"\n" +
+                            "It can also be specified using env: " + KEY_ENV_ADDR
             )
     );
 

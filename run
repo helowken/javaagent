@@ -1,6 +1,6 @@
 #!/bin/bash
 
-export AGENT_HOME=$HOME/test_agent
+export AGENT_HOME=/tmp
 export PACKAGING=packaging
 export TAR_NAME=javaagent
 export VERSION=1.0

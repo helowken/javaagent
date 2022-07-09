@@ -1,0 +1,20 @@
+#!/bin/bash
+
+if [ -z $AGENT_HOME ]
+then
+    echo Env "AGENT_HOME" is not set.
+    exit 1
+fi
+
+PID=$1
+
+if [ -z "$PID" ]
+then
+    echo Usage: PID JAR_PATH OPTIONS
+    exit 1
+fi
+
+cp -R $AGENT_HOME /proc/$PID/root/tmp
+
+$AGENT_HOME/server/bin/attach.bin "$@"
+

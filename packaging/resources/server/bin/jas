@@ -6,12 +6,6 @@ source $(dirname $0)/../../common/bin/env
 server_launcher_jar=$lib_dir/agent/server-launcher-$version.jar
 tools_jar=$JAVA_HOME/lib/tools.jar
 
-if [ ! -f $tools_jar ]
-then
-    echo $tools_jar not exists.
-    exit 1
-fi
-
 classpath=$common_lib_base_dir/*:$common_lib_cmd_dir/*:$launcher_dir/*:$common_lib_native_dir/*:$tools_jar
 
 export LD_LIBRARY_PATH=$common_lib_so_dir
